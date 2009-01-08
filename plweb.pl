@@ -17,10 +17,11 @@
 :- use_module(library(error)).
 :- use_module(library(debug)).
 :- use_module(library(apply)).
+:- use_module(library(pldoc/doc_html)).
 
 :- use_module(parms).
 
-:- http_handler(root(.), serve_page, [prefix]).
+:- http_handler(root(.), serve_page, [prefix, priority(10)]).
 
 /** <module> Server for PlDoc wiki pages and SWI-Prolog website
 
@@ -57,15 +58,19 @@ serve_page(Request) :-
 			   ]),
 	absolute_file_name(document_root(.), DocRoot),
 	(   atom_concat(DocRoot, _, File)
-	->  file_name_extension(_, Ext, File),
-	    debug(plweb, 'Serving ~q; ext=~q', [File, Ext]),
-	    serve_file(Ext, File, Request)
+	->  serve_file(File, Request)
 	;   permission_error(access, http_location, Path)
 	).
 	
+%%	serve_file(+File, +Request) is det.
 %%	serve_file(+Extension, +File, +Request) is det.
 %
 %	Serve the requested file.
+
+serve_file(File, Request) :-
+	file_name_extension(_, Ext, File),
+	debug(plweb, 'Serving ~q; ext=~q', [File, Ext]),
+	serve_file(Ext, File, Request).
 
 serve_file('',  DirSpec, Request) :-
 	(   atom_concat(Dir, /, DirSpec)
@@ -75,6 +80,9 @@ serve_file('',  DirSpec, Request) :-
 	    atom_concat(Path, /, NewLocation),
 	    throw(http_reply(moved(NewLocation)))
 	).
+serve_file(txt, File, _Request) :- !,
+	format('Content-type: text/html~n~n'),
+	doc_for_wiki_file(File, current_output, []).
 serve_file(Ext, File, Request) :-	% serve plain files
 	setting(http:served_file_extensions, Exts),
 	memberchk(Ext, Exts), !,
@@ -85,9 +93,11 @@ serve_file(Ext, File, Request) :-	% serve plain files
 %	Serve a directory
 
 serve_directory(Dir, Request) :-
-	concat_atom([Dir, /, 'index.html'], Index),
-	exists_file(Index), !,
-	http_reply_file(Index, [], Request).
+	setting(http:index_files, Indices),
+	member(Index, Indices),
+	concat_atom([Dir, /, Index], File),
+	access_file(File, read), !,
+	serve_file(File, Request).
 serve_directory(Dir, Request) :-
 	setting(http:served_file_extensions, Exts),
 	atom_concat(Dir, '/*', Pattern),

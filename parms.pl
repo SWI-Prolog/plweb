@@ -15,10 +15,21 @@
 	   list(atom),
 	   [ html, gif, png, jpeg ],
 	   'List of extensions that are served as plain files').
+:- setting(http:index_files,
+	   list(atom),
+	   [ 'index.txt', 'index.html' ],
+	   'List of files that provide a directory index').
 :- setting(http:port,
 	   integer,
 	   3040,
 	   'Default port').
+
+
+		 /*******************************
+		 *	     LOCATIONS		*
+		 *******************************/
+
+http:location(pldoc,	root(pldoc),    [priority(10)]).
 
 
 		 /*******************************
