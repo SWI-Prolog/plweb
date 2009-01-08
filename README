@@ -1,0 +1,22 @@
+---+ The new SWI-Prolog web-site
+
+The new web-site will be served by Prolog itself, exploiting the PlDoc
+infrastructure.  Pages will be mostly PlDoc wiki pages.
+
+---++ TODO
+
+    * Embed generating wiki pages into a more general page layout that
+    provides:
+
+	* Styling (CSS)
+	* The SWI-Prolog logo
+	* The right menu.  The right menu can be defined as a wiki file
+	and use divs.
+
+    * Extend wiki includes
+
+	* Support [[assert/1]] to include documentation from the
+	system manual.
+	* Allow naming links
+
+    * Allow Wiki editing?
