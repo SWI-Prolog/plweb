@@ -8,6 +8,7 @@
 	  [ server/0
 	  ]).
 :- use_module(library(pldoc)).
+:- use_module(library(pldoc/doc_wiki)).
 :- use_module(library(pldoc/doc_html)).
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(http/http_dispatch)).
@@ -83,7 +84,13 @@ serve_file('',  DirSpec, Request) :-
 	).
 serve_file(txt, File, _Request) :- !,
 	format('Content-type: text/html~n~n'),
-	doc_for_wiki_file(File, current_output, []).
+	read_file_to_codes(File, String, []),
+	b_setval(pldoc_file, File),
+	call_cleanup((wiki_string_to_dom(String, [], DOM),
+		      reply_html_page([ title('SWI-Prolog')
+				      ],
+				      DOM)),
+		     nb_delete(pldoc_file)).
 serve_file(Ext, File, Request) :-	% serve plain files
 	setting(http:served_file_extensions, Exts),
 	memberchk(Ext, Exts), !,
