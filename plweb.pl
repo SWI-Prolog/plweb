@@ -22,6 +22,11 @@
 
 :- http_handler(root(.), serve_page, [prefix]).
 
+/** <module> Server for PlDoc wiki pages and SWI-Prolog website
+
+@tbd	Turn directory listing into a library.
+*/
+
 		 /*******************************
 		 *            SERVER		*
 		 *******************************/
