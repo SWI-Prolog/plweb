@@ -1,0 +1,9 @@
+---+ This is the new index page
+
+See whether we can include links to predicates such as assert/1, or
+even descriptions:
+
+---++ Here are some list processing predicates:
+
+    * [[member/2]]
+    * [[append/3]]

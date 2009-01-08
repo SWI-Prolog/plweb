@@ -7,6 +7,8 @@
 :- module(plweb,
 	  [ server/0
 	  ]).
+:- use_module(library(pldoc)).
+:- use_module(library(pldoc/doc_html)).
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_path)).
@@ -17,7 +19,6 @@
 :- use_module(library(error)).
 :- use_module(library(debug)).
 :- use_module(library(apply)).
-:- use_module(library(pldoc/doc_html)).
 
 :- use_module(parms).
 
