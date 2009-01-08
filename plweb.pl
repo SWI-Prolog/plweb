@@ -93,7 +93,9 @@ serve_directory(Dir, Request) :-
 	memberchk(path(Path), Request),
 	atom_concat(Dir, /, DirSlash),
 	reply_html_page(title(['Listing for ', Path]),
-			table(\list_entries(Entries, DirSlash))).
+			table([ \up,
+			        \list_entries(Entries, DirSlash)
+			      ])).
 
 has_extension_in(Exts, File) :-
 	file_name_extension(_, Ext, File),
@@ -113,6 +115,10 @@ select_directories([H|T], Dirs, Files) :-
 	    select_directories(T, Dirs, F1)
 	).
 
+
+up -->
+	html(tr([ td(a(href(..), ..))
+		])).
 
 list_entries([], _) --> [].
 list_entries([H|T], Dir) -->
