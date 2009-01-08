@@ -13,7 +13,7 @@
 
 :- setting(http:served_file_extensions,
 	   list(atom),
-	   [ html ],
+	   [ html, gif, png, jpeg ],
 	   'List of extensions that are served as plain files').
 :- setting(http:port,
 	   integer,
