@@ -15,7 +15,7 @@
 
 :- setting(http:served_file_extensions,
 	   list(atom),
-	   [ html, gif, png, jpeg ],
+	   [ html, gif, png, jpeg, css, js ],
 	   'List of extensions that are served as plain files').
 :- setting(http:index_files,
 	   list(atom),
@@ -41,7 +41,8 @@ http:location(pldoc_resource, Path, []) :-
 
 :- html_resource(plweb,
 		 [ virtual(true),
-		   requires([ pldoc_resource('pldoc.css')
+		   requires([ pldoc_resource('pldoc.css'),
+			      root('css/plweb.css')
 			    ])
 		 ]).
 

@@ -105,9 +105,9 @@ serve_wike(String) :-
 	reply_html_page([ title('SWI-Prolog')
 			],
 			[ \html_requires(plweb),
-			  span([ div(class(sidebar), \sidebar),
-				 div(class(content), DOM)
-			       ])
+			  div(class(sidebar), \sidebar),
+			  div(class(content), DOM),
+			  div(class(footer), \server_address)
 			]).
 
 %%	serve_directory(+Dir, +Request) is det.
