@@ -14,14 +14,18 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/html_head)).
 :- use_module(library(http/mimetype)).
 :- use_module(library(http/http_error)).
 :- use_module(library(settings)).
 :- use_module(library(error)).
 :- use_module(library(debug)).
 :- use_module(library(apply)).
+:- use_module(library(readutil)).
+:- use_module(library(lists)).
 
 :- use_module(parms).
+:- use_module(page).
 
 :- http_handler(root(.), serve_page, [prefix, priority(10)]).
 
@@ -83,18 +87,28 @@ serve_file('',  DirSpec, Request) :-
 	    throw(http_reply(moved(NewLocation)))
 	).
 serve_file(txt, File, _Request) :- !,
-	format('Content-type: text/html~n~n'),
 	read_file_to_codes(File, String, []),
 	b_setval(pldoc_file, File),
-	call_cleanup((wiki_string_to_dom(String, [], DOM),
-		      reply_html_page([ title('SWI-Prolog')
-				      ],
-				      DOM)),
+	call_cleanup(serve_wike(String),
 		     nb_delete(pldoc_file)).
 serve_file(Ext, File, Request) :-	% serve plain files
 	setting(http:served_file_extensions, Exts),
 	memberchk(Ext, Exts), !,
 	http_reply_file(File, [], Request).
+
+%%	serve_wiki(+String) is det.
+%
+%	Emit page from wiki content in String.
+
+serve_wike(String) :-
+	wiki_string_to_dom(String, [], DOM),
+	reply_html_page([ title('SWI-Prolog')
+			],
+			[ \html_requires(plweb),
+			  span([ div(class(sidebar), \sidebar),
+				 div(class(content), DOM)
+			       ])
+			]).
 
 %%	serve_directory(+Dir, +Request) is det.
 %

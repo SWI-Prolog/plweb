@@ -8,6 +8,8 @@
 	  [ 
 	  ]).
 :- use_module(library(http/http_path)).
+:- use_module(library(http/http_dispatch)).
+:- use_module(library(http/html_head)).
 :- use_module(library(settings)).
 
 
@@ -29,7 +31,20 @@
 		 *	     LOCATIONS		*
 		 *******************************/
 
-http:location(pldoc,	root(pldoc),    [priority(10)]).
+http:location(pldoc, root(pldoc), [priority(10)]).
+http:location(pldoc_resource, Path, []) :-
+	http_location_by_id(pldoc_resource, Path).
+
+		 /*******************************
+		 *	      RESOURCES		*
+		 *******************************/
+
+:- html_resource(plweb,
+		 [ virtual(true),
+		   requires([ pldoc_resource('pldoc.css')
+			    ])
+		 ]).
+
 
 
 		 /*******************************
