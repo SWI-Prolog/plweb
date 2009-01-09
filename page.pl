@@ -85,6 +85,6 @@ file(Path) -->
 	{ file_base_name(Path, File),
 	  file_name_extension(Label, txt, File)
 	}, !,
-	file(File, [label(Label)]).
+	file(Path, [label(Label)]).
 file(File) -->
 	file(File, []).

@@ -1,0 +1,36 @@
+/*
+    CSS for PlWeb
+*/
+
+div.sidebar
+{ float: left;
+  width: 180px;
+}
+
+div.content
+{ margin-left: 180px;
+}
+
+div.logo
+{ text-align: center; 
+}
+
+div.menu
+{ background-color: #f0f0f0;
+}
+
+div.footer
+{ clear: both;
+  font-size: 80%;
+  text-align: right;
+  margin-top: 10px;
+  border-style: solid;
+  border-width: 0px;
+  border-top-width: 1px;
+  border-color: #a0a0a0;
+}
+
+div.menu ul
+{ list-style-type: none;
+  padding: 0px;
+}
