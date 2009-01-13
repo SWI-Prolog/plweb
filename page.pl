@@ -10,7 +10,8 @@
 	  ]).
 :- use_module(library(http/html_write)).
 :- use_module(library(pldoc/doc_wiki)).
-:- use_module(library(pldoc/doc_html), except([file//1])).
+:- use_module(library(pldoc/doc_html),
+	      except([file//2])).
 
 %%	sidebar//
 %
@@ -77,14 +78,14 @@ prolog_version(Version) :-
 		 *	     RENDERING		*
 		 *******************************/
 
-%%	file(+Path)//
+%%	file(+Path, Options)//
 %
 %	Trap translation of \file(+Path)
 
-file(Path) -->
+file(Path, Options) -->
 	{ file_base_name(Path, File),
 	  file_name_extension(Label, txt, File)
 	}, !,
-	file(Path, [label(Label)]).
-file(File) -->
-	file(File, []).
+	pldoc_html:file(Path, [label(Label)|Options]).
+file(File, Options) -->
+	pldoc_html:file(File, Options).
