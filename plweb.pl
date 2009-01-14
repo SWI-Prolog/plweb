@@ -104,8 +104,11 @@ serve_file(Ext, File, Request) :-	% serve plain files
 
 serve_wike(String) :-
 	wiki_string_to_dom(String, [], DOM),
-	sub_term(h1(_, H1), DOM),
-	reply_html_page([ title(H1)
+	(   sub_term(h1(_, Title), DOM)
+	->  true
+	;   Title = 'SWI-Prolog'
+	),
+	reply_html_page([ title(Title)
 			],
 			DOM).
 
