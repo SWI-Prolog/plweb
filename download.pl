@@ -183,8 +183,8 @@ classsify_file(Path, file(Type, Platform, Version, Name, Path)) :-
 file(bin, macos(OSVersion, CPU), Version) -->
 	"swi-prolog-devel-", long_version(Version), "-",
 	macos_version(OSVersion), "-", 
-	macos_cpu(CPU), "-",
-	"mpkg.zip", !.
+	macos_cpu(CPU),
+	".mpkg.zip", !.
 file(bin, windows(WinType), Version) -->
 	win_type(WinType), "pl",
 	short_version(Version),
