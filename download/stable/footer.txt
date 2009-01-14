@@ -1,0 +1,14 @@
+---++ About the 5.6.x release
+
+The 5.6.x release consolidates the 5.5.x development stream started in
+2004. Highlights:
+
+    * UNICODE character set support
+    * Unbounded integer and rational numbers
+    * New and faster CHR release by Tom Schrijvers et al.
+    * Constraints: clp(fd) (finite domain) by Markus Triska
+    * Constraints: clp(r) (reals) and clp(q) (rationals) by Leslie de Koninck
+    * Many enhancements to the web and notably semantic web libraries
+    * PlDoc: source-documentation system. We run a server serving the manuals and system libraries
+    * PlUnit: a testing framework.
+    * Much more ... 

@@ -1,0 +1,33 @@
+---++ About this release
+
+Development of 5.7.x started in September 2006 and has been revived in
+September 2008. The aim of this development branch is to cleanup the
+virtual machine and compiler while significantly improving the
+performance.
+
+The 5.7.x branch has its own GIT repository at the address below. See
+the general GIT instructions for details.
+
+==
+% git clone git://gollem.science.uva.nl/home/pl/pl-57x.git
+==
+
+Documentation
+
+    * The 5.7.x reference manual 
+
+Status nodes
+
+    * Fully functional, but do not trust it too much
+    * Performance improvement on larger programs is between 10 and 40%,
+    depending on the programming style. Notably the constraint solvers
+    profit significantly. Small programs sometimes show much bigger
+    speedups.
+
+    * Since 5.7.4, updated module system:
+          * Compile : if sufficiently instantiated
+          * Provide real support for :- meta_predicate. Most of
+	  the library code has replaced :- module_transparent
+	  with :- meta_predicate. 
+
+    * Lots of cleanup in naming and modularization of the codebase. 
