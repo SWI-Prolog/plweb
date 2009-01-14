@@ -11,7 +11,8 @@
 :- use_module(library(http/dcg_basics)).
 :- use_module(wiki).
 
-:- http_handler(root(download/devel), download, []).
+:- http_handler(root(download/devel),  download, []).
+:- http_handler(root(download/stable), download, []).
 
 download(Request) :-
 	memberchk(path(Path), Request),
