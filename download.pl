@@ -9,12 +9,18 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/dcg_basics)).
+:- use_module(library(broadcast)).
 :- use_module(wiki).
 
-:- http_handler(root(download/devel),  download, []).
-:- http_handler(root(download/stable), download, []).
+:- http_handler(download(devel),  download_table, []).
+:- http_handler(download(stable), download_table, []).
+:- http_handler(download(.),	  download,	  [prefix, priority(10)]).
 
-download(Request) :-
+%%	download_table(+Request)
+%
+%	Provide a table with possible download targets.
+
+download_table(Request) :-
 	memberchk(path(Path), Request),
 	http_absolute_location(root(download), DownLoadRoot, []),
 	atom_concat(DownLoadRoot, DownLoadDir, Path),
@@ -128,9 +134,14 @@ down_file_href(Path, HREF) :-
 			   [ file_type(directory),
 			     access(read)
 			   ]),
-	atom_concat(Dir, Local, Path),
+	atom_concat(Dir, SlashLocal, Path),
+	delete_leading_slash(SlashLocal, Local),
 	http_absolute_location(download(Local), HREF, []).
 			     
+delete_leading_slash(SlashPath, Path) :-
+	atom_concat(/, Path, SlashPath), !.
+delete_leading_slash(Path, Path).
+
 platform(macos(Name, CPU)) -->
 	html(['MacOSX ', \html_macos_version(Name), ' on ', CPU]).
 platform(windows(win32)) -->
@@ -229,4 +240,22 @@ short_version(version(Major, Minor, Patch)) -->
 	    number_codes(Patch, [D3,D4])
 	}.
 			 
+
+		 /*******************************
+		 *	     DOWNLOAD		*
+		 *******************************/
 	  
+%%	download(+Request) is det.
+%
+%	Actually download a file.
+
+download(Request) :-
+	http_absolute_location(download(.), DownloadRoot, []),
+	memberchk(path(Path), Request),
+	atom_concat(DownloadRoot, Download, Path),
+	absolute_file_name(download(Download),
+			   AbsFile,
+			   [ access(read)
+			   ]),
+	http_reply_file(AbsFile, [], Request),
+	broadcast(download(Download)).
