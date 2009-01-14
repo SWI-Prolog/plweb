@@ -11,7 +11,12 @@
 :- use_module(library(http/dcg_basics)).
 :- use_module(wiki).
 
-:- http_handler(root(download/devel), download, []).
+:- http_handler(root(download/devel),  download, []).
+:- http_handler(root(download/stable), download, []).
+
+%%	download(+Request) is det.
+%
+%	HTTP handler for SWI-Prolog download pages.
 
 download(Request) :-
 	memberchk(path(Path), Request),
@@ -131,7 +136,7 @@ down_file_href(Path, HREF) :-
 	http_absolute_location(download(Local), HREF, []).
 			     
 platform(macos(Name, CPU)) -->
-	html(['MacOSX ', \html_macos_version(Name), ' on ', CPU]).
+	html(['MacOSX ', \html_macos_version(Name), ' on ', b(CPU)]).
 platform(windows(win32)) -->
 	html(['Windows NT/2000/XP/Vista']).
 platform(windows(win64)) -->
