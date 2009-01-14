@@ -1,0 +1,50 @@
+---+ SWI-Prolog Versions
+
+SWI-Prolog is distributed as platform specific package for some popular
+platforms (currently MS-Windows, Linux and MacOS X, contact me if you
+want to produce binaries for other platforms). The source package
+provides NMAKE files for MS-Windows and the GNU autoconf/make suite for
+all other systems. It builds flawlessly on a wide range of 32 and 64 bit
+platforms with an ANSI C compiler.
+
+As of major version 5, we create stable releases with even minor version
+number (5.0.x, 5.2.x, 5.4.x, ...) and beta releases with odd minor
+version number (5.1.x, 5.3.x, ...). The beta versions are released
+frequently, while stable releases are created to consolidate the end of
+a new development. Stable releases are only replaced if really serious
+errors are found that affect many users. GIT access to the development
+is provided. All releases are tagged as VMajor.Minor.Patch Release
+milestones
+
+  $ 5.7.x: Development branch that enhances the virtual machine with
+  two purposes: make it a lot easier to understand and modify and make
+  it a lot faster. Except for the virtual machine, 5.6.x and 5.7.x are
+  kept synchronous. I.e. functionality extensions and bug fixes that are
+  not related to 5.7.x are implemented in 5.6.x which is frequently
+  merged into 5.7.x. V5.7.x is in the GIT repository pl-57x.git.
+  
+  $ 5.6.x: Stable branch providing UNICODE handling, unbounded and
+  rational arithmetic, enhanced Leuven CHR system, clp(q,r), clp(fd),
+  much enhanced (semantic) web libraries, etc.
+  
+  $ 5.5.x: Development branch introducing wide-character (UNICODE,
+  UTF-8) support as well as costraint Logic Programming over Reals
+  (clp(R)).
+  
+  $ 5.4.x: Stable branch providing attributed variables, coroutining,
+  CHR (Constraint Handling Rules), infinite trees (cyclic terms) and
+  many more. This is the last version that runs on Windows 95/98/ME.
+  5.5.x and later require Windows NT, 2000 or XP.
+  
+  $ 5.2.0: Stable version providing multi-threading.
+  
+  $ 5.x.y: Moved to uniform LGPL license. Standard distribution contains
+  core packages: XPCE (graphics), TCP/IP, CGI, SGML/XML/HTML/RDF, HTTP,
+  ODBC and many more.
+  
+  $ 3.4.5: Version prior to integration. Compliant to the ISO Prolog
+  standard (part1).
+  
+  $ 3.2.9: Last pre-ISO version. As 3.3.0 is not fully upward compatible
+  this version will remain on this server for a while. It will not be
+  maintained (by us) 

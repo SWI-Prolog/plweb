@@ -1,1 +1,17 @@
----+ Downloads
+---+ SWI-Prolog downloads
+
+---++ Availabe versions
+
+    * [[Stable release][</download/stable>]]
+    Sources and executables for MS-Windows, Linux and MacOS X
+    version *|5.6.x|*
+    * [[Development release][</download/devel>]]
+    Sources and executables for MS-Windows and MacOS X
+    version *|5.7.x|*
+    * Some popular [[old versions][</download/old>]]
+    * Other files from FTP archive, [[GIT access][git.txt]], browse GIT
+    repository 
+
+---++ Read more about
+
+    * Available SWI-Prolog [[versions][versions.txt]]
