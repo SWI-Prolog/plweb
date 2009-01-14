@@ -8,6 +8,7 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_path)).
+:- use_module(library(http/http_parameters)).
 :- use_module(library(http/dcg_basics)).
 :- use_module(library(broadcast)).
 :- use_module(wiki).
@@ -21,6 +22,9 @@
 %	Provide a table with possible download targets.
 
 download_table(Request) :-
+	http_parameters(Request,
+			[ show(Show, [oneof([all,latest]), default(latest)])
+			]),
 	memberchk(path(Path), Request),
 	http_absolute_location(root(download), DownLoadRoot, []),
 	atom_concat(DownLoadRoot, DownLoadDir, Path),
@@ -29,15 +33,15 @@ download_table(Request) :-
 			   [ file_type(directory),
 			     access(read)
 			   ]),
-	list_downloads(Dir).
+	list_downloads(Dir, [show(Show)]).
 
 %%	list_downloads(+Directory)
 
-list_downloads(Dir) :-
+list_downloads(Dir, Options) :-
 	reply_html_page(title('SWI-Prolog downloads'),
 			[ \wiki(Dir, 'header.txt'),
 			  table(class(downloads),
-				\download_table(Dir)),
+				\download_table(Dir, Options)),
 			  \wiki(Dir, 'footer.txt')
 			]).
 
@@ -50,19 +54,20 @@ wiki(Dir, File) -->
 wiki(_, _) -->
 	[].
 
-download_table(Dir) -->
-	list_files(Dir, bin, 'Binaries'),
-	list_files(Dir, src, 'Sources'),
-	list_files(Dir, doc, 'Documentation').
+download_table(Dir, Options) -->
+	list_files(Dir, bin, 'Binaries',      Options),
+	list_files(Dir, src, 'Sources',       Options),
+	list_files(Dir, doc, 'Documentation', Options).
 
-list_files(Dir, SubDir, Label) -->
+list_files(Dir, SubDir, Label, Options) -->
 	{ concat_atom([Dir, /, SubDir], Directory),
 	  atom_concat(Directory, '/*', Pattern),
 	  expand_file_name(Pattern, Files),
-	  classsify_files(Files, Classified)
+	  classsify_files(Files, Classified),
+	  sort_files(Classified, Sorted, Options)
 	},
 	html(tr(td([class(header), colspan(3)], Label))),
-	list_files(Classified).
+	list_files(Sorted).
 	
 list_files([]) --> [].
 list_files([H|T]) -->
@@ -240,6 +245,15 @@ short_version(version(Major, Minor, Patch)) -->
 	    number_codes(Patch, [D3,D4])
 	}.
 			 
+%%	sort_files(+In, -Out, +Options)
+%
+%	Options:
+%	
+%	    * show(Show)
+%	    One of =all= or =latest=.
+
+sort_files(In, In, _).
+
 
 		 /*******************************
 		 *	     DOWNLOAD		*
