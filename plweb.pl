@@ -26,6 +26,7 @@
 
 :- use_module(parms).
 :- use_module(page).
+:- use_module(download).
 
 :- http_handler(root(.), serve_page, [prefix, priority(10)]).
 

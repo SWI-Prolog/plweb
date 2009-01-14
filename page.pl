@@ -9,9 +9,7 @@
 	    server_address//0
 	  ]).
 :- use_module(library(http/html_write)).
-:- use_module(library(pldoc/doc_wiki)).
-:- use_module(library(pldoc/doc_html),
-	      except([file//2])).
+:- use_module(wiki).
 
 %%	sidebar//
 %
@@ -38,10 +36,7 @@ menu -->
 menu(DOM) :-
 	b_getval(pldoc_file, OrgFile),
 	menu_file(OrgFile, MenuFile), !,
-	read_file_to_codes(MenuFile, String, []),
-	b_setval(pldoc_file, MenuFile),
-	call_cleanup(wiki_string_to_dom(String, [], DOM),
-		     b_setval(pldoc_file, OrgFile)).
+	wiki_file_to_dom(MenuFile, DOM).
 menu([]).
 
 menu_file(Base, MenuFile) :-
@@ -73,20 +68,3 @@ prolog_version(Version) :-
 	current_prolog_flag(version_data, swi(Ma,Mi,Pa,_)),
 	format(atom(Version), '~w.~w.~w', [Ma,Mi,Pa]).
 
-
-		 /*******************************
-		 *	     RENDERING		*
-		 *******************************/
-
-%%	file(+Path, Options)//
-%
-%	Trap translation of \file(+Path)
-
-file(Path, Options) -->
-	{ \+ option(label(_), Options),
-	  file_base_name(Path, File),
-	  file_name_extension(Label, txt, File)
-	}, !,
-	pldoc_html:file(Path, [label(Label)|Options]).
-file(File, Options) -->
-	pldoc_html:file(File, Options).

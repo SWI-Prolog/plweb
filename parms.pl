@@ -34,6 +34,8 @@
 http:location(pldoc, root(pldoc), [priority(10)]).
 http:location(pldoc_resource, Path, []) :-
 	http_location_by_id(pldoc_resource, Path).
+http:location(download, root(download), []).
+http:location(icons,    root(icons), []).
 
 		 /*******************************
 		 *	      RESOURCES		*
@@ -62,3 +64,4 @@ http:location(pldoc_resource, Path, []) :-
    ).
 
 user:file_search_path(document_root, plweb(www)).
+user:file_search_path(download,	     plweb(download)).
