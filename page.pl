@@ -83,7 +83,8 @@ prolog_version(Version) :-
 %	Trap translation of \file(+Path)
 
 file(Path, Options) -->
-	{ file_base_name(Path, File),
+	{ \+ option(label(_), Options),
+	  file_base_name(Path, File),
 	  file_name_extension(Label, txt, File)
 	}, !,
 	pldoc_html:file(Path, [label(Label)|Options]).
