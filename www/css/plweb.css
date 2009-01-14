@@ -1,5 +1,7 @@
 /*
     CSS for PlWeb
+   For a tutorial on CSS, see
+   <http://www.htmldog.com/guides/cssbeginner/selectors/>
 */
 
 div.sidebar
@@ -33,4 +35,24 @@ div.footer
 div.menu ul
 { list-style-type: none;
   padding: 0px;
+}
+
+table.downloads
+{ margin-left: auto;
+  margin-right: auto;
+  border-width: 1px;
+  border-style: outset;
+  border-color: black;
+}
+
+table.downloads td
+{ border-width: 1px;
+  border-style: inset;
+  border-color: black;
+}
+
+table.downloads td.header
+{ text-align: center;
+  background-color: yellow;
+  font-weight: bold;
 }

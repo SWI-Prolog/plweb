@@ -21,10 +21,14 @@
 
 wiki_file_to_dom(File, DOM) :-
 	read_file_to_codes(File, String, []),
-	b_getval(pldoc_file, OrgFile),
-	b_setval(pldoc_file, File),
-	call_cleanup(wiki_string_to_dom(String, [], DOM),
-		     b_setval(pldoc_file, OrgFile)).
+	(   nb_current(pldoc_file, OrgFile)
+	->  b_setval(pldoc_file, File),
+	    call_cleanup(wiki_string_to_dom(String, [], DOM),
+			 b_setval(pldoc_file, OrgFile))
+	;   b_setval(pldoc_file, File),
+	    call_cleanup(wiki_string_to_dom(String, [], DOM),
+			 nb_delete(pldoc_file))
+	).
 
 
 		 /*******************************

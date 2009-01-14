@@ -23,6 +23,7 @@
 :- use_module(library(apply)).
 :- use_module(library(readutil)).
 :- use_module(library(lists)).
+:- use_module(library(occurs)).
 
 :- use_module(parms).
 :- use_module(page).
@@ -103,13 +104,10 @@ serve_file(Ext, File, Request) :-	% serve plain files
 
 serve_wike(String) :-
 	wiki_string_to_dom(String, [], DOM),
-	reply_html_page([ title('SWI-Prolog')
+	sub_term(h1(_, H1), DOM),
+	reply_html_page([ title(H1)
 			],
-			[ \html_requires(plweb),
-			  div(class(sidebar), \sidebar),
-			  div(class(content), DOM),
-			  div(class(footer), \server_address)
-			]).
+			DOM).
 
 %%	serve_directory(+Dir, +Request) is det.
 %

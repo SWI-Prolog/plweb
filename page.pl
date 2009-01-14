@@ -9,7 +9,24 @@
 	    server_address//0
 	  ]).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/html_head)).
 :- use_module(wiki).
+
+%	user:body(Body)//
+%
+%	Redefine body behaviour
+
+:- multifile
+	user:body//1.
+
+user:body(Body) -->
+	html(body([ \html_requires(plweb),
+		    div(class(sidebar), \sidebar),
+		    div(class(content), Body),
+		    div(class(footer), \server_address)
+
+		  ])).
+
 
 %%	sidebar//
 %
@@ -34,8 +51,14 @@ menu -->
 	html(DOM).
 
 menu(DOM) :-
-	b_getval(pldoc_file, OrgFile),
+	nb_current(pldoc_file, OrgFile),
 	menu_file(OrgFile, MenuFile), !,
+	wiki_file_to_dom(MenuFile, DOM).
+menu(DOM) :-
+	absolute_file_name(document_root('menu.txt'),
+			   MenuFile,
+			   [ access(read)
+			   ]),
 	wiki_file_to_dom(MenuFile, DOM).
 menu([]).
 
@@ -47,6 +70,7 @@ menu_file(Base, MenuFile) :-
 parent(Base, Base).
 parent(Base, Parent) :-
 	file_directory_name(Base, Dir),
+	Dir \== Base,
 	parent(Dir, Parent).
 
 
