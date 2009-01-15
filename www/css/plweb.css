@@ -51,8 +51,16 @@ table.downloads td
   border-color: black;
 }
 
-table.downloads td.header
+table.downloads th
 { text-align: center;
   background-color: yellow;
   font-weight: bold;
+  border-width: 1px;
+  border-style: inset;
+  border-color: black;
+}
+
+td.toggle
+{ text-align: right;
+  font-size: 80%;
 }

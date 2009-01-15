@@ -40,7 +40,7 @@ download_table(Request) :-
 			   [ file_type(directory),
 			     access(read)
 			   ]),
-	list_downloads(Dir, [show(Show)]).
+	list_downloads(Dir, [show(Show), request(Request)]).
 
 %%	list_downloads(+Directory)
 
@@ -64,17 +64,50 @@ wiki(_, _) -->
 download_table(Dir, Options) -->
 	list_files(Dir, bin, 'Binaries',      Options),
 	list_files(Dir, src, 'Sources',       Options),
-	list_files(Dir, doc, 'Documentation', Options).
+	list_files(Dir, doc, 'Documentation', Options),
+	toggle_show(Options).
+
+%%	toggle_show(+Options) is det.
+%
+%	Add a toggle to switch between   showing only the latest version
+%	and all versions.
+
+toggle_show(Options) -->
+	{ option(request(Request), Options),
+	  memberchk(path(Path), Request), !,
+	  file_base_name(Path, MySelf),
+	  (   option(show(all), Options)
+	  ->  NewShow = latest
+	  ;   NewShow = all
+	  )
+	},
+	html(tr(td([class(toggle), colspan(3)],
+		   a(href(MySelf+'?show='+NewShow),
+		     [ 'Show ', NewShow, ' files' ])))).
+toggle_show(_) -->
+	[].
+
+%%	list_files(+Dir, +SubDir, +Label, +Options) is det.
+%
+%	Create table rows for all  files   in  Dir/SubDir.  If files are
+%	present, emit a =tr= with Label  and   a  =tr= row for each each
+%	matching file.  Options are:
+%	
+%	    * show(Show)
+%	    One of =all= or =latest= (default).
 
 list_files(Dir, SubDir, Label, Options) -->
 	{ concat_atom([Dir, /, SubDir], Directory),
 	  atom_concat(Directory, '/*', Pattern),
 	  expand_file_name(Pattern, Files),
 	  classsify_files(Files, Classified),
-	  sort_files(Classified, Sorted, Options)
+	  sort_files(Classified, Sorted, Options),
+	  Sorted \== [], !
 	},
-	html(tr(td([class(header), colspan(3)], Label))),
+	html(tr(th(colspan(3), Label))),
 	list_files(Sorted).
+list_files(_, _, _, _) -->
+	[].
 	
 list_files([]) --> [].
 list_files([H|T]) -->
@@ -88,10 +121,12 @@ list_file(File) -->
 		])).
 
 file_icon(file(Type, PlatForm, _, _, _)) -->
-	{ icon_for_file(Type, PlatForm, Icon, Alt),
+	{ icon_for_file(Type, PlatForm, Icon, Alt), !,
 	  http_absolute_location(icons(Icon), HREF, [])
 	},
 	html(img([src(HREF), alt(Alt)])).
+file_icon(_) -->
+	html(?).			% no defined icon
 
 icon_for_file(bin, linux(_),	  
 	      'linux32.gif', 'Linux RPM').
