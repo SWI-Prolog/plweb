@@ -31,11 +31,9 @@
 		 *	     LOCATIONS		*
 		 *******************************/
 
-http:location(pldoc, root(pldoc), [priority(10)]).
-http:location(pldoc_resource, Path, []) :-
-	http_location_by_id(pldoc_resource, Path).
+http:location(pldoc,	root(pldoc),    [priority(10)]).
 http:location(download, root(download), []).
-http:location(icons,    root(icons), []).
+http:location(icons,    root(icons),    []).
 
 		 /*******************************
 		 *	      RESOURCES		*
@@ -43,7 +41,7 @@ http:location(icons,    root(icons), []).
 
 :- html_resource(plweb,
 		 [ virtual(true),
-		   requires([ pldoc_resource('pldoc.css'),
+		   requires([ pldoc_css,
 			      root('css/plweb.css')
 			    ])
 		 ]).
