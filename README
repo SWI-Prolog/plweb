@@ -5,18 +5,17 @@ infrastructure.  Pages will be mostly PlDoc wiki pages.
 
 ---++ TODO
 
-    * Embed generating wiki pages into a more general page layout that
-    provides:
-
-	* Styling (CSS)
-	* The SWI-Prolog logo
-	* The right menu.  The right menu can be defined as a wiki file
-	and use divs.
-
-    * Extend wiki includes
-
-	* Support [[assert/1]] to include documentation from the
-	system manual.
-	* Allow naming links
-
+    * Serve wiki pages as .html (allow for mirroring)
+    * Provide last-modified support for wiki pages
+    * Support FAQ
+    * Support bug-reporting
+    * Link to GIT browsing
+    * Downloads
+	* Allow reporting only last or all versions
+	* Use thread-pool for scalability
+	* Support download statistics
+	    * By version, platform/src
+	    * By time period
     * Allow Wiki editing?
+	* Local-host only (like PlDoc)?
+	* Wiki-style
