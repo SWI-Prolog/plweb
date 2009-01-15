@@ -8,17 +8,27 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_path)).
+:- use_module(library(http/http_parameters)).
 :- use_module(library(http/dcg_basics)).
+:- use_module(library(broadcast)).
 :- use_module(wiki).
-
-:- http_handler(root(download/devel),  download, []).
-:- http_handler(root(download/stable), download, []).
 
 %%	download(+Request) is det.
 %
 %	HTTP handler for SWI-Prolog download pages.
 
-download(Request) :-
+:- http_handler(download(devel),  download_table, []).
+:- http_handler(download(stable), download_table, []).
+:- http_handler(download(.),	  download,	  [prefix, priority(10)]).
+
+%%	download_table(+Request)
+%
+%	Provide a table with possible download targets.
+
+download_table(Request) :-
+	http_parameters(Request,
+			[ show(Show, [oneof([all,latest]), default(latest)])
+			]),
 	memberchk(path(Path), Request),
 	http_absolute_location(root(download), DownLoadRoot, []),
 	atom_concat(DownLoadRoot, DownLoadDir, Path),
@@ -27,15 +37,15 @@ download(Request) :-
 			   [ file_type(directory),
 			     access(read)
 			   ]),
-	list_downloads(Dir).
+	list_downloads(Dir, [show(Show)]).
 
 %%	list_downloads(+Directory)
 
-list_downloads(Dir) :-
+list_downloads(Dir, Options) :-
 	reply_html_page(title('SWI-Prolog downloads'),
 			[ \wiki(Dir, 'header.txt'),
 			  table(class(downloads),
-				\download_table(Dir)),
+				\download_table(Dir, Options)),
 			  \wiki(Dir, 'footer.txt')
 			]).
 
@@ -48,19 +58,20 @@ wiki(Dir, File) -->
 wiki(_, _) -->
 	[].
 
-download_table(Dir) -->
-	list_files(Dir, bin, 'Binaries'),
-	list_files(Dir, src, 'Sources'),
-	list_files(Dir, doc, 'Documentation').
+download_table(Dir, Options) -->
+	list_files(Dir, bin, 'Binaries',      Options),
+	list_files(Dir, src, 'Sources',       Options),
+	list_files(Dir, doc, 'Documentation', Options).
 
-list_files(Dir, SubDir, Label) -->
+list_files(Dir, SubDir, Label, Options) -->
 	{ concat_atom([Dir, /, SubDir], Directory),
 	  atom_concat(Directory, '/*', Pattern),
 	  expand_file_name(Pattern, Files),
-	  classsify_files(Files, Classified)
+	  classsify_files(Files, Classified),
+	  sort_files(Classified, Sorted, Options)
 	},
 	html(tr(td([class(header), colspan(3)], Label))),
-	list_files(Classified).
+	list_files(Sorted).
 	
 list_files([]) --> [].
 list_files([H|T]) -->
@@ -132,9 +143,14 @@ down_file_href(Path, HREF) :-
 			   [ file_type(directory),
 			     access(read)
 			   ]),
-	atom_concat(Dir, Local, Path),
+	atom_concat(Dir, SlashLocal, Path),
+	delete_leading_slash(SlashLocal, Local),
 	http_absolute_location(download(Local), HREF, []).
 			     
+delete_leading_slash(SlashPath, Path) :-
+	atom_concat(/, Path, SlashPath), !.
+delete_leading_slash(Path, Path).
+
 platform(macos(Name, CPU)) -->
 	html(['MacOSX ', \html_macos_version(Name), ' on ', b(CPU)]).
 platform(windows(win32)) -->
@@ -233,4 +249,31 @@ short_version(version(Major, Minor, Patch)) -->
 	    number_codes(Patch, [D3,D4])
 	}.
 			 
+%%	sort_files(+In, -Out, +Options)
+%
+%	Options:
+%	
+%	    * show(Show)
+%	    One of =all= or =latest=.
+
+sort_files(In, In, _).
+
+
+		 /*******************************
+		 *	     DOWNLOAD		*
+		 *******************************/
 	  
+%%	download(+Request) is det.
+%
+%	Actually download a file.
+
+download(Request) :-
+	http_absolute_location(download(.), DownloadRoot, []),
+	memberchk(path(Path), Request),
+	atom_concat(DownloadRoot, Download, Path),
+	absolute_file_name(download(Download),
+			   AbsFile,
+			   [ access(read)
+			   ]),
+	http_reply_file(AbsFile, [], Request),
+	broadcast(download(Download)).

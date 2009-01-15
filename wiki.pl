@@ -42,9 +42,35 @@ wiki_file_to_dom(File, DOM) :-
 file(Path, Options) -->
 	{ \+ option(label(_), Options),
 	  file_base_name(Path, File),
-	  file_name_extension(Label, txt, File)
-	}, !,
-	pldoc_html:file(Path, [label(Label)|Options]).
+	  file_name_extension(Label, txt, File), !,
+	  file_href(Options, Options1)
+	},
+	pldoc_html:file(Path, [label(Label)|Options1]).
 file(File, Options) -->
-	pldoc_html:file(File, Options).
+	{ file_href(Options, Options1)
+	},
+	pldoc_html:file(File, Options1).
 
+
+file_href(Options0, Options) :-
+	\+ ( nb_current(pldoc_file, CFile), 
+	     CFile \== []
+	   ),
+	option(absolute_path(Path), Options0),
+	absolute_file_name(document_root(.),
+			   DocRoot,
+			   [ file_type(directory),
+			     access(read)
+			   ]),
+	atom_concat(DocRoot, DocLocal, Path), !,
+	ensure_leading_slash(DocLocal, HREF),
+	Options = [ href(HREF) | Options0 ].
+file_href(Options, Options).
+
+ensure_leading_slash(Path, SlashPath) :-
+	(   sub_atom(Path, 0, _, _, /)
+	->  SlashPath = Path
+	;   atom_concat(/, Path, SlashPath)
+	).
+	    
+	
