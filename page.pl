@@ -24,7 +24,6 @@ user:body(Body) -->
 		    div(class(sidebar), \sidebar),
 		    div(class(content), Body),
 		    div(class(footer), \server_address)
-
 		  ])).
 
 
