@@ -11,6 +11,9 @@
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/dcg_basics)).
 :- use_module(library(broadcast)).
+:- use_module(library(pairs)).
+:- use_module(library(lists)).
+:- use_module(library(apply)).
 :- use_module(wiki).
 
 %%	download(+Request) is det.
@@ -251,12 +254,50 @@ short_version(version(Major, Minor, Patch)) -->
 			 
 %%	sort_files(+In, -Out, +Options)
 %
+%	Sort files by type and version. Type: linux, windows, mac, src,
+%	doc.  Versions: latest first.
+%	
 %	Options:
 %	
 %	    * show(Show)
 %	    One of =all= or =latest=.
 
-sort_files(In, In, _).
+sort_files(In, Out, Options) :-
+	map_list_to_pairs(map_type, In, Typed),
+	keysort(Typed, TSorted),
+	group_pairs_by_key(TSorted, TGrouped),
+	maplist(sort_group_by_version, TGrouped, TGroupSorted),
+	(   option(show(all), Options)
+	->  pairs_values(TGroupSorted, TValues),
+	    flatten(TValues, Out)
+	;   take_latest(TGroupSorted, Out)
+	).
+
+map_type(File, Tag) :-
+	File = file(Type, Platform, _Version, _Name, _Path),
+	type_tag(Type, Platform, Tag).
+
+type_tag(bin, linux(A,B), tag(0, linux(A,B))) :- !.
+type_tag(bin, windows(A), tag(1, windows(A))) :- !.
+type_tag(bin, macos(A,B), tag(2, macos(A,B))) :- !.
+type_tag(src, Format,     tag(3, Format)) :- !.
+type_tag(doc, Format,     tag(4, Format)) :- !.
+type_tag(X,   Y,	  tag(5, X-Y)).
+
+sort_group_by_version(Tag-Files, Tag-Sorted) :-
+	map_list_to_pairs(tag_version, Files, TFiles),
+	keysort(TFiles, TRevSorted),
+	pairs_values(TRevSorted, RevSorted),
+	reverse(RevSorted, Sorted).
+
+tag_version(File, Version) :-
+	File = file(_,_,Version,_,_).
+
+take_latest([], []).
+take_latest([_-[H|_]|T0], [H|T]) :- !,
+	take_latest(T0, T).
+take_latest([_-[]|T0], T) :- !,		% emty set
+	take_latest(T0, T).
 
 
 		 /*******************************
