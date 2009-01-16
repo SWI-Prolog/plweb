@@ -64,10 +64,10 @@ as for commercial applications. See our download statistics.
     * Cross-Referencer. gxref/0 provides a graphical front-end for the
     extensible Prolog cross-referencer (xref).
 
-    * *Portable* to many platforms, including almost all Unix/Linux
-    platforms, Windows (NT/2000/XP/Vista, including 64-bit editions),
-    MacOS X (using X11 for graphics) and many more. Both 32-bits and
-    64-bits hardware is supported. Sources are plain C99, configured
+    * *Portable* to many platforms, including almost all *|Unix/Linux|*
+    platforms, *Windows* (NT/2000/XP/Vista, including 64-bit editions),
+    *|MacOS X|* (using X11 for graphics) and many more. Both 32-bits and
+    *|64-bits|* hardware is supported. Sources are plain C99, configured
     automatically using GNU autoconf (configure, make, make install).
 
     * *UNICODE* character set handling internal. Ideal for web- and
@@ -88,25 +88,25 @@ as for commercial applications. See our download statistics.
     others.
 
     * Bundled with interface libraries for *Java* (JPL), *ODBC*,
-    *|TCP/IP|* sockets, *SSL*, CGI form handling, etc. Check the
+    *|TCP/IP|* sockets, *SSL*, *CGI* form handling, etc. Check the
     packages.
 
-    * Multi-threaded Web server ( HTTP) library with extensive libraries
-    for generation HTML, HTTP authorization, session management,
-    exchanging JSON (used by many AJAX widgets), etc.
+    * Multi-threaded Web server (*HTTP*) library with extensive libraries
+    for generation *HTML*, HTTP authorization, session management,
+    exchanging *JSON* (used by many *AJAX* widgets), etc.
 
-    * Fast and flexible libraries for parsing SGML (HTML) and XML, RDF,
-    store and query the RDF triple model. A graphical editor for
+    * Fast and flexible libraries for parsing *SGML* (HTML) and *XML*, *RDF*,
+    store and query the RDF _|triple model|_. A graphical editor for
     RDF/RDFS and OWL models called Triple20 is distributed seperately.
 
-    * Literate programming support through PlDoc. Provides integrated
+    * *|Literate programming|* support through PlDoc. Provides integrated
     view on manual and application documentation and producing LaTeX
     documentation for your application.
 
-    * Unit testing support through PlUnit.
+    * *|Unit testing|* support through PlUnit.
 
-    * Regular binary distributions for most popular platforms (Windows
+    * Regular *|binary distributions|* for most popular platforms (Windows
     (32/64 bits), Linux (32 bits) and MacOS X (32 bits)).
 
-    * Regular distribution of the full source packages. The sources are
-    also accesible through GIT. 
+    * Regular distribution of the *|full source|* packages. The sources are
+    also accesible through [[GIT][<gitweb:>]]. 
