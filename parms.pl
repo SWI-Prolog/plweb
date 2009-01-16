@@ -10,6 +10,7 @@
 :- use_module(library(http/http_path)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/html_head)).
+:- use_module(library(www_browser)).
 :- use_module(library(settings)).
 
 
@@ -34,6 +35,20 @@
 http:location(pldoc,	root(pldoc),    [priority(10)]).
 http:location(download, root(download), []).
 http:location(icons,    root(icons),    []).
+
+
+		 /*******************************
+		 *	   EXTERNAL URLS	*
+		 *******************************/
+
+:- multifile
+	user:url_path/2.
+
+user:url_path(dmoz,	'http://dmoz.org').
+user:url_path(dmoz_pl,	dmoz('Computers/Programming/Languages/Prolog/Implementations/')).
+user:url_path(ffii, 	'http://swpat.ffii.org/index.en.html').
+user:url_path(fsf, 	'http://www.fsf.org').
+
 
 		 /*******************************
 		 *	      RESOURCES		*
