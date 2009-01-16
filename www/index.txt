@@ -9,24 +9,25 @@ website][<ffii:>]] as well as the [[FSF website][<fsf:>]].
 ---++ And now about SWI-Prolog ...
 
 [[coolstar.gif;align="right",alt="Open directory cool site"][<dmoz_pl:>]]
-SWI-Prolog offers a comprehensive Free Software Prolog environment,
-licensed under the Lesser GNU Public License. Together with its graphics
-toolkit XPCE, its development started in 1987 and has been driven by the
-needs for real-world applications. These days SWI-Prolog is widely used
-in research and education as well as for commercial applications. See
-our download statistics.
+SWI-Prolog offers a comprehensive [[Free Software][<fsf:>]] Prolog
+environment, licensed under the Lesser GNU Public License. Together with
+its graphics toolkit [[XPCE][<pkg:xpce/>]], its development started in
+1987 and has been driven by the needs for *|real-world applications|*.
+These days SWI-Prolog is widely used in research and education as well
+as for commercial applications. See our download statistics.
 
----++ SWI-Prolog 5.6.x most important features are:
+---++ SWI-Prolog's most important features are
 
-    * Kernel licensed under the LGPL. Prolog libraries are distributed
-    under the GPL with an additional statement that allows for use in
-    proprietary applications. Details can be found on the license page.
+    * Kernel licensed under the [[LGPL][<lgpl:>]]. Prolog libraries are
+    distributed under the [[GPL][<gpl:>]] with an additional statement
+    that allows for use in proprietary applications. Details can be
+    found on the license.txt page.
 
-    * Very fast compilation.
+    * Very *fast* compilation.
 
-    * Robust.
+    * *Robust*.
 
-    * Small. The full development environment, including graphics,
+    * *Small*. The full development environment, including graphics,
     libraries and many interface packages requires approx. 28MB
     harddisk. The non-graphical kernel is about 1.1 MB, the graphics
     library adds about 1.2 MB to the image. The kernel can be in a

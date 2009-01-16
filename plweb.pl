@@ -9,7 +9,6 @@
 	  ]).
 :- use_module(library(pldoc)).
 :- use_module(library(pldoc/doc_wiki)).
-:- use_module(library(pldoc/doc_html)).
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_path)).
@@ -28,6 +27,7 @@
 :- use_module(parms).
 :- use_module(page).
 :- use_module(download).
+:- use_module(wiki).
 
 :- http_handler(root(.), serve_page, [prefix, priority(10)]).
 

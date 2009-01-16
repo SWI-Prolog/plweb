@@ -44,10 +44,16 @@ http:location(icons,    root(icons),    []).
 :- multifile
 	user:url_path/2.
 
+user:url_path(swi,	'http://www.swi-prolog.org').
+user:url_path(pkg,	swi(packages)).
 user:url_path(dmoz,	'http://dmoz.org').
 user:url_path(dmoz_pl,	dmoz('Computers/Programming/Languages/Prolog/Implementations/')).
 user:url_path(ffii, 	'http://swpat.ffii.org/index.en.html').
 user:url_path(fsf, 	'http://www.fsf.org').
+user:url_path(gpl, 	fsf('copyleft/gpl.html')).
+user:url_path(lgpl, 	fsf('copyleft/lesser.html')).
+user:url_path(wordnet, 	'http://www.cogsci.princeton.edu/~wn/').
+user:url_path(gmp,	'http://www.swox.com/gmp/').
 
 
 		 /*******************************
