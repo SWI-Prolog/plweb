@@ -30,13 +30,13 @@ already exist and are being used actively.
 	the stack. The stack view includes choicepoints and visualises
 	the effect of executing the cut!
 
-        * The Execution Profiler provides a graphical overview of call-
-	and time statistics.
+        * The [[Execution Profiler][profile.txt]] provides a graphical
+	overview of call- and time statistics.
 
-        * The Cross Referencer analysis dependencies in the loaded
-	program and points out undefined and unused code. It can also
-	generate module headers and import directives based on the
-	analysis.
+        * The [[Cross Referencer][gxref.txt]] analysis dependencies in
+	the loaded program and points out undefined and unused code. It
+	can also generate module headers and import directives based on
+	the analysis.
 
         * The Prolog Navigator provides an explorer-like view on a
 	directory holding Prolog sourcefiles. Sourcesfiles can be
