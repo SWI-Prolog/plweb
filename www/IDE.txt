@@ -38,18 +38,19 @@ already exist and are being used actively.
 	can also generate module headers and import directives based on
 	the analysis.
 
-        * The Prolog Navigator provides an explorer-like view on a
-	directory holding Prolog sourcefiles. Sourcesfiles can be
-	expanded in the tree, showing predicates, exports, XPCE classes
-	and methods. Can be used to edit entities or enable debugging
-	them (spy). 
+        * The [[Prolog Navigator][navigator.txt]] provides an
+	explorer-like view on a directory holding Prolog sourcefiles.
+	Sourcesfiles can be expanded in the tree, showing predicates,
+	exports, XPCE classes and methods. Can be used to edit entities
+	or enable debugging them (spy). 
 
-The Windows Prolog console plwin.exe provides a menu to access many of
-these facilities directly.
+The Windows Prolog console *|plwin.exe|* provides a menu to access many
+of these facilities directly.
 
 We intend to allow the user selecting preferred tools and combining them
 with whatever they like. In other words, we don't want to force you into
-using a bulky all-in-one closed toolkit. See below
+using a bulky all-in-one closed toolkit.
+
 
 ---++ On Windows: using [[SWI-Prolog-Editor][<swieditor:>]]
 
