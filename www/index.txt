@@ -78,7 +78,7 @@ our download statistics.
     * Multi-threading support: run multiple pre-emptively scheduled
     prolog engines on the same database.
 
-    * attributed variables, coroutining (freeze/1, when/2, dif/2),
+    * attributed variables, coroutining (freeze/2, when/2, dif/2),
     global variables, cyclic terms. Flag-controlled handling of
     occurs-check (on/off/error).
 

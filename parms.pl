@@ -62,4 +62,5 @@ http:location(icons,    root(icons),    []).
    ).
 
 user:file_search_path(document_root, plweb(www)).
+user:file_search_path(icons, 	     document_root(icons)).
 user:file_search_path(download,	     plweb(download)).
