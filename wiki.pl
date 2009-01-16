@@ -13,6 +13,7 @@
 
 :- use_module(library(pldoc/doc_wiki)).
 :- use_module(library(readutil)).
+:- use_module(library(option)).
 
 
 %%	wiki_file_to_dom(+File, +DOM) is det.
