@@ -66,6 +66,7 @@ user:url_path(pl_gmane,  gmane('gmane.comp.ai.prolog.swi')).
 user:url_path(chr_mail,  'http://listserv.cc.kuleuven.ac.be/archives/chr.html').
 user:url_path(bugzilla,  'http://gollem.science.uva.nl/bugzilla/').
 user:url_path(gitweb,	 'http://gollem.science.uva.nl/pl/').
+user:url_path(swieditor, 'http://lernen.bildung.hessen.de/informatik/swiprolog/indexe.htm').
 
 
 		 /*******************************

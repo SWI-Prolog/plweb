@@ -5,6 +5,7 @@
   * Mailinglist.txt
   * News.txt
 --
+  * IDE.txt
   * packages/XPCE.txt
 --
   * [[License][license.txt]]

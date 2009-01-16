@@ -1,0 +1,74 @@
+---+ SWI-Prolog --- Graphical tracer front-end
+
+SWI-Prolog and XPCE concentrate on program development by offering an
+environment that is especially suitable for (rapid) prototyping and
+debugging. This is supported by the very fast incremental SWI-Prolog
+compiler, the debugger that is capable of debugging compiled code,
+GNU-readline based command-line editor and XPCE's support for dynamic
+modification of the running environment.
+
+Though sufficient to support expert (Prolog) users, the current support
+is not satisfactory for novice users raised with a mouse.
+
+In addition, even being a Prolog expert, tracing Prolog programs using a
+traditional 4-port debugger in a terminal is difficult. Large Prolog
+terms make the trace hard to read, it is difficult to understand
+determinism and backtracking and hard to examine the running clauses.
+
+---++ The GUI tracer
+
+The XPCE/SWI-Prolog GUI-Tracer is the cornerstone of the
+future IDE environment and probably the most useful tool for experts as
+well as for beginners. It provides three simultaneous views on the
+status of the environment:
+
+    $ Source code :
+    The current location in the source-code is displayed in a window
+    displaying the actual source-code or, if the clause is asserted, in
+    a window displaying the decompiled predicate. Colours are used to
+    indicate the status. Green meaning normal forwards calling, red
+    failure, yellow redo and purple exception. 
+
+    $ Bindings :
+    The bindings window displayes the binding of the local variables of
+    the selected frame. Variables are indicated by their true name. A
+    consise display, clearly indicating which variable share the same
+    value and removing unbound variables is provided. Values can be
+    examined by double-clicking.
+
+    $ Stack :
+    The stack-view not only provides the call-stack, but also the
+    choice-point chain. The latter is notably useful to detect
+    (undesired) non-determinism 
+
+			[[guitracer.gif]]
+
+---++ The XPCE/SWI-Prolog GUI tracer in action
+
+In this picture, the *|top-left|* window indicates the binding. *B* is
+not listed as this variable is unbound. The *|top-right|* window
+displays the call-stack. The icon indicates the called predicate is a
+normal user-defined predicate. The [[det.gif]] icon indicates the call
+is deterministic, while the [[ndet.gif]] icon indicates the frame has
+choice-points left. The user can click on any frame to switch both
+source and bindings window to the clicked frame.
+
+---++ Starting the GUI-Tracer
+
+The tracer is loaded using the (autoload) predicate guitracer/0.
+Executing this installs hooks into the SWI-Prolog tracer that will cause
+any normal trace actions to be redirected to the GUI tracer. The
+interface appears whenever the tracer is started: using trace/0, spy/1
+or by putting a call to trace/0 somewhere in your source-code:
+
+==
+?- guitracer.
+% The graphical front-end will be used for subsequent tracing
+
+Yes
+?- spy(dubious/1).
+Spy point on dubious/1
+
+Yes
+[debug] ?- go.
+==

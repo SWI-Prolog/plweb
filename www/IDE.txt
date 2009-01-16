@@ -1,0 +1,63 @@
+---+ Program Development Tools
+
+Next to using any editor capable of editing plain text-files and
+running SWI-Prolog in a separate window, the following possibilities
+exist:
+
+---++ Using GNU-Emacs
+
+Unfortunately standard GNU-Emacs Prolog mode is very weak, especially at
+handling proper Prolog indentation. Good news is that there is a better
+mode today. For more information, see the Twiki Web on SWI-Prolog.
+
+---++ Using XPCE
+
+On the long run, we want to move to an Integrated Development
+Environment (IDE) based on XPCE. Various parts of this environment
+already exist and are being used actively.
+
+        * PceEmacs.txt is a GNU-Emacs clone in XPCE/Prolog, providing
+	Prolog syntax-highlighting based on parsing and
+	cross-referencing the editor-buffer. Colouring includes
+	variables, quoted entities, comment, goals (classified as
+	built-in, imported, local, dynamic and undefined), predicates
+	(classified as local, public and unreferenced), file-references
+	(classified as existend/non-existend). PceEmacs is started using
+	the predicate emacs/[0,1].
+
+        * The [[graphical tracer][gtrace.txt]] provides source-level
+	debugging, using three views: your source, variable-bindings and
+	the stack. The stack view includes choicepoints and visualises
+	the effect of executing the cut!
+
+        * The Execution Profiler provides a graphical overview of call-
+	and time statistics.
+
+        * The Cross Referencer analysis dependencies in the loaded
+	program and points out undefined and unused code. It can also
+	generate module headers and import directives based on the
+	analysis.
+
+        * The Prolog Navigator provides an explorer-like view on a
+	directory holding Prolog sourcefiles. Sourcesfiles can be
+	expanded in the tree, showing predicates, exports, XPCE classes
+	and methods. Can be used to edit entities or enable debugging
+	them (spy). 
+
+The Windows Prolog console plwin.exe provides a menu to access many of
+these facilities directly.
+
+We intend to allow the user selecting preferred tools and combining them
+with whatever they like. In other words, we don't want to force you into
+using a bulky all-in-one closed toolkit. See below
+
+---++ On Windows: using [[SWI-Prolog-Editor][<swieditor:>]]
+
+Gerhard Röhner has developed an integrated Prolog editor in MS-Windows
+following the conventions of this platform. The embedded SWI-Prolog
+provides functionality similar to PLWIN.EXE, including the possibility
+to run XPCE GUI programs.
+
+Especially for classroom usage on MS-Windows you should consider this
+version. The site also contains some demo material.
+
