@@ -3,6 +3,7 @@
   * [[PlDoc][</pldoc/>]]
   * Documentation.txt
   * Mailinglist.txt
+  * News.txt
 --
   * packages/XPCE.txt
 --
