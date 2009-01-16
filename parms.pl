@@ -54,6 +54,17 @@ user:url_path(gpl, 	fsf('copyleft/gpl.html')).
 user:url_path(lgpl, 	fsf('copyleft/lesser.html')).
 user:url_path(wordnet, 	'http://www.cogsci.princeton.edu/~wn/').
 user:url_path(gmp,	'http://www.swox.com/gmp/').
+user:url_path(mailman,	'http://www.list.org/').
+user:url_path(bonn,	'https://mailbox.iai.uni-bonn.de/mailman').
+user:url_path(maillist,	bonn('listinfo.cgi/swi-prolog')).
+user:url_path(mailarchive, bonn('public/swi-prolog/')).
+user:url_path(oldmail,	'http://gollem.science.uva.nl/SWI-Prolog/mailinglist/archive/').
+user:url_path(nabble,	'http://www.nabble.com').
+user:url_path(pl_nabble, nabble('SWI-Prolog-f448.html')).
+user:url_path(gmane,     'http://blog.gmane.org').
+user:url_path(pl_gmane,  gmane('gmane.comp.ai.prolog.swi')).
+user:url_path(chr_mail,  'http://listserv.cc.kuleuven.ac.be/archives/chr.html').
+user:url_path(bugzilla,  'http://gollem.science.uva.nl/bugzilla/').
 
 
 		 /*******************************

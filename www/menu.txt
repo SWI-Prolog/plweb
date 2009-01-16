@@ -2,6 +2,7 @@
   * Download.txt
   * [[PlDoc][</pldoc/>]]
   * Documentation.txt
+  * Mailinglist.txt
 --
   * packages/XPCE.txt
 --

@@ -1,0 +1,29 @@
+---+ Mailing list
+
+There is a mailing list for SWI-Prolog specific issues. This list is
+used for announcing new releases, ports, etc. Users may use this forum
+to discuss porting problems and SWI-Prolog specific questions. Please
+use other media, such as the newsgroup
+[[comp.lang.prolog][<news:comp.lang.prolog>]] for general Prolog
+questions.
+
+The mailinglist is kindly hosted by the University of Bonn using the
+[[Mailman][<mailman:>]] list software. You can manage your subscription
+using [[this web-page][<maillist:>]]. To post new messages, send mail to
+<mailto:swi-prolog@iai.uni-bonn.de>. The list is archived by
+[[mailman][<mailarchive:>]] and [[on the swi-prolog
+site][<oldmail:>]]
+
+---++ Related mailinglists
+
+    * [[mailinglist for CHR][<chr_mail:>]]
+
+---++ The Bugzilla bugtracking system
+
+Bugs are best reported to and tracked through the [[Bugzilla
+system][<bugzilla:>]]. This internet based tool provides a structured
+way to enter, track and find bugs and their patches.
+
+
+
+
