@@ -4,3 +4,5 @@
   * Documentation.txt
 --
   * packages/XPCE.txt
+--
+  * [[License][license.txt]]

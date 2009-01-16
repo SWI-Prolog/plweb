@@ -61,34 +61,35 @@ as for commercial applications. See our download statistics.
     * Execution profiler.txt (time and call statistics) for Linux, most
     Unix platforms and Windows NT/2000/XP/Vista.
 
-    * April, 2006 Cross-Referencer. gxref/0 provides a graphical
-    front-end for the extensible Prolog cross-referencer (xref).
+    * Cross-Referencer. gxref/0 provides a graphical front-end for the
+    extensible Prolog cross-referencer (xref).
 
-    * Portable to many platforms, including almost all Unix/Linux
+    * *Portable* to many platforms, including almost all Unix/Linux
     platforms, Windows (NT/2000/XP/Vista, including 64-bit editions),
     MacOS X (using X11 for graphics) and many more. Both 32-bits and
     64-bits hardware is supported. Sources are plain C99, configured
     automatically using GNU autoconf (configure, make, make install).
 
-    * December 22, 2005 UNICODE character set handling internal. Ideal
-    for web- and international applications.
+    * *UNICODE* character set handling internal. Ideal for web- and
+    international applications.
 
-    * Machine-independent saved-states (save on one platform, run using
-    the virtual machine of another platform).
+    * Machine-independent *|saved-states|* (save on one platform, run
+    using the virtual machine of another platform).
 
-    * Multi-threading support: run multiple pre-emptively scheduled
+    * *|Multi-threading|* support: run multiple pre-emptively scheduled
     prolog engines on the same database.
 
-    * attributed variables, coroutining (freeze/2, when/2, dif/2),
+    * *|attributed variables|*, coroutining (freeze/2, when/2, dif/2),
     global variables, cyclic terms. Flag-controlled handling of
-    occurs-check (on/off/error).
+    occurs-check (on/off/error) see current_prolog_flag/2.
 
-    * Constraint Logic Programming, providing libraries for CHR
-    (Constraint Handling Rules), 2007clp(FD), clp(R,Q) and various
+    * *Constraint* Logic Programming, providing libraries for *CHR*
+    (Constraint Handling Rules), *|clp(FD)|*, *|clp(R,Q)|* and various
     others.
 
-    * Bundled with interface libraries for Java (JPL), ODBC, TCP/IP
-    sockets, SSL, CGI form handling, etc. Check the packages.
+    * Bundled with interface libraries for *Java* (JPL), *ODBC*,
+    *|TCP/IP|* sockets, *SSL*, CGI form handling, etc. Check the
+    packages.
 
     * Multi-threaded Web server ( HTTP) library with extensive libraries
     for generation HTML, HTTP authorization, session management,
