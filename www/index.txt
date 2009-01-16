@@ -30,36 +30,36 @@ as for commercial applications. See our download statistics.
     * *Small*. The full development environment, including graphics,
     libraries and many interface packages requires approx. 28MB
     harddisk. The non-graphical kernel is about 1.1 MB, the graphics
-    library adds about 1.2 MB to the image. The kernel can be in a
-    shared object (.so, .DLL).
+    library adds about 1.2 MB to the image.
 
-    * Scales well for large applications. No limits on program size,
+    * *Scales* well for large applications. No limits on program size,
     atom-length, functor-arity or integer values. No performance
-    degradation on predicates with many (indexed) facts. Handles Wordnet
-    with ease (loads in 1.1 sec on an AMD 1600+). Each individual
-    runtime stack is limited to 128 MB on 32-bit machines and virtually
-    unlimited on 64-bit hardware.
+    degradation on predicates with many (indexed) facts. Handles
+    [[Wordnet][<wordnet:>]] with ease (loads in 1.1 sec on an AMD
+    1600+). Each individual runtime stack is limited to 128 MB on 32-bit
+    machines and virtually unlimited on 64-bit hardware.
 
-    * December 22, 2005 Unbounded integer and rational number arithmetic
-    based on GMP library.
+    * *|Unbounded integer|* and *rational* number arithmetic
+    based on [[GMP library][<gmp:>]].
 
-    * Comprehensive set of built-in predicates, covering Part 1 of the
-    ISO standard, the de-facto Edinburgh Prolog standard and important
-    parts of Quintus and SICStus Prolog. Fair compatibility to Ciao, YAP
-    and GNU-Prolog.
+    * Comprehensive set of built-in predicates, covering *|Part 1 of the
+    ISO standard|*, the de-facto *Edinburgh* Prolog standard and
+    important parts of Quintus and SICStus Prolog. Fair
+    compatibility to Ciao, YAP and GNU-Prolog.
 
-    * Flexible and fast interface to the C- and C++-Language. The
-    interface allows for calling both-ways, handling of non-determinism
-    both ways and embedding of the SWI-Prolog kernel in C/C++ projects.
+    * Flexible and fast interface to the *|C-|* and *|C++-Language|*.
+    The interface allows for calling both-ways, handling of
+    non-determinism both ways and *embedding* of the SWI-Prolog kernel
+    in C/C++ projects.
 
-    * The goodies: modules (upward compatible to Quintus and SICStus),
-    garbage-collection (transparent to C/C++-code, including atom
-    garbage collection), last-call optimisation, Dynamic expansion of
-    the runtime stacks, ISO exception-handling (including C/C++
+    * The goodies: *modules* (upward compatible to Quintus and SICStus),
+    *|garbage-collection|* (transparent to C/C++-code, including *atom*
+    garbage collection), *|last-call|* optimisation, Dynamic expansion
+    of the runtime stacks, *|ISO exception-handling|* (including C/C++
     interface for catching and throwing exceptions).
 
-    * Execution profiler (time and call statistics) for Linux, most Unix
-    platforms and Windows NT/2000/XP/Vista.
+    * Execution profiler.txt (time and call statistics) for Linux, most
+    Unix platforms and Windows NT/2000/XP/Vista.
 
     * April, 2006 Cross-Referencer. gxref/0 provides a graphical
     front-end for the extensible Prolog cross-referencer (xref).
