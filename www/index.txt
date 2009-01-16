@@ -8,7 +8,7 @@ the FSF website.
 
 ---++ And now about SWI-Prolog ...
 
-[[coolstar.gif][http://dmoz.org/Computers/Programming/Languages/Prolog/Implementations/]]
+[[coolstar.gif;align="right",alt="Open directory cool site"][http://dmoz.org/Computers/Programming/Languages/Prolog/Implementations/]]
 SWI-Prolog offers a comprehensive Free Software Prolog environment,
 licensed under the Lesser GNU Public License. Together with its graphics
 toolkit XPCE, its development started in 1987 and has been driven by the
