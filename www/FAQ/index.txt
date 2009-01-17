@@ -24,11 +24,11 @@
     * [[How do I enlarge the default stacks?][StackSizes.txt]]
     * [[Syntax error messages with character index?][SyntaxErrorMessage.txt]]
     * [[How do I change the fonts in PceEmacs and the debugger?][PceFonts.txt]]
+    * [[I want normal ^X, ^C, ^V, ^S, ^P, etc.][WindowsAccelerators.txt]]
     * [[What else can be customised?][Customise.txt]]
 
   * *|Editing|*
-    * [[Help! I want normal ^X, ^C, ^V, ^S, ^P, etc.][WindowsAccelerators.txt]]
-    * [[Binding to an editor][BindEditor.txt]]
+    * [[Select an editor][BindEditor.txt]]
     * [[Using SWI-Prolog with GNU-Emacs][GnuEmacs.txt]]
     * [[Using XPCE][PceEmacs.txt]]
 

@@ -1,0 +1,74 @@
+---+ Using SWI-Prolog with GNU-Emacs
+
+The Prolog mode that comes with Emacs is not that good--in fact it sucks
+if you ask me. A much better one is available though, at
+http://turing.ubishops.ca/home/bruda/emacs-prolog
+
+The mode plays nicely with, between others, SWI Prolog, and features
+syntax highlighting, auto indent, predicate menu, and full interaction
+with an inferior Prolog process. It is probably not as powerful as
+PceEmacs (though this is in my opinion open to discusion) but then I use
+Emacs night and day so I prefer it to PceEmacs.
+
+At the time of writing the version is 0.1.41, which is attached to this
+page. However, I will not update the attachement very often, so do go to
+the Web page mentioned above for the most current version. As well, the
+guide below is a bit outdated--so it is useful, but do take a look at
+the mode's official page too.
+
+---++ Installation Hints
+
+   1. Download the file prolog.el from http://turing.ubishops.ca/home/bruda/emacs-prolog
+      and save it to the "site-lisp" sub-directory of Emacs,
+      e.g. C:\Programme\Emacs\site-lisp
+
+   2. Byte-compile prolog.el:
+      Load prolog.el into Emacs and select Emacs-Lisp->Byte-compile this file.
+
+   3. Add the following lines to ~/.emacs (~/_emacs on Windows):
+
+	==
+	(setq auto-mode-alist
+	  (cons (cons "\\.pl" 'prolog-mode)
+	     auto-mode-alist))
+	==    
+
+      Where is *|~/_emacs|*?
+
+      ~ is a shortcut for the home directory, on Windows it is system
+      and language specific. It may be for example C:\ or C:\Dokumente.
+      The best way to find "~" is: select "Files->Open.." and enter "~".
+      Then Emacs prints the directory name and contents.
+
+   4. Customize the Prolog mode: Select Help->Customize->Top-level
+      Customization Group and then select group
+      Programming->Languages->Prolog. * Select the value "SWI Prolog"
+      for "Prolog System" and "Save for future sessions" * Go to "Prolog
+      Inferior" group and edit "Prolog Program Name", to insert SWI
+      Prolog's command pathname, e.g:
+
+	==
+            (((getenv "EPROLOG")
+            (eval
+            (getenv "EPROLOG")))
+             (eclipse "eclipse")
+             (mercury nil)
+             (sicstus "sicstus")
+             (swi "c:/Programme/pl/bin/plcon.exe")
+             (t "prolog"))
+	==                    
+
+      and "Save for future sessions".
+
+   5. (Optional:) CustomizeSyntaxHighlighting 
+
+---++ Ptags: create Prolog tags for Emacs
+
+Djamé Seddah pointed to the existence of ptags, a program to make
+tag-files for finding definitions in Prolog programs. This is the
+[[original
+site][http://www-2.cs.cmu.edu/afs/cs.cmu.edu/project/ai-repository/ai/lang/prolog/util/ptags/0.html]].
+We have a local copy of the c-code [[here][<ptags.tgz>]].
+
+
+ 
