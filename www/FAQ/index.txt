@@ -8,3 +8,4 @@
 
   * *|Help ...|*
     * [[Prolog writes [x, y, z|...], I want the whole answer][AllOutput.txt]]
+    * [[Where is the reconsult/1 predicate?][reconsult.txt]]
