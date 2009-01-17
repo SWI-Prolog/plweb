@@ -1,0 +1,68 @@
+---+ How do I enlarge the stacks?
+
+SWI-Prolog's runtime stacks are by default a bit small for demanding
+programs. The default limit is choosen such that many small programs run
+just fine and if you make a mistake that makes the stack grow without
+control it quickly signals this, so you don't have to wait minutes while
+Prolog is eating all your computer's memory.
+
+---++ But, my program is too big. What now?
+
+Prune choicepoints. Deterministic programs use way less memory on all
+the stacks. Use the SWI-Prolog [[source-level debugger][../gtrace.txt]]
+to find choicepoints.
+
+---++ But I really have a lot of choicepoints and data
+
+No worries. SWI-Prolog can handle that, but it depends on the platform
+how to. Continue at the appropriate section.
+
+---+++ Enlarging the stacks in Windows
+
+In windows you have several options.
+
+    * Using a .BAT file you can provide the appropiate options.
+    * You can modify the shortcut from menu or desktop to include the options.
+    * You can open *|Preferences/Stack|* sizes from the plwin.exe menu
+    and specify new limits. These limits are stored in the Windows
+    registry and are the default for any new Prolog instance you start.
+    * You can use the PrologScript.txt magic sequence, which is handled
+    for a Prolog file you open using double-click just as the Unix
+    version does, except that the path to the executable is ignored (but
+    some path must be specified). 
+
+---+++ Enlarge the stacks in Unix
+
+    * Use a shell script
+    * Use a PrologScript.txt
+    * Use command-line options 
+
+---++++ Specifying stack-sizes using Prolog Script
+
+Make sure your file starts with #!, followed by location of Prolog,
+followed by options you want to pass and ending with the -s (script)
+option. Here is an example using 64Mbytes global stack on a default
+Linux installation:
+
+==
+#!/usr/bin/pl -G64m -s
+==
+
+---++++ Stack related commandline options
+
+Stack sizes are specified in Kbytes (*k*, default), Mbytes (using *m*
+postfix) or Gbytes (using *g* postfix).
+
+    $ -L<size>[kmg] :
+      Specify local stack. Here go environments and choicepoints.
+      Determinism and last-call optimization (tail-recursion) keep it
+      small. 
+
+    $ -G<size>[kmg] :
+      Global stack. Here are compound terms, lists, floats, large
+      integers and strings. Efficient data-structures and determinism
+      keep it small. 
+
+    $ -T<size>[kmg] :
+      Trail stack. Here goes information for rewinding to a choicepoint.
+      Again determinism is a dominant factor to keep it small. 

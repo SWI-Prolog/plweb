@@ -1,0 +1,44 @@
+---+ [FATAL ERROR: Could not find system resources]
+
+This message is associated with two situations
+
+    * Broken installations
+    * Prolog is embedded in a C/C++/Java/... application
+
+On calling PL_initialise(), SWI-Prolog searches for a saved-state
+holding the Prolog predicates that make up the system (or your
+application). If it fails, it will print the message above and exit.
+
+First of all it will try to identify the running executable. If
+successful (which requires passing argv[0] from main() on Unix and
+nothing special on Windows) and the executable contains a state at the
+end, it is loaded.
+
+Second, it tries to locate the SWI-Prolog home directory. For this, it
+first checks the environment variable SWI_HOME_DIR. If it exists and
+points to something that looks like the home-directory it uses this
+directory. If not, it assumes this executable is installed in the bin
+directory of the installation (Unix: bin/architecture ). Finally, it
+will use the compiled-in installation directory. It expects the system
+state in the file boot32.prc (or boot64.prc) in the home directory.
+
+This poses problems for embedded applications that do not have a
+saved-state associated (see the plld program), are not installed in the
+same directory as the SWI-Prolog executable and SWI-Prolog is installed
+as binary package (the compiled-in default is wrong).
+
+---+ solution
+
+The simplest and most robust solution is to use putenv() to put an
+appropriate path into the environment before calling PL_initialise().
+
+==
+	...;
+	putenv("SWI_HOME_DIR=C:\\Program Files\\pl");
+	if ( PL_initialise(argc, argv) )
+	  PL_halt(1);
+	...
+==
+
+In the final version of your application you link the saved-state to the
+executable (using =plld= or =cat= (Unix)) and comment the putenv() call. 

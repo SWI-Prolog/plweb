@@ -1,0 +1,29 @@
+---+ Site and personal initialisation files
+
+On startup, SWI-Prolog reads both site initialisation and personal
+initialisation files. Both can be controlled explicitely using
+commandline options (*|-F base|* for site, and *|-f base|* for personal
+initialisation).
+
+The site-initialisation file is located in the SWI-Prolog home
+directory. Its name is deduced from the commandname by taking the
+leading alphanumerical characters, followed by the extension =|.rc|=.
+Using default installation this implies *|pl.rc|* for the Unix version
+and *|plwin.rc|* for the Windows version.
+
+If XPCE is installed, it is activated through the above named system
+default file.
+
+The personal initialisation file is called *|.plrc|* on Unix and
+*|pl.ini|* on Windows. It is searched using the file_search_path/2 alias
+=user_profile=. This refers to the current working directory, the users
+home (if any) or the Prolog home if the user has none (single-user OS).
+
+In *|plwin.exe|*, the personal initialisation file is accessible through
+the *|Settings menu|*. First use copies a default file with some
+commented common constructs. The same behaviour is also available from
+the graphical Prolog manual provided by XPCE and started with help/0.
+
+The *|-s file|* commandline option is commonly used on Unix systems to
+load and start applications using a single command.   In can also be
+used to create PrologScript.txt files.
