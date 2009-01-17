@@ -9,3 +9,51 @@
   * *|Help ...|*
     * [[Prolog writes [x, y, z|...], I want the whole answer][AllOutput.txt]]
     * [[Where is the reconsult/1 predicate?][reconsult.txt]]
+
+  * *|Common error messages and what to do|*
+    * [[ERROR: No permission to modify static_procedure][DynamicCode.txt]]
+    * [[ERROR: Undefined procedure: name/arity][UndefinedCode.txt]]
+    * [[Warning: Clauses of (-)/2 are not together in the source-file][MinusInHead.txt]]
+    * [[Warning: (file:line) Singleton variables: List][SingletonVar.txt]]
+    * [[ERROR: (file:line): Undefined procedure: pce_begin_class/2][NoXPCE.txt]]
+    * [[ERROR: I/O error in write on stream XXX (Encoding cannot represent character)][CharEncoding.txt]]
+    * [[FATAL ERROR: Could not find system resources][FindResources.txt]]
+
+  * *|Customizing SWI-Prolog|*
+    * [[Site and personal initialisation][PlInitialisation.txt]]
+    * [[What can be customized?][Customise.txt]]
+    * [[How do I enlarge the default stacks?][StackSizes.txt]]
+    * [[Syntax error messsages with character index][SyntaxErrorMessage.txt]]
+    * [[How do I change the fonts in PceEmacs and the debugger?][PceFonts.txt]]
+
+  * *|Editing|*
+    * [[Help! I want normal ^X, ^C, ^V, ^S, ^P, etc.][WindowsAccelerators.txt]]
+    * [[Binding to an editor][BindEditor.txt]]
+    * [[Using SWI-Prolog with GNU-Emacs][GnuEmacs.txt]]
+    * [[Using XPCE][PceEmacs.txt]]
+
+  * *|How to ...|*
+    * [[Make a log of the session?][MakeLog.txt]]
+    * [[Read Prolog case data from a file?][ReadDynamicFromFile.txt]]
+    * [[Can I make an executable?][MakeExecutable.txt]]
+
+  * *|Using SWI-Prolog on MS-Windows|*
+    * [[Cut/copy/paste from the plwin.exe console][WinCopy.txt]]
+
+  * *|Using SWI-Prolog with C/C++|*
+    * [[Where are SWI-Prolog.h, libpl.{lib,dll,a,so}?][LibAndInclude.txt]]
+    * [[Is there a true C++ binding?][CppBinding.txt]]
+    * [[Where do I find examples mixing C and Prolog?][CExamples.txt]]
+    * [[Can I compile my whole project inc. kernel to C?][CompileToC.txt]]
+
+  * *|Using SWI-Prolog with Java|*
+    * [[A Java interface to Prolog][JPL.txt]]
+
+  * *|Using Prolog for WEB-related tasks|*
+
+  * *|About datatypes|*
+    * [[Representation and printing of floating point numbers][floats.txt]]
+
+  * *|Learn more about Prolog|*
+    * [[Books and Web Material on Prolog][PrologReading.txt]]
+    
