@@ -5,15 +5,11 @@ infrastructure.  Pages will be mostly PlDoc wiki pages.
 
 ---++ TODO
 
-    * Serve wiki pages as .html (allow for mirroring)
-    * Allow [[pred/arity]] from predicates defined in the
-    reference manual.
     * Provide last-modified support for wiki pages
     * Support FAQ
     * Support bug-reporting
     * Link to GIT browsing
     * Downloads
-	* Allow reporting only last or all versions
 	* Use thread-pool for scalability
 	* Support download statistics
 	    * By version, platform/src

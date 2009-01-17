@@ -6,10 +6,13 @@
 
 :- module(plweb_wiki,
 	  [ wiki_file_to_dom/2,		% +File, -DOM
-	    file//2			% +File, +Options
+	    file//2,			% +File, +Options
+	    include//3			% +Object, +Type, +Options
 	  ]).
 :- reexport(library(pldoc/doc_html),
-	    except([file//2])).
+	    except([ file//2,
+		     include//3
+		   ])).
 
 :- use_module(library(pldoc/doc_wiki)).
 :- use_module(library(readutil)).
@@ -36,6 +39,14 @@ wiki_file_to_dom(File, DOM) :-
 		 *	     RENDERING		*
 		 *******************************/
 
+%%	include(+Object, +Type, +Options)//
+
+include(Object, Type, Options) -->
+	pldoc_html:include(Object, Type,
+			   [ map_extension([txt-html])
+			   | Options
+			   ]).
+
 %%	file(+Path, Options)//
 %
 %	Trap translation of \file(+Path, Options)
@@ -46,11 +57,18 @@ file(Path, Options) -->
 	  file_name_extension(Label, txt, File), !,
 	  file_href(Options, Options1)
 	},
-	pldoc_html:file(Path, [label(Label)|Options1]).
+	pldoc_html:file(Path,
+			[ label(Label),
+			  map_extension([txt-html])
+			| Options1
+			]).
 file(File, Options) -->
 	{ file_href(Options, Options1)
 	},
-	pldoc_html:file(File, Options1).
+	pldoc_html:file(File,
+			[ map_extension([txt-html])
+			| Options1
+			]).
 
 
 file_href(Options0, Options) :-
@@ -73,5 +91,3 @@ ensure_leading_slash(Path, SlashPath) :-
 	->  SlashPath = Path
 	;   atom_concat(/, Path, SlashPath)
 	).
-	    
-	

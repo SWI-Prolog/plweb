@@ -54,22 +54,40 @@ server(Options) :-
 
 %%	serve_page(+Request)
 %
-%	HTTP handler for pages
+%	HTTP handler for files below document-root.
 
 serve_page(Request) :-
 	http_absolute_location(root(.), Root, []),
 	memberchk(path(Path), Request),
 	atom_concat(Root, Relative, Path),
-	absolute_file_name(document_root(Relative),
-			   File,
-			   [ access(read)
-			   ]),
+	find_file(Relative, File),
 	absolute_file_name(document_root(.), DocRoot),
 	(   atom_concat(DocRoot, _, File)
 	->  serve_file(File, Request)
 	;   permission_error(access, http_location, Path)
 	).
 	
+%%	find_file(+Relative, -File) is det.
+%
+%	Translate Relative into a File in the document-root tree. If the
+%	given extension is .html, also look for   .txt files that can be
+%	translated into HTML.
+
+find_file(Relative, File) :-
+	file_name_extension(Base, html, Relative),
+	file_name_extension(Base, txt, WikiFile),
+	absolute_file_name(document_root(WikiFile),
+			   File,
+			   [ access(read),
+			     file_errors(fail)
+			   ]), !.
+find_file(Relative, File) :-
+	absolute_file_name(document_root(Relative),
+			   File,
+			   [ access(read)
+			   ]).
+
+
 %%	serve_file(+File, +Request) is det.
 %%	serve_file(+Extension, +File, +Request) is det.
 %
