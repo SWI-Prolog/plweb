@@ -9,6 +9,7 @@
 	  ]).
 :- use_module(library(pldoc)).
 :- use_module(library(pldoc/doc_wiki)).
+:- use_module(library(pldoc/doc_man)).
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_path)).
@@ -29,7 +30,8 @@
 :- use_module(download).
 :- use_module(wiki).
 
-:- http_handler(root(.), serve_page, [prefix, priority(10)]).
+:- http_handler(root(.),   serve_page,     [prefix, priority(10)]).
+:- http_handler(root(man), manual_file,    [prefix, priority(10)]).
 
 /** <module> Server for PlDoc wiki pages and SWI-Prolog website
 
@@ -57,7 +59,7 @@ server(Options) :-
 %	HTTP handler for files below document-root.
 
 serve_page(Request) :-
-	http_absolute_location(root(.), Root, []),
+	http_location_by_id(serve_page, Root),
 	memberchk(path(Path), Request),
 	atom_concat(Root, Relative, Path),
 	find_file(Relative, File), !,
@@ -196,3 +198,23 @@ list_entry(File, Dir) -->
 	},
 	html(tr([ td(a(href(Local), Local))
 		])).
+
+%%	manual_file(+Request) is det.
+%
+%	HTTP handler for /man/file.html
+
+manual_file(Request) :-
+	memberchk(path(Path), Request),
+	http_location_by_id(manual_file, Root),
+	atom_concat(Root, Relative, Path),
+	atom_concat('doc/Manual', Relative, Man),
+	absolute_file_name(swi(Man),
+			   ManFile,
+			   [ access(read),
+			     file_errors(fail)
+			   ]), !,
+	reply_html_page(title('SWI-Prolog manual'),
+			\man_page(section(_,_,ManFile), [])).
+manual_file(Request) :-
+	memberchk(path(Path), Request),
+	existence_error(http_location, Path).

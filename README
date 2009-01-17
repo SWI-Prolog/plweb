@@ -6,7 +6,7 @@ infrastructure.  Pages will be mostly PlDoc wiki pages.
 ---++ TODO
 
     * Provide last-modified support for wiki pages
-    * Support FAQ
+    * Complete the FAQ
     * Support bug-reporting
     * Link to GIT browsing
     * Downloads
