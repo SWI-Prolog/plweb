@@ -1,5 +1,6 @@
   * [[Home][index.txt]]
   * Download.txt
+  * [[FAQ][</FAQ/>]]
   * [[PlDoc][</pldoc/>]]
   * Documentation.txt
   * Mailinglist.txt

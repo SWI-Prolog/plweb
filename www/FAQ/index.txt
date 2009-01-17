@@ -1,0 +1,10 @@
+---+ The SWI-Prolog FAQ
+
+  * *|Getting started|*
+    * [[Getting started quickly (from the manual)][</man/quickstart.html>]]
+    * [[Initialising and Managing a Prolog project (from the manual)][</man/IDE.html>]]
+    * [[How do I load a program?][LoadProgram.txt]]
+    * [[How do I load a file from the library?][LoadLibrary.txt]]
+
+  * *|Help ...|*
+    * [[Prolog writes [x, y, z|...], I want the whole answer][AllOutput.txt]]
