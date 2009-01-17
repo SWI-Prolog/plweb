@@ -60,12 +60,15 @@ serve_page(Request) :-
 	http_absolute_location(root(.), Root, []),
 	memberchk(path(Path), Request),
 	atom_concat(Root, Relative, Path),
-	find_file(Relative, File),
+	find_file(Relative, File), !,
 	absolute_file_name(document_root(.), DocRoot),
 	(   atom_concat(DocRoot, _, File)
 	->  serve_file(File, Request)
 	;   permission_error(access, http_location, Path)
 	).
+serve_page(Request) :-
+	memberchk(path(Path), Request),
+	existence_error(http_location, Path).
 	
 %%	find_file(+Relative, -File) is det.
 %
@@ -84,7 +87,8 @@ find_file(Relative, File) :-
 find_file(Relative, File) :-
 	absolute_file_name(document_root(Relative),
 			   File,
-			   [ access(read)
+			   [ access(read),
+			     file_errors(fail)
 			   ]).
 
 
