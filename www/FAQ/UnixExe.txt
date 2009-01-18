@@ -1,0 +1,65 @@
+---+ Creating executables on Unix/Linux
+
+I have only find how to make this from in the swi-prolog, if any know
+how to do all this on commandline eg. like windows/dos version please
+add here.
+
+In this example I have used an example program called vem.pl In the
+example you also can see how to declare the main stuff.
+
+The program is added at the end.
+
+    1. First place you in the catalog with the prolog file.
+
+    2. Start swi-prolog --> pl
+
+       Load the program
+
+       ==
+       ?- consult(vem.pl)
+       ==
+
+       Make a runtime: vem = the name the excutable will get; main = the start
+
+       ==
+       ?- qsave_program(vem,[stand_alone(true),goal(main)]).
+       ==
+
+       now exit prolog
+
+       ==
+       ?- ctrl-d
+       ==
+
+       change the program to runable
+
+       ==
+       chmod +x vem
+       ==
+
+       run it
+
+       ==
+       ./vem
+       ==
+
+Problem!
+
+If only you can run the program this is a rights problem, chmod +x only
+add rights for current user, learn more about chmod from the systems
+helpsystem man chmod
+
+example program vem.pl
+
+==
+:-op(600,xfx,has).
+
+anders has car.
+kalle has buss.
+
+main :-
+   Vem has car.
+==
+
+@author Anders Persson 2004-10-04
+

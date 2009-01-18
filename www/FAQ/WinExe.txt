@@ -1,0 +1,17 @@
+---+ Creating a Windows console application from SWI-Prolog
+
+If you want to use a SWI-Prolog program as a stand-alone .exe for
+example to use it as a CGI script, you can do this using qsave_program/2
+or using the commandline. The command below creates myapp.exe from
+load.pl and makes the program start at main/0
+
+==
+plcon -o myapp.exe -c load.pl --goal=main
+==
+
+To run, myapp.exe requires libpl.dll and any other dll it uses through
+libraries to be in the same directory, in %PATH% or in the Windows
+directory. See PceWinExe.txt for additional information about DLLs and
+changing icons. 
+
+@see PrologScript.txt
