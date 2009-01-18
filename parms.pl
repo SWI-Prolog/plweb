@@ -16,7 +16,7 @@
 
 :- setting(http:served_file_extensions,
 	   list(atom),
-	   [ html, gif, png, jpeg, css, js ],
+	   [ html, gif, png, jpeg, css, js, tgz ],
 	   'List of extensions that are served as plain files').
 :- setting(http:index_files,
 	   list(atom),
