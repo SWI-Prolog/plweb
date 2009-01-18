@@ -17,3 +17,4 @@ infrastructure.  Pages will be mostly PlDoc wiki pages.
     * Allow Wiki editing?
 	* Local-host only (like PlDoc)?
 	* Wiki-style
+    * Process .txt links in @see (See PceEmacs in FAQ)

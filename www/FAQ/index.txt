@@ -30,7 +30,7 @@
   * *|Editing|*
     * [[Select an editor][BindEditor.txt]]
     * [[Using SWI-Prolog with GNU-Emacs][GnuEmacs.txt]]
-    * [[Using XPCE][PceEmacs.txt]]
+    * [[Using PceEmacs][PceEmacs.txt]]
 
   * *|How to ...|*
     * [[Make a log of the session?][MakeLog.txt]]
