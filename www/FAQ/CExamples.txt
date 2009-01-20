@@ -1,0 +1,15 @@
+---+ Where do I find examples mixing C and Prolog?
+
+You can download the source and check the sources of one or more of the
+packages. There is a complicated example in the form of an TeX tokeniser
+in the ltx2htm subdirectory of the sources. There are a couple of
+examples in the src/win32/ subtree of the sources for handling Windows
+API. Finally, there is the SWI-Prolog source-code itself that uses the
+foreign interface for realising many of the build-in predicates. The
+function is normally called pl_<predicate-name>. See pl-ext.c for the
+function-names of all predicates. Note however that the system itself
+sometimes uses more low-level constructs to manipulate Prolog data.
+Never use functions that have no prototype in SWI-Prolog.h or
+SWI-Stream.h.
+
+@tbd	Update: there are much better packages to look into

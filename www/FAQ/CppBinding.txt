@@ -1,0 +1,24 @@
+---+ Is there a true C++ binding?
+
+Actually, there are two. One is the original, written by me (Jan
+Wielemaker), which is part of the standard SWI-Prolog packages. It
+consists of the file SWI-cpp.h and is documented in:
+
+    * http://www.swi-prolog.org/packages/pl2cpp.html 
+
+Now, I'm not much of a C++ programmer, so Volker Wysk has created
+another one with my help explaining the viewpoint from Prolog. It is
+here:
+
+    * http://www.volker-wysk.de/swiprolog-c++/index.html 
+
+These interfaces can happily live next to one another, so there isn't
+much conflict. In due time, if it turns out that Volkers one is working
+properly and better it is likely to replace my version.
+
+Both interfaces can be freely mixed with calls to the plain C API
+documented in the SWI-Prolog reference manual. Have a look here if you
+are missing something as the C-interface provides more than the two C++
+layers on top of it.
+
+For new code, I'd suggest to have a look at Volker's one first. 
