@@ -19,10 +19,20 @@
 %	Call gitweb script
 
 gitweb(Request) :-
+	\+ memberchk(path_info(_), Request), !,
+	http_location_by_id(gitweb, Me),
+	atom_concat(Me, /, NewPath),
+	include(local, Request, Parts),
+	http_location([path(NewPath)|Parts], Moved),
+	throw(http_reply(moved(Moved))).
+gitweb(Request) :-
 	absolute_file_name(gitweb('gitweb.cgi'), ScriptPath,
 			   [ access(execute)
 			   ]),
 	http_run_cgi(ScriptPath, Request).
+
+local(search(_)).
+local(fragment(_)).
 
 
 :- multifile
