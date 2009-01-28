@@ -28,6 +28,11 @@ gitweb(Request) :-
 :- multifile
 	http_cgi:environment/2.
 
+http_cgi:environment('PROJECT_ROOT', Root) :-
+	absolute_file_name(plweb(git), Root,
+			   [ access(read),
+			     file_type(directory)
+			   ]).
 http_cgi:environment('GITWEB_CONFIG', Config) :-
 	absolute_file_name(gitweb('gitweb.conf'), Config,
 			   [ access(read)
