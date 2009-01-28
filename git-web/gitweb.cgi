@@ -386,7 +386,7 @@ $projects_list ||= $projectroot;
 our $action = $cgi->param('a');
 if (defined $action) {
 	if ($action =~ m/[^0-9a-zA-Z\.\-_]/) {
-		die_error(400, "Invalid action parameter");
+		die_error(400, "Invalid action parameter: " . $action);
 	}
 }
 
