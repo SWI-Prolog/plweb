@@ -37,13 +37,18 @@ Run external scripts.  This module provides two interfaces:
 :- http_handler(root('cgi-bin'), run_script, [ prefix ]).
 
 run_script(Request) :-
-	select(path_info(Relative), Request, Request1),
+	select(path_info(PathInfo), Request, Request1),
+	ensure_no_leading_slash(PathInfo, Relative),
 	path_info(Relative, Script, Request1, Request2),
 	absolute_file_name(cgi_bin(Script), ScriptPath,
 			   [ access(execute)
 			   ]),
 	http_run_cgi(ScriptPath, Request2).
 			   
+ensure_no_leading_slash(Abs, Rel) :-
+	atom_concat(/, Rel, Abs), !.
+ensure_no_leading_slash(Rel, Rel).
+
 path_info(RelPath, Script, Req, [path_info(Info)|Req]) :-
 	sub_atom(RelPath, Before, _, After, /), !,
 	sub_atom(RelPath, 0, Before, _, Script),
@@ -114,7 +119,7 @@ env('SERVER_NAME', Request, Server) :-
 	->  true
 	;   gethostname(Server)
 	).
-env('GATEWAY_INTERFACE', _, 'CGI/1.0').	% TBD: current version?
+env('GATEWAY_INTERFACE', _, 'CGI/1.1').
 env('SERVER_PROTOCOL', Request, Protocol) :-
 	memberchk(http(Major-Minor), Request),
 	format(atom(Protocol), 'HTTP/~w.~w', [Major, Minor]).
