@@ -136,9 +136,6 @@ env('PATH_INFO', Request, PathInfo) :-
 env('PATH_TRANSLATED', _, _) :- fail.
 env('SCRIPT_NAME', _, _) :- fail.
 env('QUERY_STRING', Request, QString) :-
-	memberchk(search([a=Action]), Request), !,
-	format(string(QString), 'a=~w', [Action]).
-env('QUERY_STRING', Request, QString) :-
 	memberchk(search(Search), Request),
 	parse_url_search(QList, Search),
 	string_to_list(QString, QList).

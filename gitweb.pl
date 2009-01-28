@@ -13,6 +13,8 @@
 		http_reply_file(gitweb('gitweb.css'), []), []).
 :- http_handler(root('git/git-logo.png'),
 		http_reply_file(gitweb('git-logo.png'), []), []).
+:- http_handler(root('git/git-favicon.png'),
+		http_reply_file(gitweb('git-favicon.png'), []), []).
 	  
 %%	gitweb(+Request)
 %
