@@ -1,5 +1,5 @@
   * [[Home][index.txt]]
-  * Download.txt
+  * Download.txt ([[GIT][</git>]])
   * [[FAQ][</FAQ/>]]
   * [[PlDoc][</pldoc/>]]
   * Documentation.txt

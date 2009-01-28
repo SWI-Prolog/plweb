@@ -9,8 +9,8 @@
     Sources and executables for MS-Windows and MacOS X
     version *|5.7.x|*
     * Some popular [[old versions][</download/old>]]
-    * Other files from FTP archive, [[GIT access][git.txt]], browse GIT
-    repository 
+    * Other files from FTP archive, [[GIT access][git.txt]], browse
+    GIT [[repository][</git/>]]
 
 ---++ Read more about
 

@@ -6,9 +6,18 @@
 
 :- module(gitweb, []).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(apply)).
+:- use_module(library(url)).
 :- use_module(http_cgi).
 
-:- http_handler(root(git), gitweb, [ prefix ]).
+/** <module> Provide gitweb support
+
+@tbd	Also serve the GIT repository over this gateway
+@tbd	Better way to locate the GIT project root
+*/
+
+:- http_handler(root('git'), gitroot, []).
+:- http_handler(root('git/'), gitweb, [ prefix ]).
 :- http_handler(root('git/gitweb.css'),
 		http_reply_file(gitweb('gitweb.css'), []), []).
 :- http_handler(root('git/git-logo.png'),
@@ -16,25 +25,31 @@
 :- http_handler(root('git/git-favicon.png'),
 		http_reply_file(gitweb('git-favicon.png'), []), []).
 	  
+%%	gitroot(+Request) is det.
+%
+%	Some toplevel requests are send to   /git,  while working inside
+%	the repository asks for /git/. This  is   a  hack to work around
+%	these problems.
+
+gitroot(Request) :-
+	http_location_by_id(gitroot, Me),
+	atom_concat(Me, /, NewPath),
+	include(local, Request, Parts),
+	http_location([path(NewPath)|Parts], Moved),
+	throw(http_reply(moved(Moved))).
+
+local(search(_)).
+local(fragment(_)).
+
 %%	gitweb(+Request)
 %
 %	Call gitweb script
 
 gitweb(Request) :-
-	\+ memberchk(path_info(_), Request), !,
-	http_location_by_id(gitweb, Me),
-	atom_concat(Me, /, NewPath),
-	include(local, Request, Parts),
-	http_location([path(NewPath)|Parts], Moved),
-	throw(http_reply(moved(Moved))).
-gitweb(Request) :-
 	absolute_file_name(gitweb('gitweb.cgi'), ScriptPath,
 			   [ access(execute)
 			   ]),
 	http_run_cgi(ScriptPath, Request).
-
-local(search(_)).
-local(fragment(_)).
 
 
 :- multifile
