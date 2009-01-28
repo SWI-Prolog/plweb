@@ -99,3 +99,4 @@ user:file_search_path(document_root, plweb(www)).
 user:file_search_path(icons, 	     document_root(icons)).
 user:file_search_path(cgi_bin,	     plweb('git-web')).
 user:file_search_path(download,	     plweb(download)).
+user:file_search_path(gitweb,	     plweb('git-web')).

@@ -31,23 +31,19 @@ Run external scripts.  This module provides two interfaces:
 @see http://hoohoo.ncsa.uiuc.edu/cgi/env.html
 */
 
+:- multifile
+	environment/2.
+
 :- http_handler(root('cgi-bin'), run_script, [ prefix ]).
 
 run_script(Request) :-
-	http_location_by_id(run_script, Root),
-	memberchk(path(Path), Request),
-	atom_concat(Root, Relative0, Path),
-	strip_leading_slash(Relative0, Relative),
-	path_info(Relative, Script, Request, Request1),
+	select(path_info(Relative), Request, Request1),
+	path_info(Relative, Script, Request1, Request2),
 	absolute_file_name(cgi_bin(Script), ScriptPath,
 			   [ access(execute)
 			   ]),
-	http_run_cgi(ScriptPath, Request1).
+	http_run_cgi(ScriptPath, Request2).
 			   
-strip_leading_slash(Abs, Rel) :-
-	atom_concat(/, Rel, Abs), !.
-strip_leading_slash(Rel, Rel).
-
 path_info(RelPath, Script, Req, [path_info(Info)|Req]) :-
 	sub_atom(RelPath, Before, _, After, /), !,
 	sub_atom(RelPath, 0, Before, _, Script),
@@ -151,3 +147,6 @@ env('CONTENT_LENGTH', Request, ContentLength) :-
 env('HTTP_ACCEPT', _, _) :- fail.
 env('HTTP_USER_AGENT', Request, Agent) :-
 	memberchk(user_agent(Agent), Request).
+env(Name, _, Value) :-
+	environment(Name, Value).
+

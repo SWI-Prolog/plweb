@@ -30,6 +30,7 @@
 :- use_module(download).
 :- use_module(wiki).
 :- use_module(http_cgi).
+:- use_module(gitweb).
 
 :- http_handler(root(.),   serve_page,     [prefix, priority(10)]).
 :- http_handler(root(man), manual_file,    [prefix, priority(10)]).
