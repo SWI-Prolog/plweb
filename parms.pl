@@ -97,4 +97,5 @@ user:url_path(swieditor, 'http://lernen.bildung.hessen.de/informatik/swiprolog/i
 
 user:file_search_path(document_root, plweb(www)).
 user:file_search_path(icons, 	     document_root(icons)).
+user:file_search_path(cgi_bin,	     plweb('git-web')).
 user:file_search_path(download,	     plweb(download)).
