@@ -64,5 +64,5 @@ http_cgi:environment('GITWEB_CONFIG', Config) :-
 	absolute_file_name(gitweb('gitweb.conf'), Config,
 			   [ access(read)
 			   ]).
-http_cgi:environment('PATH', '/bin:/usr/bin').
+http_cgi:environment('PATH', '/bin:/usr/bin:/usr/local/bin').
 
