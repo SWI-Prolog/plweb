@@ -4,6 +4,7 @@
   * [[PlDoc][</pldoc/>]]
   * Documentation.txt
   * Mailinglist.txt
+  * Support.txt
   * Contact.txt
   * News.txt
 --

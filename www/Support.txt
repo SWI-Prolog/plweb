@@ -1,0 +1,28 @@
+---+ SWI-Prolog Support
+
+If you have problems with SWI-Prolog there are a number of places you
+can go for help from the community:
+
+    * The [[FAQ][</FAQ/>]].
+
+    * The Mailinglist.txt and its archive or search the internet. Tip:
+    include =SWIPL= to search the mailinglist archives.
+
+    * If you encountered a bug.txt, please report it using the
+    [[Bugzilla Bug Tracking System][<bugzilla:>]].
+
+    * Debian Linux also has a [[bug tracking
+    system][http://bugs.debian.org/cgi-bin/pkgreport.cgi?pkg=swi-prolog]]
+    for SWI-Prolog informing the Debian maintainer Michael Piefel.
+    Please use this for packaging or other very Debian specific
+    problems.
+
+    * There are a lot of resources such as libraries, interfaces, ports
+    and applications that are not mentioned on the SWI-Prolog website.
+    Therefore, if the above doesn't help you may wish to check
+    [[comp.lang.prolog][<news:comp.lang.prolog>]] or search the
+    internet.
+
+If you find things that can be of interest for other SWI-Prolog users,
+please E-mail them to the Mailinglist.txt.
+
