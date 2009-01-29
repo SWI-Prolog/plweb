@@ -7,6 +7,6 @@
   * News.txt
 --
   * IDE.txt
-  * packages/XPCE.txt
+  * Graphics.txt
 --
   * [[License][license.txt]]
