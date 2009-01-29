@@ -1,12 +1,14 @@
   * [[Home][index.txt]]
   * Download.txt ([[GIT][</git>]])
+--
   * [[FAQ][</FAQ/>]]
   * [[PlDoc][</pldoc/>]]
   * Documentation.txt
   * Mailinglist.txt
   * Support.txt
-  * Contact.txt
+  * Links.txt
   * News.txt
+  * Contact.txt
 --
   * IDE.txt (developing)
   * Graphics.txt

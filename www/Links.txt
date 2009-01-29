@@ -1,0 +1,68 @@
+---+ Related Web Resources
+
+This page lists links of general interest to Prolog users, but mostly
+specific to SWI-Prolog. It is by no means complete. If you want your
+application, library, Prolog-related web page, etc. added here, please
+drop [[me][<mailto:jan@swi-prolog.org>]] an E-mail. See also the
+SWI-Prolog [[packages][</packages/>]]
+
+
+  * *|Organizations|*
+
+    * [[The Association of Logic Programming][http://www.cwi.nl/projects/alp/]]
+
+  * *|General Prolog resources on the WEB|*
+
+    * [[The World Wide Web Virtual Library: Logic Programming.][http://www.comlab.ox.ac.uk/archive/logic-prog.html]]
+    * [[Cetus links on Prolog.  Points to many Prolog resources.][http://www.cetus-links.org/oo_prolog.html]]
+    * [[The Database of 1000 Prolog applications][ftp://src.doc.ic.ac.uk/packages/prolog-progs-db/prolog1000.v1.gz]]
+    * [[`Official' Prolog faq as posted to comp.lang.prolog][http://www.logic.at/prolog/faq/]]
+    * [[Information on the ISO Prolog standard][http://www.logic-programming.org/prolog_std.html]]
+    * [[Prolog comparison, discussion group, chat, etc.][http://www.fraber.de/university/prolog/]]
+
+  * *|Tutorials, guides, etc|*
+  
+    * [[A Wikibook on Prolog.  Please contribute!][http://en.wikibooks.org/wiki/Programming:Prolog]]
+    * [[Some notes for getting started using Prolog, by Jesse Monroy, Jr.][http://www.didgood.com/programing/prolog/beginprolog.html]]
+    * [[A Prolog Tutorial by J.R. Fisher][http://www.csupomona.edu/%7Ejrfisher/www/prolog_tutorial/contents.html]]
+    * [[Learn Prolog Now! by Patrick Blackburn, Johan Bos and Kristina Striegnitz][http://www.coli.uni-sb.de/~kris/prolog-course/]]
+    * [[Natural Language Processing Techniques in Prolog][http://www.coli.uni-saarland.de/%7Ekris/nlp-with-prolog/html/]] by
+    Patrick Blackburn and Kristina Striegnitz
+    * [[Logic, Programming and Prolog (2ed)][http://www.ida.liu.se/%7Eulfni/lpp/]]
+    * [[More Prolog Reading material from the TWiki web][http://gollem.science.uva.nl/twiki/pl/bin/view/FAQ/PrologReading]]
+    * [[Material for the ICLP-01 at Cyprus][http://www.swi-prolog.org/slides/ICLP-01/]]
+    * [[Some Coding Guidelines for Prolog][http://www.ai.uga.edu/mc/plcoding.pdf]] by Michael A. Covington
+    * [[An Introduction to Language Processing with Perl and Prolog][http://www.cs.lth.se/home/Pierre_Nugues/ilppp/sample.html]] by Pierre Nugues
+
+  * *|General Prolog libraries|*
+
+    * [[The public-domain Prolog library][http://www.j-paine.org/prolog/library.html]]
+
+  * *|Resources mentioned as SWI-Prolog compliant|*
+    (See also the [[packages][</packages/>]] page).
+
+    * [[Logtalk][http://www.logtalk.org/]]:
+    Prolog object package by Paulo Moura
+    * [[Attribute-Logic Engine][http://www.sfs.nphil.uni-tuebingen.de/%7Egpenn/ale.html]]
+    Attempto Parsing Engine (APE), a parser for Attempto Controlled English (ACE).
+    * [[SWI-Prolog to SQL bridge (ODBC &amp; ORACLE)][http://www.geocities.com/SiliconValley/Bit/1116/PrologSQL.html]]
+    * [[About Prolog, RDF and XML by Bijan Parsia][http://www.xml.com/pub/a/2001/04/25/prologrdf/index.html]]
+    * [[Prolog Virtual Worlds][http://alife.8m.com/vw/]] Client/server virtual world by
+    * [[Microsoft Virtual Worlds][http://vworlds.research.microsoft.com/]].
+    * [[ProNTo = Prolog Natural Language Tools][http://www.ai.uga.edu/mc/ProNTo/]]
+    * [[plimk -- An SWI-Prolog interface to ImageMagick][http://plimk.sourceforge.net/]]
+    * [[A SWI-Prolog interface to Matlab by Samer Abdallah (Unix (Linux, MacOSX only)][http://www.elec.qmul.ac.uk/digitalmusic/downloads/index.html#plml]]
+    * [[DES -- Datalog Educational System by Fernando Saenz Perez][http://des.sourceforge.net/]]
+    * [[PySWIP -- a bridge between Python and SWI-Prolog by Yuce Tekol][http://code.google.com/p/pyswip/]]
+
+  * *|Externally distributed binaries and ports|*
+
+    * [[BeOS binary on BeBits][http://www.bebits.com/app/2337]]
+    * [[Windows CE binary from Paranoyaxc Software][http://www.rainer-keuchel.de/wince/swi-prolog.html]]
+
+  * *|(SWI-)Prolog on the web|*
+
+    * [[Long story about using SWI-Prolog RDF and HTML infrastructure][http://www.xml.com/pub/a/2001/07/25/prologrdf.html]] by Bijan Parsia
+    * [[Why Use Prolog?][http://www.j-paine.org/why_prolog.html]] by Jocelyn Paine
+
+
