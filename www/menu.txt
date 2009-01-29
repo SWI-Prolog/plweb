@@ -4,9 +4,10 @@
   * [[PlDoc][</pldoc/>]]
   * Documentation.txt
   * Mailinglist.txt
+  * Contact.txt
   * News.txt
 --
-  * IDE.txt
+  * IDE.txt (developing)
   * Graphics.txt
 --
   * [[License][license.txt]]
