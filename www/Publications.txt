@@ -1,0 +1,27 @@
+---+ Publications about SWI-Prolog
+
+Most of the time I managed to stick with writing code and documentation.
+At rare weak moments I am pursuaded to write articles about aspects of
+SWI-Prolog or its libraries. If you use SWI-Prolog and write academic
+publiciations, please consider citing one of these papers.
+
+    * [[Using Prolog as the fundament for applications on the semantic web][<pub:mn9c.pdf>]],
+    ALPSWS-07, [[BibTeX][<pub:alpsws-07.bib>]]
+    * [[PlDoc: Wiki style Literate Programming for Prolog][<pub:pldoc.pdf>]],
+    WLPE-07, [[BibTeX][<pub:wlpe-07.bib>]]
+    * [[SWI-Prolog and the Web][<pub:TPLP-plweb.pdf>]],
+    TPLP [[BibTeX][<pub:TPLP-plweb.bib>]]
+    * [[Using triples for implementation: the Triple20 ontology-manipulation tool][<pub:ISWC05-Triple20.pdf>]],
+    ISWC-05 [[BibTeX][<pub:ISWC05-Triple20.bib>]]
+    * [[An optimised Semantic Web query language implementation in Prolog][<pub:ICLP05-SeRQL.pdf>]],
+    ICLP-05 [[BibTeX][<pub:ICLP05-SeRQL.bib>]]
+    * [[Constraint Handling Rules for SWI-Prolog][<pub:chr_for_swi.pdf>]],
+    Tom Schrijvers, Jan Wielemaker and Bart Demoen, Workshop on (Constraint) Logic Programming, Ulm, February, 2005
+    * [[Native Preemptive Threads in SWI-Prolog][<pub:iclp-03.pdf>]],
+    ICLP-03, [[BibTeX][<pub:iclp-03.bib>]]
+    * [[An Overview of the SWI-Prolog Programming Environment][<pub:wlpe-03.pdf>]],
+    WLPE-03 [[BibTeX][<pub:wlpe-03.bib>]]
+    * [[Prolog-based Infrastructure for RDF: Scalability and Performance][<pub:iswc-03.pdf>]],
+    ISWC-03 [[BibTeX][<pub:iswc-03.bib>]]
+    * [[An Architecture for Making Object-Oriented Systems Available from Prolog][<pub:wlpe-02.pdf>]],
+    WLPE-02 [[BibTeX][<pub:wlpe-02.bib>]]

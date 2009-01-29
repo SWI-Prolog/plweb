@@ -13,4 +13,5 @@
   * IDE.txt (developing)
   * Graphics.txt
 --
+  * Publications.txt
   * [[License][license.txt]]

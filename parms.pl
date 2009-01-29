@@ -45,6 +45,7 @@ http:location(icons,    root(icons),    []).
 	user:url_path/2.
 
 user:url_path(swi,	'http://www.swi-prolog.org').
+user:url_path(hcs,	'http://hcs.science.uva.nl').
 user:url_path(pkg,	swi(packages)).
 user:url_path(dmoz,	'http://dmoz.org').
 user:url_path(dmoz_pl,	dmoz('Computers/Programming/Languages/Prolog/Implementations/')).
@@ -67,7 +68,7 @@ user:url_path(chr_mail,  'http://listserv.cc.kuleuven.ac.be/archives/chr.html').
 user:url_path(bugzilla,  'http://gollem.science.uva.nl/bugzilla/').
 user:url_path(gitweb,	 'http://gollem.science.uva.nl/pl/').
 user:url_path(swieditor, 'http://lernen.bildung.hessen.de/informatik/swiprolog/indexe.htm').
-
+user:url_path(pub,	 hcs('projects/SWI-Prolog/articles')).
 
 		 /*******************************
 		 *	      RESOURCES		*
