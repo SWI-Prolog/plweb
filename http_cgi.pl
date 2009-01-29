@@ -11,6 +11,7 @@
 :- use_module(library(socket)).
 :- use_module(library(url)).
 :- use_module(library(debug)).
+:- use_module(library(lists)).
 :- use_module(library(http/http_dispatch)).
 
 /** <module> Run CGI scripts from the SWI-Prolog web-server
@@ -40,10 +41,11 @@ run_script(Request) :-
 	select(path_info(PathInfo), Request, Request1),
 	ensure_no_leading_slash(PathInfo, Relative),
 	path_info(Relative, Script, Request1, Request2),
-	absolute_file_name(cgi_bin(Script), ScriptPath,
+	absolute_file_name(cgi_bin(Script), ScriptFileName,
 			   [ access(execute)
 			   ]),
-	http_run_cgi(ScriptPath, Request2).
+	http_run_cgi(ScriptFileName, Request2).
+
 			   
 ensure_no_leading_slash(Abs, Rel) :-
 	atom_concat(/, Rel, Abs), !.
@@ -62,7 +64,12 @@ path_info(Script, Script, Request, Request).
 
 http_run_cgi(Script, Request) :-
 	input_handle(Request, ScriptInput),
-	findall(Name=Value, env(Name, Request, Value), Env),
+	findall(Name=Value,
+		env(Name,
+		    [ script_file_name(Script)
+		    | Request
+		    ], Value),
+		Env),
 	process_create(Script, [],
 		       [ stdin(ScriptInput),
 			 stdout(pipe(CGI)),
@@ -135,6 +142,8 @@ env('PATH_INFO', Request, PathInfo) :-
 	memberchk(path_info(PathInfo), Request).
 env('PATH_TRANSLATED', _, _) :- fail.
 env('SCRIPT_NAME', _, _) :- fail.
+env('SCRIPT_FILENAME', Request, ScriptFilename) :-
+	memberchk(script_file_name(ScriptFilename), Request).
 env('QUERY_STRING', Request, QString) :-
 	memberchk(search(Search), Request),
 	parse_url_search(QList, Search),
