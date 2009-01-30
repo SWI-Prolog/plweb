@@ -61,14 +61,13 @@ server(Options) :-
 %	HTTP handler for files below document-root.
 
 serve_page(Request) :-
-	http_location_by_id(serve_page, Root),
-	memberchk(path(Path), Request),
-	atom_concat(Root, Relative, Path),
+	memberchk(path_info(Relative), Request),
 	find_file(Relative, File), !,
 	absolute_file_name(document_root(.), DocRoot),
 	(   atom_concat(DocRoot, _, File)
 	->  serve_file(File, Request)
-	;   permission_error(access, http_location, Path)
+	;   memberchk(path(Path), Request),
+	    permission_error(access, http_location, Path)
 	).
 serve_page(Request) :-
 	memberchk(path(Path), Request),
@@ -206,9 +205,7 @@ list_entry(File, Dir) -->
 %	HTTP handler for /man/file.html
 
 manual_file(Request) :-
-	memberchk(path(Path), Request),
-	http_location_by_id(manual_file, Root),
-	atom_concat(Root, Relative, Path),
+	memberchk(path_info(Relative), Request),
 	atom_concat('doc/Manual', Relative, Man),
 	absolute_file_name(swi(Man),
 			   ManFile,
