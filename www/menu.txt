@@ -2,7 +2,7 @@
   * Download.txt ([[GIT][</git>]])
 --
   * [[FAQ][</FAQ/>]]
-  * [[PlDoc][</pldoc/>]]
+  * [[Manual][</pldoc/index.html>]]
   * Documentation.txt
   * Mailinglist.txt
   * Support.txt
