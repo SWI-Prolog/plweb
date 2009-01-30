@@ -70,6 +70,9 @@ serve_page(Request) :-
 	    permission_error(access, http_location, Path)
 	).
 serve_page(Request) :-
+	\+ memberchk(path_info(_), Request), !,
+	serve_page([path_info('index.html')|Request]).
+serve_page(Request) :-
 	memberchk(path(Path), Request),
 	existence_error(http_location, Path).
 	
