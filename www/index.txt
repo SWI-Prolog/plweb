@@ -1,11 +1,12 @@
 ---+ SWI-Prolog's home
 
-"Software-Patents" in Europe: The threat prevails European Parliament
-said No to software patents with 648 votes against 14. Open Source and
-smaller innovative compagnies have won a battle, but not yet the war.
-Please be aware of the danger. More info at the [[FFII
-website][<ffii:>]] as well as the [[FSF website][<fsf:>]].
+	"Software-Patents" in Europe: The threat prevails European Parliament
+	said No to software patents with 648 votes against 14. Open Source and
+	smaller innovative compagnies have won a battle, but not yet the war.
+	Please be aware of the danger. More info at the [[FFII
+	website][<ffii:>]] as well as the [[FSF website][<fsf:>]].
 
+---
 ---++ And now about SWI-Prolog ...
 
 [[coolstar.gif;align="right",alt="Open directory cool site"][<dmoz_pl:>]]
@@ -83,13 +84,14 @@ as for commercial applications. See our download statistics.
     global variables, cyclic terms. Flag-controlled handling of
     occurs-check (on/off/error) see current_prolog_flag/2.
 
-    * *Constraint* Logic Programming, providing libraries for *CHR*
-    (Constraint Handling Rules), *|clp(FD)|*, *|clp(R,Q)|* and various
-    others.
+    * *Constraint* Logic Programming, providing libraries for
+    [[CHR][</pldoc/package/chr.html>]] (Constraint Handling Rules),
+    *|clp(FD)|*, *|clp(R,Q)|* and various others.
 
-    * Bundled with interface libraries for *Java* (JPL), *ODBC*,
-    *|TCP/IP|* sockets, *SSL*, *CGI* form handling, etc. Check the
-    packages.
+    * Bundled with interface libraries for *Java* (JPL),
+    [[ODBC][</pldoc/package/odbc.html>]], *|TCP/IP|* sockets,
+    [[SSL][</pldoc/package/ssl.html>]], *CGI* form handling, etc. Check
+    the packages.
 
     * Multi-threaded Web server (*HTTP*) library with extensive libraries
     for generation *HTML*, HTTP authorization, session management,
