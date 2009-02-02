@@ -6,19 +6,19 @@ virtual machine and compiler while significantly improving the
 performance.
 
 The 5.7.x branch has its own GIT repository at the address below. See
-the general GIT instructions for details.
+the general [[GIT][</git.html>]] instructions for details.
 
 ==
-% git clone git://gollem.science.uva.nl/home/pl/pl-57x.git
+% git clone git://prolog.cs.vu.nl/home/pl/git/pl-57x.git
 ==
 
-Documentation
+---++ Status notes
 
-    * The 5.7.x reference manual 
+SWI-Prolog 5.7.x is now being tested on several big applications.  It
+is the *|recommended version for development|*.  Please test carefully
+before you use it in mission-critical applications and report bugs.
 
-Status nodes
 
-    * Fully functional, but do not trust it too much
     * Performance improvement on larger programs is between 10 and 40%,
     depending on the programming style. Notably the constraint solvers
     profit significantly. Small programs sometimes show much bigger
