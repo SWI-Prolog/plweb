@@ -1,53 +1,35 @@
----+ Accessing SWI-Prolog source via [[GIT][http://git-scm.com/]]
+---+ Accessing SWI-Prolog source via [[GIT][<git:>]]
 
-GIT is a Fast Version Control System developed by Linus Torvalds and
-currently maintained by Junio C Hamano. The SWI-Prolog project moved
-from CVS to GIT because
+GIT is a fast version control system developed by Linus Torvalds and
+currently maintained by Junio C Hamano. Here is our
+[[motivation][whygit.txt]] for choosing GIT for managing the SWI-Prolog
+sources. You should use the GIT version if you want to stay
+*|up-to-date|* and/or you want to *contribute* to the project. Many
+professional users opt for this route.
 
-    * CVS started to become too slow
-    * CVS doesn't support staging very well. I like frequent commits to
-    synchronise between machines, commit work that is known to be
-    incomplete, etc. For GIT this is the natural model, for CVS it is
-    just too cumbersome.
-    * GIT allows for offline working.
-    * GIT checkouts are totally stand alone, making local branches much
-    easier as well as providing security against system failure, etc. 
-
-The complete CVS history since 1993 has been included in the GIT repository.
-Public access to the SWI-Prolog GIT repository
-
-If you want to keep in touch with the most recent version, or you want
-to maintain a modified version, access to the SWI-Prolog GIT repository
-can make your life a lot easier. Web access Access through your WWW
-browser
-
-We provide browsing access through the web using GITweb. With any
-browser you can examine the version history of files, retrieve any
-version of a file and produce difference listings between arbitrary
-versions. Access using GIT
-
-First install GIT for your platform. You need at least version 1.5.5
+First install GIT for your platform. You need at least version 1.6.0
 because the SWI-Prolog repository uses the GIT submodule features. Many
 modern Unix versions come with GIT installed. If your version is too
 old, installing a new version from source is simple. On MS-Windows we
-use msysGit, which is easily installed and except for being much slower
-than its Unix counterpart appears to do the job flawlessly.
+use [[msysGit][<msysgit:>]], which is easily installed and except for
+being much slower than its Unix counterpart appears to do the job
+flawlessly.
 
 With GIT installed, you can clone the repository from one of the
-addresses below. Please use the git:// access if you can as it is much
-faster. The HTTP gateway provides you with access if a proxy or firewall
-denies direct internet access to the git port (9418).
+addresses below. Please use the =|git://|= access if you can as it is
+much faster. The HTTP gateway provides you with access if a proxy or
+firewall denies direct internet access to the git port (9418).
 
     * http://prolog.cs.vu.nl/home/pl/git/pl.git
-    * git://prolog.cs.vu.nl/home/pl/git/pl.git 
+    * git://prolog.cs.vu.nl/home/pl/git/pl.git [[star.gif]]
 
 Initial checkout is achieved using the command below, which creates a
-directory pl below the current directory. The download does not contain
-generated documention and configuration files, neither the required
-stand-alone submodules. Use the ./prepare script to fetch these. This
-script also runs on Windows using the bash-shell that comes with
-msysGit. In msysGit it cannot create the configure scripts, but this
-warning is harmless as configure is not used on Windows.
+directory =pl= below the current directory. The download does not
+contain generated documention and configuration files, neither the
+required stand-alone submodules. Use the *|./prepare|* script to fetch
+these. This script also runs on Windows using the bash-shell that comes
+with =msysGit=. In msysGit it cannot create the configure scripts, but
+this warning is harmless because configure is not used on Windows.
 
 ==
 % git clone git://prolog.cs.vu.nl/home/pl/git/pl.git
@@ -55,21 +37,10 @@ warning is harmless as configure is not used on Windows.
 % ./prepare
 ==
 
-Next, consult the file INSTALL for further instructions for installing SWI-Prolog from source. You can update to the latest version using
+Next, consult the file INSTALL for further instructions for installing
+SWI-Prolog from source. You can update to the latest version using
 
 ==
 % git pull
 % ./prepare
-==
-
----++ Access using CVS (ONLY for cvs diff to find local modifications)
-
-As of august 15, 2008, CVS access to the SWI-Prolog repository is
-discontinued due to the use of git modules which are poorly supported by
-the GIT CVS frontend. For some time we will maintain CVS access to the
-no longer updated united GIT/CVS repository below to allow CVS users to
-generate patch-sets and migrate to GIT.
-
-==
-% cvs -d :pserver:anonymous@gollem.science.uva.nl:2402/pl.git co master
 ==
