@@ -24,6 +24,7 @@
 		http_reply_file(gitweb('git-logo.png'), []), []).
 :- http_handler(root('git/git-favicon.png'),
 		http_reply_file(gitweb('git-favicon.png'), []), []).
+:- http_handler(root('home/pl/git/'), git_http, [prefix]).
 	  
 %%	gitroot(+Request) is det.
 %
@@ -56,7 +57,7 @@ gitweb(Request) :-
 	http_cgi:environment/2.
 
 http_cgi:environment('PROJECT_ROOT', Root) :-
-	absolute_file_name(plweb(git), Root,
+	absolute_file_name(plgit(.), Root,
 			   [ access(read),
 			     file_type(directory)
 			   ]).
@@ -66,3 +67,19 @@ http_cgi:environment('GITWEB_CONFIG', Config) :-
 			   ]).
 http_cgi:environment('PATH', '/bin:/usr/bin:/usr/local/bin').
 
+
+%%	git_http(+Request) is det.
+%
+%	Server files from the git tree to make this work:
+%	
+%	    ==
+%	    git clone http://prolog.cs.vu/nl/home/pl/git/pl.git
+%	    ==
+
+git_http(Request) :-
+	memberchk(path_info(Local), Request),
+	\+ sub_atom(Local, _, _, _, '../'),
+	absolute_file_name(plgit(Local), File,
+			   [ access(read)
+			   ]),
+	http_reply_file(File, [], Request).
