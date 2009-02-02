@@ -17,14 +17,14 @@
 */
 
 :- http_handler(root('git'), gitroot, []).
-:- http_handler(root('git/'), gitweb, [ prefix ]).
+:- http_handler(root('git/'), gitweb, [ prefix, spawn(cgi) ]).
 :- http_handler(root('git/gitweb.css'),
 		http_reply_file(gitweb('gitweb.css'), []), []).
 :- http_handler(root('git/git-logo.png'),
 		http_reply_file(gitweb('git-logo.png'), []), []).
 :- http_handler(root('git/git-favicon.png'),
 		http_reply_file(gitweb('git-favicon.png'), []), []).
-:- http_handler(root('home/pl/git/'), git_http, [prefix]).
+:- http_handler(root('home/pl/git/'), git_http, [prefix, spawn(download)]).
 	  
 %%	gitroot(+Request) is det.
 %

@@ -24,6 +24,8 @@
 :- use_module(library(readutil)).
 :- use_module(library(lists)).
 :- use_module(library(occurs)).
+:- use_module(library(pairs)).
+:- use_module(library(thread_pool)).
 
 :- use_module(parms).
 :- use_module(page).
@@ -32,8 +34,8 @@
 :- use_module(http_cgi).
 :- use_module(gitweb).
 
-:- http_handler(root(.),   serve_page,     [prefix, priority(10)]).
-:- http_handler(root(man), manual_file,    [prefix, priority(10)]).
+:- http_handler(root(.),   serve_page,     [prefix, priority(10), spawn(wiki)]).
+:- http_handler(root(man), manual_file,    [prefix, priority(10), spawn(wiki)]).
 
 /** <module> Server for PlDoc wiki pages and SWI-Prolog website
 
@@ -45,6 +47,7 @@
 		 *******************************/
 
 server :-
+	init_thread_pools,
 	setting(http:port, Port),
 	setting(http:workers, Workers),
 	server([ port(Port),
@@ -223,3 +226,28 @@ manual_file(Request) :-
 manual_file(Request) :-
 	memberchk(path(Path), Request),
 	existence_error(http_location, Path).
+
+
+%%	init_thread_pools
+%
+%	Create pools of threads  as   defined  by  thread_pool_create/3.
+%	Currently it defined two pools with `special' actions:
+%	
+%	    * media
+%	    Remote media.  Allow higher number of concurrent servers
+%	    * www
+%	    Local files.  Allow higher number of concurrent servers
+%	    * search
+%	    Allow not too many clients and use large stacks
+
+init_thread_pools :-
+	findall(Name-pool(Size,Options), thread_pool(Name, Size, Options), Pairs),
+	group_pairs_by_key(Pairs, Grouped),
+	maplist(start_pool, Grouped).
+
+start_pool(Name-[pool(Size,Options)|_]) :-
+	thread_pool_create(Name, Size, Options).
+
+thread_pool(wiki,     20, [ local(1000), global(4000), trail(4000), backlog(50) ]).
+thread_pool(download, 20, [ local(100),  global(200),  trail(200),  backlog(50) ]).
+thread_pool(cgi,      20, [ local(100),  global(200),  trail(200),  backlog(50) ]).
