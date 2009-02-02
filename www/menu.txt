@@ -1,9 +1,8 @@
   * [[Home][index.txt]]
-  * Download.txt ([[GIT][</git>]])
+  * Download.txt | ([[Browse GIT][</git>]])
 --
   * [[FAQ][</FAQ/>]]
-  * [[Manual][</pldoc/index.html>]]
-  * Documentation.txt
+  * [[Manual][</pldoc/index.html>]] | ([[More docs][Documentation.txt]])
   * Mailinglist.txt
   * Support.txt
   * Links.txt

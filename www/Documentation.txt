@@ -8,4 +8,4 @@ in various formats.
     the documentation in HTML and PDF format.
 
     * This server provides an
-    [[integrated documentation search system][</pldoc/>]].
+    [[integrated documentation search system][</pldoc/index.html>]].
