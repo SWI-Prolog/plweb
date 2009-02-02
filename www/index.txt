@@ -109,4 +109,4 @@ as for commercial applications. See our download statistics.
     (32/64 bits), Linux (32 bits) and MacOS X (32 bits)).
 
     * Regular distribution of the *|full source|* packages. The sources are
-    also accesible through [[GIT][<gitweb:>]]. 
+    also accesible through [[GIT][</git.html>]]. 

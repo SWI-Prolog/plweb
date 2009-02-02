@@ -73,6 +73,8 @@ user:url_path(bugzilla,  'http://gollem.science.uva.nl/bugzilla/').
 user:url_path(gitweb,	 'http://gollem.science.uva.nl/pl/').
 user:url_path(swieditor, 'http://lernen.bildung.hessen.de/informatik/swiprolog/indexe.htm').
 user:url_path(pub,	 hcs('projects/SWI-Prolog/articles')).
+user:url_path(git,	 'http://git-scm.com/').
+user:url_path(msysgit,	 'http://code.google.com/p/msysgit/').
 
 		 /*******************************
 		 *	      RESOURCES		*
