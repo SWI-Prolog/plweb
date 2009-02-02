@@ -99,11 +99,13 @@ as for commercial applications. See our download statistics.
     store and query the RDF _|triple model|_. A graphical editor for
     RDF/RDFS and OWL models called Triple20 is distributed seperately.
 
-    * *|Literate programming|* support through PlDoc. Provides integrated
-    view on manual and application documentation and producing LaTeX
+    * *|Literate programming|* support through
+    [[PlDoc][</pldoc/package/pldoc.html>]]. Provides integrated view on
+    manual and application documentation and producing LaTeX
     documentation for your application.
 
-    * *|Unit testing|* support through PlUnit.
+    * *|Unit testing|* support through
+    [[PlUnit][</pldoc/package/plunit.html>]].
 
     * Regular *|binary distributions|* for most popular platforms (Windows
     (32/64 bits), Linux (32 bits) and MacOS X (32 bits)).
