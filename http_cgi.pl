@@ -133,7 +133,8 @@ env('SERVER_PROTOCOL', Request, Protocol) :-
 	memberchk(http(Major-Minor), Request),
 	format(atom(Protocol), 'HTTP/~w.~w', [Major, Minor]).
 env('SERVER_PORT', Request, Port) :-
-	(   memberchk(port(Port), Request)
+	(   memberchk(port(Port), Request),
+	    \+ memberchk(x_forwarded_host(_), Request)
 	->  true
 	;   Port = 80
 	).
