@@ -39,7 +39,7 @@ faster. The HTTP gateway provides you with access if a proxy or firewall
 denies direct internet access to the git port (9418).
 
     * http://gollem.science.uva.nl/home/pl/pl.git
-    * git://gollem.science.uva.nl/home/pl/pl.git 
+    * git://prolog.cs.vu.nl/home/pl/git/pl.git 
 
 Initial checkout is achieved using the command below, which creates a
 directory pl below the current directory. The download does not contain
@@ -50,7 +50,7 @@ msysGit. In msysGit it cannot create the configure scripts, but this
 warning is harmless as configure is not used on Windows.
 
 ==
-% git clone git://gollem.science.uva.nl/home/pl/pl.git
+% git clone git://prolog.cs.vu.nl/home/pl/git/pl.git
 % cd pl
 % ./prepare
 ==

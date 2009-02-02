@@ -1,14 +1,13 @@
 ---+ The new SWI-Prolog web-site
 
-The new web-site will be served by Prolog itself, exploiting the PlDoc
-infrastructure.  Pages will be mostly PlDoc wiki pages.
+Finally, SWI-Prolog hosts itself on the web. The official address is
+(for now) http://prolog.cs.vu.nl
+
 
 ---++ TODO
 
     * Provide last-modified support for wiki pages
-    * Complete the FAQ
     * Support bug-reporting
-    * Link to GIT browsing
     * Downloads
 	* Use thread-pool for scalability
 	* Support download statistics
@@ -18,3 +17,7 @@ infrastructure.  Pages will be mostly PlDoc wiki pages.
 	* Local-host only (like PlDoc)?
 	* Wiki-style
     * Process .txt links in @see (See PceEmacs in FAQ)
+
+Update Apache:
+
+    * /usr/local/apache2/bin/apachectl -k graceful

@@ -29,7 +29,7 @@ SWI-Prolog [[packages][</packages/>]]
     * [[Natural Language Processing Techniques in Prolog][http://www.coli.uni-saarland.de/%7Ekris/nlp-with-prolog/html/]] by
     Patrick Blackburn and Kristina Striegnitz
     * [[Logic, Programming and Prolog (2ed)][http://www.ida.liu.se/%7Eulfni/lpp/]]
-    * [[More Prolog Reading material from the TWiki web][http://gollem.science.uva.nl/twiki/pl/bin/view/FAQ/PrologReading]]
+    * [[More Prolog Reading material from the FAQ][</FAQ/PrologReading.html>]]
     * [[Material for the ICLP-01 at Cyprus][http://www.swi-prolog.org/slides/ICLP-01/]]
     * [[Some Coding Guidelines for Prolog][http://www.ai.uga.edu/mc/plcoding.pdf]] by Michael A. Covington
     * [[An Introduction to Language Processing with Perl and Prolog][http://www.cs.lth.se/home/Pierre_Nugues/ilppp/sample.html]] by Pierre Nugues
