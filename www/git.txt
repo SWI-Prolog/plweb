@@ -38,7 +38,7 @@ addresses below. Please use the git:// access if you can as it is much
 faster. The HTTP gateway provides you with access if a proxy or firewall
 denies direct internet access to the git port (9418).
 
-    * http://gollem.science.uva.nl/home/pl/pl.git
+    * http://prolog.cs.vu.nl/home/pl/git/pl.git
     * git://prolog.cs.vu.nl/home/pl/git/pl.git 
 
 Initial checkout is achieved using the command below, which creates a

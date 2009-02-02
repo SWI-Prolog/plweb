@@ -26,6 +26,10 @@
 	   integer,
 	   3040,
 	   'Default port').
+:- setting(http:workers,
+	   integer,
+	   5,
+	   'Number of worker threads').
 
 
 		 /*******************************
@@ -97,6 +101,7 @@ user:url_path(pub,	 hcs('projects/SWI-Prolog/articles')).
    ).
 
 user:file_search_path(document_root, plweb(www)).
+user:file_search_path(plgit,	     plweb(git)).
 user:file_search_path(icons, 	     document_root(icons)).
 user:file_search_path(cgi_bin,	     plweb('git-web')).
 user:file_search_path(download,	     plweb(download)).
