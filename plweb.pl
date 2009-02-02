@@ -46,7 +46,10 @@
 
 server :-
 	setting(http:port, Port),
-	server([port(Port)]).
+	setting(http:workers, Workers),
+	server([ port(Port),
+		 workers(Workers)
+	       ]).
 
 server(Options) :-
 	http_server(http_dispatch, Options).

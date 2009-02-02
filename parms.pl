@@ -26,6 +26,10 @@
 	   integer,
 	   3040,
 	   'Default port').
+:- setting(http:workers,
+	   integer,
+	   5,
+	   'Number of worker threads').
 
 
 		 /*******************************
