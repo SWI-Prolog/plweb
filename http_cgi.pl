@@ -122,7 +122,9 @@ env('SERVER_SOFTWARE', _, Version) :-
 	current_prolog_flag(version_data, swi(Major, Minor, Patch, _)),
 	format(atom(Version), 'SWI-Prolog/~w.~w.~w', [Major, Minor, Patch]).
 env('SERVER_NAME', Request, Server) :-
-	(   memberchk(host(Server), Request)
+	(   memberchk(x_forwarded_host(Server), Request)
+	->  true
+	;   memberchk(host(Server), Request)
 	->  true
 	;   gethostname(Server)
 	).
