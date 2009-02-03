@@ -1,7 +1,7 @@
 #!/bin/bash
 
-for f in `find download-custom -type f`; do
+for f in `find download-custom -name '*.txt'`; do
    target="`echo $f | sed 's/download-custom/download/'`"
-   cp -v $f $target
+   ./ln-install $f `dirname $target`
 done
    
