@@ -74,3 +74,13 @@ td.dl_file p
 { margin-top: 0px;
   margin-bottom: 0px;
 }
+
+/* Messages */
+
+div.informational
+{ background-color: #b0ffb0;
+}
+
+div.silent
+{ display: none;
+}

@@ -8,7 +8,7 @@ exist:
 
 Unfortunately standard GNU-Emacs Prolog mode is very weak, especially at
 handling proper Prolog indentation. Good news is that there is a better
-mode today. For more information, see the Twiki Web on SWI-Prolog.
+mode today. For more information, see the [[FAQ][</FAQ/GnuEmacs.html>]].
 
 ---++ Using XPCE
 
