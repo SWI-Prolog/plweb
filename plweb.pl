@@ -33,6 +33,7 @@
 :- use_module(wiki).
 :- use_module(http_cgi).
 :- use_module(gitweb).
+:- use_module(update).
 
 :- http_handler(root(.),   serve_page,     [prefix, priority(10), spawn(wiki)]).
 :- http_handler(root(man), manual_file,    [prefix, priority(10), spawn(wiki)]).
