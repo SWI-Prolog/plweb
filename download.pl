@@ -129,7 +129,7 @@ file_icon(file(Type, PlatForm, _, _, _)) -->
 file_icon(_) -->
 	html(?).			% no defined icon
 
-icon_for_file(bin, linux(_),	  
+icon_for_file(bin, linux(_,_),	  
 	      'linux32.gif', 'Linux RPM').
 icon_for_file(bin, macos(_,_),
 	      'mac.gif', 'MacOSX version').
@@ -190,6 +190,8 @@ delete_leading_slash(SlashPath, Path) :-
 	atom_concat(/, Path, SlashPath), !.
 delete_leading_slash(Path, Path).
 
+platform(linux(rpm, _)) -->
+	html(['i586/Linux (RPM)']).
 platform(macos(Name, CPU)) -->
 	html(['MacOSX ', \html_macos_version(Name), ' on ', b(CPU)]).
 platform(windows(win32)) -->
@@ -241,9 +243,13 @@ classsify_file(Path, file(Type, Platform, Version, Name, Path)) :-
 	phrase(file(Type, Platform, Version), Codes).
 
 file(bin, macos(OSVersion, CPU), Version) -->
-	"swi-prolog-devel-", long_version(Version), "-",
-	macos_version(OSVersion), "-", 
-	macos_cpu(CPU),
+	"swi-prolog-", opt_devel, long_version(Version), "-",
+	macos_version(OSVersion),
+	(   "-", 
+	    macos_cpu(CPU)
+	->  ""
+	;   { CPU=ppc }
+	),
 	".mpkg.zip", !.
 file(bin, windows(WinType), Version) -->
 	win_type(WinType), "pl",
@@ -257,10 +263,15 @@ file(src, tgz, Version) -->
 file(doc, pdf, Version) -->
 	"SWI-Prolog-", long_version(Version), ".pdf", !.
 
+opt_devel -->
+	"devel-", !.
+opt_devel -->
+	"".
+
 macos_version(tiger)   --> "tiger".
 macos_version(leopard) --> "leopard".
 
-macos_cpu(ppc)   --> "ppc".
+macos_cpu(ppc)   --> "powerpc".
 macos_cpu(intel) --> "intel".
 
 win_type(win32) --> "w32".
@@ -352,5 +363,18 @@ download(Request) :-
 			   AbsFile,
 			   [ access(read)
 			   ]),
-	http_reply_file(AbsFile, [], Request),
-	broadcast(download(Download)).
+	remote_ip(Request, Remote),
+	broadcast(download(Download, Remote)),
+	http_reply_file(AbsFile, [], Request).
+
+remote_ip(Request, IP) :-
+	memberchk(x_forwarded_for(IP), Request), !.
+remote_ip(Request, IP) :-
+	memberchk(peer(IPTerm), Request), !,
+	ip_term_to_atom(IPTerm, IP).
+remote_ip(_, '0.0.0.0').
+
+ip_term_to_atom(ip(A,B,C,D), Atom) :- !,
+	format(atom(Atom), '~w.~w.~w.~w', [A,B,C,D]).
+ip_term_to_atom(Term, Atom) :-
+	term_to_atom(Term, Atom).
