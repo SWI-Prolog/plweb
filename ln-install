@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash -f
 
 mode=755
 files=
@@ -32,9 +32,9 @@ done
 if [ -d "$target" ]; then
   for f in $files; do
     rm -f "$target"/`basename $f`
-    (cd $target && ln -s $f .)
+    (cd $target >/dev/null && ln -v -s $f .)
   done
 else
   rm -f $target
-  ln -s $files $target
+  ln -v -s $files $target
 fi

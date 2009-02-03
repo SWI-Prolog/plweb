@@ -116,9 +116,10 @@ list_files([H|T]) -->
 	list_files(T).
 
 list_file(File) -->
-	html(tr([ td(\file_icon(File)),
-		  td(\file_size(File)),
-		  td(\file_description(File))
+	html(tr(class(download),
+		[ td(class(dl_icon), \file_icon(File)),
+		  td(class(dl_size), \file_size(File)),
+		  td(class(dl_file), \file_description(File))
 		])).
 
 file_icon(file(Type, PlatForm, _, _, _)) -->
@@ -157,20 +158,22 @@ file_description(file(bin, PlatForm, Version, _, Path)) -->
 		 ]),
 	       \platform_notes(PlatForm, Path)
 	     ]).
-file_description(file(src, _, Version, _, Path)) -->
+file_description(file(src, Format, Version, _, Path)) -->
 	{ down_file_href(Path, HREF)
 	},
 	html([ a(href(HREF),
 		 [ 'SWI-Prolog source for ', \version(Version)
-		 ])
+		 ]),
+	       \platform_notes(Format, Path)
 	     ]).
-file_description(file(doc, _, Version, _, Path)) -->
+file_description(file(doc, Format, Version, _, Path)) -->
 	{ down_file_href(Path, HREF)
 	},
 	html([ a(href(HREF),
 		 [ 'SWI-Prolog ', \version(Version),
 		   ' reference manual in PDF'
-		 ])
+		 ]),
+	       \platform_notes(Format, Path)
 	     ]).
 
 version(version(Major, Minor, Patch)) -->
@@ -223,6 +226,9 @@ platform_note_file(linux(_,_),	   'linux.txt').
 platform_note_file(windows(win32), 'win32.txt').
 platform_note_file(windows(win64), 'win64.txt').
 platform_note_file(macos(_,_),	   'macosx.txt').
+platform_note_file(tgz,		   'src-tgz.txt').
+platform_note_file(pdf,		   'doc-pdf.txt').
+
 
 		 /*******************************
 		 *	   CLASSIFY FILES	*
