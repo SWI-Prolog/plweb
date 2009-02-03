@@ -84,3 +84,15 @@ div.informational
 div.silent
 { display: none;
 }
+
+div.error
+{ color: #ff0000;
+}
+
+pre.informational
+{ background-color: #b0ffb0;
+}
+
+pre.error
+{ color: #ff0000;
+}
