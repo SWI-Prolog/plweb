@@ -122,7 +122,9 @@ env('SERVER_SOFTWARE', _, Version) :-
 	current_prolog_flag(version_data, swi(Major, Minor, Patch, _)),
 	format(atom(Version), 'SWI-Prolog/~w.~w.~w', [Major, Minor, Patch]).
 env('SERVER_NAME', Request, Server) :-
-	(   memberchk(host(Server), Request)
+	(   memberchk(x_forwarded_host(Server), Request)
+	->  true
+	;   memberchk(host(Server), Request)
 	->  true
 	;   gethostname(Server)
 	).
@@ -131,7 +133,8 @@ env('SERVER_PROTOCOL', Request, Protocol) :-
 	memberchk(http(Major-Minor), Request),
 	format(atom(Protocol), 'HTTP/~w.~w', [Major, Minor]).
 env('SERVER_PORT', Request, Port) :-
-	(   memberchk(port(Port), Request)
+	(   memberchk(port(Port), Request),
+	    \+ memberchk(x_forwarded_host(_), Request)
 	->  true
 	;   Port = 80
 	).
