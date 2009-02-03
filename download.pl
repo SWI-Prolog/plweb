@@ -244,8 +244,12 @@ classsify_file(Path, file(Type, Platform, Version, Name, Path)) :-
 
 file(bin, macos(OSVersion, CPU), Version) -->
 	"swi-prolog-", opt_devel, long_version(Version), "-",
-	macos_version(OSVersion), "-", 
-	macos_cpu(CPU),
+	macos_version(OSVersion),
+	(   "-", 
+	    macos_cpu(CPU)
+	->  ""
+	;   { CPU=ppc }
+	),
 	".mpkg.zip", !.
 file(bin, windows(WinType), Version) -->
 	win_type(WinType), "pl",
@@ -267,7 +271,7 @@ opt_devel -->
 macos_version(tiger)   --> "tiger".
 macos_version(leopard) --> "leopard".
 
-macos_cpu(ppc)   --> "ppc".
+macos_cpu(ppc)   --> "powerpc".
 macos_cpu(intel) --> "intel".
 
 win_type(win32) --> "w32".
