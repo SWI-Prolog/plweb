@@ -93,9 +93,10 @@ as for commercial applications. See our download statistics.
     [[SSL][</pldoc/package/ssl.html>]], *CGI* form handling, etc. Check
     the packages.
 
-    * Multi-threaded Web server (*HTTP*) library with extensive libraries
-    for generation *HTML*, HTTP authorization, session management,
-    exchanging *JSON* (used by many *AJAX* widgets), etc.
+    * Multi-threaded [[Web server][</pldoc/package/http.html>]] library
+    with extensive libraries for generation *HTML*, HTTP authorization,
+    session management, exchanging *JSON* (used by many *AJAX* widgets),
+    etc.
 
     * Fast and flexible libraries for parsing *SGML* (HTML) and *XML*, *RDF*,
     store and query the RDF _|triple model|_. A graphical editor for
