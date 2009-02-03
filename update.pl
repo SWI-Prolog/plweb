@@ -53,7 +53,7 @@ git_update -->
 output(_Prefix, _Class, Codes) -->
 	{ Codes == [] }, !.
 output(Prefix, Class, Codes) -->
-	html(div(class(Class), 
+	html(pre(class(Class), 
 		 [ Prefix, '~s'-[Codes] ])).
 
 %%	make//
