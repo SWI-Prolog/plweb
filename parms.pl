@@ -75,6 +75,9 @@ user:url_path(swieditor, 'http://lernen.bildung.hessen.de/informatik/swiprolog/i
 user:url_path(pub,	 hcs('projects/SWI-Prolog/articles')).
 user:url_path(git,	 'http://git-scm.com/').
 user:url_path(msysgit,	 'http://code.google.com/p/msysgit/').
+user:url_path(macports,	 'http://www.macports.org/').
+user:url_path(xquartz,	 'http://xquartz.macosforge.org/').
+
 
 		 /*******************************
 		 *	      RESOURCES		*
