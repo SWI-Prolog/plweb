@@ -1,0 +1,13 @@
+---+ Build SWI-Prolog from source
+
+The sources are common for all platforms, but the way to build them is
+totally different for MS-Windows and all Unix/POSIX based platforms.
+Unless you plan to use SWI-Prolog for seriously for a longer period of
+time, we strongly *discourage* building the *Windows* version
+yourself. On the other hand, we generally *encourage* building
+yourself on *|non-windows platforms|* because binaries tend to be less
+portable and building is much easier.
+
+    * [[Building on Unix/POSIX][unix.txt]]
+    * [[Building on MS-Windows][windows.txt]]
+

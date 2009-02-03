@@ -1,0 +1,101 @@
+---+ Building SWI-Prolog on MS-Windows
+
+If you have access to MSVC 6.0 or later, you may decide to build the
+Windows version SWI-Prolog yourself. There are only a few cases where
+you would like to do that:
+
+    * You want a debugging version to simplify debugging of foreign code
+    you add to SWI-Prolog.
+    * You want to modify SWI-Prolog.
+    * You want to stay in touch with the bleeding edge using CVS. 
+
+As of the integrated XPCE/SWI-Prolog 4.0.0, the installation is no
+longer based on MSVC project files that are simply too hard to maintain
+if building involves many custom steps. Instead, there are makefiles for
+NMAKE that run from a command window.
+
+---++ Before starting the build, you'll need:
+
+    * Windows-NT/2000/XP/Vista. Older versions (Windows-95/98/me) are
+    not supported after 5.4.x and even the 5.4.x versions can only be
+    compiled on NT based platforms.
+
+    * MSVC 6.0 or later. We use 6.0.
+
+    * The pthread-win32 POSIX thread API library from
+    [[Redhat][http://sources.redhat.com/pthreads-win32/]] or our
+    [[compiled version][<pthreadlibs.zip>]] or you can pick the .dll,
+    .lib and .h files from a binary SWI-Prolog installation. The file
+    pthreadVC.dll must be copied to your Windows system32 directory.
+
+    * The GMP library for Windows. The file README.gmp tells you how to
+    build libgmp for use with MSVC. Easier is to install [[our
+    binary][<gmp-4.1.4.zip>]]
+
+    * The JPEG and ported XPM libraries. We provide [[precompiled
+    versions][<xpceimglibs.zip>]] for XPM and JPEG as well as the
+    XPM [[sources][<XPM-src.zip>]].  The JPEG source is available
+    from many locations.
+
+    * The SUN Java2 SDK, downloadable from SUN if you want the JPL
+    Java/Prolog interface. If you do not want to compile JPL, remove it
+    from the PKGS variable in rules.mk. 
+
+---++ Now proceed as follows:
+
+    * Unpack the sources (anywhere)
+
+    * Edit ...\pl\src\rules.mk following the instructions there. Notably
+    you need to set the destination location and paths to find the GMP,
+    XPM and JPEG lib and include.
+
+    * Make sure PATH LIB and INCLUDE are set up properly for the
+    compiler you want to use. If you do not wish to change the global
+    %PATH%, edit make.bat to reflect your system and simply use make
+
+    * For JPL, make sure %JAVA_HOME% points to the Java home and
+    %JAVA_HOME%bin is in %PATH%. For running java embedded in Prolog,
+    you also need %JAVA_HOME%\jre\bin\client in %PATH%.
+
+    * Compile the system in the ..\pl\src directory using
+
+      ==
+      nmake /f makefile.mak
+      ==
+
+    * Install the system using
+
+      ==
+      nmake /f makefile.mak install
+      ==
+
+Thats all. You can now start *|plwin.exe|* or *|plcon.exe|* from the
+$(prefix)\pl\bin\ directory. If you want you can associate *|.pl|* with
+plwin.exe and/or add plwin.exe to your start menu. Cleanup After
+installing you may discard the entire source-tree or invoke one of the
+targets below to clean the object files or all generated files
+
+==
+nmake /f makefile.mak clean
+nmake /f makefile.mak distclean
+==
+
+---++ Compile for debugging
+
+To compile SWI-Prolog for debugging, use a clean source-tree (using
+nmake /f makefile.mak clean), build and install SWI-Prolog using
+
+==
+nmake DBG=true /f makefile.mak
+nmake DBG=true /f makefile.mak install
+==
+
+---++ Building the 64-bit version
+
+The story is similar.  You need the Microsoft 64-bit compilers (only
+the commandline versions for the platform SDK).  You also need the
+libraries.  Here are our binaries for these:
+
+    * [[GMP library][<gmp-x64.zip>]]
+    * [[OpenSSL library][<OpenSSL-0.9.8d-Win64.zip>]]
+    * [[The rest][<SWI-Prolog-5.6.26-external-libs-Win64.zip>]]
