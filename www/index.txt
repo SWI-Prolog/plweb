@@ -25,21 +25,20 @@ statistics.
     that allows for use in proprietary applications. Details can be
     found on the license.txt page.
 
-    * Very *fast* compilation.
+    * *fast* compilation. E.g., loads 140,000 lines of code spread
+    over 500 source-files in 2.3 seconds on an AMD 5400+ system.
 
-    * *Robust*.
+    * *Robust* and *|free of memory leaks|*.  In use for several 
+    servers that run 24x7 (including this web-service).
 
     * *Small*. The full development environment, including graphics,
-    libraries and many interface packages requires approx. 28MB
-    harddisk. The non-graphical kernel is about 1.1 MB, the graphics
-    library adds about 1.2 MB to the image.
+    libraries and many interface packages requires approx. 40MB
+    harddisk. The non-graphical kernel is about 650Kb, the graphics
+    library adds about 1.2Mb to the image.
 
     * *Scales* well for large applications. No limits on program size,
-    atom-length, functor-arity or integer values. No performance
-    degradation on predicates with many (indexed) facts. Handles
-    [[Wordnet][<wordnet:>]] with ease (loads in 1.1 sec on an AMD
-    1600+). Each individual runtime stack is limited to 128 MB on 32-bit
-    machines and virtually unlimited on 64-bit hardware.
+    atom-length, term-arity or integer values. No performance
+    degradation on predicates with many (indexed) facts.
 
     * *|Unbounded integer|* and *rational* number arithmetic
     based on [[GMP library][<gmp:>]].
@@ -60,11 +59,11 @@ statistics.
     of the runtime stacks, *|ISO exception-handling|* (including C/C++
     interface for catching and throwing exceptions).
 
-    * Execution profiler.txt (time and call statistics) for Linux, most
-    Unix platforms and Windows NT/2000/XP/Vista.
+    * Execution *|profiler.txt|* (time and call statistics) for Linux,
+    most Unix platforms and Windows NT/2000/XP/Vista.
 
-    * Cross-Referencer. gxref/0 provides a graphical front-end for the
-    extensible Prolog cross-referencer (xref).
+    * *|[[Cross-Referencer][gxref.txt]]|*. gxref/0 provides a graphical
+    front-end for the extensible Prolog cross-referencer (xref).
 
     * *Portable* to many platforms, including almost all *|Unix/Linux|*
     platforms, *Windows* (NT/2000/XP/Vista, including *|64-bit|*
