@@ -67,10 +67,11 @@ statistics.
     extensible Prolog cross-referencer (xref).
 
     * *Portable* to many platforms, including almost all *|Unix/Linux|*
-    platforms, *Windows* (NT/2000/XP/Vista, including 64-bit editions),
-    *|MacOS X|* (using X11 for graphics) and many more. Both 32-bits and
-    *|64-bits|* hardware is supported. Sources are plain C99, configured
-    automatically using GNU autoconf (configure, make, make install).
+    platforms, *Windows* (NT/2000/XP/Vista, including *|64-bit|*
+    editions), *|MacOS X|* (using X11 for graphics) and many more. Both
+    32-bits and *|64-bits|* hardware is supported. Sources are plain
+    C99, configured automatically using GNU autoconf (configure, make,
+    make install).
 
     * *UNICODE* character set handling internal. Ideal for web- and
     international applications.
@@ -78,8 +79,8 @@ statistics.
     * Machine-independent *|saved-states|* (save on one platform, run
     using the virtual machine of another platform).
 
-    * *|Multi-threading|* support: run multiple pre-emptively scheduled
-    prolog engines on the same database.
+    * *|[[Multi-threading][</man/threads.html>]]|* support: run multiple
+    pre-emptively scheduled prolog engines on the same database.
 
     * *|attributed variables|*, coroutining (freeze/2, when/2, dif/2),
     global variables, cyclic terms. Flag-controlled handling of
@@ -90,7 +91,8 @@ statistics.
     Rules), *|[[clp(FD)][</man/clpfd.html>]]|*,
     *|[[clp(R,Q)][</man/clpqr.html>]]|* and various others.
 
-    * Bundled with interface libraries for *Java* (JPL),
+    * Bundled with interface libraries for
+    *|[[Java][</packages/jpl/>]]|* (JPL),
     *|[[ODBC][</pldoc/package/odbc.html>]]|*, *|TCP/IP|* sockets,
     *|[[SSL][</pldoc/package/ssl.html>]]|*, *CGI* form handling, etc.
     Check the packages.
@@ -102,9 +104,10 @@ statistics.
 
     * Fast and flexible libraries for *|[[parsing
     SGML/XML][</pldoc/package/sgml.html>]]|* (HTML),
-    *|[[RDF][</pldoc/package/rdf2pl.html>]]|*,
-    store and query the RDF _|triple model|_. A graphical editor for
-    RDF/RDFS and OWL models called Triple20 is distributed seperately.
+    *|[[parsing][</pldoc/package/rdf2pl.html>]]|* *RDF*,
+    *|[[store and query][</pldoc/package/semweb.html>]]|* the RDF
+    _|triple model|_. A graphical editor for RDF/RDFS and OWL models
+    called Triple20 is distributed seperately.
 
     * *|Literate programming|* support through
     *|[[PlDoc][</pldoc/package/pldoc.html>]]|*. Provides integrated view
