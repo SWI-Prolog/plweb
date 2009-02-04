@@ -49,7 +49,6 @@ summarise using the points below.
     * [[Why no GUI-Builder?][noguibuilder.txt]]
     * [[Some code fragments to get an impression][examples.txt]]
     * [[Some screen dumps of applications][screens.txt]]
-    * [[XPCE Development Tools][devtools.txt]]
     * [[The design of the XPCE/Prolog interface][<pub:wlpe-02.pdf>]]
     (Publication in Workshop on Logic Programming Environments, 2002) 
 
