@@ -85,8 +85,9 @@ as for commercial applications. See our download statistics.
     occurs-check (on/off/error) see current_prolog_flag/2.
 
     * *Constraint* Logic Programming, providing libraries for
-    *|[[CHR][</pldoc/package/chr.html>]]|* (Constraint Handling Rules),
-    *|clp(FD)|*, *|clp(R,Q)|* and various others.
+    *|[[CHR][</man/chr.html>]]|* (Constraint Handling
+    Rules), *|[[clp(FD)][</man/clpfd.html>]]|*,
+    *|[[clp(R,Q)][</man/clpqr.html>]]|* and various others.
 
     * Bundled with interface libraries for *Java* (JPL),
     *|[[ODBC][</pldoc/package/odbc.html>]]|*, *|TCP/IP|* sockets,

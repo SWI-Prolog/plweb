@@ -256,6 +256,10 @@ init_thread_pools :-
 	maplist(start_pool, Grouped).
 
 start_pool(Name-[pool(Size,Options)|_]) :-
+	(   current_thread_pool(Name)
+	->  thread_pool_destroy(Name)
+	;   true
+	),
 	thread_pool_create(Name, Size, Options).
 
 thread_pool(wiki,     20, [ local(1000), global(4000), trail(4000), backlog(50) ]).
