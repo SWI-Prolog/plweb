@@ -12,10 +12,11 @@
 [[coolstar.gif;align="right",alt="Open directory cool site"][<dmoz_pl:>]]
 SWI-Prolog offers a comprehensive [[Free Software][<fsf:>]] Prolog
 environment, licensed under the Lesser GNU Public License. Together with
-its graphics toolkit [[XPCE][<pkg:xpce/>]], its development started in
-1987 and has been driven by the needs for *|real-world applications|*.
-These days SWI-Prolog is widely used in research and education as well
-as for commercial applications. See our download statistics.
+its graphics toolkit [[XPCE][</packages/xpce/>]], its development
+started in 1987 and has been driven by the needs for *|real-world
+applications|*. These days SWI-Prolog is widely used in research and
+education as well as for commercial applications. See our download
+statistics.
 
 ---++ SWI-Prolog's most important features are
 
