@@ -35,8 +35,9 @@
 :- use_module(gitweb).
 :- use_module(update).
 
-:- http_handler(root(.),   serve_page,     [prefix, priority(10), spawn(wiki)]).
-:- http_handler(root(man), manual_file,    [prefix, priority(10), spawn(wiki)]).
+:- http_handler(root(.),	      serve_page,  [prefix, priority(10), spawn(wiki)]).
+:- http_handler(root('/favicon.ico'), favicon,	   []).
+:- http_handler(root(man),	      manual_file, [prefix, priority(10), spawn(wiki)]).
 
 /** <module> Server for PlDoc wiki pages and SWI-Prolog website
 
@@ -57,6 +58,14 @@ server :-
 
 server(Options) :-
 	http_server(http_dispatch, Options).
+
+
+%%	favicon(+Request)
+%
+%	Serve /favicon.ico.
+
+favicon(Request) :-
+	http_reply_file(icons('favicon.ico'), [], Request).
 
 
 		 /*******************************
