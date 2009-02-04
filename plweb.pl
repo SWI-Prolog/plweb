@@ -35,9 +35,9 @@
 :- use_module(gitweb).
 :- use_module(update).
 
-:- http_handler(root(.),	      serve_page,  [prefix, priority(10), spawn(wiki)]).
-:- http_handler(root('/favicon.ico'), favicon,	   []).
-:- http_handler(root(man),	      manual_file, [prefix, priority(10), spawn(wiki)]).
+:- http_handler(root(.),	     serve_page,  [prefix, priority(10), spawn(wiki)]).
+:- http_handler(root('favicon.ico'), favicon,	  [priority(10)]).
+:- http_handler(root(man),	     manual_file, [prefix, priority(10), spawn(wiki)]).
 
 /** <module> Server for PlDoc wiki pages and SWI-Prolog website
 
@@ -256,6 +256,10 @@ init_thread_pools :-
 	maplist(start_pool, Grouped).
 
 start_pool(Name-[pool(Size,Options)|_]) :-
+	(   current_thread_pool(Name)
+	->  thread_pool_destroy(Name)
+	;   true
+	),
 	thread_pool_create(Name, Size, Options).
 
 thread_pool(wiki,     20, [ local(1000), global(4000), trail(4000), backlog(50) ]).
