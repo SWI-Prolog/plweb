@@ -137,9 +137,7 @@ serve_file(txt, File, _Request) :- !,
 	b_setval(pldoc_file, File),
 	call_cleanup(serve_wike(String),
 		     nb_delete(pldoc_file)).
-serve_file(Ext, File, Request) :-	% serve plain files
-	setting(http:served_file_extensions, Exts),
-	memberchk(Ext, Exts), !,
+serve_file(_Ext, File, Request) :-	% serve plain files
 	http_reply_file(File, [], Request).
 
 %%	serve_wiki(+String) is det.
