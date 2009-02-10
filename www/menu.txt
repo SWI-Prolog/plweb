@@ -11,6 +11,7 @@
 --
   * IDE.txt (developing)
   * Graphics.txt
+  * [[(Semantic) Web][web/index.txt]]
 --
   * Publications.txt
   * [[License][license.txt]]
