@@ -1,0 +1,49 @@
+---+ SWI-Prolog for the (semantic) web 
+
+The (semantic) web is one of the most important application area for
+SWI-Prolog. Prolog handles the semantic web RDF model naturally, where
+RDF provides a stable model for knowledge representation with shared
+semantics. It turns out that Prolog is also quite capable of providing
+web-services (HTTP), especially where it comes to dynamic generation of
+HTML pages and providing data for Javascript web-applications using the
+[[JSON][<json:>]] serialisation.
+
+---++ Standard packages
+
+Below are the most vital packages for programming web services and RDF
+processing.
+
+    $ [[Web-server and client library][</pldoc/package/http.html>]] :
+    Core web package. Provides an HTTP server and client, session
+    handling, authorization, logging, etc.  Libraries for generating
+    HTML pages and JSON.
+
+    $ [[RDF storage and query library][</pldoc/package/semweb.html>]] :
+    Load/save RDF and query it.  Also provides simple RDFS and OWL
+    support.
+
+
+---++ Seperately distributed packages
+
+Some packages are distributed separately.  
+
+
+    $ [[The Triple20 ontology editor][Triple20.txt]] :
+    Graphical tool for browsing and editing ontologies.  Not very well
+    maintained, but useful for browsing loaded RDF and it has two nice
+    features: it scales well and it can handle multiple ontologies and
+    allows for editing them in a unified view.
+
+    $ [[The ClioPatria semantic search web-server][<cliopatria:>]] :
+    This library resulted from the [[MultimediaN][<multimedian:>]]
+    project.  It is used in various large projects and provides
+    a [[SPARQL][<sparql:>]] and [[SeRQL][<serql:>]] endpoint. These
+    end-points can also be use without the rest of ClioPatria.
+
+    $ [[Thea, an OWL library for SWI-Prolog][<thea:>]] :
+    Provides access to OWL ontologies at the level of the abstract
+    syntax. Can interact with external DL reasonder using
+    [[DIG][<dig:>]]
+
+@see [[Publications][</Publications.html>]]
+@see [[documentation overview][</pldoc/index.html>]]
