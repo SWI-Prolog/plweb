@@ -47,7 +47,7 @@ repository][http://eculture.cs.vu.nl/git/triple20.git]] through
 [[GIT][<git:>]] or your browser.  For GIT (preferred), use
 
 ==
-git clone git://eculture.cs.vu.nl/home/git/triple20.git
+git clone git://eculture.cs.vu.nl/home/git/eculture/triple20.git
 ==
 
 If you wish to use your browser for a one-time download, go to the
