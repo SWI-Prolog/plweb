@@ -1,6 +1,10 @@
-:- load_files(plweb,
+:- load_files([ library(pldoc/doc_library),
+		plweb
+	      ],
 	      [ silent(true)
 	      ]).
+
+:- doc_load_library.
 
 %%	show_fd
 %
