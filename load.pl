@@ -4,7 +4,7 @@
 	      [ silent(true)
 	      ]).
 
-:- doc_load_library.
+%:- doc_load_library.
 
 %%	show_fd
 %
