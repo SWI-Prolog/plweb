@@ -145,7 +145,7 @@ serve_file(_Ext, File, Request) :-	% serve plain files
 %	Emit page from wiki content in String.
 
 serve_wike(String) :-
-	wiki_string_to_dom(String, [], DOM),
+	wiki_codes_to_dom(String, [], DOM),
 	(   sub_term(h1(_, Title), DOM)
 	->  true
 	;   Title = 'SWI-Prolog'
