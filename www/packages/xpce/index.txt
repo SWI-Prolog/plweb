@@ -55,10 +55,10 @@ summarise using the points below.
 ---++ Documentation
 
 For starters as well as for more experienced users who want to know how
-particular tasks are tackled using XPCE/Prolog, there is the XPCE
-UserGuide. This LaTeX maintained document is available as an online HTML
-document here. It is also available as PDF and HTML-tar-archive from the
-SWI-Prolog download page.
+particular tasks are tackled using XPCE/Prolog, there is the [[XPCE
+UserGuide][</download/xpce/doc/userguide/userguide.pdf>]]. The manual is
+also available a HTML-tar-archive from the XPCE documentation
+[[download][</download/xpce/doc/>]].
 
 The reference documentation is available using a hypertext system
 defined in XPCE/Prolog. This tool exploits the XPCE-class descriptions

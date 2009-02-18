@@ -14,7 +14,9 @@
 :- use_module(library(pairs)).
 :- use_module(library(lists)).
 :- use_module(library(apply)).
+:- use_module(library(error)).
 :- use_module(wiki).
+:- use_module(http_dirindex).
 
 %%	download(+Request) is det.
 %
@@ -362,16 +364,21 @@ take_latest([_-[]|T0], T) :- !,		% emty set
 %	Actually download a file.
 
 download(Request) :-
-	http_absolute_location(download(.), DownloadRoot, []),
-	memberchk(path(Path), Request),
-	atom_concat(DownloadRoot, Download, Path),
+	memberchk(path_info(Download), Request),
 	absolute_file_name(download(Download),
 			   AbsFile,
-			   [ access(read)
-			   ]),
-	remote_ip(Request, Remote),
-	broadcast(download(Download, Remote)),
-	http_reply_file(AbsFile, [], Request).
+			   [ access(read),
+			     file_errors(fail)
+			   ]), !,
+	(   exists_directory(AbsFile)
+	->  http_dirindex(Request, AbsFile)
+	;   remote_ip(Request, Remote),
+	    broadcast(download(Download, Remote)),
+	    http_reply_file(AbsFile, [], Request)
+	).
+download(Request) :-
+	memberchk(path(Path), Request),
+	existence_error(http_location, Path).
 
 remote_ip(Request, IP) :-
 	memberchk(x_forwarded_for(IP), Request), !.

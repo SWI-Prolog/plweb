@@ -9,3 +9,7 @@ in various formats.
 
     * This server provides an
     [[integrated documentation search system][</pldoc/index.html>]].
+
+Some, mostly old, material is still available through the
+[[wiki][http://gollem.science.uva.nl/twiki/pl/bin/view/Main/WebHome]].
+The still relevant parts will be moved to this website.
