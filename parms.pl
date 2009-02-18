@@ -39,6 +39,7 @@
 http:location(pldoc,	root(pldoc),    [priority(10)]).
 http:location(download, root(download), []).
 http:location(icons,    root(icons),    []).
+http:location(css,	root(css),      []).
 
 
 		 /*******************************
@@ -93,7 +94,7 @@ user:url_path(serql,	 'http://www.openrdf.org').
 :- html_resource(plweb,
 		 [ virtual(true),
 		   requires([ pldoc_css,
-			      root('css/plweb.css')
+			      css('plweb.css')
 			    ])
 		 ]).
 
