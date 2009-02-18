@@ -20,4 +20,5 @@ table.dirindex th.modified, th.size
 table.dirindex td.modified, td.size
 { text-align: right;
   padding-left: 10px;
+  font-family: monospace;
 }
