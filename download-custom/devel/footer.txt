@@ -26,8 +26,8 @@ before you use it in mission-critical applications and report bugs.
 
     * Since 5.7.4, updated module system:
           * Compile : if sufficiently instantiated
-          * Provide real support for :- meta_predicate. Most of
-	  the library code has replaced :- module_transparent
-	  with :- meta_predicate. 
+          * Provide real support for :- meta_predicate/1. Most of
+	  the library code has replaced :- module_transparent/1
+	  with :- meta_predicate/1. 
 
     * Lots of cleanup in naming and modularization of the codebase. 
