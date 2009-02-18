@@ -47,7 +47,7 @@
     * [[Can I compile my whole project inc. kernel to C?][CompileToC.txt]]
 
   * *|Using SWI-Prolog with Java|*
-    * [[Is there a Java interface to Prolog?][JPL.txt]]
+    * [[Is there a Java interface to Prolog?][Java.txt]]
 
   * *|Using Prolog for WEB-related tasks|*
 
