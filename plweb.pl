@@ -127,7 +127,11 @@ serve_file(File, Request) :-
 
 serve_file('',  Dir, Request) :-
 	exists_directory(Dir), !,
-	http_dirindex(Request, Dir).
+	(   sub_atom(Dir, _, _, 0, /),
+	    serve_index_file(Dir, Request)
+	->  true
+	;   http_dirindex(Request, Dir)
+	).
 serve_file(txt, File, _Request) :- !,
 	read_file_to_codes(File, String, []),
 	b_setval(pldoc_file, File),
@@ -135,6 +139,13 @@ serve_file(txt, File, _Request) :- !,
 		     nb_delete(pldoc_file)).
 serve_file(_Ext, File, Request) :-	% serve plain files
 	http_reply_file(File, [], Request).
+
+serve_index_file(Dir, Request) :-
+        setting(http:index_files, Indices),
+        member(Index, Indices),
+        concat_atom([Dir, /, Index], File),
+        access_file(File, read), !,
+        serve_file(File, Request).
 
 %%	serve_wiki(+String) is det.
 %
