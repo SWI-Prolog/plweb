@@ -140,12 +140,23 @@ serve_file(txt, File, _Request) :- !,
 serve_file(_Ext, File, Request) :-	% serve plain files
 	http_reply_file(File, [], Request).
 
+%%	serve_index_file(+Dir, +Request) is semidet.
+%
+%	Serve index.txt or index.html, etc. if it exists.
+
 serve_index_file(Dir, Request) :-
         setting(http:index_files, Indices),
         member(Index, Indices),
-        concat_atom([Dir, /, Index], File),
+	ensure_slash(Dir, DirSlash),
+	atom_concat(DirSlash, Index, File),
         access_file(File, read), !,
         serve_file(File, Request).
+
+ensure_slash(Dir, Dir) :-
+	sub_atom(Dir, _, _, 0, /), !.
+ensure_slash(Dir0, Dir) :-
+	atom_concat(Dir0, /, Dir).
+
 
 %%	serve_wiki(+String) is det.
 %
