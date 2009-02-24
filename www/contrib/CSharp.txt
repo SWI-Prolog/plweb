@@ -1,0 +1,46 @@
+---+ SWI-Prolog interface to C#
+
+This is a new version of the CSharp Interface.
+
+This interface is published here to start discussions, getting comments
+or suggestions for improvement. Please inform me about your experiences
+and tell me your proposals for modification.
+
+For a demonstration of a server application using backtracking in each
+session have a look at
+http://www.lesta.de/prolog/chessboard/chessboard.aspx
+
+The first CSharpInterface (.net framework version 1.1) was more or less
+a port of the C++ interface. This version is build to make
+Prolog-queries easy and intuitive for .Net programers. The main changes
+are:
+
+    * PlTerm is a struct, not a class.
+    * Callbacks from prolog to C# are possible.
+    * Compiled with framework version 3.5.
+    * A VS test project.
+    * Adapt Microsoft coding guideline ( checked by FxCop ).
+    * Enumerators for PlQuery and PlTerm ( Prolog lists )
+    * A help file for documentation 
+
+Here is an example:
+
+==
+PlQuery q = new PlQuery("member(A, [a,b,c])");
+foreach (PlTermV s in q.Solutions)
+    Console.WriteLine(s[0].ToString());
+==
+
+The documentation is also online available at
+http://www.lesta.de/prolog/swiplcs/Generated/Index.aspx
+
+At present I only publish the binarys including the documentation. The
+sources will be published later. If you like to see them or work on them
+don't hesitate to contact ma via mail.
+
+---++ Download
+
+    * [[SwiPlCs.zip][<SwiPlCs.zip>]]
+
+@author Uwe Lesta
+@see DotNetInterface.txt from Daniel Sullivan
