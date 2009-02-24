@@ -1,0 +1,18 @@
+---+ Contributed libraries and interfaces
+
+This page contains material from the old [[SWI-Prolog
+wiki][http://gollem.science.uva.nl/twiki/pl/bin/view/Main/WebHome]]
+
+---++ Interfaces to other programming environments
+
+These are interfaces to other programming environments that are not
+(yet) bundled with SWI-Prolog. Some are hosted here, some are totally
+externally managed projects.
+
+    * [[Python Interface (pyswip)][http://code.google.com/p/pyswip/]]
+    * [[C# Interface][CSharp.txt]]
+
+@tbd	Make more categories
+@tbd	Complete migration of pointers to contributes libraries
+@see	[[Packages][<../pldoc/index.html>]]
+@see	[[Semantic Web][<../web>]]
