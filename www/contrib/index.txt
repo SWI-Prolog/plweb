@@ -11,6 +11,7 @@ externally managed projects.
 
     * [[Python Interface (pyswip)][http://code.google.com/p/pyswip/]]
     * [[C# Interface][CSharp.txt]]
+    * [[C++ Interfaces][CPP.txt]]
 
 @tbd	Make more categories
 @tbd	Complete migration of pointers to contributes libraries
