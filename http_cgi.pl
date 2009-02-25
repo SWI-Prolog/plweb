@@ -79,10 +79,12 @@ http_run_cgi(Script, Request) :-
 		       ]),
 	setup_input(ScriptInput, Request),
 	debug(http(cgi), 'Waiting for CGI data ...', []),
-	copy_stream_data(CGI, current_output),
-	process_wait(PID, Status),
-	close(CGI),
-	debug(http(cgi), '~w ended with status ~w', [Script, Status]).
+	call_cleanup(copy_stream_data(CGI, current_output),
+		     (	 process_wait(PID, Status),
+			 close(CGI),
+			 debug(http(cgi), '~w ended with status ~w',
+			       [Script, Status])
+		     )).
 
 input_handle(Request, pipe(_)) :-
 	memberchk(method(Method), Request),
