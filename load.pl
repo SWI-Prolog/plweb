@@ -1,3 +1,4 @@
+:- doc_collect(true).
 :- load_files([ library(pldoc/doc_library),
 		library(thread_pool),
 		plweb
