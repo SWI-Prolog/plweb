@@ -43,7 +43,8 @@ Some packages are distributed separately.
     $ [[Thea, an OWL library for SWI-Prolog][<thea:>]] :
     Provides access to OWL ontologies at the level of the abstract
     syntax. Can interact with external DL reasonder using
-    [[DIG][<dig:>]]
+    [[DIG][<dig:>]].  The project is [[hosted on
+    GitHUB][http://wiki.github.com/vangelisv/thea]]
 
 @see [[Publications][</Publications.html>]]
 @see [[documentation overview][</pldoc/index.html>]]
