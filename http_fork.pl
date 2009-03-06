@@ -98,6 +98,6 @@ monitor_servers(PIDS, Options) :-
 	wait(PID, Status),
 	debug(http(fork), 'Forked server ~d died with status ~p',
 	      [PID, Status]),
-	select(PID, PIDS, Rest),
+	delete(PIDS, PID, Rest),
 	prefork_server(Options, New),
 	monitor_servers([New|Rest], Options).

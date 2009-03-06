@@ -1,12 +1,14 @@
+:- doc_collect(true).
 :- load_files([ library(pldoc/doc_library),
 		library(thread_pool),
+		library(debug),
 		http_fork,
 		plweb
 	      ],
 	      [ silent(true)
 	      ]).
 
-%:- doc_load_library.
+:- doc_load_library.
 
 :- debug(http(fork)).
 
