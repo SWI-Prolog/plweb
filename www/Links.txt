@@ -64,5 +64,6 @@ SWI-Prolog [[packages][</packages/>]]
 
     * [[Long story about using SWI-Prolog RDF and HTML infrastructure][http://www.xml.com/pub/a/2001/07/25/prologrdf.html]] by Bijan Parsia
     * [[Why Use Prolog?][http://www.j-paine.org/why_prolog.html]] by Jocelyn Paine
-
+    * [[new.gif]] [[Tom's Declarative Languages Blog
+    ][http://tomschrijvers.blogspot.com/]] by Tom Schrijvers
 
