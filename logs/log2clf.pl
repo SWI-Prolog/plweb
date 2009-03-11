@@ -11,12 +11,15 @@
 :- use_module(library(main)).
 
 :-dynamic
-	outfile/1.
+	outfile/1,
+	logfile/1.
 
 main([]) :- !,
 	format(user_error, 'Usage: log2clf [-o out] file ...~n', []),
 	halt(1).
 main(Argv) :-
+	retractall(outfile(_)),
+	retractall(logfile(_)),
         process_argv(Argv),
 	(   outfile(Out)
 	->  write_clf(Out)
@@ -29,6 +32,7 @@ process_argv(['-o', OutFile|T]) :-
         process_argv(T).
 	
 process_argv([F|T]) :-
+	assert(logfile(F)),
 	read_log(F),!,
         process_argv(T).
 
@@ -55,16 +59,28 @@ write_clf(Out):-
 	open(Out, write, OutS, [encoding(utf8)]),
 	call_cleanup(write_records(OutS), close(OutS)).
 
+%%	write_records(+Stream) is det.
+%
+%	Write the records. If we have multiple files, we must sort them.
+%	Possibly this should be an option. It  was designed to deal with
+%	multiple files from a load-balancer, but it could of course also
+%	be used with multiple files from a single server.
+
 write_records(OutS) :-
 	Queries = [ip(_), path(_), referer(_), result(_), extra(_)],	
-	findall(Time-logrecord([time(Time)|Queries]),
-		logrecord([time(Time)|Queries]),
-		Logrecords		
-	       ),
-	keysort(Logrecords, Sorted),
-	forall(member(_-logrecord(Params),Sorted),
-	       writerecord(OutS,Params)
-	      ).
+	findall(F, logfile(F), Fs), 
+	length(Fs, NFiles),
+	(   NFiles =< 1
+	->  Params = [time(Time)|Queries],
+	    forall(logrecord(Params),
+		   writerecord(OutS,Params))
+	;   findall(Time-logrecord([time(Time)|Queries]),
+		    logrecord([time(Time)|Queries]),
+		    Logrecords),
+	    keysort(Logrecords, Sorted),
+	    forall(member(_-logrecord(Params),Sorted),
+		   writerecord(OutS,Params))
+	).
 
 
 result_code(Extra, _, Code) :-
