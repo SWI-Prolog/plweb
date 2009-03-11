@@ -23,19 +23,18 @@ show_fd :-
 show_pools :-
 	format('~`-t~52|~n'),
 	format('~w~t~20|~t~w~8+~t~w~8+~t~w~8+~t~w~8+~n',
-	       [ 'Pool name', 'Used', 'Size', 'Waiting', 'Backlog' ]),
+	       [ 'Pool name', 'Running', 'Size', 'Waiting', 'Backlog' ]),
 	format('~`-t~52|~n'),
 	forall(current_thread_pool(Pool), show_pool(Pool)),
 	format('~`-t~52|~n').
 
 show_pool(Pool) :-
 	findall(P, thread_pool_property(Pool, P), List),
-	memberchk(free(Free), List),
 	memberchk(size(Size), List),
+	memberchk(running(Running), List),
 	memberchk(backlog(Waiting), List),
 	memberchk(options(Options), List),
 	option(backlog(MaxBackLog), Options, infinite),
-	Used is Size - Free,
 	format('~w~t~20|~t~D  ~8+~t~D ~8+~t~D  ~8+~t~D  ~8+~n',
-	       [Pool, Used, Size, Waiting, MaxBackLog]).
+	       [Pool, Running, Size, Waiting, MaxBackLog]).
 	
