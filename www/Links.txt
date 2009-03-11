@@ -45,7 +45,7 @@ SWI-Prolog [[packages][</packages/>]]
     Prolog object package by Paulo Moura
     * [[Attribute-Logic Engine][http://www.sfs.nphil.uni-tuebingen.de/%7Egpenn/ale.html]]
     Attempto Parsing Engine (APE), a parser for Attempto Controlled English (ACE).
-    * [[SWI-Prolog to SQL bridge (ODBC &amp; ORACLE)][http://www.geocities.com/SiliconValley/Bit/1116/PrologSQL.html]]
+    * [[SWI-Prolog to SQL bridge (ODBC & ORACLE)][http://www.geocities.com/SiliconValley/Bit/1116/PrologSQL.html]]
     * [[About Prolog, RDF and XML by Bijan Parsia][http://www.xml.com/pub/a/2001/04/25/prologrdf/index.html]]
     * [[Prolog Virtual Worlds][http://alife.8m.com/vw/]] Client/server virtual world by
     * [[Microsoft Virtual Worlds][http://vworlds.research.microsoft.com/]].
