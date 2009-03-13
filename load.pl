@@ -38,3 +38,5 @@ show_pool(Pool) :-
 	format('~w~t~20|~t~D  ~8+~t~D ~8+~t~D  ~8+~t~D  ~8+~n',
 	       [Pool, Running, Size, Waiting, MaxBackLog]).
 	
+stop :-
+	halt(42).

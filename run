@@ -1,0 +1,8 @@
+#!/bin/sh
+
+while true; do
+   pl -s load.pl -g server
+   if [ "$?" = 42 ]; then
+	break;
+   fi
+done
