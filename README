@@ -1,15 +1,12 @@
 ---+ The new SWI-Prolog web-site
 
-Finally, SWI-Prolog hosts itself on the web. The official address is
-(for now) http://prolog.cs.vu.nl
-
+Finally, SWI-Prolog hosts itself on the web.
 
 ---++ TODO
 
     * Provide last-modified support for wiki pages
     * Support bug-reporting
-    * Downloads
-	* Use thread-pool for scalability
+    * Downloads (less urgent now that we can use webalizer)
 	* Support download statistics
 	    * By version, platform/src
 	    * By time period
@@ -18,6 +15,6 @@ Finally, SWI-Prolog hosts itself on the web. The official address is
 	* Wiki-style
     * Process .txt links in @see (See PceEmacs in FAQ)
 
-Update Apache:
+Update Apache (local note):
 
     * /usr/local/apache2/bin/apachectl -k graceful
