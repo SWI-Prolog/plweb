@@ -5,4 +5,5 @@ while true; do
    if [ "$?" = 42 ]; then
 	break;
    fi
+   reset
 done

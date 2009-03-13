@@ -7,6 +7,7 @@
 	      ]).
 
 :- doc_load_library.
+:- send(@pce, catch_error_signals, @off).
 
 %%	show_fd
 %
