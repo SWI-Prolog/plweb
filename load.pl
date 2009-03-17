@@ -39,5 +39,16 @@ show_pool(Pool) :-
 	format('~w~t~20|~t~D  ~8+~t~D ~8+~t~D  ~8+~t~D  ~8+~n',
 	       [Pool, Running, Size, Waiting, MaxBackLog]).
 	
+show_active :-
+	format('~t~w ~5|~w~t~30|~w~t~40| ~w~n', ['Id', 'Path', 'IP', 'Time']),
+	format('~`-t~52|~n'),
+	(   http_limit:active(Id, Path, IP, Time),
+	    format_time(string(T), '%+', Time),
+	    format('~t~w~5| ~q~tt~30|~w~t~40| ~w~n', [Id, Path, IP, T]),
+	    fail
+	;   true
+	),
+	format('~`-t~52|~n').
+
 stop :-
 	halt(42).

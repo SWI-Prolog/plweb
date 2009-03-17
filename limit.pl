@@ -2,6 +2,7 @@
 	  [
 	  ]).
 :- use_module(library(broadcast)).
+:- use_module(library(lists)).
 
 /** <module> Limit HTTP requests from the same place
 
@@ -10,6 +11,9 @@ concurrent download of the same location from the same IP. It does so by
 tracking active connections based on the broadcast messages and throw an
 HTTP busy if there is already an   ongoing connection for the given path
 from the provided IP.
+
+Somehow, some requests are not terminated.  We maintain a 15-minute bann
+and assume the active listing is bogus afterwards.
 */
 
 :- listen(http(Message),
@@ -21,7 +25,7 @@ http_message(request_finished(Id, _Code, _Status, _CPU, _Bytes)) :- !,
 	end(Id).
 
 :- dynamic
-	active/3.
+	active/4.			% Id, Path, IP, Time
 
 %%	start(+Id, +Request) is det.
 %
@@ -35,13 +39,19 @@ http_message(request_finished(Id, _Code, _Status, _CPU, _Bytes)) :- !,
 start(Id, Request) :-
 	remote_IP(Request, IP),
 	memberchk(path(Path), Request),
-	(   active(_, Path, IP)
+	get_time(Now),
+	(   active(Id2, Path, IP, Since),
+	    (	Now-Since < 900		% 15 minutes bann
+	    ->	true
+	    ;	retractall(active(Id2, _, _, _)),
+		fail
+	    )
 	->  throw(http_reply(busy))
-	;   asserta(active(Id, Path, IP))
+	;   asserta(active(Id, Path, IP, Now))
 	).
 
 end(Id) :-
-	retractall(active(Id, _, _)).
+	retractall(active(Id, _, _, _)).
 
 remote_IP(Request, IP) :-
         memberchk(x_forwarded_for(IP0), Request), !,
@@ -59,4 +69,4 @@ final_ip(IP0, IP) :-
 final_ip(IP, IP).
 
 peer_to_ip(ip(A,B,C,D), IP) :-
-        concat_atom([A,B,C,D], '.', IP).
+        atomic_list_concat([A,B,C,D], '.', IP).
