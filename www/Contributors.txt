@@ -27,7 +27,7 @@ People are listed in alphabetical order.
   * Bob Wielinga (finding projects to support SWI-Prolog)
   * Guus Schreiber (providing a new home at the VU University, Amsterdam)
   * Mike Elston (testing, funding of GMP and SSL)
-  * Paulo Moura (testing, provides MacOS ports)
+  * Paulo Moura (testing, provides MacOS ports, made [[Logtalk][http://logtalk.org/]] available)
   * Steve Moyle (funding of PlUnit and PlDoc)
 
 ---++ Other _|Open Source|_ projects used by SWI-Prolog
