@@ -1,4 +1,4 @@
----+ Contributors to SWI-Prolog.
+---+ Contributors to SWI-Prolog
 
 If you want to know all the people who contributed to SWI-Prolog you
 should scan the sources and ChangeLog files. Here we list the more
