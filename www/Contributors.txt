@@ -34,8 +34,10 @@ People are listed in alphabetical order.
 
 
   * [[GMP][http://gmplib.org/]] (Unbounded and rational arithmetic)
-  * [[GNU][http://www.gnu.org]] (Linux, development tools, libraries, etc.).
+  * [[GNU][http://www.gnu.org]] (Linux, development tools, libraries, etc.)
+  * [[MacPorts][http://www.macports.org]] (Porting environment for MacOS)
   * [[Maildrop][http://www.courier-mta.org/maildrop/]] (MIME decoding)
+  * [[MurmurHash][http://murmurhash.googlepages.com/]] (string hashing)
   * [[Nullsoft][http://nsis.sourceforge.net/]] (Windows installer)
   * [[OpenSSL][http://www.openssl.org/]] (secure sockets)
   * SHA routines by [[Brian Gladman][http://www.gladman.me.uk/]]
