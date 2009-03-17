@@ -1,0 +1,45 @@
+---+ Contributors to SWI-Prolog.
+
+If you want to know all the people who contributed to SWI-Prolog you
+should scan the sources and ChangeLog files. Here we list the more
+frequent or significant contributions. Contact Jan Wielemaker if you
+want to be put on, removed from this list or you have other suggestions.
+People are listed in alphabetical order.
+
+---++ _Authors_ are people who contributed new code or (many) patches
+
+  * Anjo Anjewierden (initial developer of XPCE)
+  * Jan Wielemaker (main developer and maintainer)
+  * Keri Harris (testing, patches)
+  * Leslie de Koninck (CLP(QR) port)
+  * Markus Triska (CLP(FD) and other (constraint) libraries)
+  * Matt Lilley (testing, patches)
+  * Paul Singleton (JPL)
+  * Richard O'Keefe (libraries, extensive comments)
+  * Sergey Tikhonov (testing multi-threading, patches)
+  * Tom Schrijvers (CHR, initial constraint libraries)
+  * Ulrich Neumerkel (testing, `purification', patches)
+  * Vitor Santos Costa (various libraries copied from YAP)
+
+---++ Other _Contributors_
+
+  * Bart Demoen (advice, notably constraint infrastructure)
+  * Bob Wielinga (finding projects to support SWI-Prolog)
+  * Guus Schreiber (providing a new home at the VU University, Amsterdam)
+  * Mike Elston (testing, funding of GMP and SSL)
+  * Paulo Moura (testing, provides MacOS ports)
+  * Steve Moyle (funding of PlUnit and PlDoc)
+
+---++ Other _|Open Source|_ projects used by SWI-Prolog
+
+
+  * [[GMP][http://gmplib.org/]] (Unbounded and rational arithmetic)
+  * [[GNU][http://www.gnu.org]] (Linux, development tools, libraries, etc.).
+  * [[Maildrop][http://www.courier-mta.org/maildrop/]] (MIME decoding)
+  * [[Nullsoft][http://nsis.sourceforge.net/]] (Windows installer)
+  * [[OpenSSL][http://www.openssl.org/]] (secure sockets)
+  * SHA routines by [[Brian Gladman][http://www.gladman.me.uk/]]
+  * [[UnixODBC][http://www.unixodbc.org/]] (Database connectivity on Unix)
+  * [[X.org][http://www.x.org/]] (Graphics on Unix)
+  * [[Zlib][http://www.zlib.net/]] (compression)
+
