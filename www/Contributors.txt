@@ -10,15 +10,18 @@ People are listed in alphabetical order.
 
   * Anjo Anjewierden (initial developer of XPCE)
   * Jan Wielemaker (main developer and maintainer)
+  * Jan van der Steen (SSL interface)
   * Keri Harris (testing, patches)
   * Leslie de Koninck (CLP(QR) port)
   * Markus Triska (CLP(FD) and other (constraint) libraries)
   * Matt Lilley (testing, patches)
+  * Nicos Angelopoulos (Interface to R)
   * Paul Singleton (JPL)
   * Richard O'Keefe (libraries, extensive comments)
   * Sergey Tikhonov (testing multi-threading, patches)
   * Tom Schrijvers (CHR, initial constraint libraries)
   * Ulrich Neumerkel (testing, `purification', patches)
+  * Uwe Lesta (interface to C#)
   * Vitor Santos Costa (various libraries copied from YAP)
 
 ---++ Other _Contributors_
@@ -30,9 +33,10 @@ People are listed in alphabetical order.
   * Paulo Moura (testing, provides MacOS ports, made [[Logtalk][http://logtalk.org/]] available)
   * Steve Moyle (funding of PlUnit and PlDoc)
 
----++ Other _|Open Source|_ projects used by SWI-Prolog
+---++ _|Open Source|_ projects used by SWI-Prolog
 
 
+  * AVL library by [[Brad Appleton][http://www.cmcrossroads.com/bradapp/]] used in Semweb package
   * [[GMP][http://gmplib.org/]] (Unbounded and rational arithmetic)
   * [[GNU][http://www.gnu.org]] (Linux, development tools, libraries, etc.)
   * [[MacPorts][http://www.macports.org]] (Porting environment for MacOS)
