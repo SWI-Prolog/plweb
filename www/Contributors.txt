@@ -11,6 +11,7 @@ People are listed in alphabetical order.
   * Anjo Anjewierden (initial developer of XPCE)
   * Jan Wielemaker (main developer and maintainer)
   * Jan van der Steen (SSL interface)
+  * Jeff Rosenwald (TIPC interface)
   * Keri Harris (testing, patches)
   * Leslie de Koninck (CLP(QR) port)
   * Markus Triska (CLP(FD) and other (constraint) libraries)
