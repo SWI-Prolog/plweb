@@ -8,7 +8,7 @@ People are listed in alphabetical order.
 
 ---++ _Authors_ are people who contributed new code or (many) patches
 
-  * Anjo Anjewierden (initial developer of XPCE)
+  * Anjo Anjewierden (initial developer of XPCE, the SWI-Prolog native graphics system)
   * Jan Wielemaker (main developer and maintainer)
   * Jan van der Steen (SSL interface)
   * Jeff Rosenwald (TIPC interface)
@@ -17,13 +17,13 @@ People are listed in alphabetical order.
   * Markus Triska (CLP(FD) and other (constraint) libraries)
   * Matt Lilley (testing, patches)
   * Nicos Angelopoulos (Interface to R)
-  * Paul Singleton (JPL)
+  * Paul Singleton (JPL, interface to Java)
   * Richard O'Keefe (libraries, extensive comments)
   * Sergey Tikhonov (testing multi-threading, patches)
   * Tom Schrijvers (CHR, initial constraint libraries)
   * Ulrich Neumerkel (testing, `purification', patches)
   * Uwe Lesta (interface to C#)
-  * Vitor Santos Costa (various libraries copied from YAP)
+  * Vitor Santos Costa (various libraries copied from [[YAP][http://www.dcc.fc.up.pt/~vsc/Yap/]])
 
 ---++ Other _Contributors_
 
