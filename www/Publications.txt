@@ -27,3 +27,10 @@ publiciations, please consider citing one of these papers.
     ISWC-03 [[BibTeX][<pub:iswc-03.bib>]]
     * [[An Architecture for Making Object-Oriented Systems Available from Prolog][<pub:wlpe-02.pdf>]],
     WLPE-02 [[BibTeX][<pub:wlpe-02.bib>]]
+
+[[new.gif]] My PhD thesis, titled [[Logic programming for
+knowledge-intensive interactive
+applications][</download/publications/jan-phd.pdf>]] contains revised
+versions of most of the above papers supplemented with a broader
+overview of applying Prolog for the development of large-scale
+applications.
