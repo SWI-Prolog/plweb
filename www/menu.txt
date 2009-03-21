@@ -15,4 +15,5 @@
   * [[(Semantic) Web][web/index.txt]]
 --
   * Publications.txt
+  * Contributors.txt
   * [[License][license.txt]]
