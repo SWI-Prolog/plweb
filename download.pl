@@ -95,7 +95,7 @@ toggle_show(_) -->
 %	Create table rows for all  files   in  Dir/SubDir.  If files are
 %	present, emit a =tr= with Label  and   a  =tr= row for each each
 %	matching file.  Options are:
-%	
+%
 %	    * show(Show)
 %	    One of =all= or =latest= (default).
 
@@ -111,7 +111,7 @@ list_files(Dir, SubDir, Label, Options) -->
 	list_files(Sorted).
 list_files(_, _, _, _) -->
 	[].
-	
+
 list_files([]) --> [].
 list_files([H|T]) -->
 	list_file(H),
@@ -132,7 +132,7 @@ file_icon(file(Type, PlatForm, _, _, _)) -->
 file_icon(_) -->
 	html(?).			% no defined icon
 
-icon_for_file(bin, linux(_,_),	  
+icon_for_file(bin, linux(_,_),
 	      'linux32.gif', 'Linux RPM').
 icon_for_file(bin, macos(_,_),
 	      'mac.gif', 'MacOSX version').
@@ -150,7 +150,7 @@ file_size(file(_, _, _, _, Path)) -->
 	{ size_file(Path, Bytes)
 	},
 	html('~D bytes'-[Bytes]).
-	  
+
 file_description(file(bin, PlatForm, Version, _, Path)) -->
 	{ down_file_href(Path, HREF)
 	},
@@ -190,7 +190,7 @@ down_file_href(Path, HREF) :-
 	atom_concat(Dir, SlashLocal, Path),
 	delete_leading_slash(SlashLocal, Local),
 	http_absolute_location(download(Local), HREF, []).
-			     
+
 delete_leading_slash(SlashPath, Path) :-
 	atom_concat(/, Path, SlashPath), !.
 delete_leading_slash(Path, Path).
@@ -253,7 +253,7 @@ classsify_file(Path, file(Type, Platform, Version, Name, Path)) :-
 file(bin, macos(OSVersion, CPU), Version) -->
 	"swi-prolog-", opt_devel, long_version(Version), "-",
 	macos_version(OSVersion),
-	(   "-", 
+	(   "-",
 	    macos_cpu(CPU)
 	->  ""
 	;   { CPU=ppc }
@@ -287,7 +287,7 @@ win_type(win64) --> "w64".
 
 long_version(version(Major, Minor, Patch)) -->
 	int(Major, 1), ".", int(Minor, 1), ".", int(Patch, 2), !.
-	
+
 int(Value, MaxDigits) -->
 	digits(Digits),
 	{ length(Digits, Len),
@@ -306,14 +306,14 @@ short_version(version(Major, Minor, Patch)) -->
 	    number_codes(Minor, [D2]),
 	    number_codes(Patch, [D3,D4])
 	}.
-			 
+
 %%	sort_files(+In, -Out, +Options)
 %
 %	Sort files by type and version. Type: linux, windows, mac, src,
 %	doc.  Versions: latest first.
-%	
+%
 %	Options:
-%	
+%
 %	    * show(Show)
 %	    One of =all= or =latest=.
 
@@ -358,7 +358,7 @@ take_latest([_-[]|T0], T) :- !,		% emty set
 		 /*******************************
 		 *	     DOWNLOAD		*
 		 *******************************/
-	  
+
 %%	download(+Request) is det.
 %
 %	Actually download a file.
@@ -374,7 +374,7 @@ download(Request) :-
 	->  http_dirindex(Request, AbsFile)
 	;   remote_ip(Request, Remote),
 	    broadcast(download(Download, Remote)),
-	    http_reply_file(AbsFile, [], Request)
+	    http_reply_file(AbsFile, [unsafe(true)], Request)
 	).
 download(Request) :-
 	memberchk(path(Path), Request),
