@@ -7,7 +7,7 @@
     version *|5.6.x|*
     * [[Development release][</download/devel>]]
     Sources and executables for MS-Windows and MacOS X
-    version *|5.7.x|*
+    version *|5.7.x|* [[star.gif]]
     * Some popular [[old versions][</download/old?show=all>]]
     * Other files from FTP archive, [[GIT access][git.txt]], browse
     GIT [[repository][</git/>]]

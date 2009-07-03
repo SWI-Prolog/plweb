@@ -94,7 +94,7 @@ serve_page(Request) :-
 serve_page(Request) :-
 	memberchk(path(Path), Request),
 	existence_error(http_location, Path).
-	
+
 %%	find_file(+Relative, -File) is det.
 %
 %	Translate Relative into a File in the document-root tree. If the
@@ -140,7 +140,7 @@ serve_file(txt, File, _Request) :- !,
 	call_cleanup(serve_wike(String),
 		     nb_delete(pldoc_file)).
 serve_file(_Ext, File, Request) :-	% serve plain files
-	http_reply_file(File, [], Request).
+	http_reply_file(File, [unsafe(true)], Request).
 
 %%	serve_index_file(+Dir, +Request) is semidet.
 %
@@ -197,7 +197,7 @@ manual_file(Request) :-
 %
 %	Create pools of threads  as   defined  by  thread_pool_create/3.
 %	Currently it defined two pools with `special' actions:
-%	
+%
 %	    * media
 %	    Remote media.  Allow higher number of concurrent servers
 %	    * www
