@@ -38,5 +38,5 @@ write/1, writeq/1 and print/1.
 ---++ Changing default?
 
 Add a set_prolog_flag/2 directive in your prolog personal initialisation
-file (see Customise.txt) to change the default the above mentioned
+file (see PlInitialisation.txt) to change the default the above mentioned
 prolog flags.
