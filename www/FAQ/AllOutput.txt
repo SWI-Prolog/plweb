@@ -2,10 +2,10 @@
 
 Both the toplevel query/answer loop as the debugger abbreviate long
 complex terms. They do this to avoid endless pages of output. In fact,
-they write using write_term/3 which takes an option-list as arguments.
-The option list for answers is in the prolog-flag toplevel_print_options
-and the one for the debugger is in debugger_print_options. Initially
-both have the value given below:
+they write using write_term/3 which takes an option-list as argument.
+The option list for answers printed by the Prolog toplevel is in the
+prolog-flag =toplevel_print_options= and the one for the debugger is in
+=debugger_print_options=. Initially both have the value given below:
 
 ==
 ?- current_prolog_flag(toplevel_print_options, X).
@@ -38,5 +38,5 @@ write/1, writeq/1 and print/1.
 ---++ Changing default?
 
 Add a set_prolog_flag/2 directive in your prolog personal initialisation
-file (see PersonalInit.txt) to change the default the above mentioned
-prolog flags. 
+file (see Customise.txt) to change the default the above mentioned
+prolog flags.
