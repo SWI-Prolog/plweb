@@ -13,6 +13,10 @@ externally managed projects.
     * [[C# Interface][CSharp.txt]]
     * [[C++ Interfaces][CPP.txt]]
 
+---++ Interfaces to graphical libraries
+
+    * [[OpenGL Interface][OpenGL.txt]]
+
 @tbd	Make more categories
 @tbd	Complete migration of pointers to contributes libraries
 @see	[[Packages][<../pldoc/index.html>]]
