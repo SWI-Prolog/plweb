@@ -22,7 +22,7 @@ externally managed projects.
 ---++ Mathematical libraries and interfaces
 
     * [[Advanced random number library][SamerAbdallah/index.txt]]
-    * [[Mathlab interface][SamerAbdallah/index.txt]]
+    * [[Matlab interface][SamerAbdallah/index.txt]]
 
 @tbd	Make more categories
 @tbd	Complete migration of pointers to contributes libraries
