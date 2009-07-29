@@ -13,9 +13,16 @@ externally managed projects.
     * [[C# Interface][CSharp.txt]]
     * [[C++ Interfaces][CPP.txt]]
 
----++ Interfaces to graphical libraries
+---++ Multi-media interfaces
 
     * [[OpenGL Interface][OpenGL.txt]]
+    * [[Open Sound Control (OSC)][SamerAbdallah/index.txt]]
+    * [[MIDI interface (MacOS X)][SamerAbdallah/index.txt]]
+
+---++ Mathematical libraries and interfaces
+
+    * [[Advanced random number library][SamerAbdallah/index.txt]]
+    * [[Mathlab interface][SamerAbdallah/index.txt]]
 
 @tbd	Make more categories
 @tbd	Complete migration of pointers to contributes libraries
