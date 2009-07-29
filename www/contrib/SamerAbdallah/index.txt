@@ -1,0 +1,25 @@
+---+ SWI Prolog modules
+
+These are some libraries and modules to enable some useful capabilities
+from SWI Prolog.
+
+    $ plosc (v0.1, [[tarball][<plosc-0.1.tar.gz>]]) :
+      send Open Sound Control (OSC) messages (requires liblo).
+
+    $ plmidi (v0.1, [[tarball][<plmidi-0.1.tar.gz>]]) :
+      send MIDI messages (Mac OS X only).
+
+    $ plrand (v0.2, [[tarball][<plrand-0.2.tar.gz>]]) :
+      more capable random number generation, with better control of
+      generator state and some interesting distributions including
+      Normal, Gamma, Inverse Gamma, Beta, Dirichlet, Student's t,
+      Stable, Zeta, Poisson, Binomial etc.
+
+    $ plml (v0.91, [[tarball][<plml-0.91.tar.gz>]]) :
+      manages one or more Matlab engines running locally or remotely,
+      and provides access to Matlab functions and graphics. Primary
+      access is through an evaluator (a bit like is/2) that understands
+      a Prolog term language for representing Matlab expressions.
+
+@author Samer Abdallah
+
