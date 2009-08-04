@@ -12,6 +12,7 @@ externally managed projects.
     * [[Python Interface (pyswip)][http://code.google.com/p/pyswip/]]
     * [[C# Interface][CSharp.txt]]
     * [[C++ Interfaces][CPP.txt]]
+    * [[C/C++ wrapper generator (pwig)][http://pwig.sourceforge.net/]]
 
 ---++ Multi-media interfaces
 
