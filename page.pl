@@ -20,7 +20,8 @@
 	user:body//1.
 
 user:body(Body) -->
-	html(body([ \html_requires(plweb),
+	html(body(class('yui-skin-sam'),
+		  [ \html_requires(plweb),
 		    div(class(sidebar), \sidebar),
 		    div(class(content), Body),
 		    div(class(footer), \server_address)
