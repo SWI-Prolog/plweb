@@ -1,7 +1,30 @@
-/*  File:    http_cgi.pl
-    Author:  Jan Wielemaker
-    Created: Jan 28 2009
-    Purpose: Run CGI scripts
+/*  Part of SWI-Prolog
+
+    Author:        Jan Wielemaker
+    E-mail:        J.Wielemaker@cs.vu.nl
+    WWW:           http://www.swi-prolog.org
+    Copyright (C): 2009, VU University Amsterdam
+
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 2
+    of the License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    As a special exception, if you link this library with other files,
+    compiled with a Free Software compiler, to produce an executable, this
+    library does not by itself cause the resulting executable to be covered
+    by the GNU General Public License. This exception does not however
+    invalidate any other reasons why the executable file might be covered by
+    the GNU General Public License.
 */
 
 :- module(http_cgi,
@@ -20,7 +43,7 @@ Run external scripts.  This module provides two interfaces:
 
 	* http_run_cgi/2 can be used to call a CGI script
 	located exernally
-	
+
 	* Setup a path =cgi_bin= for absolute_file_name/3.  If
 	this is present, calls to /cgi-bin/... are translated into
 	calling the script.
@@ -46,7 +69,7 @@ run_script(Request) :-
 			   ]),
 	http_run_cgi(ScriptFileName, Request2).
 
-			   
+
 ensure_no_leading_slash(Abs, Rel) :-
 	atom_concat(/, Rel, Abs), !.
 ensure_no_leading_slash(Rel, Rel).
@@ -114,7 +137,7 @@ copy_post_data(In, Script, unknown) :-
 copy_post_data(In, Script, Len) :-
 	catch(copy_stream_data(In, Script, Len), _, true),
 	close(Script, [force(true)]).
-		  
+
 
 %%	env(?Name, +Request, -Value) is nondet.
 %
