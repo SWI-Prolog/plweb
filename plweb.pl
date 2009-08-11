@@ -61,6 +61,7 @@
 :- use_module(update).
 :- use_module(http_dirindex).
 :- use_module(autocomplete).
+:- use_module(customise).
 
 :- http_handler(root(.),	     serve_page,  [prefix, priority(10), spawn(wiki)]).
 :- http_handler(root('favicon.ico'), favicon,	  [priority(10)]).
