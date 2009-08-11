@@ -37,6 +37,8 @@
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
 :- use_module(library(option)).
+:- use_module(library(apply)).
+:- use_module(library(occurs)).
 :- use_module(yui_resources).
 
 :- multifile
@@ -124,7 +126,7 @@ ac_option(O) -->
 
 %%	ac_predicate(+Request)
 %
-%	Reply autocompletion
+%	HTTP handler to reply autocompletion
 
 ac_predicate(Request) :-
 	http_parameters(Request,
@@ -135,17 +137,28 @@ ac_predicate(Request) :-
 
 autocompletions(Query, Completions) :-
 	findall(C, completion(Query, C), Completions0),
-	sort(Completions0, Completions).
+	sort(Completions0, Completions1),
+	first_n(10, Completions1, Completions2),
+	maplist(obj_name, Completions2, Completions).
 
-completion(Query, C) :-
-	current_predicate(M:P/N),
-	public(M:P/N),
-	sub_atom(P, 0, _, _, Query),
-	format(string(C), '~w/~d', [P,N]).
+completion(Query, Name-Obj) :-
+	prolog:doc_object_summary(Obj, _Type, _Section, _Summary),
+	completion_target(Obj, Name),
+	sub_atom(Name, 0, _, _, Query).
 
-public(user:_).
-public(system:_).
-public(M:P/N) :-
-	functor(H, P, N),
-	\+ predicate_property(M:H, imported_from(_)),
-	predicate_property(M:H, exported).
+completion_target(Name/_,   Name).
+completion_target(_:Name/_, Name).
+completion_target(c(Name),  Name).
+
+obj_name(_-c(Function), Name) :- !,
+	atom_concat(Function, '()', Name).
+obj_name(_-(_:Term), Name) :- !,
+	format(atom(Name), '~w', [Term]).
+obj_name(_-Term, Name) :-
+	format(atom(Name), '~w', [Term]).
+
+first_n(0, _, []) :- !.
+first_n(_, [], []) :- !.
+first_n(N, [H|T0], [H|T]) :-
+	N2 is N - 1,
+	first_n(N2, T0, T).
