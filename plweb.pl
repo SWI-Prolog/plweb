@@ -60,6 +60,7 @@
 :- use_module(gitweb).
 :- use_module(update).
 :- use_module(http_dirindex).
+:- use_module(autocomplete).
 
 :- http_handler(root(.),	     serve_page,  [prefix, priority(10), spawn(wiki)]).
 :- http_handler(root('favicon.ico'), favicon,	  [priority(10)]).
