@@ -18,8 +18,8 @@
 %	prolog:doc_search_field(+Options) is det.
 
 prolog:doc_search_field(Options) -->
-	{ select_option(size(_W), Options, Options1),
-	  atom_concat(15, em, Wem)
+	{ select_option(size(W), Options, Options1),
+	  atomic_concat(W, ex, Wem)
 	},
 	autocomplete(ac_predicate,
 		     [ query_delay(0.5),
@@ -62,7 +62,7 @@ autocomplete(Handler, Options) -->
 		   ]),
 	       style(type('text/css'),
 		     [ '#', CompleteID, '\n',
-		       '{ width:~w; padding-bottom:2em; display:inline-block; vertical-align:top}'-[Width]
+		       '{ width:~w; padding-bottom:0em; display:inline-block; vertical-align:top}'-[Width]
 		     ]),
 	       \autocomplete_script(Path, InputID, ContainerID, Options3)
 	     ]).
