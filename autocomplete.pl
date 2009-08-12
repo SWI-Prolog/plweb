@@ -104,8 +104,10 @@ autocomplete_script(HandlerID, Input, Container, Options) -->
 	html(script(type('text/javascript'), [
 '{ \n',
 '  var oDS = new YAHOO.util.XHRDataSource("~w");\n'-[Path],
-'  oDS.responseType = YAHOO.util.XHRDataSource.TYPE_JSARRAY;\n',
-'  oDS.responseSchema = {fields:["name"]};\n',
+'  oDS.responseType = YAHOO.util.XHRDataSource.TYPE_JSON;\n',
+'  oDS.responseSchema = { resultsList:"results",
+			  fields:["label"]
+			};\n',
 '  oDS.maxCacheEntries = 5;\n',
 '  var oAC = new YAHOO.widget.AutoComplete("~w", "~w", oDS);\n'-[Input, Container],
 \ac_options(Options),
@@ -132,14 +134,18 @@ ac_predicate(Request) :-
 	http_parameters(Request,
 			[ query(Query, [])
 			]),
-	autocompletions(Query, Completions),
-	reply_json(Completions, []).
+	autocompletions(Query, Count, Completions),
+	reply_json(json([ query = json([ count=Count
+				       ]),
+			  results = Completions
+			])).
 
-autocompletions(Query, Completions) :-
+autocompletions(Query, Count, Completions) :-
 	findall(C, completion(Query, C), Completions0),
 	sort(Completions0, Completions1),
+	length(Completions1, Count),
 	first_n(10, Completions1, Completions2),
-	maplist(obj_name, Completions2, Completions).
+	maplist(obj_result, Completions2, Completions).
 
 completion(Query, Name-Obj) :-
 	prolog:doc_object_summary(Obj, _Type, _Section, _Summary),
@@ -149,6 +155,9 @@ completion(Query, Name-Obj) :-
 completion_target(Name/_,   Name).
 completion_target(_:Name/_, Name).
 completion_target(c(Name),  Name).
+
+obj_result(Obj, json([label=Label])) :-
+	obj_name(Obj, Label).
 
 obj_name(_-c(Function), Name) :- !,
 	atom_concat(Function, '()', Name).
