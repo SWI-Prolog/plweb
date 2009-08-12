@@ -49,15 +49,19 @@
 
 :- http_handler(root(autocomplete/ac_predicate), ac_predicate, []).
 
+max_results_displayed(100).
+
 %	prolog:doc_search_field(+Options) is det.
 
 prolog:doc_search_field(Options) -->
 	{ select_option(size(W), Options, Options1),
-	  atomic_concat(W, ex, Wem)
+	  atomic_concat(W, ex, Wem),
+	  max_results_displayed(Max)
 	},
 	autocomplete(ac_predicate,
 		     [ query_delay(0.5),
 		       auto_highlight(false),
+		       max_results_displayed(Max),
 		       width(Wem)
 		     | Options1
 		     ]).
@@ -136,6 +140,8 @@ ac_option(query_delay(Time)) --> !,
 	html([ '  oAC.queryDelay = ~w;\n'-[Time] ]).
 ac_option(auto_highlight(Bool)) --> !,
 	html([ '  oAC.autoHighlight = ~w;\n'-[Bool] ]).
+ac_option(max_results_displayed(Max)) -->
+	html([ '  oAC.maxResultsDisplayed = ~w;\n'-[Max] ]).
 ac_option(O) -->
 	{ domain_error(yui_autocomplete_option, O) }.
 
@@ -144,21 +150,23 @@ ac_option(O) -->
 %	HTTP handler to reply autocompletion
 
 ac_predicate(Request) :-
+	max_results_displayed(DefMax),
 	http_parameters(Request,
-			[ query(Query, [])
+			[ query(Query, []),
+			  maxResultsDisplayed(Max, [integer, default(DefMax)])
 			]),
-	autocompletions(Query, 10, Count, Completions),
+	autocompletions(Query, Max, Count, Completions),
 	reply_json(json([ query = json([ count=Count
 				       ]),
 			  results = Completions
 			])).
 
 autocompletions(Query, Max, Count, Completions)  :-
-	autocompletions(name, Query, 10, BNC, ByName),
+	autocompletions(name, Query, Max, BNC, ByName),
 	(   BNC > Max
 	->  Completions = ByName,
 	    Count = BNC
-	;   TMax is 10-BNC,
+	;   TMax is Max-BNC,
 	    autocompletions(token, Query, TMax, BTC, ByToken),
 	    append(ByName, ByToken, Completions),
 	    Count is BNC+BTC
