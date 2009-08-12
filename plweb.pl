@@ -77,6 +77,7 @@
 		 *******************************/
 
 server :-
+	load_settings('plweb.conf'),
 	init_thread_pools,
 	setting(http:port, Port),
 	setting(http:workers, Workers),
