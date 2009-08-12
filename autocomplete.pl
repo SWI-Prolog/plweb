@@ -36,6 +36,8 @@
 :- use_module(library(http/http_json)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
+:- use_module(library(semweb/rdf_db)).
+:- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(apply)).
 :- use_module(library(occurs)).
@@ -140,36 +142,42 @@ ac_predicate(Request) :-
 	http_parameters(Request,
 			[ query(Query, [])
 			]),
-	autocompletions(Query, Count, Completions),
+	autocompletions(Query, 10, Count, Completions),
 	reply_json(json([ query = json([ count=Count
 				       ]),
 			  results = Completions
 			])).
 
-autocompletions(Query, Count, Completions) :-
-	findall(C, completion(Query, C), Completions0),
+autocompletions(Query, Max, Count, Completions)  :-
+	autocompletions(name, Query, 10, BNC, ByName),
+	(   BNC > Max
+	->  Completions = ByName,
+	    Count = BNC
+	;   TMax is 10-BNC,
+	    autocompletions(token, Query, TMax, BTC, ByToken),
+	    append(ByName, ByToken, Completions),
+	    Count is BNC+BTC
+	).
+
+autocompletions(How, Query, Max, Count, Completions) :-
+	findall(C, ac_object(How, Query, C), Completions0),
 	sort(Completions0, Completions1),
 	length(Completions1, Count),
-	first_n(10, Completions1, Completions2),
+	first_n(Max, Completions1, Completions2),
 	maplist(obj_result, Completions2, Completions).
-
-completion(Query, Name-Obj) :-
-	prolog:doc_object_summary(Obj, _Type, _Section, _Summary),
-	completion_target(Obj, Name),
-	sub_atom(Name, 0, _, _, Query).
 
 completion_target(Name/_,   Name).
 completion_target(_:Name/_, Name).
 completion_target(c(Name),  Name).
 
-obj_result(Obj, json([label=Label, type=Type])) :-
+obj_result(_Name-Obj, json([label=Label, type=Type])) :-
 	obj_name(Obj, Label, Type).
 
-obj_name(_-c(Function), Name, cfunc) :- !,
+obj_name(c(Function), Name, cfunc) :- !,
 	atom_concat(Function, '()', Name).
-obj_name(_-(_:Term), Name, pred) :- !,
+obj_name((_:Term), Name, pred) :- !,
 	format(atom(Name), '~w', [Term]).
-obj_name(_-Term, Name, pred) :-
+obj_name(Term, Name, pred) :-
 	format(atom(Name), '~w', [Term]).
 
 first_n(0, _, []) :- !.
@@ -177,3 +185,53 @@ first_n(_, [], []) :- !.
 first_n(N, [H|T0], [H|T]) :-
 	N2 is N - 1,
 	first_n(N2, T0, T).
+
+
+		 /*******************************
+		 *	  PREFIX DATABASE	*
+		 *******************************/
+
+ac_object(name, Prefix, Name-Obj) :-
+	prefix_index(ByName, _ByToken),
+	rdf_keys_in_literal_map(ByName, prefix(Prefix), Keys),
+	member(Name, Keys),
+	name_object(Name, Obj).
+ac_object(token, Prefix, Name-Obj) :-
+	prefix_index(_ByName, ByToken),
+	rdf_keys_in_literal_map(ByToken, prefix(Prefix), Keys),
+	member(Token, Keys),
+	rdf_find_literal_map(ByToken, [Token], Names),
+	member(Name, Names),
+	name_object(Name, Obj).
+
+
+:- dynamic
+	prefix_map/2,			% name-map, token-map
+	name_object/2.
+
+prefix_index(ByName, ByToken) :-
+	prefix_map(ByName, ByToken), !.
+prefix_index(ByName, ByToken) :-
+	rdf_new_literal_map(ByName),
+	rdf_new_literal_map(ByToken),
+	assertz(prefix_map(ByName, ByToken)),
+	fill_token_map.
+
+fill_token_map :-
+	prefix_map(ByName, ByToken),
+	rdf_reset_literal_map(ByName),
+	rdf_reset_literal_map(ByToken),
+	retractall(name_object(_,_)),
+	(   prolog:doc_object_summary(Obj, _Category, _Section, _Summary),
+	    completion_target(Obj, Name),
+	    assertz(name_object(Name, Obj)),
+	    rdf_insert_literal_map(ByName, Name, Name),
+	    forall(start_inside_token(Name, Token),
+		   rdf_insert_literal_map(ByToken, Token, Name)),
+	    fail
+	;   true
+	).
+
+start_inside_token(Token, Inside) :-
+	sub_atom(Token, _, _, L, '_'),
+	sub_atom(Token, _, L, 0, Inside).
