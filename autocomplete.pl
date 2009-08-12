@@ -47,7 +47,8 @@
 :- multifile
 	prolog:doc_search_field//1.
 
-:- http_handler(root(autocomplete/ac_predicate), ac_predicate, []).
+:- http_handler(root(autocomplete/ac_predicate), ac_predicate,
+		[spawn(complete)]).
 
 max_results_displayed(100).
 
