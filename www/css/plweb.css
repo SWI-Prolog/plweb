@@ -19,7 +19,7 @@ div.content
 }
 
 div.logo
-{ text-align: center; 
+{ text-align: center;
 }
 
 div.menu
@@ -95,4 +95,17 @@ pre.informational
 
 pre.error
 { color: #ff0000;
+}
+
+/* Auto-complete */
+
+span.acmatch
+{ background-color: #bbf;
+}
+
+#ac_predicate_complete .yui-ac-content
+{ max-height:30em;
+  overflow:auto;
+  overflow-x:hidden; /* set scrolling */
+  _height:30em; /* ie6 */
 }
