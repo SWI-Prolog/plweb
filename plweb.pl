@@ -245,3 +245,4 @@ start_pool(Name-[pool(Size,Options)|_]) :-
 thread_pool(wiki,     20, [ local(2000), global(8000), trail(4000), backlog(5) ]).
 thread_pool(download, 20, [ local(100),  global(200),  trail(200),  backlog(5) ]).
 thread_pool(cgi,      20, [ local(100),  global(200),  trail(200),  backlog(5) ]).
+thread_pool(complete, 20, [ local(100),  global(200),  trail(200),  backlog(5) ]).
