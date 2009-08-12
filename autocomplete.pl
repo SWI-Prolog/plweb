@@ -36,6 +36,7 @@
 :- use_module(library(http/http_json)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
+:- use_module(library(pldoc/doc_html)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
@@ -108,7 +109,7 @@ autocomplete_script(HandlerID, Input, Container, Options) -->
 '  var oDS = new YAHOO.util.XHRDataSource("~w");\n'-[Path],
 '  oDS.responseType = YAHOO.util.XHRDataSource.TYPE_JSON;\n',
 '  oDS.responseSchema = { resultsList:"results",
-			  fields:["label","type"]
+			  fields:["label","type","href"]
 			};\n',
 '  oDS.maxCacheEntries = 5;\n',
 '  var oAC = new YAHOO.widget.AutoComplete("~w", "~w", oDS);\n'-[Input, Container],
@@ -118,6 +119,10 @@ autocomplete_script(HandlerID, Input, Container, Options) -->
      var sLabel = oResultData.label.replace(sQuery, into);
      return sLabel;
    };\n',
+'  oAC.itemSelectEvent.subscribe(function(sType, aArgs) {
+     var oData = aArgs[2];
+     window.location.href = oData.href;
+   });\n',
 \ac_options(Options),
 '}\n'
 					     ])).
@@ -166,12 +171,12 @@ autocompletions(How, Query, Max, Count, Completions) :-
 	first_n(Max, Completions1, Completions2),
 	maplist(obj_result, Completions2, Completions).
 
-completion_target(Name/_,   Name).
-completion_target(_:Name/_, Name).
-completion_target(c(Name),  Name).
-
-obj_result(_Name-Obj, json([label=Label, type=Type])) :-
-	obj_name(Obj, Label, Type).
+obj_result(_Name-Obj, json([ label=Label,
+			     type=Type,
+			     href=Href
+			   ])) :-
+	obj_name(Obj, Label, Type),
+	object_href(Obj, Href).
 
 obj_name(c(Function), Name, cfunc) :- !,
 	atom_concat(Function, '()', Name).
@@ -231,6 +236,12 @@ fill_token_map :-
 	    fail
 	;   true
 	).
+
+completion_target(Name/_,   Name).
+completion_target(M:Name/A, Name) :-
+	functor(Head, Name, A),
+	predicate_property(M:Head, exported).
+completion_target(c(Name),  Name).
 
 start_inside_token(Token, Inside) :-
 	sub_atom(Token, _, _, L, '_'),
