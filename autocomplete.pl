@@ -200,19 +200,19 @@ ac_object(name, Prefix, Name-Obj) :-
 	prefix_index(ByName, _ByToken),
 	rdf_keys_in_literal_map(ByName, prefix(Prefix), Keys),
 	member(Name, Keys),
-	name_object(Name, Obj).
+	name_object(Name, Obj, _Category).
 ac_object(token, Prefix, Name-Obj) :-
 	prefix_index(_ByName, ByToken),
 	rdf_keys_in_literal_map(ByToken, prefix(Prefix), Keys),
 	member(Token, Keys),
 	rdf_find_literal_map(ByToken, [Token], Names),
 	member(Name, Names),
-	name_object(Name, Obj).
+	name_object(Name, Obj, _Category).
 
 
 :- dynamic
 	prefix_map/2,			% name-map, token-map
-	name_object/2.
+	name_object/3.
 
 prefix_index(ByName, ByToken) :-
 	prefix_map(ByName, ByToken), !.
@@ -226,16 +226,37 @@ fill_token_map :-
 	prefix_map(ByName, ByToken),
 	rdf_reset_literal_map(ByName),
 	rdf_reset_literal_map(ByToken),
-	retractall(name_object(_,_)),
-	(   prolog:doc_object_summary(Obj, _Category, _Section, _Summary),
+	retractall(name_object(_,_,_)),
+	(   documented(Obj, Category),
 	    completion_target(Obj, Name),
-	    assertz(name_object(Name, Obj)),
+	    assertz(name_object(Name, Obj, Category)),
 	    rdf_insert_literal_map(ByName, Name, Name),
 	    forall(start_inside_token(Name, Token),
 		   rdf_insert_literal_map(ByToken, Token, Name)),
 	    fail
 	;   true
+	),
+	keep_best_doc.
+
+documented(Obj, Category) :-
+	prolog:doc_object_summary(Obj, Category, _Section, _Summary).
+
+keep_best_doc :-
+	(   name_object(Name, Obj, Category),
+	    name_object(Name, Obj2, Category2),
+	    same_object(Obj, Obj2),
+	    better_category(Category2, Category),
+	    retract(name_object(Name, Obj, Category)),
+	    fail
+	;   true
 	).
+
+same_object(_:Name/Arity, Name/Arity).
+same_object(Name/Arity, _:Name/Arity).
+
+better_category(manual, _) :- !.
+better_category(packages, _) :- !.
+
 
 completion_target(Name/_,   Name).
 completion_target(M:Name/A, Name) :-
