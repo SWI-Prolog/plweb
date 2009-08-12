@@ -101,15 +101,21 @@ autocomplete(Handler, Options) -->
 autocomplete_script(HandlerID, Input, Container, Options) -->
 	{ http_absolute_location(HandlerID, Path, [])
 	},
-	html(script(type('text/javascript'), [
+	html(script(type('text/javascript'), \[
 '{ \n',
 '  var oDS = new YAHOO.util.XHRDataSource("~w");\n'-[Path],
 '  oDS.responseType = YAHOO.util.XHRDataSource.TYPE_JSON;\n',
 '  oDS.responseSchema = { resultsList:"results",
-			  fields:["label"]
+			  fields:["label","type"]
 			};\n',
 '  oDS.maxCacheEntries = 5;\n',
 '  var oAC = new YAHOO.widget.AutoComplete("~w", "~w", oDS);\n'-[Input, Container],
+'  oAC.resultTypeList = false;\n',
+'  oAC.formatResult = function(oResultData, sQuery, sResultMatch) {
+     var into = "<span class=\\"acmatch\\">"+sQuery+"</span>";
+     var sLabel = oResultData.label.replace(sQuery, into);
+     return sLabel;
+   };\n',
 \ac_options(Options),
 '}\n'
 					     ])).
@@ -156,14 +162,14 @@ completion_target(Name/_,   Name).
 completion_target(_:Name/_, Name).
 completion_target(c(Name),  Name).
 
-obj_result(Obj, json([label=Label])) :-
-	obj_name(Obj, Label).
+obj_result(Obj, json([label=Label, type=Type])) :-
+	obj_name(Obj, Label, Type).
 
-obj_name(_-c(Function), Name) :- !,
+obj_name(_-c(Function), Name, cfunc) :- !,
 	atom_concat(Function, '()', Name).
-obj_name(_-(_:Term), Name) :- !,
+obj_name(_-(_:Term), Name, pred) :- !,
 	format(atom(Name), '~w', [Term]).
-obj_name(_-Term, Name) :-
+obj_name(_-Term, Name, pred) :-
 	format(atom(Name), '~w', [Term]).
 
 first_n(0, _, []) :- !.

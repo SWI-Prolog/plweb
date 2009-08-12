@@ -19,7 +19,7 @@ div.content
 }
 
 div.logo
-{ text-align: center; 
+{ text-align: center;
 }
 
 div.menu
@@ -95,4 +95,10 @@ pre.informational
 
 pre.error
 { color: #ff0000;
+}
+
+/* Auto-complete */
+
+span.acmatch
+{ background-color: #bbf;
 }
