@@ -41,12 +41,6 @@
 
 :- http_handler(root('git'), gitroot, []).
 :- http_handler(root('git/'), gitweb, [ prefix, spawn(cgi) ]).
-:- http_handler(root('git/gitweb.css'),
-		http_reply_file(gitweb('gitweb.css'), []), []).
-:- http_handler(root('git/git-logo.png'),
-		http_reply_file(gitweb('git-logo.png'), []), []).
-:- http_handler(root('git/git-favicon.png'),
-		http_reply_file(gitweb('git-favicon.png'), []), []).
 :- http_handler(root('home/pl/git/'), git_http, [prefix, spawn(download)]).
 
 %%	gitroot(+Request) is det.
@@ -70,10 +64,20 @@ local(fragment(_)).
 %	Call gitweb script
 
 gitweb(Request) :-
+	memberchk(path(Path), Request),
+	file_base_name(Path, Base),
+	resource_file(Base, File), !,
+	http_reply_file(File, [], Request).
+gitweb(Request) :-
 	absolute_file_name(gitweb('gitweb.cgi'), ScriptPath,
 			   [ access(execute)
 			   ]),
 	http_run_cgi(ScriptPath, Request).
+
+
+resource_file('gitweb.css',	 gitweb('gitweb.css')).
+resource_file('git-logo.png',	 gitweb('git-logo.png')).
+resource_file('git-favicon.png', gitweb('git-favicon.png')).
 
 
 :- multifile
