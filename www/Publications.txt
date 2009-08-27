@@ -5,6 +5,8 @@ At rare weak moments I am pursuaded to write articles about aspects of
 SWI-Prolog or its libraries. If you use SWI-Prolog and write academic
 publiciations, please consider citing one of these papers.
 
+    * [[Precise Garbage Collection in Prolog][<pub:lifegc.pdf>]]
+    Jan Wielemaker and Ulrich Neumerkel CYCLOPS-08. [[BibTeX][<pub:lifegc.bib>]]
     * [[Thesaurus-Based Search in Large Heterogeneous Collections][<pub:iswc-08.pdf>]],
     ISWC-08, [[BibTeX][<pub:iswc-08.bib>]]
     * [[Using Prolog as the fundament for applications on the semantic web][<pub:mn9c.pdf>]],
