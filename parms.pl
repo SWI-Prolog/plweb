@@ -74,7 +74,7 @@ http:location(css,	root(css),      []).
 
 user:url_path(swi,	'http://www.swi-prolog.org').
 user:url_path(hcs,	'http://hcs.science.uva.nl').
-user:url_path(pkg,	swi(packages)).
+user:url_path(pkg,	pl(package)).
 user:url_path(dmoz,	'http://dmoz.org').
 user:url_path(dmoz_pl,	dmoz('Computers/Programming/Languages/Prolog/Implementations/')).
 user:url_path(ffii, 	'http://swpat.ffii.org/index.en.html').
@@ -97,7 +97,7 @@ user:url_path(bugzilla,  'http://gollem.science.uva.nl/bugzilla/').
 user:url_path(gitweb,	 'http://www.swi-prolog.org/git/').
 user:url_path(swieditor, 'http://lakk.bildung.hessen.de/netzwerk/faecher/informatik/swiprolog/indexe.html').
 user:url_path(pub,	 hcs('projects/SWI-Prolog/articles')).
-user:url_path(swipub,	 swi('download/publications')).
+user:url_path(swipub,	 pl('download/publications')).
 user:url_path(git,	 'http://git-scm.com/').
 user:url_path(msysgit,	 'http://code.google.com/p/msysgit/').
 user:url_path(macports,	 'http://www.macports.org/').
