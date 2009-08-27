@@ -97,6 +97,7 @@ user:url_path(bugzilla,  'http://gollem.science.uva.nl/bugzilla/').
 user:url_path(gitweb,	 'http://www.swi-prolog.org/git/').
 user:url_path(swieditor, 'http://lakk.bildung.hessen.de/netzwerk/faecher/informatik/swiprolog/indexe.html').
 user:url_path(pub,	 hcs('projects/SWI-Prolog/articles')).
+user:url_path(swipub,	 swi('download/publications')).
 user:url_path(git,	 'http://git-scm.com/').
 user:url_path(msysgit,	 'http://code.google.com/p/msysgit/').
 user:url_path(macports,	 'http://www.macports.org/').
