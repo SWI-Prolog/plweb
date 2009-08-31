@@ -32,7 +32,7 @@ publiciations, please consider citing one of these papers.
 
 [[new.gif]] My PhD thesis, titled [[Logic programming for
 knowledge-intensive interactive
-applications][</download/publications/jan-phd.pdf>]] (4.4MB) contains
+applications][<swipub:jan-phd.pdf>]] (4.4MB) contains
 revised versions of most of the above papers supplemented with a broader
 overview of applying Prolog for the development of large-scale
-applications.
+applications.  [[BibTeX][<swipub:jan-phd.bib>]]
