@@ -1,0 +1,50 @@
+#!/usr/bin/pl -q -g main -s
+
+:- use_module(stat).
+:- use_module(sum).
+
+load :-
+	read_log('/home/jan/Software/log/download.log').
+
+terms([ date(Y, Mon, Day)
+      | Terms
+      ]) :-
+	findall(downloads(Month, Year, Win32, Win64, Mac, RPM, Source),
+		downloads(Month, Year, Win32, Win64, Mac, RPM, Source),
+		Terms),
+	get_time(T),
+	convert_time(T, Y, MI, Day, _, _, _, _),
+	m2int(Mon, MI).
+
+save_terms(Terms) :-
+	open('downloads.pl',  write, Out),
+	format(Out, 
+	       '%%\tdownloads(Month, Year, Win32, Win64, Mac, RPM, Source)~n~n',
+	       []),
+	forall(member(T, Terms),
+	       format(Out, '~q.~n', [T])),
+	close(Out).
+
+load_terms(Terms) :-
+	read_file_to_terms('downloads.pl', Terms, []).
+
+jpeg(JPEG) :-
+	load_terms(Terms),
+	stat2jpeg(Terms, JPEG).
+
+jpeg :-
+	load_terms(Terms),
+	expand_file_name('~www/SWI-Prolog/bymonth.jpeg', [JPEG]),
+	stat2jpeg(Terms, JPEG).
+
+:- prolog_load_context(directory, Dir),
+   working_directory(_, Dir).
+
+main :-
+	(   load,
+	    terms(Terms),
+	    save_terms(Terms),
+	    jpeg
+	->  halt
+	;   halt(1)
+	).
