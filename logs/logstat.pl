@@ -139,6 +139,8 @@ save_record(Id, Time, CPU, Request, Bytes, Code, Status) :-
 
 
 session(Request, SessionID) :-
+	memberchk(session(SessionID), Request), !.
+session(Request, SessionID) :-
 	memberchk(cookie(Cookie), Request),
 	memberchk(swipl_session=SessionID, Cookie), !.
 session(_, -).
