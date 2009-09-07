@@ -9,6 +9,8 @@
 :- use_module(library(lists)).
 :- use_module(library(zlib)).
 
+:- portray_text(true).
+
 /** <module> Process SWI-Prolog HTTPD logfiles
 
 Interesting fields:
@@ -95,7 +97,7 @@ read_log(Term, In, Count0, Open0) :-
 	read(In, Term2),
 	read_log(Term2, In, Count1, Open1).
 read_log(Term, In, Count, Open) :-
-	format(user_error, '~N: Failed to process ~q~n', [Term]),
+	format(user_error, '~NWarning: failed to process ~p~n', [Term]),
 %	gtrace, ignore(assert_log(Term, Count, _Count, Open, _Open)),
 	read(In, Term2),
 	read_log(Term2, In, Count, Open).
@@ -112,7 +114,7 @@ assert_log(completed(I, CPU, Status), Count, Count, Open0, Open) :-
 assert_log(completed(I, CPU, Bytes, Code, Status), Count, Count, Open0, Open) :-
 	rb_delete(Open0, I, r(Id, Time, Request), Open),
 	save_record(Id, Time, CPU, Request, Bytes, Code, Status).
-	
+
 close_all(Open0) :-
 	rb_visit(Open0, Pairs),
 	close_pairs(Pairs).
@@ -195,16 +197,16 @@ extra_field(Request, _, _, http_version(Agent)) :-
 %	specifications. Name can be a name as defined by field/2, a Name
 %	that appears in the  `Extra'  field,   or  one  of the following
 %	defined special fields:
-%	
+%
 %	    * after(+TimeSpec)
 %	    Only consider records created after TimeSpec.  TimeSpec is
 %	    one of:
-%	    
+%
 %	        * Year/Month/Day
-%	        
+%
 %	    * before(+TimeSpec)
 %	    See after(TimeSpec).
-%	    
+%
 %	    * search([Name=Value...])
 %	    Demand the following fields to be present in the query.
 
@@ -218,7 +220,7 @@ logrecord(Query) :-
 	;   Extra == []
 	->  call((Term,Cond))
 	;   field(I, extra)
-	->  arg(I, Term, ExtraDB),    
+	->  arg(I, Term, ExtraDB),
 	    call((Term,Cond)),
 	    subset(Extra, ExtraDB)
 	).
@@ -254,7 +256,7 @@ condition(before(TimeSpec), Term, Stamp < Time) :-
 condition(search(Fields), Term, subset(Fields, Query)) :-
 	field(I, query), !,
 	arg(I, Term, Query).
-	
+
 
 time_spec_to_stamp(Y/M/D, Stamp) :-
 	date_time_stamp(date(Y,M,D,0,0,0,0,-,-), Stamp).
