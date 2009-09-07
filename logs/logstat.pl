@@ -2,7 +2,7 @@
 	  [ clean_log/0,
 	    read_log/1,			% +File
 	    logrecord/1,		% +List
-	    logrecord/9
+	    logrecord/10
 	  ]).
 :- use_module(library(rbtrees)).
 :- use_module(library(debug)).
@@ -26,7 +26,7 @@ Interesting fields:
 Database:
 
 	logrecord(N, Time, Session, RemoteIP, Path,
-		  Query, Referrer, Result, Extra).
+		  Query, Referrer, Code, Result, Extra).
 
 Extra fields:
 
@@ -34,7 +34,6 @@ Extra fields:
 	* user_agent(Agent)
 	* http_version(Major-Minor)
 	* bytes(Count)
-	* code(Code)
 
 ---++ Query API
 
@@ -42,11 +41,11 @@ The main query API is formed by logrecord/1.
 */
 
 :- dynamic
-	logrecord/9.
+	logrecord/10.
 
 %%	field(?Index, ?Name) is nondet.
 %
-%	Define the field-names for the logrecord/9 predicate.
+%	Define the field-names for the logrecord/10 predicate.
 
 field(1, key).
 field(2, time).
@@ -55,8 +54,9 @@ field(4, ip).
 field(5, path).
 field(6, query).
 field(7, referer).
-field(8, result).
-field(9, extra).
+field(8, code).
+field(9, result).
+field(10, extra).
 
 
 %%	clean_log
@@ -64,7 +64,7 @@ field(9, extra).
 %	Cleanup the database.
 
 clean_log :-
-	functor(Term, logrecord, 9),
+	functor(Term, logrecord, 10),
 	assertion(predicate_property(Term, dynamic)),
 	retractall(Term).
 
@@ -130,9 +130,9 @@ save_record(Id, Time, CPU, Request, Bytes, Code, Status) :-
 	path(Request, Path),
 	query_parms(Request, Parms),
 	referer(Request, Referer),
-	extra(Request, Bytes, Code, Extra),
+	extra(Request, Bytes, Extra),
 	assert(logrecord(Id, Time, Session, RemoteIP,
-			 Path, Parms, Referer, Status,
+			 Path, Parms, Referer, Code, Status,
 			 [ cpu(CPU)
 			 | Extra
 			 ])).
@@ -164,7 +164,7 @@ final_ip(IP0, IP) :-
 final_ip(IP, IP).
 
 peer_to_ip(ip(A,B,C,D), IP) :-
-	concat_atom([A,B,C,D], '.', IP).
+	atomic_list_concat([A,B,C,D], '.', IP).
 
 path(Request, Path) :-
 	memberchk(path(Path), Request).
@@ -177,18 +177,15 @@ referer(Request, Referer) :-
 	memberchk(referer(Referer), Request), !.
 referer(_, -).
 
-extra(Request, Bytes, Code, Extra) :-
-	findall(E, extra_field(Request, Bytes, Code, E), Extra).
+extra(Request, Bytes, Extra) :-
+	findall(E, extra_field(Request, Bytes, E), Extra).
 
-extra_field(_, Bytes, Code, Extra) :-
-	(   Bytes \== 0,
-	    Extra = bytes(Bytes)
-	;   Code \== 0,
-	    Extra = code(Code)
-	).
-extra_field(Request, _, _, user_agent(Agent)) :-
+extra_field(_, Bytes, Extra) :-
+	Bytes \== 0,
+	Extra = bytes(Bytes).
+extra_field(Request, _, user_agent(Agent)) :-
 	memberchk(user_agent(Agent), Request).
-extra_field(Request, _, _, http_version(Agent)) :-
+extra_field(Request, _, http_version(Agent)) :-
 	memberchk(http_version(Agent), Request).
 
 %%	logrecord(+Query) is nondet.
@@ -212,7 +209,7 @@ extra_field(Request, _, _, http_version(Agent)) :-
 
 logrecord(Query) :-
 	must_be(list, Query),
-	functor(Term, logrecord, 9),
+	functor(Term, logrecord, 10),
 	make_query(Query, Term, RestQuery),
 	make_condition(RestQuery, Extra, Term, Cond),
 	(   Extra == [], Cond == true
