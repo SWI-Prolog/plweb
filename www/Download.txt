@@ -1,6 +1,6 @@
 ---+ SWI-Prolog downloads
 
----++ Availabe versions
+---++ Available versions
 
     * [[Stable release][</download/stable>]]
     Sources and executables for MS-Windows, Linux and MacOS X

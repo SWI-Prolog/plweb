@@ -1,24 +1,53 @@
-#!/usr/bin/pl -q -g main -s
+#!/home/jan/bin/pl -q -g main -s
 
 :- use_module(stat).
-:- use_module(sum).
+:- use_module(plstat).
 
 load :-
-	read_log('/home/jan/Software/log/download.log').
+	read_log('httpd.log').
 
-terms([ date(Y, Mon, Day)
+terms([ date(Year, MName, Day)
       | Terms
       ]) :-
 	findall(downloads(Month, Year, Win32, Win64, Mac, RPM, Source),
 		downloads(Month, Year, Win32, Win64, Mac, RPM, Source),
 		Terms),
-	get_time(T),
-	convert_time(T, Y, MI, Day, _, _, _, _),
-	m2int(Mon, MI).
+	get_time(Stamp),
+	stamp_date_time(Stamp, Date, 'UTC'),
+	date_time_value(year, Date, Year),
+	date_time_value(month, Date, MI),
+	m2int(MName, MI),
+	date_time_value(day, Date, Day).
+
+downloads(Month, Year, Win32, Win64, Mac, RPM, Source) :-
+	downloads(Year, MI, Counts),
+	m2int(Month, MI), !,
+	count(win32, Counts, Win32),
+	count(win64, Counts, Win64),
+	count(macos, Counts, Mac),
+	count(linux, Counts, RPM),
+	count(source, Counts, Source).
+
+count(What, Counts, Count) :-
+	memberchk(What-Count, Counts), !.
+count(_, _, 0).
+
+m2int(jan, 1).
+m2int(feb, 2).
+m2int(mar, 3).
+m2int(apr, 4).
+m2int(may, 5).
+m2int(jun, 6).
+m2int(jul, 7).
+m2int(aug, 8).
+m2int(sep, 9).
+m2int(oct, 10).
+m2int(nov, 11).
+m2int(dec, 12).
 
 save_terms(Terms) :-
-	open('downloads.pl',  write, Out),
-	format(Out, 
+	open('downloads.dat',  write, Out),
+	format(Out,
 	       '%%\tdownloads(Month, Year, Win32, Win64, Mac, RPM, Source)~n~n',
 	       []),
 	forall(member(T, Terms),
@@ -26,15 +55,16 @@ save_terms(Terms) :-
 	close(Out).
 
 load_terms(Terms) :-
-	read_file_to_terms('downloads.pl', Terms, []).
+	expand_file_name('*.dat', DatFiles),
+	maplist(read_file_to_terms, DatFiles, NestTerms),
+	append(NestTerms, AllTerms).
 
-jpeg(JPEG) :-
-	load_terms(Terms),
-	stat2jpeg(Terms, JPEG).
+read_file_to_terms(File, Terms) :-
+	read_file_to_terms(File, Terms, []).
 
-jpeg :-
+jpeg(File) :-
 	load_terms(Terms),
-	expand_file_name('~www/SWI-Prolog/bymonth.jpeg', [JPEG]),
+	expand_file_name(File, [JPEG]),
 	stat2jpeg(Terms, JPEG).
 
 :- prolog_load_context(directory, Dir),
@@ -44,7 +74,7 @@ main :-
 	(   load,
 	    terms(Terms),
 	    save_terms(Terms),
-	    jpeg
+	    jpeg('~www/SWI-Prolog/bymonth.jpeg')
 	->  halt
 	;   halt(1)
 	).
