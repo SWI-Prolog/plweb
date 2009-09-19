@@ -117,6 +117,7 @@ legenda(Dev) :-
 	send(Dev, format, new(F, format(horizontal, 2, @on))),
 	send(F, row_sep, 0),
 	legenda_entry(Dev, source,  false, 'Source'),
+	legenda_entry(Dev, doc,     false, 'Documentation'),
 	legenda_entry(Dev, linux,   false, 'Linux RPM (exluding CD-distributions)'),
 	legenda_entry(Dev, mac,     false, 'MacOS X'),
 	legenda_entry(Dev, win32,   false, 'MS-Windows'),

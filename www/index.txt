@@ -16,7 +16,7 @@ its graphics toolkit [[XPCE][</packages/xpce/>]], its development
 started in 1987 and has been driven by the needs for *|real-world
 applications|*. These days SWI-Prolog is widely used in research and
 education as well as for commercial applications. See our [[download
-statistics][</logs/swi-prolog-downloads.jpeg>]].
+statistics][</logs/dl-statistics.jpeg>]].
 
 ---++ SWI-Prolog's most important features are
 
@@ -28,7 +28,7 @@ statistics][</logs/swi-prolog-downloads.jpeg>]].
     * *fast* compilation. E.g., loads 140,000 lines of code spread
     over 500 source-files in 2.3 seconds on an AMD 5400+ system.
 
-    * *Robust* and *|free of memory leaks|*.  In use for several 
+    * *Robust* and *|free of memory leaks|*.  In use for several
     servers that run 24x7 (including this web-service).
 
     * *Small*. The full development environment, including graphics,
@@ -120,4 +120,4 @@ statistics][</logs/swi-prolog-downloads.jpeg>]].
     (32/64 bits), Linux (32 bits) and MacOS X (32 bits)).
 
     * Regular distribution of the *|full source|* packages. The sources are
-    also accesible through [[GIT][</git.html>]]. 
+    also accesible through [[GIT][</git.html>]].
