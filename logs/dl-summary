@@ -29,6 +29,10 @@ usage :-
 	fail.
 
 main :-
+	catch(run, E, (print_message(error, E), fail)).
+	
+
+run :-
 	current_prolog_flag(argv, Argv),
 	append(_, [--|More], Argv),
 	(   More = [LogFile, Out]

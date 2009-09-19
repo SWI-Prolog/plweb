@@ -48,11 +48,6 @@ file_details(Version, doc) -->
 	long_version(Version),
 	".tar.gz".
 file_details(Version, macos) -->
-	"swipl-",
-	long_version(Version),
-	"-mac",
-	skip_rest(_).
-file_details(Version, macos) -->
 	"swi-prolog-",
 	long_version(Version),
 	mac.
@@ -62,9 +57,14 @@ file_details(Version, macos) -->
 	mac.
 
 mac --> "-mac", !, skip_rest(_).
-mac --> ".mpkg", !, skip_rest(_).
-mac --> "-tiger.mpkg", !, skip_rest(_).
-mac --> "-tiger-intel.mpkg", !, skip_rest(_).
+mac --> macos, macarch, ".mpkg", !, skip_rest(_).
+
+macos --> "-tiger".
+macos --> "-leopard".
+macos --> "".
+macarch --> "-powerpc".
+macarch --> "-intel".
+macarch --> "".
 
 integer(I) -->
 	digit(D0),

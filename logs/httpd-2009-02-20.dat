@@ -1,4 +1,4 @@
 %%	downloads(Year, Month, Counts)
 
 date(2009, 2, 20).
-downloads(2009, 2, [doc=35, linux=382, macos=45, source=558, win32=5465, win64=545]).
+downloads(2009, 2, [doc=35, linux=382, macos=387, source=558, win32=5465, win64=545]).
