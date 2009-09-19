@@ -47,11 +47,11 @@ file_details(Version, doc) -->
 	"pl-doc-",
 	long_version(Version),
 	".tar.gz".
-file_details(Version, macos) -->
+file_details(Version, mac) -->
 	"swi-prolog-",
 	long_version(Version),
 	mac.
-file_details(Version, macos) -->
+file_details(Version, mac) -->
 	"swi-prolog-devel-",
 	long_version(Version),
 	mac.
