@@ -1,6 +1,6 @@
 :- module(stat,
 	  [ stat/1,
-	    stat2jpeg/2
+	    stat2jpeg/2			% +Out, +Terms
 	  ]).
 :- use_module(library(pce)).
 :- use_module(library(autowin)).
@@ -18,7 +18,7 @@ stat(Terms) :-
 	send(Win, display, BarChart),
 	send(Win, open).
 
-stat2jpeg(Terms, Jpeg) :-
+stat2jpeg(Jpeg, Terms) :-
 	stat(Terms, BarChart),
 	get(@pce, convert, BarChart, pixmap, Img),
 	send(Img, save, Jpeg, jpeg).
@@ -29,11 +29,18 @@ stat(Terms, BC) :-
 	title(BC, Terms),
 	legenda(Legenda),
 	send(BC, display, Legenda, point(50, 50)),
-	(   member(downloads(Mon, Y, W32, W64, M, L, S), Terms),
-	    T is W32+W64+M+L+S,
+	(   member(downloads(Y, Mon, Counts), Terms),
+	    sum_counts(Counts, T),
 	    T > 0,
 	    Y >= 2000,
-	    concat_atom([Mon, -, Y], Label),
+	    count(source, Counts, S),
+	    count(linux,  Counts, L),
+	    count(mac,    Counts, M),
+	    count(win32,  Counts, W32),
+	    count(win64,  Counts, W64),
+	    count(doc,    Counts, DOC),
+	    month_name(Mon, Month),
+	    atomic_list_concat([Month, -, Y], Label),
 	    (	member(date(Y, Mon, Day), Terms)
 	    ->  Day > 2,
 	        XS is round(S * 30/Day) - S,
@@ -41,6 +48,7 @@ stat(Terms, BC) :-
 		XM is round(M * 30/Day) - M,
 		XW32 is round(W32 * 30/Day) - W32,
 		XW64 is round(W64 * 30/Day) - W64,
+		XDOC is round(DOC * 30/Day) - DOC,
 	        send(BC, append,
 		     bar_stack(Label,
 			       download_bar(source,  true,  XS),
@@ -52,18 +60,43 @@ stat(Terms, BC) :-
 			       download_bar(win32,   true,  XW32),
 			       download_bar(win32,   false,  W32),
 			       download_bar(win64,   true,  XW64),
-			       download_bar(win64,   false,  W64)))
+			       download_bar(win64,   false,  W64),
+			       download_bar(doc,     true, XDOC),
+			       download_bar(doc,     false, XDOC)))
 	    ;	send(BC, append,
 		     bar_stack(Label,
 			       download_bar(source,  false, S),
 			       download_bar(linux,   false, L),
 			       download_bar(mac,     false, M),
 			       download_bar(win32,   false, W32),
-			       download_bar(win64,   false, W64)))
+			       download_bar(win64,   false, W64),
+			       download_bar(doc,     false, DOC)))
 	    ),
 	    fail
 	;   send(BC, nbars)
 	).
+
+sum_counts([], 0).
+sum_counts([_=C|T], Sum) :-
+	sum_counts(T, Sum0),
+	Sum is C+Sum0.
+
+count(Which, Counts, Count) :-
+	memberchk(Which=Count, Counts), !.
+count(_, _, 0).
+
+month_name(1, jan).
+month_name(2, feb).
+month_name(3, mar).
+month_name(4, apr).
+month_name(5, may).
+month_name(6, jun).
+month_name(7, jul).
+month_name(8, aug).
+month_name(9, sep).
+month_name(10, oct).
+month_name(11, nov).
+month_name(12, dec).
 
 title(BC, Terms) :-
 	member(date(Y, Mon, Day), Terms), !,
@@ -96,7 +129,7 @@ legenda_entry(Dev, Id, Invert, Label) :-
 	bar_colour(Id, Invert, Gradient),
 	send(B, fill_pattern, Gradient),
 	send(Dev, display, text(Label)).
-			
+
 :- pce_begin_class(download_bar, bar).
 
 initialise(Bar, Type:name, Estimate, Value:int) :->
@@ -114,6 +147,7 @@ initialise(Bar, Type:name, Estimate, Value:int) :->
 %	nth_bar_gradient(N, Hue, S, Vtop, VBottom)
 
 bar_gradient(source,   193, 80, 100, 20).
+bar_gradient(doc,      250, 80, 100, 20).
 bar_gradient(linux,    300, 80, 100, 20).
 bar_gradient(mac,      160, 80, 100, 20).
 bar_gradient(win32,     54, 80, 100, 20).
