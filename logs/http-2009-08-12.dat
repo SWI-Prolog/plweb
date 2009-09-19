@@ -1,0 +1,10 @@
+%%	downloads(Year, Month, Counts)
+
+date(2009, 9, 19).
+downloads(2009, 2, [doc=19, linux=197, macos=20, source=251, win32=2469, win64=294]).
+downloads(2009, 3, [doc=38, linux=851, macos=105, source=1177, win32=10550, win64=1375]).
+downloads(2009, 4, [doc=10, linux=753, macos=124, source=937, win32=9014, win64=1232]).
+downloads(2009, 5, [doc=15, linux=706, macos=46, source=923, win32=8246, win64=1186]).
+downloads(2009, 6, [doc=47, linux=459, macos=41, source=772, win32=6664, win64=906]).
+downloads(2009, 7, [doc=62, linux=321, macos=38, source=606, win32=4336, win64=651]).
+downloads(2009, 8, [doc=19, linux=104, macos=13, source=240, win32=1243, win64=207]).
