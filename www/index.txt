@@ -16,7 +16,7 @@ its graphics toolkit [[XPCE][</packages/xpce/>]], its development
 started in 1987 and has been driven by the needs for *|real-world
 applications|*. These days SWI-Prolog is widely used in research and
 education as well as for commercial applications. See our [[download
-statistics][</logs/dl-statistics.jpeg>]].
+statistics][</logs/dl-statistics.html>]].
 
 ---++ SWI-Prolog's most important features are
 
