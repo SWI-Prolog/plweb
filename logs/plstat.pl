@@ -13,7 +13,10 @@ downloads(Year, Month, Pairs) :-
 
 
 download(Year, Month, Platform) :-
-	logrecord([time(Stamp), path(Path), code(200)]),
+	(   logrecord([time(Stamp), path(Path), code(200)])
+	*-> true
+	;   logrecord([time(Stamp), path(Path), result(file(_))])
+	),
 	atom_concat('/download/', More, Path),
 	atom_codes(More, Codes),
 	phrase(file_details(_Version, Platform), Codes),
