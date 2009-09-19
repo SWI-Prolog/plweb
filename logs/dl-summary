@@ -1,0 +1,44 @@
+#!/home/jan/bin/pl -q -g true -t main -s
+
+:- use_module(logstat).
+:- use_module(plstat).
+
+terms([ date(Year, Month, Day)
+      | Terms
+      ]) :-
+	Term = downloads(_Year, _Month, _Counts),
+	findall(Term, Term, Terms),
+	get_time(Stamp),
+	stamp_date_time(Stamp, Date, 'UTC'),
+	date_time_value(year, Date, Year),
+	date_time_value(month, Date, Month),
+	date_time_value(day, Date, Day).
+
+save_terms(File, Terms) :-
+	setup_call_cleanup(open(File,  write, Out),
+			   (   format(Out,
+				      '%%\tdownloads(Year, Month, Counts)~n~n',
+				      []),
+			       forall(member(T, Terms),
+				      format(Out, '~q.~n', [T]))
+			   ),
+			   close(Out)).
+
+usage :-
+	format(user_error, 'Usage: dl-summary logfile [out]', []),
+	fail.
+
+main :-
+	current_prolog_flag(argv, Argv),
+	append(_, [--|More], Argv),
+	(   More = [LogFile, Out]
+	->  true
+	;   More = [LogFile]
+	->  file_name_extension(Base, log, LogFile),
+	    file_name_extension(Base, dat, Out)
+	;   usage
+	),
+	read_log(LogFile, [skip_bad_requests(true)]),
+	terms(Terms),
+	save_terms(Out, Terms).
+

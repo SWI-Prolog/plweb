@@ -1,6 +1,7 @@
 :- module(logstat,
 	  [ clean_log/0,
 	    read_log/1,			% +File
+	    read_log/2,			% +File, +Options
 	    logrecord/1,		% +List
 	    logrecord/10
 	  ]).
@@ -8,6 +9,7 @@
 :- use_module(library(debug)).
 :- use_module(library(lists)).
 :- use_module(library(zlib)).
+:- use_module(library(record)).
 
 :- portray_text(true).
 
@@ -68,15 +70,23 @@ clean_log :-
 	assertion(predicate_property(Term, dynamic)),
 	retractall(Term).
 
+:- record
+	log_state(progress:boolean=true,
+		  skip_bad_requests:boolean=false).
 
 %%	read_log(+File)
 
 read_log(File) :-
-	myopen(File, In),
-	read(In, Term0),
+	read_log(File, []).
+
+read_log(File, Options) :-
+	make_log_state(Options, State, _),
 	rb_empty(Open),
-	call_cleanup(read_log(Term0, In, 1, Open),
-		     close(In)),
+	setup_call_cleanup(myopen(File, In),
+			   (   read(In, Term0),
+			       read_log(Term0, In, 1, Open, State)
+			   ),
+			   close(In)),
 	nl(user_error).
 
 myopen(File, In) :-
@@ -90,17 +100,23 @@ myopen(File, In) :-			% generate error
 	open(File, read, In, [encoding(utf8)]).
 
 
-read_log(end_of_file, _, _, _) :- !.
-read_log(Term, In, Count0, Open0) :-
+read_log(end_of_file, _, _, _, _) :- !.
+read_log(Term, In, Count0, Open0, State) :-
 	assert_log(Term, Count0, Count1, Open0, Open1), !,
-	progress(Count1),
+	progress(Count1, State),
 	read(In, Term2),
-	read_log(Term2, In, Count1, Open1).
-read_log(Term, In, Count, Open) :-
-	format(user_error, '~NWarning: failed to process ~p~n', [Term]),
-%	gtrace, ignore(assert_log(Term, Count, _Count, Open, _Open)),
+	read_log(Term2, In, Count1, Open1, State).
+read_log(Term, In, Count, Open, State) :-
+	(   skip_term(Term, State)
+	->  true
+	;   format(user_error, '~NWarning: failed to process ~p~n', [Term])
+	),
 	read(In, Term2),
-	read_log(Term2, In, Count, Open).
+	read_log(Term2, In, Count, Open, State).
+
+skip_term(completed(_, _, _, 400, _), _).
+skip_term(completed(_, _, _, _, _), State) :-
+	log_state_skip_bad_requests(State, true).
 
 assert_log(server(_StartStop, _Time), Count, Count, Open0, Open) :- !,
 	close_all(Open0),
@@ -265,7 +281,8 @@ time_spec_to_stamp(Y/M/D, Stamp) :-
 		 *	       FEEDBACK		*
 		 *******************************/
 
-progress(Count) :-
+progress(Count, State) :-
+	log_state_progress(State, true),
 	Count mod 1000 =:= 0, !,
 	format(user_error, '\r~t~D~20|', [Count]).
-progress(_).
+progress(_, _).
