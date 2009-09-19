@@ -54,12 +54,14 @@ sum(L1, [H|T2], [H|T]) :-
    working_directory(_, Dir).
 
 main :-
+	catch(run, E, (print_message(error, E), fail)).
+run :-
 	current_prolog_flag(argv, Argv),
 	append(_, [--|Rest], Argv),
 	main_options(Rest, Options, Files),
 	option(out(Out), Options, _),
 	(   var(Out)
-	->  expand_file_name('~www/SWI-Prolog/bymonth.jpeg', [Out])
+	->  Out = '../www/logs/swi-prolog-downloads.jpeg'
 	;   true
 	),
 	load_data_files(Files, Terms),
