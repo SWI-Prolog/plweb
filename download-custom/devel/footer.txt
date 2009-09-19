@@ -10,7 +10,7 @@ The 5.7.x branch has its own GIT repository at the address below. See
 the general [[GIT][</git.html>]] instructions for details.
 
 ==
-% git clone git://prolog.cs.vu.nl/home/pl/git/pl-57x.git
+% git clone git://www.swi-prolog.org/home/pl/git/pl-57x.git
 ==
 
 ---++ Status notes
