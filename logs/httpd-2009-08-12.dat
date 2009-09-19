@@ -1,6 +1,6 @@
 %%	downloads(Year, Month, Counts)
 
-date(2009, 9, 19).
+date(2009, 8, 12).
 downloads(2009, 2, [doc=19, linux=197, macos=20, source=251, win32=2469, win64=294]).
 downloads(2009, 3, [doc=38, linux=851, macos=105, source=1177, win32=10550, win64=1375]).
 downloads(2009, 4, [doc=10, linux=753, macos=124, source=937, win32=9014, win64=1232]).
