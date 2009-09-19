@@ -1,9 +1,10 @@
 ---++ About this release
 
-Development of 5.7.x started in September 2006 and has been revived in
-September 2008. The aim of this development branch is to cleanup the
-virtual machine and compiler while significantly improving the
-performance.
+The 5.7.x branch significantly makes the virtual machine implementation
+much easier to maintain and extend. This has been used to improve it at
+various places: proper compilation of =/2, dedicated instructions for
+common arithmetic operations, a few super-instructions for common list
+operations and dedicated indexing code for common constructs.
 
 The 5.7.x branch has its own GIT repository at the address below. See
 the general [[GIT][</git.html>]] instructions for details.
@@ -14,20 +15,29 @@ the general [[GIT][</git.html>]] instructions for details.
 
 ---++ Status notes
 
-SWI-Prolog 5.7.x is now being tested on several big applications.  It
-is the *|recommended version for development|*.  Please test carefully
-before you use it in mission-critical applications and report bugs.
-
+SWI-Prolog 5.7.15 is the first release candidate for 5.8.0.  It is
+currently the *|recommended version|*, especially for people using the
+(semantic) web or the constraint libraries.  Highlights:
 
     * Performance improvement on larger programs is between 10 and 40%,
     depending on the programming style. Notably the constraint solvers
     profit significantly. Small programs sometimes show much bigger
     speedups.
 
-    * Since 5.7.4, updated module system:
+    * Updated module system:
           * Compile : if sufficiently instantiated
           * Provide real support for :- meta_predicate/1. Most of
 	  the library code has replaced :- module_transparent/1
-	  with :- meta_predicate/1. 
+	  with :- meta_predicate/1.
+	  * System libraries are no longer sensitive for predicates,
+	  operators and changes of the unknown-flag in the user module.
 
-    * Lots of cleanup in naming and modularization of the codebase. 
+    * Various compatibility enhancements resulting from discussion in
+    the _|Prolog Commons|_ project.
+
+	* Above mentioned meta_predicate/1 handling.
+	* Support Ciao's _anonymous_ modules.
+	* Support the ISO proposal for extensions to the core.
+	* Added atomic_list_concat/2 and several friends.
+	* Make :- initialization/1 ISO compatible (runs _after_ loading
+	the file completes).
