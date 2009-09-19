@@ -7,7 +7,7 @@
 % downloads(Month, Year, Counts:pairs)
 
 downloads(Year, Month, Pairs) :-
-	setof(Platform-Count,
+	setof(Platform=Count,
 	      aggregate(count, download(Year, Month, Platform), Count),
 	      Pairs).
 
@@ -38,6 +38,10 @@ file_details(Version, linux) -->
 	"-", integer(_), ".", identifier(_), ".rpm".
 file_details(Version, source) -->
 	"pl-",
+	long_version(Version),
+	".tar.gz".
+file_details(Version, doc) -->
+	"pl-doc-",
 	long_version(Version),
 	".tar.gz".
 file_details(Version, macos) -->
@@ -74,14 +78,6 @@ digits([H|T]) -->
 	digit(H), !,
 	digits(T).
 digits([]) -->
-	[].
-
-ws -->
-	[C],
-	{ code_type(C, space)
-	}, !,
-	ws.
-ws -->
 	[].
 
 identifier(Atom) -->
