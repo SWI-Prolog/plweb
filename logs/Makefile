@@ -10,4 +10,4 @@ webalize::
 	webalizer apache.log
 
 upload::
-	rsync -aCv report/ ec:/home/vnc/prolog/src/plweb/www/logs
+	rsync -aCv --delete report/ ec:/home/vnc/prolog/src/plweb/www/logs
