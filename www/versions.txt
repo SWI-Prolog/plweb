@@ -16,35 +16,40 @@ errors are found that affect many users. GIT access to the development
 is provided. All releases are tagged as VMajor.Minor.Patch Release
 milestones
 
+  $ 5.9.x: This upcomming release will provide better memory management.
+  Notably a stack-shifter to reduce address-space usage; no max_thread
+  limit; better trail handling and generational garbage collection.
+
+  $ 5.8.x: Stable branch providing performance enhancements from 5.7.x,
+  many extensions and enhancements to the libraries; notably the
+  web and semantic web libraries.
+
   $ 5.7.x: Development branch that enhances the virtual machine with
   two purposes: make it a lot easier to understand and modify and make
-  it a lot faster. Except for the virtual machine, 5.6.x and 5.7.x are
-  kept synchronous. I.e. functionality extensions and bug fixes that are
-  not related to 5.7.x are implemented in 5.6.x which is frequently
-  merged into 5.7.x. V5.7.x is in the GIT repository pl-57x.git.
-  
+  it a lot faster.
+
   $ 5.6.x: Stable branch providing UNICODE handling, unbounded and
   rational arithmetic, enhanced Leuven CHR system, clp(q,r), clp(fd),
   much enhanced (semantic) web libraries, etc.
-  
+
   $ 5.5.x: Development branch introducing wide-character (UNICODE,
   UTF-8) support as well as costraint Logic Programming over Reals
   (clp(R)).
-  
+
   $ 5.4.x: Stable branch providing attributed variables, coroutining,
   CHR (Constraint Handling Rules), infinite trees (cyclic terms) and
   many more. This is the last version that runs on Windows 95/98/ME.
   5.5.x and later require Windows NT, 2000 or XP.
-  
+
   $ 5.2.0: Stable version providing multi-threading.
-  
+
   $ 5.x.y: Moved to uniform LGPL license. Standard distribution contains
   core packages: XPCE (graphics), TCP/IP, CGI, SGML/XML/HTML/RDF, HTTP,
   ODBC and many more.
-  
+
   $ 3.4.5: Version prior to integration. Compliant to the ISO Prolog
   standard (part1).
-  
+
   $ 3.2.9: Last pre-ISO version. As 3.3.0 is not fully upward compatible
   this version will remain on this server for a while. It will not be
-  maintained (by us) 
+  maintained (by us)

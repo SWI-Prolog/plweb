@@ -1,14 +1,34 @@
 ---++ About the 5.6.x release
 
-The 5.6.x release consolidates the 5.5.x development stream started in
-2004. Highlights:
+The 5.8.x release consolidates the 5.7.x development stream, which makes
+the virtual machine implementation much easier to maintain and extend.
+This has been used to improve it at various places: proper compilation
+of =/2, dedicated instructions for common arithmetic operations, a few
+super-instructions for common list operations and dedicated indexing
+code for common constructs.
 
-    * UNICODE character set support
-    * Unbounded integer and rational numbers
-    * New and faster CHR release by Tom Schrijvers et al.
-    * Constraints: clp(fd) (finite domain) by Markus Triska
-    * Constraints: clp(r) (reals) and clp(q) (rationals) by Leslie de Koninck
-    * Many enhancements to the web and notably semantic web libraries
-    * PlDoc: source-documentation system. We run a server serving the manuals and system libraries
-    * PlUnit: a testing framework.
-    * Much more ... 
+---++ Highlights:
+
+    * Performance improvement on larger programs is between 10 and 40%,
+    depending on the programming style. Notably the constraint solvers
+    profit significantly. Small programs sometimes show much bigger
+    speedups.
+
+    * Updated module system:
+          * Compile : if sufficiently instantiated
+          * Provide real support for :- meta_predicate/1. Most of
+	  the library code has replaced :- module_transparent/1
+	  with :- meta_predicate/1.
+	  * System libraries are no longer sensitive for predicates,
+	  operators and changes of the unknown-flag in the user module.
+
+    * Various compatibility enhancements resulting from discussion in
+    the _|Prolog Commons|_ project.
+
+	* Above mentioned meta_predicate/1 handling.
+	* Support Ciao's _anonymous_ modules.
+	* Support the ISO proposal for extensions to the core.
+	* Added atomic_list_concat/2 and several friends.
+	* Make :- initialization/1 ISO compatible (runs _after_ loading
+	the file completes).
+

@@ -1,43 +1,32 @@
 ---++ About this release
 
-The 5.7.x branch significantly makes the virtual machine implementation
-much easier to maintain and extend. This has been used to improve it at
-various places: proper compilation of =/2, dedicated instructions for
-common arithmetic operations, a few super-instructions for common list
-operations and dedicated indexing code for common constructs.
+The 5.9.x branch will improve memory management.
 
-The 5.7.x branch has its own GIT repository at the address below. See
-the general [[GIT][</git.html>]] instructions for details.
+The development branches have their own GIT repository at the address
+below. See the general [[GIT][</git.html>]] instructions for details.
 
 ==
-% git clone git://www.swi-prolog.org/home/pl/git/pl-57x.git
+% git clone git://www.swi-prolog.org/home/pl/git/pl-devel.git
 ==
+
+---++ Planned enhancements
+
+    * Replace sparse-address-space based stack allocation by
+    stack-relocation (stack-shifting).  This seriously reduces
+    address-space requirements, which is of great importance to
+    applications using many _threads_.
+
+    * Remove =max_threads= limitation.
+
+    * Reduce trail-stack usage.
+
+    * Provide generational garbage collection.
+
 
 ---++ Status notes
 
-SWI-Prolog 5.7.15 is the first release candidate for 5.8.0.  It is
-currently the *|recommended version|*, especially for people using the
-(semantic) web or the constraint libraries.  Highlights:
+    * The new stack-shifter is available on the branch =shift=.  Its
+    implementation is complete, but the code is still rather unstable.
+    As soon as this is stable, the =shift= branch will be merged into
+    the =master=.
 
-    * Performance improvement on larger programs is between 10 and 40%,
-    depending on the programming style. Notably the constraint solvers
-    profit significantly. Small programs sometimes show much bigger
-    speedups.
-
-    * Updated module system:
-          * Compile : if sufficiently instantiated
-          * Provide real support for :- meta_predicate/1. Most of
-	  the library code has replaced :- module_transparent/1
-	  with :- meta_predicate/1.
-	  * System libraries are no longer sensitive for predicates,
-	  operators and changes of the unknown-flag in the user module.
-
-    * Various compatibility enhancements resulting from discussion in
-    the _|Prolog Commons|_ project.
-
-	* Above mentioned meta_predicate/1 handling.
-	* Support Ciao's _anonymous_ modules.
-	* Support the ISO proposal for extensions to the core.
-	* Added atomic_list_concat/2 and several friends.
-	* Make :- initialization/1 ISO compatible (runs _after_ loading
-	the file completes).
