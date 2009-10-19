@@ -5,13 +5,13 @@ likely to affect people moving from 5.6.64 are:
 
     * 5.8.0 properly implements :- meta_predicate/1.  Code relying on
     the old incomplete emulation must be updated.  Code using
-    :- module_transparent still works, but both for better compatibility
-    with the rest of the Prolog world and for better support from the
-    environment, it is adviced to update code.
+    :- module_transparent/1 still works, but both for better
+    compatibility with the rest of the Prolog world and for better
+    support from the environment, it is adviced to update code.
 
-    * The initalization/1 directive is now ISO compliant, which means it
-    is executed *after* loading the file in which it appears.  This may
-    cause problems with code doing
+    * The initialization/1 directive is now ISO compliant, which means
+    it is executed *after* loading the file in which it appears. This
+    may cause problems with code doing
 
 	==
 	:- initalization(load_foreign_library(mylib)).
