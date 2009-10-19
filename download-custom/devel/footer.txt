@@ -30,3 +30,5 @@ below. See the general [[GIT][</git.html>]] instructions for details.
     As soon as this is stable, the =shift= branch will be merged into
     the =master=.
 
+    If you want to help, see [[debugging][</Shifter.html>]]
+
