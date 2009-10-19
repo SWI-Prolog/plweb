@@ -1,4 +1,4 @@
----++ About the 5.6.x release
+---++ About the 5.8.x release
 
 The 5.8.x release consolidates the 5.7.x development stream, which makes
 the virtual machine implementation much easier to maintain and extend.
