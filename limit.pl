@@ -39,6 +39,7 @@ http_message(request_finished(Id, _Code, _Status, _CPU, _Bytes)) :- !,
 start(Id, Request) :-
 	remote_IP(Request, IP),
 	memberchk(path(Path), Request),
+	memberchk(range(_), Request),	% only limit range-requests
 	get_time(Now),
 	(   active(Id2, Path, IP, Since),
 	    (	Now-Since < 900		% 15 minutes bann
