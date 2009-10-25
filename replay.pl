@@ -188,21 +188,20 @@ make_request(Id, Session, Parts) :-
 	call_with_time_limit(30, make_request2(Id, Session, Parts)).
 
 make_request2(Id, Session, Parts) :-
-	session_map(Session, ClientId), !,
+	(   session_map(Session, ClientId)
+	->  IsNew = old
+	;   IsNew = new,
+	    gensym(client, ClientId)
+	),
 	memberchk(path(Path), Parts),
-	debug(replay, 'Request ~w for ~q on client ~w',
-	      [Id, Path, ClientId]),
-	http_get(ClientId, Parts, _Reply, []).
-make_request2(Id, _, Parts) :-
-	gensym(client, ClientId),
-	memberchk(path(Path), Parts),
-	debug(replay, 'Request ~w for ~q on new client ~w',
-	      [Id, Path, ClientId]),
+	debug(replay, 'Request ~w for ~q on ~w client ~w',
+	      [Id, Path, IsNew, ClientId]),
 	open_null_stream(Dest),
 	get_time(Now),
 	call_cleanup(http_get(ClientId, Parts, _Reply, [to(stream(Dest))]),
 		     Reason, done(Path, Reason, Now, Dest)),
-	(   http_current_cookie(ClientId, swipl_session, Session, _)
+	(   IsNew == new,
+	    http_current_cookie(ClientId, swipl_session, Session, _)
 	->  debug(replay, 'Using client ~w on session ~w~n',
 		  [ClientId, Session]),
 	    assert(session_map(Session, ClientId))
