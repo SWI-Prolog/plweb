@@ -113,7 +113,7 @@ dispatcher_for(request(Id, _Time, _Request), Target) :- !,
 		  waiting(Target, Waiting),
 		  min(Waiting, Target)),
 	(   queue_size(Max),
-	    Waiting + 1 >= Max
+	    Waiting >= Max
 	->  debug(replay_drain, 'All queues are full; waiting', []),
 	    sleep(0.01),
 	    fail
@@ -132,10 +132,9 @@ waiting(Target, Waiting) :-
 
 start_dispatchers(Options) :-
 	option(concurrent(N), Options, 1),
-	queue_size(MaxSize),
 	forall(between(1, N, I),
 	       (   atom_concat(dispatcher_, I, Id),
-		   message_queue_create(Queue, [max_size(MaxSize)]),
+		   message_queue_create(Queue, [max_size(10000)]),
 		   thread_create(process_event(Queue, Options), _,
 				 [alias(Id)]),
 		   assertz(dispatcher(Id, Queue))
