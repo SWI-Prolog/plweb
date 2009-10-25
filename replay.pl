@@ -87,6 +87,8 @@ read_log(In, Term) :-
 	session_on/2,			% Session --> ThreadID
 	id_on/2.			% RequestID --> ThreadID
 
+queue_size(10).
+
 dispatch(Term) :-
 	dispatcher_for(Term, Id),
 	(   Id == all
@@ -106,9 +108,17 @@ dispatcher_for(request(Id, _Time, Request), Target) :-
 	session_on(Session, Target), !,
 	asserta(id_on(Id, Target)).
 dispatcher_for(request(Id, _Time, _Request), Target) :- !,
+	repeat,
 	aggregate(min(Waiting, Target),
 		  waiting(Target, Waiting),
-		  min(_, Target)),
+		  min(Waiting, Target)),
+	(   queue_size(Max),
+	    Waiting + 1 >= Max
+	->  debug(replay_drain, 'All queues are full; waiting', []),
+	    sleep(0.01),
+	    fail
+	;   !
+	),
 	debug(replay, 'Sending ~D to ~w', [Id, Target]),
 	asserta(id_on(Id, Target)).
 dispatcher_for(completed(Id, _TimeUsed, _Bytes, _Code, _Reply), Target) :-
@@ -122,9 +132,10 @@ waiting(Target, Waiting) :-
 
 start_dispatchers(Options) :-
 	option(concurrent(N), Options, 1),
+	queue_size(MaxSize),
 	forall(between(1, N, I),
 	       (   atom_concat(dispatcher_, I, Id),
-		   message_queue_create(Queue, [max_size(10)]),
+		   message_queue_create(Queue, [max_size(MaxSize)]),
 		   thread_create(process_event(Queue, Options), _,
 				 [alias(Id)]),
 		   assertz(dispatcher(Id, Queue))
@@ -175,7 +186,8 @@ request(Id, Request, Options) :-
 	;   Session = (-)
 	),
 	url_parts(Request, Parts, Options),
-	thread_create(make_request(Id, Session, Parts), TID, []),
+	request_options(Request, ROptions),
+	thread_create(make_request(Id, Session, Parts, ROptions), TID, []),
 	assert(thread_map(Id, TID)).
 request(Id, _Request, _Options) :-
 	format(user_error, 'Request ~w is not a GET~n', [Id]).
@@ -184,10 +196,10 @@ request(Id, _Request, _Options) :-
 	session_map/2,			% LogSession, Client
 	thread_map/2.			% RequestID, Thread
 
-make_request(Id, Session, Parts) :-
-	call_with_time_limit(30, make_request2(Id, Session, Parts)).
+make_request(Id, Session, Parts, Options) :-
+	call_with_time_limit(30, make_request2(Id, Session, Parts, Options)).
 
-make_request2(Id, Session, Parts) :-
+make_request2(Id, Session, Parts, Options) :-
 	(   session_map(Session, ClientId)
 	->  IsNew = old
 	;   IsNew = new,
@@ -198,7 +210,10 @@ make_request2(Id, Session, Parts) :-
 	      [Id, Path, IsNew, ClientId]),
 	open_null_stream(Dest),
 	get_time(Now),
-	call_cleanup(http_get(ClientId, Parts, _Reply, [to(stream(Dest))]),
+	call_cleanup(http_get(ClientId, Parts, _Reply,
+			      [ to(stream(Dest))
+			      | Options
+			      ]),
 		     Reason, done(Path, Reason, Now, Dest)),
 	(   IsNew == new,
 	    http_current_cookie(ClientId, swipl_session, Session, _)
@@ -261,6 +276,17 @@ map_path(Path0, Path, Options) :-
 	atom_concat(Old, Path1, Path0), !,
 	atom_concat(New, Path1, Path).
 map_path(Path, Path, _).
+
+
+%%	request_options(+Request, -Options) is det.
+%
+%	Extract additional options  for  the   query  from  the request.
+%	Currently, this extracts possible range-options. Future versions
+%	may also pass the Accept options.
+
+request_options(Request, [range(Range)]) :-
+	memberchk(range(Range), Request), !.
+request_options(_, []).
 
 
 %%	completed(+Id, +Reply, +Options)
