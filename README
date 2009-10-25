@@ -15,6 +15,20 @@ Finally, SWI-Prolog hosts itself on the web.
 	* Wiki-style
     * Process .txt links in @see (See PceEmacs in FAQ)
 
+---++ Stress-testing
+
+    * Obtain a log-file (as =|httpd-stress.log|= in the example below)
+    * Run the web-server (here on localhost, port 3040)
+    * Run the stress-tester using the template below.  The option
+      concurrent(N) determine the number of concurrent clients.
+
+	==
+	pl -s replay.pl
+	?- debug(replay).
+	?- http_replay('httpd-stress.log',
+		       [host(localhost), port(3040), concurrent(4)]).
+	==
+
 Update Apache (local note):
 
     * /usr/local/apache2/bin/apachectl -k graceful
