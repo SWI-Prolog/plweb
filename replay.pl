@@ -90,24 +90,31 @@ read_log(In, Term) :-
 queue_size(10).
 
 dispatch(Term) :-
-	dispatcher_for(Term, Id),
-	(   Id == all
+	dispatcher_for(Term, Thread, Id, Why),
+	(   Thread == all
 	->  forall(dispatcher(_,Q), thread_send_message(Q, Term))
-	;   Id == none
+	;   Thread == none
 	->  true
-	;   dispatcher(Id, Queue),
-	    thread_send_message(Queue, Term)
+	;   dispatcher(Thread, Queue),
+	    get_time(T0),
+	    thread_send_message(Queue, Term),
+	    get_time(T1),
+	    T is T1-T0,
+	    debug(replay, 'Sending ~D to ~w (~w; waited ~3f sec)',
+		  [Id, Thread, Why, T])
 	).
 
-dispatcher_for(quit, all) :- !.
-dispatcher_for(server(_,_), all) :- !,
+dispatcher_for(quit, all, -, quit) :- !.
+dispatcher_for(server(_,_), all, -, server) :- !,
 	retractall(session_on(_,_)),
 	retractall(id_on(_,_)).
-dispatcher_for(request(Id, _Time, Request), Target) :-
+dispatcher_for(request(Id, _Time, Request), Target, Id, session) :-
 	memberchk(session(Session), Request),
 	session_on(Session, Target), !,
 	asserta(id_on(Id, Target)).
-dispatcher_for(request(Id, _Time, _Request), Target) :- !,
+dispatcher_for(request(Id, _Time, _Request), Target, Id, new) :- !,
+	get_time(T0),
+	State = s(nowait),
 	repeat,
 	aggregate(min(Waiting, Target),
 		  waiting(Target, Waiting),
@@ -116,14 +123,20 @@ dispatcher_for(request(Id, _Time, _Request), Target) :- !,
 	    Waiting >= Max
 	->  debug(replay_drain, 'All queues are full; waiting', []),
 	    sleep(0.01),
+	    nb_setarg(1, State, wait),
 	    fail
-	;   !
+	;   !,
+	    (	arg(1, State, wait)
+	    ->	get_time(T1),
+		T is T1 - T0,
+		debug(replay, 'Waited ~3f sec for queues to drain', [T])
+	    ;	true
+	    )
 	),
-	debug(replay, 'Sending ~D to ~w', [Id, Target]),
 	asserta(id_on(Id, Target)).
-dispatcher_for(completed(Id, _TimeUsed, _Bytes, _Code, _Reply), Target) :-
+dispatcher_for(completed(Id, _TimeUsed, _Bytes, _Code, _Reply), Target, Id, completed) :-
 	retract(id_on(Id, Target)), !.
-dispatcher_for(_, none).
+dispatcher_for(_, none, -, none).
 
 waiting(Target, Waiting) :-
 	dispatcher(Target, Queue),
