@@ -30,7 +30,7 @@
 :- module(plweb,
 	  [ server/0
 	  ]).
-:- use_module(limit).
+%:- use_module(limit).
 
 :- use_module(library(pldoc)).
 :- use_module(library(pldoc/doc_wiki)).
@@ -243,7 +243,7 @@ start_pool(Name-[pool(Size,Options)|_]) :-
 	),
 	thread_pool_create(Name, Size, Options).
 
-thread_pool(wiki,     20, [ local(2000), global(8000), trail(4000), backlog(5) ]).
-thread_pool(download, 20, [ local(100),  global(200),  trail(200),  backlog(5) ]).
-thread_pool(cgi,      20, [ local(100),  global(200),  trail(200),  backlog(5) ]).
-thread_pool(complete, 20, [ local(100),  global(1000), trail(1000), backlog(5) ]).
+thread_pool(wiki,     100, []).
+thread_pool(download, 200, []).
+thread_pool(cgi,       50, []).
+thread_pool(complete,  20, []).
