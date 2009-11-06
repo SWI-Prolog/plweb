@@ -7,7 +7,7 @@ you would like to do that:
     * You want a debugging version to simplify debugging of foreign code
     you add to SWI-Prolog.
     * You want to modify SWI-Prolog.
-    * You want to stay in touch with the bleeding edge using CVS. 
+    * You want to stay in touch with the bleeding edge using GIT.
 
 As of the integrated XPCE/SWI-Prolog 4.0.0, the installation is no
 longer based on MSVC project files that are simply too hard to maintain
@@ -37,9 +37,12 @@ NMAKE that run from a command window.
     XPM [[sources][<XPM-src.zip>]].  The JPEG source is available
     from many locations.
 
+    * OpenSSL binaries from
+    [[Shining Light Productions][http://www.slproweb.com/products/Win32OpenSSL.html]]
+
     * The SUN Java2 SDK, downloadable from SUN if you want the JPL
     Java/Prolog interface. If you do not want to compile JPL, remove it
-    from the PKGS variable in rules.mk. 
+    from the PKGS variable in rules.mk.
 
 ---++ Now proceed as follows:
 

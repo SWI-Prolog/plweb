@@ -9,6 +9,7 @@
   * *|Help ...|*
     * [[Prolog writes [x, y, z|...], I want the whole answer][AllOutput.txt]]
     * [[Where is the reconsult/1 predicate?][reconsult.txt]]
+    * [[Graphical tracer does not show the correct location of calls][GTraceWrongLocation.txt]]
 
   * *|Common error messages and what to do|*
     * [[ERROR: No permission to modify static_procedure][DynamicCode.txt]]
@@ -56,4 +57,4 @@
 
   * *|Learn more about Prolog|*
     * [[Books and Web Material on Prolog][PrologReading.txt]]
-    
+
