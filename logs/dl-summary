@@ -25,7 +25,7 @@ save_terms(File, Terms) :-
 			   close(Out)).
 
 usage :-
-	format(user_error, 'Usage: dl-summary logfile [out]', []),
+	format(user_error, 'Usage: dl-summary logfile [out]~n', []),
 	fail.
 
 main :-
