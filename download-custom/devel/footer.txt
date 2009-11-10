@@ -9,26 +9,42 @@ below. See the general [[GIT][</git.html>]] instructions for details.
 % git clone git://www.swi-prolog.org/home/pl/git/pl-devel.git
 ==
 
----++ Planned enhancements
+---++ Windows
+
+    * With thanks to `Degski', building the Windows version has
+    become a lot simpler.  The above Windows binaries are created
+    using his configuration framework with Microsoft VC9.  Uptill
+    now, the Win32 binary was compiled with VC6 and the Win64
+    version with VC8.
+
+    The version above is for testing the release.
+
+---++ Version plan
+
+    * When the windows version appears stable the following
+    version changes will be realised (_repository_/_branch_):
+
+	* pl-devel/master --> pl/master (5.8.1)
+	* pl-devel/shift  --> pl-devel/master (5.9.1)
+
+---++ 5.9.x planned enhancements (currently in =shift= branch)
 
     * Replace sparse-address-space based stack allocation by
     stack-relocation (stack-shifting).  This seriously reduces
     address-space requirements, which is of great importance to
-    applications using many _threads_.
+    applications using many _threads_. (*done*)
 
-    * Remove =max_threads= limitation.
+    * Remove =max_threads= limitation. (*done*)
 
-    * Reduce trail-stack usage.
+    * Reduce trail-stack usage. (*partly*)
 
     * Provide generational garbage collection.
 
-
 ---++ Status notes
 
-    * The new stack-shifter is available on the branch =shift=.  Its
-    implementation is complete, but the code is still rather unstable.
-    As soon as this is stable, the =shift= branch will be merged into
-    the =master=.
+    * The new stack-shifter is available on the branch =shift=.
+    It is being tested quite extensively and is now the default
+    version for a few people.
 
     If you want to help, see [[debugging][</Shifter.html>]]
 
