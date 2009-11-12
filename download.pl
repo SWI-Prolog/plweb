@@ -48,7 +48,8 @@
 :- http_handler(download(devel),  download_table, []).
 :- http_handler(download(stable), download_table, []).
 :- http_handler(download(old),    download_table, []).
-:- http_handler(download(.),	  download,	  [prefix, priority(10)]).
+:- http_handler(download(.),	  download,
+		[prefix, spawn(download), priority(10)]).
 
 %%	download_table(+Request)
 %
