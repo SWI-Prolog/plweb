@@ -36,7 +36,7 @@ show_pool(Pool) :-
 	memberchk(backlog(Waiting), List),
 	memberchk(options(Options), List),
 	option(backlog(MaxBackLog), Options, infinite),
-	format('~w~t~20|~t~D  ~8+~t~D ~8+~t~D  ~8+~t~D  ~8+~n',
+	format('~w~t~20|~t~D  ~8+~t~D ~8+~t~D  ~8+~t~w  ~8+~n',
 	       [Pool, Running, Size, Waiting, MaxBackLog]).
 	
 show_active :-
