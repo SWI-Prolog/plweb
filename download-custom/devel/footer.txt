@@ -19,14 +19,6 @@ below. See the general [[GIT][</git.html>]] instructions for details.
 
     The version above is for testing the release.
 
----++ Version plan
-
-    * When the windows version appears stable the following
-    version changes will be realised (_repository_/_branch_):
-
-	* pl-devel/master --> pl/master (5.8.1)
-	* pl-devel/shift  --> pl-devel/master (5.9.1)
-
 ---++ 5.9.x planned enhancements (currently in =shift= branch)
 
     * Replace sparse-address-space based stack allocation by
@@ -39,12 +31,3 @@ below. See the general [[GIT][</git.html>]] instructions for details.
     * Reduce trail-stack usage. (*partly*)
 
     * Provide generational garbage collection.
-
----++ Status notes
-
-    * The new stack-shifter is available on the branch =shift=.
-    It is being tested quite extensively and is now the default
-    version for a few people.
-
-    If you want to help, see [[debugging][</Shifter.html>]]
-
