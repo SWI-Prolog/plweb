@@ -19,7 +19,7 @@ below. See the general [[GIT][</git.html>]] instructions for details.
 
     The version above is for testing the release.
 
----++ 5.9.x planned enhancements (currently in =shift= branch)
+---++ 5.9.x planned enhancements
 
     * Replace sparse-address-space based stack allocation by
     stack-relocation (stack-shifting).  This seriously reduces
