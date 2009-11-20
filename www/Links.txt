@@ -24,7 +24,7 @@ SWI-Prolog [[packages][</packages/>]]
 
     * [[A Wikibook on Prolog.  Please contribute!][http://en.wikibooks.org/wiki/Programming:Prolog]]
     * [[Learn Prolog Now! by Patrick Blackburn, Johan Bos and Kristina Striegnitz][http://www.learnprolognow.org/]] [[star.gif]]
-    * [[Natural Language Processing Techniques in Prolog][http://www.coli.uni-saarland.de/%7Ekris/nlp-with-prolog/html/]] by Patrick Blackburn and Kristina Striegnitz
+    * [[Natural Language Processing Techniques in Prolog][http://cs.union.edu/~striegnk/courses/nlp-with-prolog/html/]] by Patrick Blackburn and Kristina Striegnitz
     * [[A Prolog Tutorial by J.R. Fisher][http://www.csupomona.edu/%7Ejrfisher/www/prolog_tutorial/contents.html]]
     * [[Some notes for getting started using Prolog, by Jesse Monroy, Jr.][http://www2.dcs.hull.ac.uk/NEAT/dnd/AI/beginprolog.html]]
     * [[Logic, Programming and Prolog (2ed)][http://www.ida.liu.se/%7Eulfni/lpp/]]
