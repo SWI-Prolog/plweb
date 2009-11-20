@@ -23,15 +23,14 @@ SWI-Prolog [[packages][</packages/>]]
   * *|Tutorials, guides, etc|*
 
     * [[A Wikibook on Prolog.  Please contribute!][http://en.wikibooks.org/wiki/Programming:Prolog]]
-    * [[Some notes for getting started using Prolog, by Jesse Monroy, Jr.][http://www.didgood.com/programing/prolog/beginprolog.html]]
-    * [[A Prolog Tutorial by J.R. Fisher][http://www.csupomona.edu/%7Ejrfisher/www/prolog_tutorial/contents.html]]
     * [[Learn Prolog Now! by Patrick Blackburn, Johan Bos and Kristina Striegnitz][http://www.learnprolognow.org/]] [[star.gif]]
-    * [[Natural Language Processing Techniques in Prolog][http://www.coli.uni-saarland.de/%7Ekris/nlp-with-prolog/html/]] by
-    Patrick Blackburn and Kristina Striegnitz
+    * [[Natural Language Processing Techniques in Prolog][http://www.coli.uni-saarland.de/%7Ekris/nlp-with-prolog/html/]] by Patrick Blackburn and Kristina Striegnitz
+    * [[A Prolog Tutorial by J.R. Fisher][http://www.csupomona.edu/%7Ejrfisher/www/prolog_tutorial/contents.html]]
+    * [[Some notes for getting started using Prolog, by Jesse Monroy, Jr.][http://www2.dcs.hull.ac.uk/NEAT/dnd/AI/beginprolog.html]]
     * [[Logic, Programming and Prolog (2ed)][http://www.ida.liu.se/%7Eulfni/lpp/]]
     * [[More Prolog Reading material from the FAQ][</FAQ/PrologReading.html>]]
     * [[Material for the ICLP-01 at Cyprus][http://www.swi-prolog.org/slides/ICLP-01/]]
-    * [[Some Coding Guidelines for Prolog][http://www.ai.uga.edu/mc/plcoding.pdf]] by Michael A. Covington
+    * [[Some Coding Guidelines for Prolog][http://arxiv.org/abs/0911.2899]] started by Michael A. Covington; now `et all'.
     * [[An Introduction to Language Processing with Perl and Prolog][http://www.cs.lth.se/home/Pierre_Nugues/ilppp/sample.html]] by Pierre Nugues
 
   * *|General Prolog libraries|*
