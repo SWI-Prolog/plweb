@@ -21,11 +21,11 @@ SWI-Prolog [[packages][</packages/>]]
     * [[Prolog comparison, discussion group, chat, etc.][http://www.fraber.de/university/prolog/]]
 
   * *|Tutorials, guides, etc|*
-  
+
     * [[A Wikibook on Prolog.  Please contribute!][http://en.wikibooks.org/wiki/Programming:Prolog]]
     * [[Some notes for getting started using Prolog, by Jesse Monroy, Jr.][http://www.didgood.com/programing/prolog/beginprolog.html]]
     * [[A Prolog Tutorial by J.R. Fisher][http://www.csupomona.edu/%7Ejrfisher/www/prolog_tutorial/contents.html]]
-    * [[Learn Prolog Now! by Patrick Blackburn, Johan Bos and Kristina Striegnitz][http://www.coli.uni-sb.de/~kris/prolog-course/]]
+    * [[Learn Prolog Now! by Patrick Blackburn, Johan Bos and Kristina Striegnitz][http://www.learnprolognow.org/]] [[star.gif]]
     * [[Natural Language Processing Techniques in Prolog][http://www.coli.uni-saarland.de/%7Ekris/nlp-with-prolog/html/]] by
     Patrick Blackburn and Kristina Striegnitz
     * [[Logic, Programming and Prolog (2ed)][http://www.ida.liu.se/%7Eulfni/lpp/]]
