@@ -1,12 +1,13 @@
 ---+ Building SWI-Prolog on MS-Windows
 
 If you have access to MSVC 6.0 or later, you may decide to build the
-Windows version SWI-Prolog yourself. There are only a few cases where
+Windows version of SWI-Prolog yourself. There are only a few cases where
 you would like to do that:
 
     * You want a debugging version to simplify debugging of foreign code
     you add to SWI-Prolog.
     * You want to modify SWI-Prolog.
+    * You want to use libraries optimised for your system (f.e. GMP).
     * You want to stay in touch with the bleeding edge using GIT.
 
 As of the integrated XPCE/SWI-Prolog 4.0.0, the installation is no
@@ -16,61 +17,68 @@ NMAKE that run from a command window.
 
 ---++ Before starting the build, you'll need:
 
-    * Windows-NT/2000/XP/Vista. Older versions (Windows-95/98/me) are
-    not supported after 5.4.x and even the 5.4.x versions can only be
-    compiled on NT based platforms.
+    * Windows-NT/2000/XP/Vista/Win7. Older versions (Windows-95/98/me)
+    are not supported after 5.4.x and even the 5.4.x versions can only
+    be compiled on NT based platforms.
 
-    * MSVC 6.0 or later. We use 6.0.
+    * MSVC 6.0 or later. We use
+    [[Microsoft Windows SDK for Windows 7 and .NET Framework 3.5 SP1][http://www.microsoft.com/downloads/details.aspx?familyid=71DEB800-C591-4F97-A900-BEA146E4FAE1&displaylang=en]].
 
     * The pthread-win32 POSIX thread API library from
-    [[Redhat][http://sources.redhat.com/pthreads-win32/]] or our
-    [[compiled version][<pthreadlibs.zip>]] or you can pick the .dll,
-    .lib and .h files from a binary SWI-Prolog installation. The file
-    pthreadVC.dll must be copied to your Windows system32 directory.
+    [[Redhat][http://sources.redhat.com/pthreads-win32/]]. (1)
 
-    * The GMP library for Windows. The file README.gmp tells you how to
-    build libgmp for use with MSVC. Easier is to install [[our
-    binary][<gmp-4.1.4.zip>]]
+    * The GMP library for Windows. (1)
 
-    * The JPEG and ported XPM libraries. We provide [[precompiled
-    versions][<xpceimglibs.zip>]] for XPM and JPEG as well as the
-    XPM [[sources][<XPM-src.zip>]].  The JPEG source is available
-    from many locations.
+    * The JPEG and ported XPM libraries. (1)
+
+    * The ZLIB library. (1)
+
+    * The RFC822 and RFC2045 libraries. (1)
 
     * OpenSSL binaries from
     [[Shining Light Productions][http://www.slproweb.com/products/Win32OpenSSL.html]]
+    , if you want ssl functionality. (2)
 
     * The SUN Java2 SDK, downloadable from SUN if you want the JPL
-    Java/Prolog interface. If you do not want to compile JPL, remove it
-    from the PKGS variable in rules.mk.
+    Java/Prolog interface. (2)
+
+
+    (1) Will be downloaded automatically from the SWI-Prolog web-site
+    in the procedure outlined below.
+    (2) Optional.
+
 
 ---++ Now proceed as follows:
 
     * Unpack the sources (anywhere)
 
-    * Edit ...\pl\src\rules.mk following the instructions there. Notably
-    you need to set the destination location and paths to find the GMP,
-    XPM and JPEG lib and include.
+    * Find the $(prefix)\pl\src folder and double click the config.cmd
+    script file. This script will go through a number of questions
+    relative to your system and required output. *|Both 32 and 64 bit
+    versions|* can be built. The config.cmd delivers a file config.dat,
+    which contains the parameters chosen by you and serves as input to
+    the build process. Additionally a file called call_vcvars.cmd will
+    be created and is used to set the build environment for your system.
 
-    * Make sure PATH LIB and INCLUDE are set up properly for the
-    compiler you want to use. If you do not wish to change the global
-    %PATH%, edit make.bat to reflect your system and simply use make
+    * In case the required pre-requisites are not found in the
+    $(prefix)\pl\src\ directory, you will be prompted to download and
+    unpack the required libraries automatically from the SWI-Prolog web.
 
-    * For JPL, make sure %JAVA_HOME% points to the Java home and
-    %JAVA_HOME%bin is in %PATH%. For running java embedded in Prolog,
-    you also need %JAVA_HOME%\jre\bin\client in %PATH%.
+    * The script will detect, whether you have SSL and/or JRE installed,
+    if not, you will be prompted and informed of this. The build will be
+    carried out without the SSL and/or JPL packages.
 
-    * Compile the system in the ..\pl\src directory using
+    * For SSL, make sure you install the binaries in the appropriate
+    "Program Files" or "Program Files (x86)" folder. Select the option
+    to install the files in the OpenSSL directory. Please, be aware that
+    these choices are not the default settings of the installer.
 
-      ==
-      nmake /f makefile.mak
-      ==
+    * At the end of the script, you are prompted to either complete the
+    build with the chosen parameters, or you can now exit the script.
+    You will be shown a summary of the parameters set. The build can,
+    with the parameters in config.dat, be carried out at any time by
+    double clicking make.cmd.
 
-    * Install the system using
-
-      ==
-      nmake /f makefile.mak install
-      ==
 
 Thats all. You can now start *|plwin.exe|* or *|plcon.exe|* from the
 $(prefix)\pl\bin\ directory. If you want you can associate *|.pl|* with
@@ -93,12 +101,16 @@ nmake DBG=true /f makefile.mak
 nmake DBG=true /f makefile.mak install
 ==
 
----++ Building the 64-bit version
+---++ Using your own library or libraries:
 
-The story is similar.  You need the Microsoft 64-bit compilers (only
-the commandline versions for the platform SDK).  You also need the
-libraries.  Here are our binaries for these:
+The script will ask you whether you would like to supply your own
+versions of the libraries and override some or all of the libraries in
+the downloaded pre-requisites package.
 
-    * [[GMP library][<gmp-x64.zip>]]
-    * [[OpenSSL library][<OpenSSL-0.9.8d-Win64.zip>]]
-    * [[The rest][<SWI-Prolog-5.6.26-external-libs-Win64.zip>]]
+In this case the script will create $(prefix)\pl\X86 (32bit) and/or
+$(prefix)\pl\X64 (64bit) directories, sub-directories include/lib will
+equally be created.
+
+Place the libraries and/or header files in the appropriate include or
+lib folder. These versions will now override the ones in the download
+package.
