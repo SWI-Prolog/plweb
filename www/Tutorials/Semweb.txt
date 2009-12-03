@@ -1,10 +1,12 @@
 ---+ RDF Applications with Prolog
 
-This tutorial is an updated version of
-[[RDF Applications with Prolog
+This tutorial is an updated version of [[RDF Applications with Prolog
 ][http://www.xml.com/pub/a/2001/07/25/prologrdf.html]] by [[Bijan
-Parsia][http://www.cs.manchester.ac.uk/~bparsia/]], published in
-2001 in [[XML.com][http://www.xml.com/]].
+Parsia][http://www.cs.manchester.ac.uk/~bparsia/]], published in 2001 in
+[[XML.com][http://www.xml.com/]]. Changes to the original are mostly
+limited to layout and details needed to run the examples on a recent
+SWI-Prolog version. Loading RDF data has been extended to load from HTTP
+sources.
 
 In the [[first
 article][http://www.xml.com/pub/a/2001/04/25/prologrdf/index.html]] in
@@ -86,7 +88,7 @@ XMLhack.com][http://xmlhack.com/rss10.php]] after saving this to disk
 from the browser.
 
 ==
-?- load_rdf('rss10.php', List_of_RDF_statements).
+?- load_rdf('xmlhack.rss', List_of_RDF_statements).
 List_of_RDF_statements = [rdf('http://xmlhack.com/rss10.php',
 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
 'http://purl.org/rss/1.0/channel'), rdf('http://xmlhack.com/rss10.php',
@@ -197,7 +199,7 @@ the items in the statement list. maplist/2 takes a predicate and
 applies it to each member of a supplied list:
 
     ==
-    ?- load_rdf('rss10.php', List_of_RDF_statements),
+    ?- load_rdf('xmlhack.rss', List_of_RDF_statements),
     |  maplist(assert, List_of_RDF_statements).
     List_of_RDF_statements = [rdf('http://xmlhack.com/rss10.php ...
     ==
@@ -616,9 +618,9 @@ predicates that have this or similar meaning. In this case, I'll use
 findall/3, followed by sort/2 to eliminate duplicates:
 
     ==
-    findall(Item, %The variable which gets bound to the desired value.
-            rdf(Item, rdf:type, rss:item), %The query.
-            Items), %The variable that gets bound to a list of the results.
+    findall(Item,	% The variable which gets bound to the desired value.
+            rdf(Item, rdf:type, rss:item), % The query.
+            Items),	% The variable that gets bound to a list of the results.
     sort(Items, Unique)
     ==
 
@@ -665,7 +667,7 @@ representation (typically) -- often a DOM tree -- which may be queried
 by means of appropriate XPath expressions.
 
 The second line is a query which grabs a value and binds the variable
-Title to it. This is roughly equivalent to
+Title to it.
 
     ==
     rss_to_html_list(Resource, Source, Target) :-
@@ -673,6 +675,8 @@ Title to it. This is roughly equivalent to
 	rdf(Resource, rss:title, literal(Title)),
 	...
     ==
+
+This is roughly equivalent to
 
     ==
     <xsl:variable name="title"
@@ -689,23 +693,32 @@ just a "hole" in the larger term, and (2) the variable is "two-way"
 (i.e., you can pass a value to the query by that variable or get one out
 through it).
 
+---+++ Setting up the output
+
 First line causes the DCG to be evaluated and the result bound to
 TargetHtml. Second line opens the result file for writing (both of these
 probably fall in the scope of command line option or calling function
 stuff for XSLT). print_html/1 is an html_write convenience predicate
 which takes the result tree from the DCG grammar and serializes it in
-standard HTML format. This is what to change if, for example, you'd want
-XHTML output.
+standard HTML format.
 
     ==
 	phrase(rss_html_list(Title), TargetHtml),
 	tell(Target),
 	print_html(TargetHtml),
-	told. '
-    ===
+	told.
+    ==
+
+vs.
 
     ==
     <xsl:output method="html"/>
+
+    <xsl:template match="/">
+        <html>
+        ...
+        </html>
+    </xsl:template>
     ==
 
     ==
@@ -715,13 +728,8 @@ XHTML output.
 
     ==
 
-    ==
-    <xsl:template match="/">
-        <html>
-        ...
-        </html>
-    </xsl:template>
-    ==
+
+---+++ Creating the overall page skeleton
 
     ==
     rss_list_head(PageTitle) -->
@@ -738,6 +746,8 @@ XHTML output.
                ul(\rss_list_items(Unique))
 	     ]).
     ==
+
+vs.
 
     ==
     <head>
@@ -757,6 +767,8 @@ XHTML output.
     </body>
     ==
 
+---+++ Enumerating the items
+
     ==
     rss_list_items([First_item|Rest_of_items]) -->
 	html([li([\list_item_content(First_item)])]),
@@ -764,71 +776,72 @@ XHTML output.
     rss_list_items([]) --> [].
     ==
 
+vs.
+
     ==
     <xsl:template match="rdf:RDF/rss:item">
        <li>...</li>
     </xsl:template>
     ==
 
+---+++ Formatting the items
+
     ==
     list_item_content(Item) -->
 	{rdf(Item,dc:description,literal(Description))},
 	html([\rss_link(Item),br([]),Description]).
+
+    rss_link(Item) -->
+	{rdf(Item,rss:link,literal(Link)),
+	rdf(Item,rss:title,literal(Title))},
+	html(i(a(href(Link),Title))).
     ==
 
-...
-<br/>
-<xsl:value-of select="./dc:description"/>
+vs.
 
-rss_link(Item) -->
-    {rdf(Item,rss:link,literal(Link)),
-    rdf(Item,rss:title,literal(Title))},
-    html(i(a(href(Link),Title))).
+    ==
+    ...
+    <br/>
+    <xsl:value-of select="./dc:description"/>
 
-
-
-<i>
-   <a href="{./rss:link}">
+    <i>
+      <a href="{./rss:link}">
       <xsl:value-of select="./rss:title"/>
-   </a>
-</i>
+      </a>
+    </i>
+    ==
 
 Standing back and looking at the XSLT sheet right after writing it, it
 seemed much clearer than the DCGs. A large part of this is that I'm more
 accustomed to writing HTML and HTML templates with embedded code than
 writing DCG templates. But I'm finding that the DCGs are more helpful
-for thinking through the problem. Conclusion
+for thinking through the problem.
+
+---++ Conclusion
 
 Since the inferences in this transformation were trivial, it doesn't
 involve any particularly sophisticated Prolog, and yet this is precisely
 the kind of everyday task many of us find ourselves doing all the time.
 The Semantic Web, if it's to work out, will be made up as much of the
-ordinary and familiar as of the exotic. Useful Links
+ordinary and familiar as of the exotic.
 
-The Transformation Scripts
+---++ Useful Links
 
-    * The Transformation DCG
-    * The XSLT Stylesheet
-    * Sample Source File
-    * Sample HTML output
+Files used in this tutorial
 
-SWI-Prolog
+    * [[The Transformation DCG (Prolog source)][dcgscript.pl]]
+    * [[The XSLT Stylesheet][<xmlhack.xsl>]]
+    * [[The XMLHack RSS dump][<xmlhack.rss>]]
+    * [[Sample HTML output][<scriptresult.html>]]
 
-    * Home page
-    * Documentation
-          o XML/SGML support and RDF Demo
-          o checklist/2
-          o set_of/3
-          o DCG Rules (and phrase/2)
-          o File stuff (tell/1 and told)
-          o The module system
-          o html_write
-    * The Wiki (contains info about rdf_db)
+Background documentation
 
-SWI-Prolog Based RDF Applications
+    * [[DCG Rules][http://cs.union.edu/~striegnk/learn-prolog-now/html/node54.html#lecture7]] (and phrase/2)
+    * [[The module system][</man/modules.html>]]
 
-    * The RDF Parser Demo
-    * RDF Schema Explorer and the associated paper
+More SWI-Prolog Based RDF Infrastructure
+
+    * [[SWI-Prolog for the (semantic) web][</web/>]]
 
 
 
