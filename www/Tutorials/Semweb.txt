@@ -1,9 +1,17 @@
 ---+ RDF Applications with Prolog
 
-In the first article in this series, I explained some of the semantics
-of RDF via Prolog (and vice versa). In this article, I'll explore some
-of the nitty-gritty of working with RDF in Prolog using the SWI-Prolog
-system.
+This tutorial is an updated version of
+[[RDF Applications with Prolog
+][http://www.xml.com/pub/a/2001/07/25/prologrdf.html]] by [[Bijan
+Parsia][http://www.cs.manchester.ac.uk/~bparsia/]], published in
+2001 in [[XML.com][http://www.xml.com/]].
+
+In the [[first
+article][http://www.xml.com/pub/a/2001/04/25/prologrdf/index.html]] in
+this series, I explained some of the semantics of RDF via Prolog (and
+vice versa). In this article, I'll explore some of the nitty-gritty of
+working with RDF in Prolog using the SWI-Prolog system.
+
 
 ---++ Using RDF with SWI-Prolog
 
@@ -11,27 +19,26 @@ SWI-Prolog is a fast, robust, and free open-source Prolog system with
 great support for XML and RDF. It's being used as an inference engine
 for Mozilla and in several other RDF projects. With the release of
 SWI-Prolog 4.0.0 the graphics, GUI, and object library XPCE have been
-bundled in. XPCE is a rich and powerful cross-platform (Windows and
-Unixen) toolkit with a number of immediately useful demos, including
+bundled in. XPCE is a rich and powerful cross-platform (Windows, Unixen
+and MacOSX) toolkit with a number of immediately useful demos, including
 various drawing systems, a partial HTML renderer, a help system, and an
 Emacs clone.
 
 All in all, a wonderful system both for play and for serious work, and
 for play that becomes serious work!
 
-A good example application of SWI-Prolog's RDF support is the online RDF
-parser demo. Here you can upload or paste RDF documents in RDF/XML
-syntax and get an HTML table presentation of the statements. Even with
-its few quirks, I find it handy for debugging RDF documents (indeed,
-somewhat handier than the oft-recommended RDFviz, especially for
-anything other than small documents).
+A good example application of SWI-Prolog's RDF support is the
+[[Europeana][http://www.europeana.eu]]
+[[ThoughtLab][http://eculture.cs.vu.nl/europeana/session/search]],
+providing semantic search through cultural heritage collections.
+
 
 ---++ First Steps with SWI-Prolog's RDF Tools
 
 SWI-Prolog comes bundled with several modules for parsing RDF/XML and
 manipulating the result at various levels of detail and convenience.
-Assuming you have a SWI-Prolog 4.0.x installation running, you can load
-the bundled modules by typing at the "command", (ie. query), prompt:
+Assuming you have a SWI-Prolog 5.8.x installation running, you can load
+the bundled modules by typing at the "command", (i.e., query), prompt:
 
     ==
     ?- [library(rdf)].
@@ -40,13 +47,12 @@ the bundled modules by typing at the "command", (ie. query), prompt:
 and hitting enter. On my machine, it prints back:
 
 ==
-  % library(sgml) compiled into sgml 0.27 sec, 12,536 bytes
-  % uri compiled into uri 0.00 sec, 1,804 bytes
-  % rewrite compiled into rewrite 0.00 sec, 5,716 bytes
-  % rdf_parser compiled into rdf_parser 0.17 sec, 24,168 bytes
-  % library(gensym) compiled into gensym 0.00 sec, 2,096 bytes
-  % rdf_triple compiled into rdf_triple 0.06 sec, 10,924 bytes
-  % library(rdf) compiled into rdf 0.56 sec, 56,080 bytes
+%    library(error) compiled into error 0.00 sec, 17,688 bytes
+...
+%  rdf_parser compiled into rdf_parser 0.02 sec, 139,592 bytes
+%   library(gensym) compiled into gensym 0.00 sec, 7,120 bytes
+%  rdf_triple compiled into rdf_triple 0.00 sec, 38,088 bytes
+% library(rdf) compiled into rdf 0.06 sec, 641,000 bytes
 ==
 
 In other words, all the modules on which the RDF library depends get
@@ -67,22 +73,36 @@ syntactic sugar for) consult(library(rdf). above, but in the current
 context it doesn't really matter.
 
 Prolog predicates are distinguished by name and arity (i.e., number of
-permissible arguments). So you'll see things like cool_predicate/1,
-cool_predicate/2, etc. Each of these is a completely different
+permissible arguments). So you'll see things like format/2,
+format/3, etc. Each of these is a completely different
 predicate. This may feel odd to folks used to the possibility of having
 optional and defaulted arguments (e.g., as in Python), but it works out
 very well in practice.
 
 At this point, I can parse an RDF/XML document into a list of Prolog
 terms using the (now consulted) predicate load_rdf/2. I'm going to use
-as my example an RSS 1.0 file from XMLhack.com.
+as my example an [[RSS 1.0 file from
+XMLhack.com][http://xmlhack.com/rss10.php]] after saving this to disk
+from the browser.
 
 ==
-    ?- load_rdf('bijan/xmlhack.rss', List_of_RDF_statements).
-
-    List_of_RDF_statements = [rdf('http://xmlhack.com/rss10.php', rdf:type, 'http://purl.org/rss/1.0/channel'), rdf('http://xmlhack.com/rss10.php', 'http://purl.org/rss/1.0/':title, literal('XMLhack')), rdf('http://xmlhack.com/rss10.php', 'http://purl.org/rss/1.0/':link, literal('http://xmlhack.com/')), rdf('Description__1', 'http://purl.org/dc/elements/1.1/':resource, literal('http://xmlhack.com/')), rdf('http://xmlhack.com/rss10.php', 'http://purl.org/dc/elements/1.1/':source, 'Description__1'), rdf('http://xmlhack.com/rss10.php', 'http://purl.org/rss/1.0/':description, literal('Developer news from the XML community')), rdf('http://xmlhack.com/rss10.php', 'http://purl.org/dc/elements/1.1/':language, literal('en-us')), rdf('http://xmlhack.com/rss10.php', ... :..., literal(...)), rdf(..., ..., ...)|...]
-
-    Yes
+?- load_rdf('rss10.php', List_of_RDF_statements).
+List_of_RDF_statements = [rdf('http://xmlhack.com/rss10.php',
+'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+'http://purl.org/rss/1.0/channel'), rdf('http://xmlhack.com/rss10.php',
+'http://purl.org/rss/1.0/title', literal('XMLhack')),
+rdf('http://xmlhack.com/rss10.php', 'http://purl.org/rss/1.0/link',
+literal('http://xmlhack.com/')), rdf('http://xmlhack.com/rss10.php',
+'http://purl.org/dc/elements/1.1/source', 'http://xmlhack.com/'),
+rdf('http://xmlhack.com/rss10.php',
+'http://purl.org/rss/1.0/description', literal(' Developer news from the
+XML community\n ')), rdf('http://xmlhack.com/rss10.php',
+'http://purl.org/dc/elements/1.1/language', literal('en-us')),
+rdf('http://xmlhack.com/rss10.php',
+'http://purl.org/dc/elements/1.1/publisher', literal('Edd Dumbill
+(mailto:webmaster@xmlhack.com)')), rdf('http://xmlhack.com/rss10.php',
+'http://purl.org/dc/elements/1.1/creator',literal(...)), rdf(..., ...,
+...)|...].
 ==
 
 I've not yet "consulted" the RDF file, I've merely parsed it into a list
@@ -91,6 +111,7 @@ be queried, e.g.,:
 
     ==
     ?- rdf(X,Y,Z).
+    ERROR: toplevel: Undefined procedure: rdf/3 (DWIM could not correct goal)
     ==
 
 Thus far, I haven't ever (in this session) asserted any clause of an
@@ -101,25 +122,26 @@ language tradition, that term is a well-formed data structure (indeed,
 it's a "term"), and it can be manipulated in various ways -- including
 being asserted as a clause of a predicate. In other words, Prolog has a
 uniform representation of code and data and facilities for manipulating
-a term from either perspective. Since rdf_load/3 returned a list of
+a term from either perspective. Since load_rdf/2 returned a list of
 terms that are perfectly legal Prolog clauses, it's no problem to assert
 them into the current knowledge base, simply using the assert/1
 predicate.
 
 
 ==
-?- load_rdf('bijan/xmlhack.rss', [H|_]), assert(H).
+?- load_rdf('rss10.php', [H|_]), assert(H).
 ==
 
 Both the file at that relative path must be parseable into a list of
-terms with at least one item. The first item is bound to Hwhile the tail
-of the list is bound to the "anonymous", "throw away", or "don't care"
-variable_ and (remember a comma between predicates in a query is read as
-"and") that first term must be entered in our knowledge base.
+terms with at least one item. The first item is bound to H, while the
+tail of the list is bound to the "anonymous", "throw away", or "don't
+care" variable "_" and (remember a comma between predicates in a query
+is read as "and") that first term must be entered in our knowledge base.
 
 ==
-H = rdf('http://xmlhack.com/rss10.php', rdf:type, 'http://purl.org/rss/1.0/channel')
-Yes
+H = rdf('http://xmlhack.com/rss10.php',
+	'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+	'http://purl.org/rss/1.0/channel').
 ==
 
 The query succeeded with the first parsed item from the document is bound to H.
@@ -132,15 +154,13 @@ Are there any X, Y, and Z that exist in an rdf relation?
 
 ==
 X = 'http://xmlhack.com/rss10.php'
-Y = rdf:type
-Z = 'http://purl.org/rss/1.0/channel' ;
-No
+Y = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
+Z = 'http://purl.org/rss/1.0/channel'.
 ==
 
-Yes, there's one with the listed bindings, but if I ask for more (e.g.,
-by entering the semicolon) Prolog doesn't find any.
+Yes, there's one with the listed bindings!
 
-Two points. First, using rdf_load/3, I can transform a certain
+Two points. First, using load_rdf/2, I can transform a certain
 serialization of a set of RDF statements into a form that Prolog can
 handle well (i.e. a list of rdf/3 based terms). Second, given the
 appropriate output predicates, I can use that form to compose RDF as
@@ -149,16 +169,14 @@ query prompt, e.g.,
 
     ==
     ?- assert(rdf(a, b, c)).
-
-    Yes
+    true.
     ==
 
 And I can test to see if it's in fact in the knowledge base:
 
     ==
-    ?- rdf(a, b c).
-
-    Yes
+    ?- rdf(a, b, c).
+    true.
     ==
 
 Since that's not a particularly useful RDF statement, I'll just retract
@@ -166,51 +184,46 @@ it:
 
     ==
     ?- retract(rdf(a, b, c)).
+    true.
 
-    Yes
-
-    ?- rdf(a, b c).
-
-    no
+    ?- rdf(a, b, c).
+    false.
     ==
 
 I really don't want to assert these statements tediously one at a time
 at the query prompt. But I can get a list of the rdf/3 terms, which
 suggests that I could use some sort of "mapping" predicate to assert all
-the items in the statement list. checklist/2 takes a predicate and
+the items in the statement list. maplist/2 takes a predicate and
 applies it to each member of a supplied list:
 
     ==
-    ?- load_rdf('bijan/xmlhack.rss', List_of_RDF_statements),
-    | checklist(assert, List_of_RDF_statements).
+    ?- load_rdf('rss10.php', List_of_RDF_statements),
+    |  maplist(assert, List_of_RDF_statements).
+    List_of_RDF_statements = [rdf('http://xmlhack.com/rss10.php ...
     ==
 
-(Note, the | is the "continuation" prompt in SWI-Prolog and not a bit of
-syntax.)
+(Note, the | is the _continuation_ prompt in SWI-Prolog and not a bit
+of syntax.)
 
 After this query, I have quite a few RDF statements in my Prolog
-knowledge base:
+knowledge base.  Note that if Prolog waits with the caret behind
+an answer, you can type *|;|* to get the next answer or hit the
+_return_ key if you are satisfied.
 
     ==
     ?- rdf(X,Y,Z).
-
-    X = 'http://xmlhack.com/rss10.php'
-    Y = rdf:type
+    X = 'http://xmlhack.com/rss10.php',
+    Y = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
     Z = 'http://purl.org/rss/1.0/channel' ;
-
-    X = 'http://xmlhack.com/rss10.php'
-    Y = rdf:type
+    X = 'http://xmlhack.com/rss10.php',
+    Y = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
     Z = 'http://purl.org/rss/1.0/channel' ;
-
-    X = 'http://xmlhack.com/rss10.php'
-    Y = rdf:type
-    Z = 'http://purl.org/rss/1.0/channel' ;
-
-    X = 'http://xmlhack.com/rss10.php'
-    Y = 'http://purl.org/rss/1.0/':title
+    X = 'http://xmlhack.com/rss10.php',
+    Y = 'http://purl.org/rss/1.0/title',
     Z = literal('XMLhack') ;
-
-    ...etc.
+    X = 'http://xmlhack.com/rss10.php',
+    Y = 'http://purl.org/rss/1.0/link',
+    Z = literal('http://xmlhack.com/') .
     ==
 
 This is equivalent to consulting a file containing all the rdf/3 items,
@@ -218,84 +231,78 @@ written just as they appear in the list. Thus, one could use the rdf/3
 notation to compose RDF documents (although this notation isn't all that
 much more convenient than the dreaded RDF/XML).
 
----++ The rdf_db Module
+---++ The library semweb/rdf_db
 
 In the previous section, I gave some examples of reading into the Prolog
 knowledge base a set of RDF statements. Jan Wielemaker (the author of
 SWI-Prolog) put together a little module of convenience predicates for
 doing this sort of thing, called rdf_db. One very nice feature of rdf_db
-is that it allows you to maintain multiple, disjoint RDF "databases".
-You can have the advantages of dealing with RDF documents as separate
-lists of statements while having a Prologesque interface. rdf_db is also
-a good example of a simple Prolog-based RDF application.
+is that it allows you to maintain multiple, RDF _|named graphs'. You can
+have the advantages of dealing with RDF documents as separate lists of
+statements while having a Prologesque interface. rdf_db is also a good
+example of a simple Prolog-based RDF application.
 
-To get going with rdf_db, first download and pop into a convenient spot
-(for me, that's the "library" directory) rdf_db.pl and xml_write.pl. Now
-a simple [library(rdf_db)]. at the query prompt will load all the
-relevant stuff. The slightly confusingly named rdf_load/1 will open the
-file at the supplied path, parse the RDF/XML into rdf/3 based terms, and
-then asserts them into a special RDF database named, by default, "user".
+To get going with rdf_db, we must first restart Prolog because rdf_db
+provides a conflicting definition for the rdf/3 predicate. Now, we load
+the RDF database infrastructure and a plugin that allows for downloading
+RDF from the web:
 
     ==
-    ?- rdf_load('bijan/xmlhack.rss').
+    ?- [library(semweb/rdf_db)].
+    ?- [library(semweb/rdf_http_plugin)].
+    ==
 
-    Yes
+The highly confusingly named rdf_load/1 will open a file or URL, parse
+the RDF/XML into rdf/3 based terms, and then asserts them into an RDF
+named graph, by default created from the URL from which we loaded the
+data:
+
+    ==
+    ?- rdf_load('http://xmlhack.com/rss10.php').
+    % Parsed "http://xmlhack.com/rss10.php" in 0.01 sec; 73 triples
+    true.
 
     ?- rdf(X,Y,Z).
-
-    X = 'http://xmlhack.com/rss10.php'
-    Y = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
+    X = 'http://xmlhack.com/rss10.php',
+    Y = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
     Z = 'http://purl.org/rss/1.0/channel' ;
-
-    X = 'http://xmlhack.com/rss10.php'
-    Y = 'http://purl.org/rss/1.0/title'
-    Z = literal('XMLhack')
-
-    Yes
+    X = 'http://xmlhack.com/rss10.php',
+    Y = 'http://purl.org/rss/1.0/title',
+    Z = literal('XMLhack') ;
+    X = 'http://xmlhack.com/rss10.php',
+    Y = 'http://purl.org/rss/1.0/link',
+    Z = literal('http://xmlhack.com/') .
+    ...
     ==
-
-(Prolog said "Yes" because I didn't ask it for any more answers. It says
-"No" when it can't find an answer, and in this case it had already found
-one.)
 
 Most of the predicates in rdf_db have two variants, the basic one and
 one with an extra argument. The extra argument specifies the particular
-RDF database which is to be the context of the predicate. Without that
-argument, the predicate is evaluated in the context of the current RDF
-database, which may be specified by the rdf_db/2 predicate. For example,
+RDF named graph which is to be the context of the predicate. Without
+that argument, the predicate is evaluated over the union of all named
+graph. Given [[Open Linked Data][http://linkeddata.org/]], we load
+information about Amsterdam:
 
     ==
-    ?-rdf_load('bijan/rdfiglog-2001-03-22.rdf', rdfiglog).
+    ?- rdf_load('http://dbpedia.org/resource/Amsterdam').
+    % Parsed "http://dbpedia.org/resource/Amsterdam" in 0.41 sec; 2,426 triples
+    true.
 
-    Yes
+    ?- rdf_graph(Graph).
+    Graph = 'http://xmlhack.com/rss10.php' ;
+    Graph = 'http://dbpedia.org/resource/Amsterdam' ;
+    false.
 
-    ?-rdf_db(CurrentDB,rdfiglog).
+    ?- rdf(S, P, literal('Amsterdam')).
+    S = 'http://dbpedia.org/resource/Amsterdam',
+    P = 'http://www.w3.org/2000/01/rdf-schema#label' ;
+    S = 'http://dbpedia.org/resource/Amsterdam',
+    P = 'http://www.w3.org/2000/01/rdf-schema#label' ;
+    S = 'http://dbpedia.org/resource/Amsterdam',
+    P = 'http://www.w3.org/2000/01/rdf-schema#label' .
+    ...
 
-    CurrentDB = user
-
-    Yes
-
-    ?-rdf_db(CurrentDB).
-
-    CurrentDB = rdfiglog
-
-    Yes
-
-    ?-rdf(X, Y, Z).
-
-    X = 'irc://irc.openprojects.net/rdfig'
-    Y = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
-    Z = 'http://xmlns.com/foaf/0.1/ChatChannel'
-
-    Yes
-
-    ?-rdf(X,Y,Z, user).
-
-    X = 'http://xmlhack.com/rss10.php'
-    Y = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
-    Z = 'http://purl.org/rss/1.0/channel'
-
-    Yes
+    ?- rdf(S, P, literal('Amsterdam'), 'http://xmlhack.com/rss10.php').
+    false.
     ==
 
 In the previous section, when I asserted the terms returned by
@@ -304,46 +311,54 @@ and that was how they were entered into the Prolog database. With
 rdf_db, the rdf/3 predicate is, in fact, a rule! Each ground level rdf
 statement is asserted as rdf/4 so that each statement's "provenance" can
 be determined (by the fourth argument). This is, of course, merely an
-implementation detail. One could replace rdf_db's use of the builtin
-Prolog knowledge base with something else.
+implementation detail.  In fact, rdf/4 is defined as `foreign' rule and
+transparently accesses a highly optimized storage subsystem written in
+the *C* language.
 
 The rdf_db library also has convenience predicates for asserting and
-retracting RDF statments, either from the current RDF database or from a
-named one. Perhaps more importantly, rdf_register_ns/2assigns prefixes
-to URIs in the standard XML namespace way but also permits the use of
-prefixed names ("QNames") in Prolog statements:
+retracting RDF statements, either from the default RDF named graph or
+from a named one. Perhaps more importantly, rdf_register_ns/2 assigns
+prefixes to URIs in the standard XML namespace way but also permits the
+use of prefixed names ("QNames") in Prolog statements:
 
     ==
-    ?-rdf_register_ns(dc, 'http://purl.org/dc/elements/1.1/').
+    ?- rdf_register_ns(dbr, 'http://dbpedia.org/resource/'),
+       rdf_register_ns(dbp, 'http://dbpedia.org/property/').
+    true.
 
-    Yes
+    ?- rdf(dbr:'Amsterdam', dbp:pushpinMap, O).
+    O = literal(lang(en, 'Netherlands')).
 
-    ?-rdf(X,dc:date,Y).
+    ?- rdf_assert(dbr:'Amsterdam', dbp:score, literal('10')).
+    true.
 
-    X = 'Description__5'
-    Y = literal('2001-03-22T00:00:01Z') ;
-    X = 'Description__7'
-    Y = literal('2001-03-22T00:00:18Z')
-
-    Yes
-
-    ?-rdf_assert('http://www.xmlhack.com/a/spurious/article', dc:creator, literal('A spurious author!')).
-
-    Yes
-
-    ?- rdf('http://www.xmlhack.com/a/spurious/article', dc:creator, Who).
-
-    Who = literal('A spurious author!')
-
-    Yes
-
-    ?-rdf_save('bijan/current-rdf-db-dumped-to-XML-format.rdf').
-
-    Yes
+    ?- rdf_save('Amsterdam.rdf',
+		[ graph('http://dbpedia.org/resource/Amsterdam') ]).
+    % Using namespace id ns1 for http://dbpedia.org/ontology/Place/
+    ...
+    % Saved 2,426 triples about 955 subjects into Amsterdam.rdf
+    true.
     ==
 
-The rdf_save/1 and /2 predicates will use the namespace declarations
-established by rdf_register_ns/2.
+The rdf_save/1 and rdf_save/2 predicates will use the namespace
+declarations established by rdf_register_ns/2. RDF/XML requires
+namespaces for predicates, so the library invents namespaces ns<N> for
+all not-declared prefixes.
+
+The library semweb/rdf_portray does the reverse, displaying the long
+names as "QNames" by defining rules for the Prolog portray/1 predicate.
+
+    ==
+    ?- [library(semweb/rdf_portray)].
+    %  library(semweb/rdfs) compiled into rdfs 0.01 sec, 27,984 bytes
+    % library(semweb/rdf_portray) compiled into rdf_portray 0.01 sec, 42,312 bytes
+    true.
+    ?- rdf(dbr:'Amsterdam', P, O).
+    P = dbp:demography12colProperty10,
+    O = literal(type(xsd:integer, '1879'))
+    ...
+    ==
+
 
 ---++ A Transformation Example
 
@@ -392,6 +407,7 @@ particular) has a wonderful facility for generating result trees, the
 Definite Clause Grammar (DCG). My use of DCGs to generate HTML is
 precisely analogous to using XSLT templates, with Prolog predicates
 serving the role of XPath expressions.
+
 
 ---++ Definite Clause Grammars
 
@@ -458,8 +474,8 @@ its definition:
 
     ==
     rss_html_list -->
-    	      page(\rss_list_head,
-                        \rss_list_body).
+	page(\rss_list_head,
+	     \rss_list_body).
     ==
 
 (The leading slash is a convention of the html_write library that
@@ -474,15 +490,15 @@ element_name(content).
 
     ==
     rss_list_head -->
-              html([title('XMLhack')]).
+	html([title('XMLhack')]).
     ==
 
 It's a little annoying to have the title hardcoded like that, so I'll
 add an argument to the predicate:
 
     ==
-    rss_list_head(PageTitle)-->
-            html([title(PageTitle)]).
+    rss_list_head(PageTitle) -->
+	html([title(PageTitle)]).
     ==
 
 This will do for the head. I want the body of the page to have a header,
@@ -491,12 +507,12 @@ to use the title of the page as the header of the body as well, I'll
 give rss_list_body an argument too.
 
     ==
-    rss_list_body (Header)-->
-      html([h2([align=center],[Header]),
-      %Note that the "h2" spec takes *two* lists as args,
-      %the first being the attributes, which can be spec'ed
-      %either as name=value, or name(value).
-      ul(\rss_list_items(Items))] ).
+    rss_list_body(Header)-->
+	html([h2([align=center],[Header]),
+	%Note that the "h2" spec takes *two* lists as args,
+	%the first being the attributes, which can be spec'ed
+	%either as name=value, or name(value).
+	ul(\rss_list_items(Items))] ).
     ==
 
 Both the head and body clauses need to get a value passed to them. In
@@ -504,8 +520,8 @@ this case, I'm going to pass the buck up to the caller of rss_html_list:
 
     ==
     rss_html_list(ChannelTitle) -->
-    	      page(\rss_list_head(ChannelTitle),
-                        \rss_list_body(ChannelTitle)).
+	page(\rss_list_head(ChannelTitle),
+ 	     \rss_list_body(ChannelTitle)).
     ==
 
 That's fine for the page head, but the body clause still has that
@@ -516,12 +532,13 @@ DCGs, stuff inside curly brackets {} is not treated as DCG clauses (and
 not expanded in the usual way -- see any Prolog text for details):
 
     ==
-    rss_list_body (Header)-->
-      {...},
-      %A query goes in there! Some predicates which bind Items.
+    rss_list_body(Header) -->
+	{...},
+	%A query goes in there! Some predicates which bind Items.
 
-      html([h2([align=center],[Header]),
-      ul(\rss_list_items(Items))] ).
+	html([ h2([align=center], [Header]),
+	       ul(\rss_list_items(Items))
+	     ]).
     ==
 
 I expect that the query which binds Items will bind a list of items, so
@@ -530,11 +547,11 @@ care of that:
 
     ==
     rss_list_items([First_item|Rest_of_items]) -->
-      html([li([\list_item_content(First_item)])]),
-      rss_list_items(Rest_of_items).
+	html([li([\list_item_content(First_item)])]),
+	rss_list_items(Rest_of_items).
 
-      rss_list_items([]) --> [].
-      %The base case: If the list is empty, just return an empty list.
+	rss_list_items([]) --> [].
+	%The base case: If the list is empty, just return an empty list.
     ==
 
 The final two production rules are simple, although both involve
@@ -542,10 +559,12 @@ queries:
 
     ==
     list_item_content(Item) -->
-      {...},? %A query that fetches the Item's Description.
-      html([\item_link(Item), br([]), Description]).
+	{...},? %A query that fetches the Item's Description.
+	html([\item_link(Item), br([]), Description]).
 
-    item_link(Item) --> {...}, %A query that fetches the item's Link and Title. html(i(a(href(Link),Title))).
+    item_link(Item) -->
+	{...}, %A query that fetches the item's Link and Title.
+	html(i(a(href(Link),Title))).
     ==
 
 That's it the template aspect of the grammar.
@@ -558,15 +577,16 @@ case, so simple calls to rdf/3 will do the job:
 
     ==
     list_item_content(Item) -->
-      {rdf(Item, dc:description, literal(Description))},
-      html([\item_link(Item), br([]), Description]).
+	{ rdf(Item, dc:description, literal(Description))
+	},
+	html([\item_link(Item), br([]), Description]).
 
-      item_link(Item) -->
-      %This is a conjunctive query, though each conjunct is independent.
-
-      {rdf(Item,rss:link,literal(Link)),
-       rdf(Item,rss:title,literal(Title))},
-      html(i(a(href(Link),Title))).
+    item_link(Item) -->
+	%This is a conjunctive query, though each conjunct is independent.
+  	{ rdf(Item,rss:link,literal(Link)),
+	  rdf(Item,rss:title,literal(Title))
+	},
+	html(i(a(href(Link),Title))).
     ==
 
 These queries are very simple. No need to walk up or down a tree. No
@@ -583,9 +603,9 @@ template.
 
     ==
     rss_title(Item, Title) :-
-        rdf(Item,rss:title,literal(Title)).
+	rdf(Item, rss:title, literal(Title)).
     rss_link(Item, Link) :-
-        rdf(Item,rss:link,literal(Link)).
+        rdf(Item, rss:link, literal(Link)).
     ==
 
 The query for rss_list_body is more complex. The basic form is clear: I
@@ -593,12 +613,13 @@ want the rss:items, so I ask for rdf(Item, rdf:type, rss:item). But this
 only gives me the first rss:item found. I need to say, "Give me, in a
 list, all the values that satisfy this query". There are several
 predicates that have this or similar meaning. In this case, I'll use
-set_of/3, which has the additional virtue of eliminating duplicates:
+findall/3, followed by sort/2 to eliminate duplicates:
 
     ==
-    set_of(Item, %The variable which gets bound to the desired value.
-       rdf(Item, rdf:type, rss:item), %The query.
-       Items) %The variable that gets bound to a list of the results.
+    findall(Item, %The variable which gets bound to the desired value.
+            rdf(Item, rdf:type, rss:item), %The query.
+            Items), %The variable that gets bound to a list of the results.
+    sort(Items, Unique)
     ==
 
 This, when popped into rss_list_body, completes the transforming
@@ -613,112 +634,147 @@ all to a specified file. I could call it from a GUI front end or just
 package it up in a shell or CGI script. I backtranslated the grammar
 into an XSLT stylesheet. Comparing the two is instructive.
 
+---+++ Boilerplate setup and namespace declarations
 
-Prolog with DCG  	Comparison with XSLT
+    ==
+    :- use_module(library(rdf_db)).
+    :- use_module(library(html_write)).
 
-:- use_module(library(rdf_db)).
-:- use_module(library(html_write)).
+    rdf_register_ns(rss, 'http://purl.org/rss/1.0/'),
+    rdf_register_ns(dc,  'http://purl.org/dc/elements/1.1/'),
 
-rss_to_html_list(Resource, Source, Target) :-
+    ==
 
-	Boilerplate setup, akin to
+vs.
 
-"<?xml version="1.0" encoding="iso-8859-1"?>
-<xsl:stylesheet version="1.0"...>"
+    ==
+    <?xml version="1.0" encoding="iso-8859-1"?>
+    <xsl:stylesheet version="1.0"
+		    xmlns:rss="http://purl.org/rss/1.0/"
+		    xmlns:dc="http://purl.org/dc/elements/1.1/">
+    ==
 
-  rdf_register_ns(rss, 'http://purl.org/rss/1.0/'),
-  rdf_register_ns(dc,
-               'http://purl.org/dc/elements/1.1/'),
+---+++ Rolling
 
-	Namespace declarations, although two less than are necessary for the XSLT. Equivalent to the following attributes in the xsl:stylesheet:
+The first line corresponds to a command line option designating the
+source document. rdf_load/1 parses the file and creates an in-memory (in
+this implementation) representation of the RDF statments that may be
+queried by means of appropriate predicates (like rdf/3). An XSLT
+processor would take the designated file and parse it into an in-memory
+representation (typically) -- often a DOM tree -- which may be queried
+by means of appropriate XPath expressions.
 
-"xmlns:rss="http://purl.org/rss/1.0/" xmlns:dc="http://purl.org/dc/elements/1.1/">"
+The second line is a query which grabs a value and binds the variable
+Title to it. This is roughly equivalent to
 
-  rdf_load(Source),
-  rdf(Resource, rss:title, literal(Title)),
+    ==
+    rss_to_html_list(Resource, Source, Target) :-
+	rdf_load(Source),
+	rdf(Resource, rss:title, literal(Title)),
+	...
+    ==
 
+    ==
+    <xsl:variable name="title"
+	select="rdf:RDF/rss:channel/rss:title"/>
+    ==
 
-	The first line corresponds to a command line option designating the source document. rdf_load/1 parses the file and creates an in-memory (in this implementation) representation of the RDF statments that may be queried by means of appropriate predicates (like rdf/3). An XSLT processor would take the designated file and parse it into an in-memory representation (typically) -- often a DOM tree -- which may be queried by means of appropriate XPath expressions.
+One point of interest: Binding and referencing variables in XSLT is
+fairly painful. It's not just that it's nastily verbose (okay, it's
+mainly that it's nastily verbose), but that there are lots of different
+rules and contexts for getting back the value. Aside from that, XSLT has
+a fairly straightforward "assignment" model of binding (explicit)
+variables. The Prolog variable is (1) structural (i.e., the variable is
+just a "hole" in the larger term, and (2) the variable is "two-way"
+(i.e., you can pass a value to the query by that variable or get one out
+through it).
 
-The second line is a query which grabs a value and binds the variable Title to it. This is roughly equivalent to
+First line causes the DCG to be evaluated and the result bound to
+TargetHtml. Second line opens the result file for writing (both of these
+probably fall in the scope of command line option or calling function
+stuff for XSLT). print_html/1 is an html_write convenience predicate
+which takes the result tree from the DCG grammar and serializes it in
+standard HTML format. This is what to change if, for example, you'd want
+XHTML output.
 
-<xsl:variable name="title"
-select="rdf:RDF/rss:channel/rss:title"/>
+    ==
+	phrase(rss_html_list(Title), TargetHtml),
+	tell(Target),
+	print_html(TargetHtml),
+	told. '
+    ===
 
-One point of interest: Binding and referencing variables in XSLT is fairly painful. It's not just that it's nastily verbose (okay, it's mainly that it's nastily verbose), but that there are lots of different rules and contexts for getting back the value. Aside from that, XSLT has a fairly straightforward "assignment" model of binding (explicit) variables. The Prolog variable is (1) structural (i.e., the variable is just a "hole" in the larger term, and (2) the variable is "two-way" (i.e., you can pass a value to the query by that variable or get one out through it).
+    ==
+    <xsl:output method="html"/>
+    ==
 
-  phrase(rss_html_list(Title), TargetHtml),
-  tell(Target),
+    ==
+    rss_html_list(ChannelTitle) -->
+	page(\rss_list_head(ChannelTitle),
+             \rss_list_body(ChannelTitle)).
 
-	First line causes the DCG to be evaluated and the result bound to TargetHtml. Second line opens the result file for writing (both of these probably fall in the scope of command line option or calling function stuff for XSLT).
+    ==
 
-  print_html(TargetHtml),
-  told.
+    ==
+    <xsl:template match="/">
+        <html>
+        ...
+        </html>
+    </xsl:template>
+    ==
 
+    ==
+    rss_list_head(PageTitle) -->
+	html([title([PageTitle])]).
 
+    rss_list_body(Header) -->
+    	{ findall(Item,
+		  rdf(Item, rdf:type, rss:item),
+                  Items)
+	  sort(Items, Unique)
+        },
 
-<xsl:output method="html"/>
+	html([ h2(align(center),[Header]),
+               ul(\rss_list_items(Unique))
+	     ]).
+    ==
 
-print_html/1 is an html_write convenience predicate which takes the result tree from the DCG grammar and serializes it in standard HTML format. This is what to change if, for example, you'd want XHTML output.
+    ==
+    <head>
+     <title>
+      <xsl:value-of select="$title"/>
+     </title>
+    </head>
 
-rss_html_list(ChannelTitle) -->
-    page(\rss_list_head(ChannelTitle),
-         \rss_list_body(ChannelTitle)).
+    <body>
+	 <h2 align="center">
+	   <xsl:value-of select="$title"/>
+	 </h2>
+	 <ul>
+	   <xsl:apply-templates
+	       select="rdf:RDF/rss:item"/>
+	 </ul>
+    </body>
+    ==
 
+    ==
+    rss_list_items([First_item|Rest_of_items]) -->
+	html([li([\list_item_content(First_item)])]),
+	rss_list_items(Rest_of_items).
+    rss_list_items([]) --> [].
+    ==
 
+    ==
+    <xsl:template match="rdf:RDF/rss:item">
+       <li>...</li>
+    </xsl:template>
+    ==
 
-<xsl:template match="/">
-   <html>
-       ...
-   </html>
-</xsl:template>
-
-rss_list_head(PageTitle) -->
-     html([title([PageTitle])]).
-
-
-rss_list_body(Header) -->
-    {setof(Item,
-           rdf(Item, rdf:type, rss:item),
-           Items)},
-
-    html([h2(align(center),[Header]),
-          ul(\rss_list_items(Items))]).
-
-
-
-<head>
- <title>
-  <xsl:value-of select="$title"/>
- </title>
-</head>
-
-<body>
-     <h2 align="center">
-       <xsl:value-of select="$title"/>
-     </h2>
-     <ul>
-       <xsl:apply-templates
-           select="rdf:RDF/rss:item"/>
-     </ul>
-</body>
-
-rss_list_items([First_item|Rest_of_items]) -->
-    html([li([\list_item_content(First_item)])]),
-    rss_list_items(Rest_of_items).
-rss_list_items([]) --> [].
-
-
-
-<xsl:template match="rdf:RDF/rss:item">
-   <li>...</li>
-</xsl:template>
-
-list_item_content(Item) -->
-    {rdf(Item,dc:description,literal(Description))},
-    html([\rss_link(Item),br([]),Description]).
-
-
+    ==
+    list_item_content(Item) -->
+	{rdf(Item,dc:description,literal(Description))},
+	html([\rss_link(Item),br([]),Description]).
+    ==
 
 ...
 <br/>
