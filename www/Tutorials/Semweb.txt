@@ -200,12 +200,9 @@ applies it to each member of a supplied list:
 
     ==
     ?- load_rdf('xmlhack.rss', List_of_RDF_statements),
-    |  maplist(assert, List_of_RDF_statements).
+       maplist(assert, List_of_RDF_statements).
     List_of_RDF_statements = [rdf('http://xmlhack.com/rss10.php ...
     ==
-
-(Note, the | is the _continuation_ prompt in SWI-Prolog and not a bit
-of syntax.)
 
 After this query, I have quite a few RDF statements in my Prolog
 knowledge base.  Note that if Prolog waits with the caret behind
@@ -355,6 +352,7 @@ names as "QNames" by defining rules for the Prolog portray/1 predicate.
     %  library(semweb/rdfs) compiled into rdfs 0.01 sec, 27,984 bytes
     % library(semweb/rdf_portray) compiled into rdf_portray 0.01 sec, 42,312 bytes
     true.
+
     ?- rdf(dbr:'Amsterdam', P, O).
     P = dbp:demography12colProperty10,
     O = literal(type(xsd:integer, '1879'))
@@ -816,6 +814,13 @@ seemed much clearer than the DCGs. A large part of this is that I'm more
 accustomed to writing HTML and HTML templates with embedded code than
 writing DCG templates. But I'm finding that the DCGs are more helpful
 for thinking through the problem.
+
+[JW] Also note that XSLT only converts XML data. RDF is already
+getting problematic because many different XML documents result in the
+same set of RDF triples and should thus produce the same output. The
+Prolog version can use the results of any Prolog query and is not
+limited to XML transformation.
+
 
 ---++ Conclusion
 
