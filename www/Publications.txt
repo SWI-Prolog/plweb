@@ -36,3 +36,9 @@ applications][<swipub:jan-phd.pdf>]] (4.4MB) contains
 revised versions of most of the above papers supplemented with a broader
 overview of applying Prolog for the development of large-scale
 applications.  [[BibTeX][<swipub:jan-phd.bib>]]
+
+---++ Talks
+
+    * _|Enabling serendipitous search on the Web of Data using Prolog|_
+      Invited tutorial, ICPL-09, Pasadena.
+      [[OpenOffice][<pub:ICLP09-Tutorial.odp>]] [[PowerPoint][<pub:ICLP09-Tutorial.ppt>]]
