@@ -41,4 +41,5 @@ applications.  [[BibTeX][<swipub:jan-phd.bib>]]
 
     * _|Enabling serendipitous search on the Web of Data using Prolog|_
       Invited tutorial, ICPL-09, Pasadena.
-      [[OpenOffice][<pub:ICLP09-Tutorial.odp>]] [[PowerPoint][<pub:ICLP09-Tutorial.ppt>]]
+      [[OpenOffice][<swipub:ICLP09-Tutorial.odp>]]
+      [[PowerPoint][<swipub:ICLP09-Tutorial.ppt>]]
