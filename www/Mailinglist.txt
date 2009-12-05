@@ -17,6 +17,7 @@ site][<oldmail:>]]
 ---++ Related mailinglists
 
     * [[mailinglist for CHR][<chr_mail:>]]
+    * [[mailinglist for ClioPatria][http://mailman.few.vu.nl/mailman/listinfo/cliopatria-list]]
 
 ---++ The Bugzilla bugtracking system
 
