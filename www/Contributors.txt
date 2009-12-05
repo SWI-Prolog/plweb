@@ -24,14 +24,17 @@ People are listed in alphabetical order.
   * Ulrich Neumerkel (testing, `purification', patches)
   * Uwe Lesta (interface to C#)
   * Vitor Santos Costa (various libraries copied from [[YAP][http://www.dcc.fc.up.pt/~vsc/Yap/]])
+  * Willem Robert van Hage (space package: multi-dimensional indexing)
 
 ---++ Other _Contributors_
 
   * Bart Demoen (advice, notably constraint infrastructure)
   * Bob Wielinga (finding projects to support SWI-Prolog)
   * Guus Schreiber (providing a new home at the VU University, Amsterdam)
-  * Mike Elston (testing, funding of GMP and SSL)
-  * Paulo Moura (testing, provides MacOS ports, made [[Logtalk][http://logtalk.org/]] available)
+  * [[SecuritEase][http://www.securitease.co.nz/]] (Mike Elston;
+    testing, funding of GMP, SSL and the 5.9.x stack-shifter)
+  * Paulo Moura (testing, provides MacOS ports, made
+    [[Logtalk][http://logtalk.org/]] available)
   * Steve Moyle (funding of PlUnit and PlDoc)
 
 ---++ _|Open Source|_ projects used by SWI-Prolog
