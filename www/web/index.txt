@@ -1,6 +1,6 @@
----+ SWI-Prolog for the (semantic) web 
+---+ SWI-Prolog for the (semantic) web
 
-The (semantic) web is one of the most important application area for
+The (semantic) web is one of the most promising application areas for
 SWI-Prolog. Prolog handles the semantic web RDF model naturally, where
 RDF provides a stable model for knowledge representation with shared
 semantics. It turns out that Prolog is also quite capable of providing
@@ -19,13 +19,25 @@ processing.
     HTML pages and JSON.
 
     $ [[RDF storage and query library][</pldoc/package/semweb.html>]] :
-    Load/save RDF and query it.  Also provides simple RDFS and OWL
-    support.
+    Load/save RDF and query it.  The library loads and saves XML/RDF
+    and Turtle.  Its database scales to approx. 20M triples on 32-bit
+    hardware and 300M triples on a 64-bit machine with 64-Gb memory.
+    Also provides simple RDFS and OWL support.
+
+    $ [[Spatial indexing library][</pldoc/package/space.html>]] :
+    SWI-Prolog interface to Spatial Index and GEOS libraries, providing
+    spatial indexing of URIs. Supports import and export to GML, KML,
+    and RDF with GeoRSS Simple, GeoRSS GML, and W3C WGS84 vocabulary
+    properties.
+
+    [[alert.gif]] This package is provided in the source, but not
+    (yet) in the binary distributions. The source contains
+    instructions for building the dependencies and the indexer itself.
 
 
 ---++ Seperately distributed packages
 
-Some packages are distributed separately.  
+Some packages are distributed separately.
 
 
     $ [[The Triple20 ontology editor][Triple20.txt]] :
@@ -44,7 +56,9 @@ Some packages are distributed separately.
     Provides access to OWL ontologies at the level of the abstract
     syntax. Can interact with external DL reasonder using
     [[DIG][<dig:>]].  The project is [[hosted on
-    GitHUB][http://wiki.github.com/vangelisv/thea]]
+    GitHUB][http://wiki.github.com/vangelisv/thea]].  See also
+    [[Blip Blog, Logic Programming in Biology][http://blipkit.wordpress.com/category/web/semantic-web-web/]]
 
 @see [[Publications][</Publications.html>]]
 @see [[documentation overview][</pldoc/index.html>]]
+@see [[DBTune blogs tagged SWI-Prolog][http://blog.dbtune.org/tag/swi-prolog]]
