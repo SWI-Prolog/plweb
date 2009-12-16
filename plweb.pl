@@ -196,6 +196,13 @@ serve_wike(String) :-
 	->  true
 	;   Title = 'SWI-Prolog'
 	),
+	setup_call_cleanup(b_setval(pldoc_options,
+				    [ prefer(manual)
+				    ]),
+			   serve_wiki_page(Title, DOM),
+			   nb_delete(pldoc_options)).
+
+serve_wiki_page(Title, DOM) :-
 	reply_html_page([ title(Title)
 			],
 			DOM).
