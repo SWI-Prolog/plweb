@@ -2,8 +2,8 @@
   * *|Download.txt|* | ([[Browse GIT][</git>]])
   * [[Contrib][</contrib/>]]
 --
-  * *|[[FAQ][</FAQ/>]]|*
-  * *|[[Manual][</pldoc/index.html>]]|* | ([[More docs][Documentation.txt]])
+  * *|[[FAQ][</FAQ/>]]|* | *|[[HOWTO][</howto/>]]|*
+  * *|[[Manual][</pldoc/index.html>]]|*
   * Mailinglist.txt
   * Support.txt
   * Links.txt
