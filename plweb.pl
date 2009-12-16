@@ -42,6 +42,7 @@
 :- use_module(library(http/html_head)).
 :- use_module(library(http/mimetype)).
 :- use_module(library(http/http_error)).
+:- use_module(library(http/http_parameters)).
 :- use_module(library(settings)).
 :- use_module(library(error)).
 :- use_module(library(debug)).
@@ -160,7 +161,13 @@ serve_file('',  Dir, Request) :-
 	->  true
 	;   http_dirindex(Request, Dir)
 	).
-serve_file(txt, File, _Request) :- !,
+serve_file(txt, File, Request) :-
+	http_parameters(Request,
+			[ format(Format, [ oneof([raw,html]),
+					   default(html)
+					 ])
+			]),
+	Format == html, !,
 	read_file_to_codes(File, String, []),
 	b_setval(pldoc_file, File),
 	call_cleanup(serve_wike(String),
