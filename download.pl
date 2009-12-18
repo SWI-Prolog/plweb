@@ -395,7 +395,7 @@ download(Request) :-
 			     file_errors(fail)
 			   ]), !,
 	(   exists_directory(AbsFile)
-	->  http_reply_dirindex(AbsFile, [], Request)
+	->  http_reply_dirindex(AbsFile, [unsafe(true)], Request)
 	;   remote_ip(Request, Remote),
 	    broadcast(download(Download, Remote)),
 	    http_reply_file(AbsFile, [unsafe(true)], Request)

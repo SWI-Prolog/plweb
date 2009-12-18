@@ -141,6 +141,7 @@ user:url_path(serql,	 'http://www.openrdf.org').
 user:file_search_path(document_root, plweb(www)).
 user:file_search_path(plgit,	     plweb(git)).
 user:file_search_path(icons, 	     document_root(icons)).
+user:file_search_path(css, 	     document_root(css)).
 user:file_search_path(cgi_bin,	     plweb('git-web')).
 user:file_search_path(download,	     plweb(download)).
 user:file_search_path(gitweb,	     plweb('git-web')).

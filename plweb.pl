@@ -108,13 +108,10 @@ favicon(Request) :-
 
 serve_page(Request) :-
 	memberchk(path_info(Relative), Request),
+	Spec =.. [ document_root(Relative) ],
+	http_safe_file(Spec, []),
 	find_file(Relative, File), !,
-	absolute_file_name(document_root(.), DocRoot),
-	(   atom_concat(DocRoot, _, File)
-	->  serve_file(File, Request)
-	;   memberchk(path(Path), Request),
-	    permission_error(access, http_location, Path)
-	).
+	serve_file(File, Request).
 serve_page(Request) :-
 	\+ memberchk(path_info(_), Request), !,
 	serve_page([path_info('index.html')|Request]).
@@ -159,7 +156,7 @@ serve_file('',  Dir, Request) :-
 	(   sub_atom(Dir, _, _, 0, /),
 	    serve_index_file(Dir, Request)
 	->  true
-	;   http_reply_dirindex(Dir, [], Request)
+	;   http_reply_dirindex(Dir, [unsafe(true)], Request)
 	).
 serve_file(txt, File, Request) :-
 	http_parameters(Request,
