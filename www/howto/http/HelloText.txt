@@ -1,8 +1,3 @@
----+ How to create a web-service easily?
-
-Creating web-services with SWI-Prolog is a breeze. This howto is
-intended as your first bluffer's guide.
-
 ---++ Hello World!
 
 Below is the source from our first web-server. It serves a single page,
@@ -23,7 +18,9 @@ the three elements of the page:
     to write a CGI-Document: a number of _|name: value|_ -pair
     lines, followed by two newlines, followed by the document
     content,  The only obligatory header line is the
-    =|Content-type:|= <mime-type> header.
+    =|Content-type:|= <mime-type> header.  Printing can be
+    done using any Prolog printing predicate, but the format-family
+    is the most useful.  See format/2.
 
 ==
 :- use_module(library(http/thread_httpd)).
@@ -39,11 +36,12 @@ hello_world(_Request) :-				% (3)
 	format('Hello World!~n').
 ==
 
-To run this server, put the above code in a file, load the file into
-Prolog and run the goal below. 5000 is the port-number. This can be any
-number between 1001 and 65000 (depending on your OS). How direct your
-browser to http://localhost:5000/hello_world and enjoy your first
-Prolog-based web-server!
+To run this server, put the above code in a
+[[file][<hello_world.pl>]], load the file into Prolog and run the
+goal below. 5000 is the port-number. This can be any number between 1001
+and 65000 (depending on your OS). Now direct your browser to
+http://localhost:5000/hello_world and enjoy your first Prolog-based
+web-server!
 
 ==
 ?- server(5000).
@@ -54,4 +52,9 @@ Prolog-based web-server!
 Oops, we do not need that. The [[full
 manual][</pldoc/package/http.html>]] gives options for _redirecting_
 requests from Apache to our server, so that your server is reachable on
-the default port 80.
+the default port 80. Actually, the SWI-Prolog HTTP server libraries are
+very much like Tomcat, but then for Prolog. The [[SWI-Prolog
+website][http://www.swi-prolog.org/]] is handled by SWI-Prolog,
+redirected from an Apache server.
+
+@see Next: Developing.txt
