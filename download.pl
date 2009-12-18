@@ -33,13 +33,13 @@
 :- use_module(library(http/http_path)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/dcg_basics)).
+:- use_module(library(http/http_dirindex)).
 :- use_module(library(broadcast)).
 :- use_module(library(pairs)).
 :- use_module(library(lists)).
 :- use_module(library(apply)).
 :- use_module(library(error)).
 :- use_module(wiki).
-:- use_module(http_dirindex).
 
 %%	download(+Request) is det.
 %
@@ -395,7 +395,7 @@ download(Request) :-
 			     file_errors(fail)
 			   ]), !,
 	(   exists_directory(AbsFile)
-	->  http_dirindex(Request, AbsFile)
+	->  http_reply_dirindex(AbsFile, [], Request)
 	;   remote_ip(Request, Remote),
 	    broadcast(download(Download, Remote)),
 	    http_reply_file(AbsFile, [unsafe(true)], Request)

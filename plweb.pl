@@ -52,6 +52,7 @@
 :- use_module(library(occurs)).
 :- use_module(library(pairs)).
 :- use_module(library(thread_pool)).
+:- use_module(library(http/http_dirindex)).
 
 :- use_module(parms).
 :- use_module(page).
@@ -60,7 +61,6 @@
 :- use_module(http_cgi).
 :- use_module(gitweb).
 :- use_module(update).
-:- use_module(http_dirindex).
 :- use_module(autocomplete).
 :- use_module(customise).
 
@@ -159,7 +159,7 @@ serve_file('',  Dir, Request) :-
 	(   sub_atom(Dir, _, _, 0, /),
 	    serve_index_file(Dir, Request)
 	->  true
-	;   http_dirindex(Request, Dir)
+	;   http_reply_dirindex(Dir, [], Request)
 	).
 serve_file(txt, File, Request) :-
 	http_parameters(Request,
