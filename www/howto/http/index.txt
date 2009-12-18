@@ -5,3 +5,4 @@ intended as your first bluffer's guide.
 
     * [[Hello World][HelloText.txt]]
     * [[Development support for web-servers][Developing.txt]]
+    * [[Hello World in HTML][HelloHTML.txt]]
