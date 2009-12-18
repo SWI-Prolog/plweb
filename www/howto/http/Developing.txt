@@ -65,3 +65,4 @@ from the HTTP locations, so the following now helps to edit the source:
 ?- edit('/hello_world').
 ==
 
+@see Next: [[Hello World in HTML][HelloHTML.txt]]
