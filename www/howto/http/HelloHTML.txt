@@ -5,12 +5,12 @@ HTML can be written the same way as in HelloText.txt, using the
 
 However, this is a rather error-prone process. This page introduces
 library(http/html_write), which translated Prolog terms into well-formed
-HTML.  We start with a simple [[example][<hello_html.pl>]]:
+HTML.  We start with the simple [[example][<hello_html.pl>]] below.
 
 ==
 :- use_module(library(http/thread_httpd)).
-:- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/html_write)).		% new
 
 :- http_handler(root(hello_world), hello_world, []).
 

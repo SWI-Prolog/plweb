@@ -1,6 +1,6 @@
 :- use_module(library(http/thread_httpd)).
-:- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/html_write)).
 
 :- http_handler(root(hello_world), hello_world, []).
 
