@@ -55,3 +55,14 @@ module(Module) -->
 	html(tr([td(Module), td(-)])).
 ==
 
+We managed to recover some of the disadvantages compared to writing
+HTML/XML: we have _reusable_ skeletons and components: we can reuse
+skeletons as in the top-box by making passing arguments that fill the
+table header and body and we can reuse components as defined in the
+bottom-box in different tables.
+
+In the next example, we extend our program by making more use of rules
+and dealing with HTTP-_parameters_ (i.e., ?name=value&...)
+
+@see The source: list_modules.pl
+@see Next: HTMLParams.txt

@@ -1,0 +1,19 @@
+---++ Adding style (CSS and simple JavaScript) to your pages
+
+Adding style using CSS and JavaScript seems easy: just link the required
+style-sheet and javascript source from the page-head and add the
+appropriate attributes (class, id, onXXX) to your HTML elements. Even
+better, this works! So, what is wrong with it?
+
+Well, *|it breaks the reusability|*. Why? Think of our
+=|\predicates_ul(Preds)|= that created an 1980-ugly unnumbered list of
+predicates. If we add style to the elements, we end-up with ugly HTML
+that cannot be reused with different skins and CSS programming that must
+be done in Prolog. This harms hiring a CSS-wizard to do the nice styling
+in a CSS file that we, programmers, cannot do. If we put the style in a
+file however, we cannot just use =|\predicates_ul(Preds)|= anywhere in
+our code, but we also have to adjust the page header. I.e., whenever we
+create a page-header, we must be aware of all components we include and
+what style we need for them. Same story for JavaScript that can be
+needed by the component.
+

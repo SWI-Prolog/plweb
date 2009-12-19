@@ -7,6 +7,8 @@ intended as your first bluffer's guide.
     * [[Development support for web-servers][Developing.txt]]
     * [[Hello World in HTML][HelloHTML.txt]]
     * [[Rule definition facilities (html//1 rules)][HTMLRules.txt]]
+    * [[Processing HTTP-parameters][HTMLParams.txt]]
+    * [[Adding style (CSS and simple JavaScript) to your pages][HTMLStyle.txt]]
 
 This is work in progress!   If you want to contribute or comment,
 send mail to [[me][<mailto:jan@swi-prolog.org>]] or to the
