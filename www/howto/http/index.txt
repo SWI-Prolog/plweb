@@ -6,3 +6,8 @@ intended as your first bluffer's guide.
     * [[Hello World][HelloText.txt]]
     * [[Development support for web-servers][Developing.txt]]
     * [[Hello World in HTML][HelloHTML.txt]]
+    * [[Rule definition facilities (html//1 rules)][HTMLRules.txt]]
+
+This is work in progress!   If you want to contribute or comment,
+send mail to [[me][<mailto:jan@swi-prolog.org>]] or to the
+[[mailinglist][</Mailinglist.html>]]

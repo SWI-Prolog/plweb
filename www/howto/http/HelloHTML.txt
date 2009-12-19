@@ -58,10 +58,21 @@ lists of terms, (4 and 5) show that & and <> should _|not be escaped|_.
 5.	p(['we can also use ', i('A<B'), ' without escaping.'])
 ==
 
+Now, you may ask *|"Where's the beef?"|* True, this syntax is surely
+less readable than HTML or XML. This way of producing web-pages is
+intended for _dynamic_ web-pages. Fully static pages are much better
+[[served from files][<ServeFiles.html>]]. For mixed files with large
+static parts and e.g., a dynamic table, [[PWP][PWP.txt]] is a the
+Prolog-based answer to PHP, ASP, JSP, etc.
 
-
+One way to deploy the above described library(http/html_write) is to
+use Prolog data-manipulation to create the Prolog term that describes
+the body and then pass it to reply_html_page/2.  The other is to use
+the [[rule definition facilities][<HTMLRules.html>]].
 
 Note that [[PceEmacs][</PceEmacs.html>]] has support for colouring HTML
 elements:
 
 			[[PceEmacsHello.png]]
+
+@see Next: [[Rule definition facilities][<HTMLRules.html>]]
