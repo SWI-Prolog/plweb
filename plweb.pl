@@ -30,7 +30,6 @@
 :- module(plweb,
 	  [ server/0
 	  ]).
-%:- use_module(limit).
 
 :- use_module(library(pldoc)).
 :- use_module(library(pldoc/doc_wiki)).
