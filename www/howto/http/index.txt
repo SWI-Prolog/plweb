@@ -1,7 +1,8 @@
 ---+ How to create a web-service easily?
 
 Creating web-services with SWI-Prolog is a breeze. This howto is
-intended as your first bluffer's guide.
+intended as your first bluffer's guide.  All examples come with
+fully operational source-code.
 
     * [[Hello World][HelloText.txt]]
     * [[Development support for web-servers][Developing.txt]]
