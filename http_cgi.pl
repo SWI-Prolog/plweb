@@ -28,7 +28,8 @@
 */
 
 :- module(http_cgi,
-	  [ http_run_cgi/2		% +Script, +Request
+	  [ http_run_cgi/2,		% +Script, +Request
+	    http_cgi_handler/2		% +Alias, +Request
 	  ]).
 :- use_module(library(process)).
 :- use_module(library(socket)).
@@ -39,32 +40,44 @@
 
 /** <module> Run CGI scripts from the SWI-Prolog web-server
 
-Run external scripts.  This module provides two interfaces:
+Run CGI scripts.  This module provides two interfaces:
 
 	* http_run_cgi/2 can be used to call a CGI script
-	located exernally
+	located exernally.  This is typically used for an
+	individual script used to extend the server functionality.
 
 	* Setup a path =cgi_bin= for absolute_file_name/3.  If
-	this is present, calls to /cgi-bin/... are translated into
+	this path is present, calls to /cgi-bin/... are translated into
 	calling the script.
 
 @tbd complete environment translation.  See env/3.
 @tbd testing.  Notably for POST and PUT commands.
-@tbd the Windows version of library(process) does not yet
-     support the =env= option.
 @see http://hoohoo.ncsa.uiuc.edu/cgi/env.html
 */
 
 :- multifile
 	environment/2.
 
-:- http_handler(root('cgi-bin'), run_script, [ prefix ]).
+:- http_handler(root('cgi-bin'), http_run_cgi(cgi_bin),
+		[prefix, spawn([])]).
 
-run_script(Request) :-
+%%	http_cgi_handler(+Alias, +Request)
+%
+%	Locate a CGI script  in  the   file-search-path  Alias  from the
+%	=path_info=  in  Request   and   execute    the   script   using
+%	http_run_cgi/2. This library installs one handler using:
+%
+%	  ==
+%	  :- http_handler(root('cgi-bin'), http_run_cgi(cgi_bin),
+%			  [prefix, spawn([])]).
+%	  ==
+
+http_cgi_handler(Alias, Request) :-
 	select(path_info(PathInfo), Request, Request1),
 	ensure_no_leading_slash(PathInfo, Relative),
 	path_info(Relative, Script, Request1, Request2),
-	absolute_file_name(cgi_bin(Script), ScriptFileName,
+	Spec =.. [Alias, Script],
+	absolute_file_name(Spec, ScriptFileName,
 			   [ access(execute)
 			   ]),
 	http_run_cgi(ScriptFileName, Request2).
@@ -84,8 +97,16 @@ path_info(Script, Script, Request, Request).
 %%	http_run_cgi(+Script, +Request) is det.
 %
 %	Execute the given CGI script.
+%
+%	@param	Script specifies the location of the script as a
+%		specification for absolute_file_name/3.
+%	@param	Request holds the current HTTP request passed from
+%		the HTTP handler.
 
-http_run_cgi(Script, Request) :-
+http_run_cgi(ScriptSpec, Request) :-
+	absolute_file_name(ScriptSpec, Script,
+			   [ access(execute)
+			   ]),
 	input_handle(Request, ScriptInput),
 	findall(Name=Value,
 		env(Name,
@@ -125,10 +146,7 @@ setup_input(pipe(Stream), Request) :-
 	;   Len = unknown
 	),
 	thread_create(copy_post_data(In, Stream, Len), _,
-		      [ detached(true),
-			local(1000),
-			global(1000),
-			trail(1000)
+		      [ detached(true)
 		      ]).
 
 copy_post_data(In, Script, unknown) :-
