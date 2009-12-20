@@ -13,3 +13,12 @@ intended as your first bluffer's guide.
 This is work in progress!   If you want to contribute or comment,
 send mail to [[me][<mailto:jan@swi-prolog.org>]] or to the
 [[mailinglist][</Mailinglist.html>]]
+
+---++ Plans (todo)
+
+    * Style-sheet/css handling (library(http/html_head)) in HTMLStyle.txt
+    * AJAX interaction (YUI, simple table, tree, N-Queens code?)
+    * PWP
+    * Logfiles and processing thereof
+    * Stress-testing by replaying logfiles
+    * Scalability issues: pool-size, spawn, thread-pools
