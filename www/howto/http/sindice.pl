@@ -22,6 +22,7 @@ Jan Wielemaker.  Main changes:
 @author Yves Raimond, C4DM, Queen Mary, University of London
 @author Jan Wielemaker
 @see    http://sindice.com/
+@tbd	Sindice V2: http://sindice.com/developers/api#QueryLanguages
 */
 
 
