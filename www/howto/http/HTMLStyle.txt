@@ -20,10 +20,86 @@ needed by the component.
 ---++ The demo: A Simple Linked Open Data browser
 
 Now that we covered the basics, it is time for a bit more sexy demo:
-a browser for [[Linked Open Data][http://linkeddata.org/]].
+a browser for [[Linked Open Data][http://linkeddata.org/]]. Our program
+consists of three files.  The file lod_crawler.pl is the main topic of
+this page.
 
+    * lod_crawler.pl is the web-server implementing the crawler
+    * [[lod.css][<lod.css>]] is the CSS style-sheet to make it look nice
+    * lod.pl is Prolog code to get data from the web-of-data.
 
+First, our familiar declarations. The first block gets the HTML and HTTP
+infrastructure that we need. The library(http/html_head) is new and
+deals with dependencies. The second block gets the RDF and Linked Open
+Data (LOD) infrastructure and the third block defines the HTTP locations
+that we serve. We define a welcome page (/), a page to handle search
+requests (/search?q=Query), a page to display a result (/resource?r=URI)
+and because we are going to deal with a style-sheet, we define a new
+alias =css= (last block) and use it to define the HTTP location of our
+style-sheet.  The handler for the style-sheet uses the library-predicate
+http_reply_file/3 to serve a static file.
 
+==
+:- use_module(library(http/thread_httpd)).
+:- use_module(library(http/http_dispatch)).
+:- use_module(library(http/html_write)).
+:- use_module(library(http/http_parameters)).
+:- use_module(library(http/html_head)).		% new
 
+:- use_module(library(semweb/rdf_db)).
+:- use_module(lod).
 
-@see Sources: lod_crawler.pl lod.pl lod.css
+:- http_handler(root(.),	home,	  []).
+:- http_handler(root(search),	search,	  []).
+:- http_handler(root(resource),	resource, []).
+:- http_handler(css('lod.css'),	http_reply_file('lod.css', []), []).
+
+http:location(css, root(css), []).
+==
+
+Next step, we define an HTML resource.  A resource has a name and
+a list of dependencies.  _Virtual_ means that the resource itself
+is not a file that can be served, but is just a placeholder.  All
+paths use the HTTP-location conventions.
+
+==
+:- html_resource(lod,
+		 [ requires([ css('lod.css')
+			    ]),
+		   virtual(true)
+		 ]).
+==
+
+Next step, we provide the main page of the server.  This should all be
+familiar.  Using class(Class), we just as an HTML class-attribute for
+the CSS-file.  New is =|\html_requires(lod)|=, which tells the HTML
+infrastructure that the page needs the HTML resource =lod=.  That is
+the link to the code above.
+
+==
+server(Port) :-
+	http_server(http_dispatch, [port(Port)]).
+
+home(_Request) :-
+	reply_html_page(title('LOD Crawler'),
+			[ \html_requires(lod),			% new
+			  h1(class(title), 'LOD Crawler'),
+			  p(class(banner),
+			    [ 'Welcome to the SWI-Prolog Linked Open Data ',
+			      'crawler.  To start your experience, enter a ',
+			      'search term such as "Amsterdam".'
+			    ]),
+			  \search_form
+			]).
+
+search_form -->
+	{ http_link_to_id(search, [], Ref) },
+	html(form([id(search), action(Ref)],
+		  [ input(name(q)),
+		    input([type(submit), value('Search')])
+		  ])).
+==
+
+To be completed ...
+
+@see Sources: lod_crawler.pl lod.pl [[lod.css][<lod.css>]]

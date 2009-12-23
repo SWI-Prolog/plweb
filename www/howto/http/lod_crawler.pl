@@ -5,7 +5,6 @@
 :- use_module(library(http/html_head)).		% new
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdfs)).
 :- use_module(lod).
 
 :- http_handler(root(.),	home,	  []).
