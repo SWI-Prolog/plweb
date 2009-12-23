@@ -21,7 +21,9 @@ loading the library(http/http_error) as below.
 If the error context is insufficient, one can use the [[graphical
 tracer][</gtrace.html>]] by setting a spy-point on the handler or a
 suspect predicate called by the handler. Spy-points for background
-threads as set using tspy/1 (_thread_-spy).  E.g.,
+threads are set using tspy/1 (_thread_-spy). E.g., see below. After
+setting the spy-point, reload the page in the browser and the graphical
+tracer should appear.
 
 ==
 ?- tspy(hello_world/1).
