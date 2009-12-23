@@ -7,8 +7,13 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(library(uri)).
 :- use_module(library(semweb/rdf_turtle)).
 :- use_module(library(semweb/rdf_http_plugin)).
+
+/** <module> Simple Linked Open Data query facility
+
+*/
 
 % Common RDF prefixes
 
@@ -22,13 +27,16 @@
 
 %%	lod_load(+URL) is det.
 %
-%	Cached querying of Linked Open Data.
+%	Cached querying of Linked Open Data. First, we remove a possible
+%	fragment identifier (#fragment), because   fragment  identifiers
+%	are a client-side issue rather than a server-side issue.
+%
+%	@error	domain_error(content_type, 'RDF') is raised if the URL
+%		contains no RDF data.  Note that rdf_load/1 already
+%		raises this error if the MIME-type is incorrect.
 
 lod_load(URI) :-
-	uri_components(URI, Components),
-	copy_components([scheme, authority, path, search],
-			Components, Components2),
-	uri_components(URI2, Components2),
+	url_sans_fragment(URI, URI2),
 	(   rdf_graph(URI2)
 	->  true
 	;   rdf_load(URI2),
@@ -38,19 +46,18 @@ lod_load(URI) :-
 	    )
 	).
 
+url_sans_fragment(URI, URI2) :-
+	uri_components(URI, Components),
+	copy_components([scheme, authority, path, search],
+			Components, Components2),
+	uri_components(URI2, Components2).
+
 copy_components([], _, _).
 copy_components([H|T], In, Out) :-
 	uri_data(H, In, Data),
 	uri_data(H, Out, Data),
 	copy_components(T, In, Out).
 
-
-%%	sindice_host(-Host)
-%
-%	Location of the Sindice server
-
-sindice_host('api.sindice.com').
-sindice_path('/v2/search').
 
 %%	sindice_query_url(+Query, +Page, -URL)
 %
@@ -66,6 +73,9 @@ sindice_query(Query, Page, QueryURL) :-
 	uri_data(path, Components, Path),
 	uri_data(search, Components, Search),
 	uri_components(QueryURL, Components).
+
+sindice_host('api.sindice.com').
+sindice_path('/v2/search').
 
 
 %%	uri_label(+URI, -Label:atom) is det.

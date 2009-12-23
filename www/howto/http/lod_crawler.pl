@@ -11,13 +11,23 @@
 :- http_handler(root(.),	home,	  []).
 :- http_handler(root(search),	search,	  []).
 :- http_handler(root(resource),	resource, []).
+:- http_handler(css('lod.css'),	http_reply_file('lod.css', []), []).
+
+http:location(css, root(css), []).
+
+:- html_resource(lod,
+		 [ requires([ css('lod.css')
+			    ]),
+		   virtual(true)
+		 ]).
 
 server(Port) :-
 	http_server(http_dispatch, [port(Port)]).
 
 home(_Request) :-
 	reply_html_page(title('LOD Crawler'),
-			[ h1(class(title), 'LOD Crawler'),
+			[ \html_requires(lod),
+			  h1(class(title), 'LOD Crawler'),
 			  p(class(banner),
 			    [ 'Welcome to the SWI-Prolog Linked Open Data ',
 			      'crawler.  To start your experience, enter a ',
@@ -65,10 +75,12 @@ resource_page(URL) :-
 
 
 property_table(Grouped) -->
-	html(table(class(properties),
-		   [ \ptable_header
-		   | \ptable_rows(Grouped)
-		   ])).
+	html([ \html_requires(lod),
+	       table(class(properties),
+		     [ \ptable_header
+		     | \ptable_rows(Grouped)
+		     ])
+	     ]).
 
 ptable_header -->
 	html(tr([th('Predicate'), th('Object')])).
@@ -105,3 +117,12 @@ rlink(P) -->
 	  http_link_to_id(resource, [r=URI], HREF)
 	},
 	html(a(href(HREF), Label)).
+
+%%	body(+Content)//
+%
+%	Define overall style
+
+body(Content) -->
+	html([ div(class(top), \search_form)
+	     | Content
+	     ]).

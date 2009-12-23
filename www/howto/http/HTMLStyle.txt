@@ -17,3 +17,13 @@ create a page-header, we must be aware of all components we include and
 what style we need for them. Same story for JavaScript that can be
 needed by the component.
 
+---++ The demo: A Simple Linked Open Data browser
+
+Now that we covered the basics, it is time for a bit more sexy demo:
+a browser for [[Linked Open Data][http://linkeddata.org/]].
+
+
+
+
+
+@see Sources: lod_crawler.pl lod.pl lod.css
