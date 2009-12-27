@@ -26,7 +26,7 @@ setting the spy-point, reload the page in the browser and the graphical
 tracer should appear.
 
 ==
-?- tspy(hello_world/1).
+?- tspy(say_hi/1).
 ==
 
 Progress and *|debug messages|* cannot be printed to the current output,
