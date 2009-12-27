@@ -1,45 +1,42 @@
----+ SWI-Prolog --- Graphical tracer front-end
+---+ SWI-Prolog --- Source-level debugger
 
 SWI-Prolog and XPCE concentrate on program development by offering an
 environment that is especially suitable for (rapid) prototyping and
-debugging. This is supported by the very fast incremental SWI-Prolog
-compiler, the debugger that is capable of debugging compiled code,
-GNU-readline based command-line editor and XPCE's support for dynamic
-modification of the running environment.
+debugging. This is supported by the fast incremental SWI-Prolog
+compiler, the debugger that is capable of debugging compiled code and
+GNU-readline based command-line editor.
 
-Though sufficient to support expert (Prolog) users, the current support
-is not satisfactory for novice users raised with a mouse.
+Tracing Prolog programs using a traditional 4-port debugger in a
+terminal is difficult. Large Prolog terms make the trace hard to read,
+it is difficult to understand determinism and backtracking and hard to
+examine the running clauses. That is why SWI-Prolog provides a
+source-level debugger.
 
-In addition, even being a Prolog expert, tracing Prolog programs using a
-traditional 4-port debugger in a terminal is difficult. Large Prolog
-terms make the trace hard to read, it is difficult to understand
-determinism and backtracking and hard to examine the running clauses.
+---++ The graphical tracer
 
----++ The GUI tracer
-
-The XPCE/SWI-Prolog GUI-Tracer is the cornerstone of the
-future IDE environment and probably the most useful tool for experts as
-well as for beginners. It provides three simultaneous views on the
-status of the environment:
+The XPCE based graphical tracer is the cornerstone of the IDE
+environment and probably the most useful tool for experts as well as for
+beginners. It provides three simultaneous views on the status of the
+environment:
 
     $ Source code :
     The current location in the source-code is displayed in a window
     displaying the actual source-code or, if the clause is asserted, in
     a window displaying the decompiled predicate. Colours are used to
     indicate the status. Green meaning normal forwards calling, red
-    failure, yellow redo and purple exception. 
+    failure, yellow redo and purple exception.
 
     $ Bindings :
     The bindings window displayes the binding of the local variables of
     the selected frame. Variables are indicated by their true name. A
-    consise display, clearly indicating which variable share the same
+    concise display, clearly indicating which variable share the same
     value and removing unbound variables is provided. Values can be
     examined by double-clicking.
 
     $ Stack :
     The stack-view not only provides the call-stack, but also the
     choice-point chain. The latter is notably useful to detect
-    (undesired) non-determinism 
+    (undesired) non-determinism
 
 			[[guitracer.gif]]
 
@@ -51,24 +48,34 @@ displays the call-stack. The icon indicates the called predicate is a
 normal user-defined predicate. The [[det.gif]] icon indicates the call
 is deterministic, while the [[ndet.gif]] icon indicates the frame has
 choice-points left. The user can click on any frame to switch both
-source and bindings window to the clicked frame.
-
----++ Starting the GUI-Tracer
-
-The tracer is loaded using the (autoload) predicate guitracer/0.
-Executing this installs hooks into the SWI-Prolog tracer that will cause
-any normal trace actions to be redirected to the GUI tracer. The
-interface appears whenever the tracer is started: using trace/0, spy/1
-or by putting a call to trace/0 somewhere in your source-code:
+source and bindings window to the clicked frame.  The trace was started
+using
 
 ==
-?- guitracer.
+?- gtrace, test_chat.
+==
+
+---++ Starting the source-level debugger
+
+The source-level debugger is controlled by gtrace/0 or gspy/1. These
+predicates enable the debugger using guitracer/0 and then call trace/0
+or spy/1. Like trace/0, gtrace/0 can be called from anywhere in a
+program to start debugging at a specific location.  In the unlikely
+event that you want to switch back to the traditional tracer in the
+same session, call noguitracer/0.
+
+==
+?- gspy(dubious/1).
 % The graphical front-end will be used for subsequent tracing
-
-Yes
-?- spy(dubious/1).
 Spy point on dubious/1
+true.
 
-Yes
 [debug] ?- go.
 ==
+
+---++ Debugging threads
+
+The source-level debugger is also the tool of choice for debugging
+threads. This is supported by means of tspy/1, tdebug/0 and tnodebug/0.
+See also [[the web-server debugging
+hints][<howto/http/Developing.html>]]

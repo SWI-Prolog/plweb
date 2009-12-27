@@ -59,6 +59,9 @@ statistics][</logs/dl-statistics.html>]].
     of the runtime stacks, *|ISO exception-handling|* (including C/C++
     interface for catching and throwing exceptions).
 
+    * [[Source-level debugger][<gtrace.html>]] on all platforms that
+    supports graphics through XPCE (Windows, Unix/Linux, MacOSX).
+
     * Execution *|profiler.txt|* (time and call statistics) for Linux,
     most Unix platforms and Windows NT/2000/XP/Vista.
 
