@@ -5,9 +5,10 @@ named =|/hello_world|=, which returns a simple plain-text message.  Note
 the three elements of the page:
 
     1. Declare a handler, binding an HTTP path to a predicate.  The
-    notation root(hello_world) uses the same alias-mechanism as
+    notation root(hello_world) uses an alias-mechanism similar to
     absolute_file_name/3 and allows for moving parts of the server
-    locations easily.  We could also have used =|'/hello_world'|=.
+    locations easily. See http_absolute_location/3. We could also have
+    used =|'/hello_world'|=.
 
     2. The predicate server(?Port) starts the server. It simply
     creates a number of Prolog _threads_ and then returns to the
@@ -26,12 +27,12 @@ the three elements of the page:
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(http/http_dispatch)).
 
-:- http_handler(root(hello_world), hello_world, []).	% (1)
+:- http_handler(root(hello_world), say_hi, []).		% (1)
 
 server(Port) :-						% (2)
 	http_server(http_dispatch, [port(Port)]).
 
-hello_world(_Request) :-				% (3)
+say_hi(_Request) :-					% (3)
 	format('Content-type: text/plain~n~n'),
 	format('Hello World!~n').
 ==
@@ -57,4 +58,5 @@ very much like Tomcat, but now for Prolog. The [[SWI-Prolog
 website][http://www.swi-prolog.org/]] is handled by SWI-Prolog,
 redirected from an Apache server.
 
+@see Source: hello_world.pl
 @see Next: Developing.txt
