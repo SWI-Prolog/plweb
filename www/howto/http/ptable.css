@@ -1,11 +1,4 @@
-/* LOD CSS-file */
-
-div.top
-{ text-align: right;
-  border-style: dotted;
-  border-width: 1px;
-  padding: 5px;
-}
+/* Style the RDF property-table */
 
 table.properties
 { margin-left: 5mm;

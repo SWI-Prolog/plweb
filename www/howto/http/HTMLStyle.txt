@@ -7,15 +7,16 @@ better, this works! So, what is wrong with it?
 
 Well, *|it breaks the reusability|*. Why? Think of our
 =|\predicates_ul(Preds)|= that created an 1980-ugly unnumbered list of
-predicates. If we add style to the elements, we end-up with ugly HTML
-that cannot be reused with different skins and CSS programming that must
-be done in Prolog. This harms hiring a CSS-wizard to do the nice styling
-in a CSS file that we, programmers, cannot do. If we put the style in a
-file however, we cannot just use =|\predicates_ul(Preds)|= anywhere in
-our code, but we also have to adjust the page header. I.e., whenever we
-create a page-header, we must be aware of all components we include and
-what style we need for them. Same story for JavaScript that can be
-needed by the component.
+predicates. If we add style to the elements themselves, we end-up with
+ugly HTML that cannot be reused with different skins while CSS
+programming now needs do be done in Prolog. This harms hiring a
+CSS-wizard to do the nice styling in a CSS file that we, programmers,
+cannot do. If we put the style in a file however, we cannot just use
+=|\predicates_ul(Preds)|= anywhere in our code, but we also have to
+adjust the page header. I.e., whenever we create a page-header, we must
+be aware of all components we include and what style we need for them.
+Same story for JavaScript that can be needed by the component.  This
+page discusses a web-application with CSS-styling.
 
 ---++ The demo: A Simple Linked Open Data browser
 
@@ -57,10 +58,12 @@ http_reply_file/3 to serve a static file.
 http:location(css, root(css), []).
 ==
 
-Next step, we define an HTML resource.  A resource has a name and
-a list of dependencies.  _Virtual_ means that the resource itself
-is not a file that can be served, but is just a placeholder.  All
-paths use the HTTP-location conventions.
+Next step, we define an HTML _resource_. A resource has a name and a
+list of dependencies. _Virtual_ means that the resource itself is not a
+file that can be served, but is just a placeholder. All paths use the
+HTTP-location conventions. In other words, the declaration below states
+that there is a set of resources needed by the LOD HTML that consists of
+(in this case) a single CSS file.  As long as we make
 
 ==
 :- html_resource(lod,
@@ -82,8 +85,7 @@ server(Port) :-
 
 home(_Request) :-
 	reply_html_page(title('LOD Crawler'),
-			[ \html_requires(lod),			% new
-			  h1(class(title), 'LOD Crawler'),
+			[ h1(class(title), 'LOD Crawler'),
 			  p(class(banner),
 			    [ 'Welcome to the SWI-Prolog Linked Open Data ',
 			      'crawler.  To start your experience, enter a ',
@@ -94,10 +96,12 @@ home(_Request) :-
 
 search_form -->
 	{ http_link_to_id(search, [], Ref) },
-	html(form([id(search), action(Ref)],
-		  [ input(name(q)),
-		    input([type(submit), value('Search')])
-		  ])).
+	html([ \html_requires(lod),			% new
+ 	       form([id(search), action(Ref)],
+		    [ input(name(q)),
+		      input([type(submit), value('Search')])
+		    ])
+	     ]).
 ==
 
 To be completed ...

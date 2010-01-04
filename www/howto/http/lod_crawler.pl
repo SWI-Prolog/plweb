@@ -10,23 +10,22 @@
 :- http_handler(root(.),	home,	  []).
 :- http_handler(root(search),	search,	  []).
 :- http_handler(root(resource),	resource, []).
-:- http_handler(css('lod.css'),	http_reply_file('lod.css', []), []).
+:- http_handler(css('ptable.css'),  http_reply_file('ptable.css', []), []).
+:- http_handler(css('sindice.css'), http_reply_file('sindice.css', []), []).
 
 http:location(css, root(css), []).
-
-:- html_resource(lod,
-		 [ requires([ css('lod.css')
-			    ]),
-		   virtual(true)
-		 ]).
 
 server(Port) :-
 	http_server(http_dispatch, [port(Port)]).
 
+%%	home(+Request)
+%
+%	Privides the initial page of the LOD-crawler with a form
+%	to search on http://sindice.com
+
 home(_Request) :-
 	reply_html_page(title('LOD Crawler'),
-			[ \html_requires(lod),
-			  h1(class(title), 'LOD Crawler'),
+			[ h1(class(title), 'LOD Crawler'),
 			  p(class(banner),
 			    [ 'Welcome to the SWI-Prolog Linked Open Data ',
 			      'crawler.  To start your experience, enter a ',
@@ -37,11 +36,21 @@ home(_Request) :-
 
 search_form -->
 	{ http_link_to_id(search, [], Ref) },
-	html(form([id(search), action(Ref)],
-		  [ input(name(q)),
-		    input([type(submit), value('Search')])
-		  ])).
+	html([ \html_requires(css('sindice.css')),
+	       form([id(search), action(Ref)],
+		    [ input(name(q)),
+		      input([type(submit), value('Search')])
+		    ])
+	     ]).
 
+
+%%	search(+Request)
+%
+%	Submit the query to sindice and  show the result. Sindice almost
+%	behaves  as  `dynamic  linked  open    data'  by  providing  the
+%	search-results as properties of the query,   but not quite. This
+%	means we must pick-up the  result-page   URI  from  the returned
+%	named graph.
 
 search(Request) :-
 	http_parameters(Request, [q(Query, [])]),
@@ -50,6 +59,17 @@ search(Request) :-
 	(   rdf(URI, _, _, URL)
 	->  resource_page(URI)
 	).
+
+
+%%	resource(+Request)
+%
+%	Explore a linked open-data resource. We distinguish three cases:
+%
+%	    1. If lod_load/1 succeeds, show the loaded triples
+%	    2. If lod_load/1 indicates that the returned document
+%	       has an unknown content-type, it appearenly is not LOD
+%	       and we redirect the client to the web-page.
+%	    3. Else, we re-throw the error, generating an error-page.
 
 resource(Request) :-
 	http_parameters(Request, [r(URI, [])]),
@@ -74,7 +94,7 @@ resource_page(URL) :-
 
 
 property_table(Grouped) -->
-	html([ \html_requires(lod),
+	html([ \html_requires(css('ptable.css')),
 	       table(class(properties),
 		     [ \ptable_header
 		     | \ptable_rows(Grouped)
@@ -119,9 +139,18 @@ rlink(P) -->
 
 %%	body(+Content)//
 %
-%	Define overall style
+%	Define overall style. This hook into reply_html_page/2 is called
+%	to translate the 2nd argument. It is searched for in the current
+%	module as well as the user-module.
+%
+%	Redefining head//1 or body//1 is a   way to redefine the overall
+%	page-style of all pages served.
 
-body(Content) -->
+body(Content) -->			% contents already provides a form
+	{ sub_term(\search_form, Content)
+	}, !,
+	html(Content).
+body(Content) -->			% add header with search-form
 	html([ div(class(top), \search_form)
 	     | Content
 	     ]).
