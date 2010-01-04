@@ -55,8 +55,8 @@ search_form -->
 search(Request) :-
 	http_parameters(Request, [q(Query, [])]),
 	sindice_query(Query, 1, URL),
-	lod_load(URL),			% work around Sindice bug
-	(   rdf(URI, _, _, URL)
+	lod_load(URL),
+	(   rdf(URI, _, _, URL)		% work around Sindice bug
 	->  resource_page(URI)
 	).
 
