@@ -20,6 +20,12 @@ page discusses a web-application with CSS-styling.
 
 ---++ The demo: A Simple Linked Open Data browser
 
+*|NOTE: This demo is written for SWI-Prolog 5.9.6.  It runs on older
+  versions thanks to a compatibility patch in lod_crawler.pl (see end
+  of the file), but older versions of rdf_load/2 query HTTP locations
+  three times instead of one, which severely harms performance.
+|*
+
 Now that we covered the basics, it is time for a bit more sexy demo:
 a browser for [[Linked Open Data][http://linkeddata.org/]]. Our program
 consists of four files.  The file lod_crawler.pl is the main topic of
