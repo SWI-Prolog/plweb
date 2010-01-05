@@ -37,7 +37,7 @@ Now, we complete the definition of the skeleton by providing definitions
 for the called rules. These definitions are
 [[DCGs][http://cs.union.edu/~striegnk/learn-prolog-now/html/node54.html#lecture7]]
 (Definite Clause Gammar rules). The _input_ arguments of the DCG rules
-are parameters and _output_ list is a list of HTML tokens created by
+are parameters and the _output_ list is a list of HTML tokens created by
 means of calling html//1. The argument of html//1 must obey the same
 rules as the arguments of reply_html_page/2.
 
@@ -55,11 +55,26 @@ module(Module) -->
 	html(tr([td(Module), td(-)])).
 ==
 
-We managed to recover some of the disadvantages compared to writing
+We managed to compensate for the disadvantages compared to writing
 HTML/XML: we have _reusable_ skeletons and components: we can reuse
-skeletons as in the top-box by making passing arguments that fill the
-table header and body and we can reuse components as defined in the
-bottom-box in different tables.
+skeletons as in the top-box by passing arguments that fill the table
+header and body and we can reuse components as defined in the bottom-box
+in different tables.  _Reusability_ may not be a big issue for pages
+that consists mainly of text, but dynamically generated pages often
+contain lots of reusable elements!  The rule below shows one for
+formatting integers in a cell as N,NNN,NNN...  This example illustrate
+another type of value that can appear in the html//1 content: terms of
+the form <format>-<arguments>, where _format_ is an atom and _arguments_
+is a list of arguments that is passed to format/3.
+
+==
+	...
+	html(tr([..., \int_cell(I), ...])),
+
+int_cell(I) -->
+	html(td(class(intcell), '~D'-[I])).
+==
+
 
 In the next example, we extend our program by making more use of rules
 and dealing with HTTP-_parameters_ (i.e., ?name=value&...)
