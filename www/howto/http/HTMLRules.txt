@@ -36,10 +36,10 @@ list_modules(_Request) :-
 Now, we complete the definition of the skeleton by providing definitions
 for the called rules. These definitions are
 [[DCGs][http://cs.union.edu/~striegnk/learn-prolog-now/html/node54.html#lecture7]]
-(Definite Clause Gammar rules) whose input are the parameters and that
-create a list of HTML tokens by means of calling html//1. The argument
-of html//1 must obey the same rules as the arguments of
-reply_html_page/2.
+(Definite Clause Gammar rules). The _input_ arguments of the DCG rules
+are parameters and _output_ list is a list of HTML tokens created by
+means of calling html//1. The argument of html//1 must obey the same
+rules as the arguments of reply_html_page/2.
 
 ==
 header -->
