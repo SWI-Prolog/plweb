@@ -65,7 +65,7 @@ contain lots of reusable elements!  The rule below shows one for
 formatting integers in a cell as N,NNN,NNN...  This example illustrate
 another type of value that can appear in the html//1 content: terms of
 the form <format>-<arguments>, where _format_ is an atom and _arguments_
-is a list of arguments that is passed to format/3.
+is a list of arguments that is passed to format/2.
 
 ==
 	...
