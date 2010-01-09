@@ -25,6 +25,11 @@ externally managed projects.
     * [[Advanced random number library][SamerAbdallah/index.txt]]
     * [[Matlab interface][SamerAbdallah/index.txt]]
 
+---++ Miscellaneous
+
+    * [[Etalis][http://code.google.com/p/etalis/]]
+      _|Event-driven Transaction Logic Inference System|_
+
 @tbd	Make more categories
 @tbd	Complete migration of pointers to contributes libraries
 @see	[[Packages][<../pldoc/index.html>]]
