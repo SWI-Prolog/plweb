@@ -9,5 +9,6 @@ yourself on *|non-windows platforms|* because binaries tend to be less
 portable and building is much easier.
 
     * [[Building on Unix/POSIX][unix.txt]]
+    * [[Building on MacOS][macos.txt]] (Leopard & Snow Leopard)
     * [[Building on MS-Windows][windows.txt]]
 

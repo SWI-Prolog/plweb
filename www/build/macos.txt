@@ -1,0 +1,73 @@
+---+ Building SWI-Prolog on MacOS (Leopard and Snow Leopard)
+
+This note was sent to the SWI-Prolog mailinglist on Jan 10, 2010
+by Paulo Moura.
+
+    1. The fix for the XPCE configure script bug, that results in the
+    settings in the SWI-Prolog portfiles to be ignored needs to be
+    back-ported from 5.9.4 to 5.8.x. Apparently, this bug results in X11
+    libraries being searched in /usr/lib, which works on Linux but not
+    on MacOS X. On Leopard, the X11 are either installed in
+    /opt/local/lib by the "xorg-libs" port or in /usr/X11/lib by the
+    XQuartz installer. Snow Leopard already includes compatible X11
+    libraries in /usr/X11.
+
+    2. Make sure that the Developer Tools are installed. The Xcode
+    installer is included in the install DVDs. The latest version of
+    Xcode can be downloaded from Apple after a free registration (if
+    memory serves).
+
+    3. Make sure that both X11 *and* the X11 SDK are installed. These
+    are optional installs on Snow Leopard. Use your install DVDs if
+    needed (You get the X11 SDK through the Xcode installer, if memory
+    serves). When installing SWI-Prolog >= 5.9.4 from sources using the
+    portfiles I posted to this list, the "xorg-libs" port (a dependency
+    declared in the "swi-prolog-devel" portfile) install the X11 libs in
+    /opt/local/lib.
+
+    4. Don't use the MacOS X 10.5 installers on 10.6. It will most
+    likely don't work and will lead to further problems if later you try
+    to install from sources (e.g. "wrong architecture" errors when
+    trying to run SWI-Prolog).
+
+    5. Make sure that you're running an up-to-date installation of
+    MacPorts. In doubt, and if you are not using MacPorts for anything
+    else, simply delete the /opt/local directory.
+
+    6. On Snow Leopard do not try the XQuartz installer. It's not needed
+    and it will not work.
+
+    7. Don't use the SWI-Prolog portfiles downloaded using MacPorts
+    until the following commands:
+
+	==
+        port info swi-prolog
+        port info swi-prolog-lite
+        port info swi-prolog-devel
+	==
+
+    show versions >= 5.9.4 for the development release and >= 5.8.3 for
+    the stable release. Usually, I submitted update portfiles as soon as
+    new release of SWI-Prolog are out. Unfortunately, it may take some
+    time for the portfiles to be committed and made available when
+    self-updating the MacPorts installation.
+
+    8. Use the portfile attached below with the procedure described in
+    the MacPorts guide for custom, local portfiles and also described in
+    a message to this list by Henry Soldano in December 22 to get
+    SWI-Prolog 5.9.6 up and running on Snow Leopard.
+
+Most likely there are still some non-diagnosed issues when installing
+SWI-Prolog on Snow Leopard. For once, I successfully installed 5.8.0 and
+5.8.2 using stock MacPorts on a brand new laptop without the issues
+reported by Norbert's. But I also use a lot of other ports, which may
+play some part on this never-ending story.
+
+In an ideal world, Jan and me would have access to both clean PowerPC
+and Intel Macs, running 10.5 and 10.6, and enough free time to diagnose
+these issues and provide both bullet-proof source installation
+instructions and binary installers. For now, please report your
+experiences, both successful and unsuccessful ones, with as much details
+as possible. I hope to be able to work on binary installers by February.
+
+@see The [[Portfile][<Portfile>]]
