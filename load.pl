@@ -1,12 +1,14 @@
 :- doc_collect(true).
 :- load_files([ library(pldoc/doc_library),
 		library(thread_pool),
+		library(http/http_session),
 		plweb
 	      ],
 	      [ silent(true)
 	      ]).
 
 :- doc_load_library.
+:- http_set_session_options([enabled(false)]).
 :- send(@pce, catch_error_signals, @off).
 
 %%	show_fd
