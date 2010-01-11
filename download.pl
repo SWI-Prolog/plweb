@@ -124,7 +124,7 @@ toggle_show(_) -->
 %	    One of =all= or =latest= (default).
 
 list_files(Dir, SubDir, Label, Options) -->
-	{ concat_atom([Dir, /, SubDir], Directory),
+	{ atomic_list_concat([Dir, /, SubDir], Directory),
 	  atom_concat(Directory, '/*', Pattern),
 	  expand_file_name(Pattern, Files),
 	  classsify_files(Files, Classified),
@@ -158,6 +158,8 @@ file_icon(_) -->
 
 icon_for_file(bin, linux(_,_),
 	      'linux32.gif', 'Linux RPM').
+icon_for_file(bin, macos(snow_leopard,_),
+	      'snowleopard.gif', 'Snow Leopard').
 icon_for_file(bin, macos(_,_),
 	      'mac.gif', 'MacOSX version').
 icon_for_file(bin, windows(win32),
@@ -228,9 +230,10 @@ platform(windows(win32)) -->
 platform(windows(win64)) -->
 	html(['Windows XP/Vista 64-bit edition']).
 
-html_macos_version(tiger)   --> html('10.4 (tiger)').
-html_macos_version(leopard) --> html('10.5 (leopard)').
-html_macos_version(OS)	    --> html(OS).
+html_macos_version(tiger)        --> html('10.4 (Tiger)').
+html_macos_version(leopard)      --> html('10.5 (Leopard)').
+html_macos_version(snow_leopard) --> html('10.6 (Snow Leopard)').
+html_macos_version(OS)	         --> html(OS).
 
 %%	platform_notes(+Platform, +Path) is det.
 %
@@ -240,7 +243,8 @@ html_macos_version(OS)	    --> html(OS).
 platform_notes(Platform, Path) -->
 	{ file_directory_name(Path, Dir),
 	  platform_note_file(Platform, File),
-	  concat_atom([Dir, /, File], NoteFile),
+	  atomic_list_concat([Dir, /, File], NoteFile),
+	  format(user_error, '~w~n', [NoteFile]),
 	  access_file(NoteFile, read), !,
 	  wiki_file_to_dom(NoteFile, DOM)
 	},
@@ -251,6 +255,8 @@ platform_notes(_, _) -->
 platform_note_file(linux(_,_),	   'linux.txt').
 platform_note_file(windows(win32), 'win32.txt').
 platform_note_file(windows(win64), 'win64.txt').
+platform_note_file(macos(Version,_), File) :-
+	atomic_list_concat([macosx, -, Version, '.txt'], File).
 platform_note_file(macos(_,_),	   'macosx.txt').
 platform_note_file(tgz,		   'src-tgz.txt').
 platform_note_file(pdf,		   'doc-pdf.txt').
@@ -300,8 +306,9 @@ opt_devel -->
 opt_devel -->
 	"".
 
-macos_version(tiger)   --> "tiger".
-macos_version(leopard) --> "leopard".
+macos_version(tiger)        --> "tiger".
+macos_version(leopard)      --> "leopard".
+macos_version(snow_leopard) --> "snow-leopard".
 
 macos_cpu(ppc)   --> "powerpc".
 macos_cpu(intel) --> "intel".

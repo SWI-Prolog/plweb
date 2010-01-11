@@ -1,0 +1,2 @@
+Disk image with binaries created using [[Macports][<macports:>]].
+Installs =|/opt/local/bin/swipl|=.
