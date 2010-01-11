@@ -244,7 +244,6 @@ platform_notes(Platform, Path) -->
 	{ file_directory_name(Path, Dir),
 	  platform_note_file(Platform, File),
 	  atomic_list_concat([Dir, /, File], NoteFile),
-	  format(user_error, '~w~n', [NoteFile]),
 	  access_file(NoteFile, read), !,
 	  wiki_file_to_dom(NoteFile, DOM)
 	},
