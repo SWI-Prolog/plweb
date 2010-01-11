@@ -285,7 +285,7 @@ file(bin, macos(OSVersion, CPU), Version) -->
 	(   "-",
 	    macos_cpu(CPU)
 	->  ""
-	;   { CPU=ppc }
+	;   { macos_def_cpu(OSVersion, CPU) }
 	),
 	".mpkg.zip", !.
 file(bin, windows(WinType), Version) -->
@@ -311,6 +311,9 @@ macos_version(snow_leopard) --> "snow-leopard".
 
 macos_cpu(ppc)   --> "powerpc".
 macos_cpu(intel) --> "intel".
+
+macos_def_cpu(snow_leopard, intel) :- !.
+macos_def_cpu(_, ppc).
 
 win_type(win32) --> "w32".
 win_type(win64) --> "w64".
