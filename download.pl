@@ -362,12 +362,18 @@ map_type(File, Tag) :-
 	File = file(Type, Platform, _Version, _Name, _Path),
 	type_tag(Type, Platform, Tag).
 
-type_tag(bin, linux(A,B), tag(0, linux(A,B))) :- !.
-type_tag(bin, windows(A), tag(1, windows(A))) :- !.
-type_tag(bin, macos(A,B), tag(2, macos(A,B))) :- !.
-type_tag(src, Format,     tag(3, Format)) :- !.
-type_tag(doc, Format,     tag(4, Format)) :- !.
-type_tag(X,   Y,	  tag(5, X-Y)).
+type_tag(bin, linux(A,B), tag(10, linux(A,B))) :- !.
+type_tag(bin, windows(A), tag(20, windows(A))) :- !.
+type_tag(bin, macos(A,B), tag(Tg, macos(A,B))) :- !,
+	mac_tag(A, Tg2),
+	Tg is 30+Tg2.
+type_tag(src, Format,     tag(40, Format)) :- !.
+type_tag(doc, Format,     tag(50, Format)) :- !.
+type_tag(X,   Y,	  tag(60, X-Y)).
+
+mac_tag(snow_leopard, 7).
+mac_tag(leopard,      8).
+mac_tag(tiger,        9).
 
 sort_group_by_version(Tag-Files, Tag-Sorted) :-
 	map_list_to_pairs(tag_version, Files, TFiles),
