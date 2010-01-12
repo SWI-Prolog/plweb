@@ -1,4 +1,4 @@
-Disk image with binaries created using [[Macports][<macports:>]].
-Installs =|/opt/local/bin/swipl|=. Needs X11 from
-[[xquartz][<xquartz:>]] for running the [[development
+Installer with binaries created using [[Macports][<macports:>]].
+Installs =|/opt/local/bin/swipl|=. Needs [[xquartz][<xquartz:>]] (X11)
+and the Developer Tools (Xcode) installed for running the [[development
 tools][</IDE.html>]]

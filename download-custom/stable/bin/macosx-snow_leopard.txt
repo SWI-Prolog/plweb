@@ -1,2 +1,4 @@
-Disk image with binaries created using [[Macports][<macports:>]].
-Installs =|/opt/local/bin/swipl|=.
+ler with binaries created using [[Macports][<macports:>]]. Installs
+=|/opt/local/bin/swipl|=. Needs X11 (bundled with the MacOS X installer)
+and Developer Tools (Xcode) installed for running the [[development
+tools][</IDE.html>]].
