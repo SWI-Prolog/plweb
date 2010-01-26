@@ -50,6 +50,14 @@ sum([N1=V1|T1], [N2=V2|T2], [N1=V1|T]) :-
 sum(L1, [H|T2], [H|T]) :-
 	sum(L1, T2, T).
 
+sums(Options, Terms) :-
+	option(sum_year(Y), Options), !,
+	findall(C, member(downloads(Y, _, C), Terms), L),
+	flatten(L, List),
+	aggregate_all(sum(X), member(_=X, List), Count),
+	format('Total downloads over ~d: ~D~n', [Y, Count]).
+
+
 :- prolog_load_context(directory, Dir),
    working_directory(_, Dir).
 
@@ -65,9 +73,13 @@ run :-
 	;   true
 	),
 	load_data_files(Files, Terms),
+	sums(Options, Terms),
 	stat2jpeg(Out, Terms).
 
 main_options(['-o', Out|T0], [out(Out)|OT], T) :- !,
+	main_options(T0, OT, T).
+main_options(['-s', YA|T0], [sum_year(Y)|OT], T) :- !,
+	atom_number(YA, Y),
 	main_options(T0, OT, T).
 main_options(Files, [], Files).
 
