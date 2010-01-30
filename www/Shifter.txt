@@ -66,14 +66,28 @@ and set
 Run SWI-Prolog under GDB, using this =|.gdbinit|=
 
 ==
+# GDB setup file for debugging SWI-Prolog
+
+# Break on fatal errors and intended traps
+
 set breakpoint pending on
 break trap_gdb
 break sysError
+break fatalError
 set breakpoint pending off
 
+# Pass `normal signals'
+
 handle SIGPIPE noprint nostop pass
-handle SIGHUP  noprint nostop pass
+handle SIGUSR1 noprint nostop pass
+handle SIGUSR2 noprint nostop pass
 set print thread-events off
+
+# Run under the efence memory debugger
+
+define ef
+  set environment LD_PRELOAD=libefence.so.0.0
+end
 ==
 
 If the system crashes, trapped in an =abort= call, =trap_gdb= or a fatal
@@ -82,6 +96,17 @@ PL_next_solution() or one of the foreign-language implemented predicates
 (often called pl_*) that lead to the crash. In particular, functions
 processing direct pointers (type =Word=) that call GC/shift, often
 indirectly.
+
+Sometimes, the crash is caused by an earlier GC/shift that corrupted
+the data.  You can get info in this using (1 means the latest GC/shift;
+2 the one before, upto 10).
+
+==
+(gdb) call print_backtrace(1)
+==
+
+These stack-traces are addresses only, but gdb can list the code
+the belongs to it using the command =|(gdb) list *<address>|=
 
 If this means anything to you, you are possible able to indicate where
 the problem is.  If not, sending the program and instructions on how
