@@ -89,9 +89,10 @@ wiki(_, _) -->
 	[].
 
 download_table(Dir, Options) -->
-	list_files(Dir, bin, 'Binaries',      Options),
-	list_files(Dir, src, 'Sources',       Options),
-	list_files(Dir, doc, 'Documentation', Options),
+	list_files(Dir, bin, bin,    'Binaries',         Options),
+	list_files(Dir, src, src,    'Sources',          Options),
+	list_files(Dir, doc, doc,    'Documentation',    Options),
+	list_files(Dir, bin, pkg(_), 'Package binaries', Options),
 	toggle_show(Options).
 
 %%	toggle_show(+Options) is det.
@@ -114,7 +115,7 @@ toggle_show(Options) -->
 toggle_show(_) -->
 	[].
 
-%%	list_files(+Dir, +SubDir, +Label, +Options) is det.
+%%	list_files(+Dir, +SubDir, +Class, +Label, +Options) is det.
 %
 %	Create table rows for all  files   in  Dir/SubDir.  If files are
 %	present, emit a =tr= with Label  and   a  =tr= row for each each
@@ -123,17 +124,17 @@ toggle_show(_) -->
 %	    * show(Show)
 %	    One of =all= or =latest= (default).
 
-list_files(Dir, SubDir, Label, Options) -->
+list_files(Dir, SubDir, Class, Label, Options) -->
 	{ atomic_list_concat([Dir, /, SubDir], Directory),
 	  atom_concat(Directory, '/*', Pattern),
 	  expand_file_name(Pattern, Files),
-	  classsify_files(Files, Classified),
+	  classsify_files(Files, Class, Classified),
 	  sort_files(Classified, Sorted, Options),
 	  Sorted \== [], !
 	},
 	html(tr(th(colspan(3), Label))),
 	list_files(Sorted).
-list_files(_, _, _, _) -->
+list_files(_, _, _, _, _) -->
 	[].
 
 list_files([]) --> [].
@@ -162,9 +163,9 @@ icon_for_file(bin, macos(snow_leopard,_),
 	      'snowleopard.gif', 'Snow Leopard').
 icon_for_file(bin, macos(_,_),
 	      'mac.gif', 'MacOSX version').
-icon_for_file(bin, windows(win32),
+icon_for_file(_, windows(win32),
 	      'win32.gif', 'Windows version (32-bits)').
-icon_for_file(bin, windows(win64),
+icon_for_file(_, windows(win64),
 	      'win64.gif', 'Windows version (64-bits)').
 icon_for_file(src, _,
 	      'src.gif', 'Source archive').
@@ -203,6 +204,18 @@ file_description(file(doc, Format, Version, _, Path)) -->
 		 ]),
 	       \platform_notes(Format, Path)
 	     ]).
+file_description(file(pkg(Pkg), PlatForm, Version, _, Path)) -->
+	{ down_file_href(Path, HREF)
+	},
+	html([ a(href(HREF),
+		 [ \package(Pkg), ' (version ', \version(Version), ') for ',
+		   \platform(PlatForm)
+		 ]),
+	       \platform_notes(pkg(Pkg), Path)
+	     ]).
+
+package(Name) -->
+	html([ 'Package ', Name ]).
 
 version(version(Major, Minor, Patch)) -->
 	html(b('~w.~w.~w'-[Major, Minor, Patch])).
@@ -256,6 +269,8 @@ platform_notes(_, _) -->
 platform_note_file(linux(_,_),	   'linux.txt').
 platform_note_file(windows(win32), 'win32.txt').
 platform_note_file(windows(win64), 'win64.txt').
+platform_note_file(pkg(Pkg),       File) :-
+	file_name_extension(Pkg, txt, File).
 platform_note_file(macos(Version,_), File) :-
 	atomic_list_concat([macosx, -, Version, '.txt'], File).
 platform_note_file(macos(_,_),	   'macosx.txt').
@@ -267,12 +282,14 @@ platform_note_file(pdf,		   'doc-pdf.txt').
 		 *	   CLASSIFY FILES	*
 		 *******************************/
 
-classsify_files([], []).
-classsify_files([H0|T0], [H|T]) :-
-	classsify_file(H0, H), !,
-	classsify_files(T0, T).
-classsify_files([_|T0], T) :-
-	classsify_files(T0, T).
+classsify_files([], _, []).
+classsify_files([H0|T0], Class, [H|T]) :-
+	classsify_file(H0, H),
+	arg(1, H, Classification),
+	subsumes_chk(Class, Classification), !,
+	classsify_files(T0, Class, T).
+classsify_files([_|T0], Class, T) :-
+	classsify_files(T0, Class, T).
 
 %%	classsify_file(+Path, -Term) is semidet.
 
@@ -294,8 +311,15 @@ file(bin, windows(WinType), Version) -->
 	win_type(WinType), "pl",
 	short_version(Version),
 	".exe", !.
+file(pkg(space), windows(WinType), Version) -->
+	win_type(WinType), "swispace",
+	short_version(Version),
+	".exe", !.
 file(bin, linux(rpm, suse), Version) -->
-	"pl-", long_version(Version), "-", digits(_Build),
+	(   "pl-"
+	;   "swipl-"
+	),
+	long_version(Version), "-", digits(_Build),
 	".i586.rpm", !.
 file(src, tgz, Version) -->
 	"pl-", long_version(Version), ".tar.gz", !.
