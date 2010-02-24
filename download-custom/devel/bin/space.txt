@@ -1,3 +1,3 @@
 Binary installer for the spatial indexing package
-[[space][</pldoc/packages/space.html>]]
+[[space][</pldoc/package/space.html>]]
 

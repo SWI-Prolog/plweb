@@ -17,7 +17,16 @@ below. See the general [[GIT][</git.html>]] instructions for details.
     now, the Win32 binary was compiled with VC6 and the Win64
     version with VC8.
 
-    The version above is for testing the release.
+---++ Space package
+
+    * The section *|Package binaries|* contains binary installers
+    for the space-package, providing spatial indexing designed to
+    be used with the RDF libraries, but they can also be used as
+    general purpose library for multi-dimensional indexing and
+    dealing with geo-data formats.
+
+    Non-Windows users should download and build from the GIT 
+    sources.
 
 ---++ 5.9.x planned enhancements
 
