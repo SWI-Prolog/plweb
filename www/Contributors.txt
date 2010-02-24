@@ -49,6 +49,7 @@ People are listed in alphabetical order.
   * [[Nullsoft][http://nsis.sourceforge.net/]] (Windows installer)
   * [[OpenSSL][http://www.openssl.org/]] (secure sockets)
   * SHA routines by [[Brian Gladman][http://www.gladman.me.uk/]]
+  * [[Snowball][http://snowball.tartarus.org/]] NLP stemmer library
   * [[UnixODBC][http://www.unixodbc.org/]] (Database connectivity on Unix)
   * [[X.org][http://www.x.org/]] (Graphics on Unix)
   * [[Zlib][http://www.zlib.net/]] (compression)

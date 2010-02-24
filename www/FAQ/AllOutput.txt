@@ -32,11 +32,19 @@ X = [g, o, o, d, b, y, e, '_', p, r, o, l, o, g]
 
 Use the *p* command to get the default behaviour.
 
-The debugger has the options *w* and *q* and *p* to switch between
-write/1, writeq/1 and print/1.
+The debugger has the options *w* and *p* to switch between
+writeq/1 (quoted write without portray) and print/1 (use the
+=toplevel_print_options= options).
 
 ---++ Changing default?
 
 Add a set_prolog_flag/2 directive in your prolog personal initialisation
 file (see PlInitialisation.txt) to change the default the above mentioned
-prolog flags.
+prolog flags.  E.g. to disable abbreviation, use:
+
+==
+?- set_prolog_flag(toplevel_print_options,
+		   [quoted(true), portray(true)]).
+==
+
+@see portray_text/1 for displaying lists of character codes as strings.

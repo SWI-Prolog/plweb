@@ -10,6 +10,7 @@ fully operational source-code.
     * [[Rule definition facilities (html//1 rules)][HTMLRules.txt]]
     * [[Processing HTTP-parameters][HTMLParams.txt]]
     * [[Adding style (CSS and simple JavaScript) to your pages][HTMLStyle.txt]]
+    * [[Making your web-server scalable][HTTPScale.txt]]
 
 This is work in progress!   If you want to contribute or comment,
 send mail to [[me][<mailto:jan@swi-prolog.org>]] or to the
@@ -17,9 +18,7 @@ send mail to [[me][<mailto:jan@swi-prolog.org>]] or to the
 
 ---++ Plans (todo)
 
-    * Style-sheet/css handling (library(http/html_head)) in HTMLStyle.txt
     * AJAX interaction (YUI, simple table, tree, N-Queens code?)
     * PWP
     * Logfiles and processing thereof
     * Stress-testing by replaying logfiles
-    * Scalability issues: pool-size, spawn, thread-pools

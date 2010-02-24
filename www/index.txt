@@ -1,10 +1,6 @@
 ---+ SWI-Prolog's home
 
-	"Software-Patents" in Europe: The threat prevails European Parliament
-	said No to software patents with 648 votes against 14. Open Source and
-	smaller innovative compagnies have won a battle, but not yet the war.
-	Please be aware of the danger. More info at the [[FFII
-	website][<ffii:>]] as well as the [[FSF website][<fsf:>]].
+	[[ssp362x60.gif;alt="stopsoftwarepatents.eu petition banner"][http://petition.stopsoftwarepatents.eu/761005372505]]
 
 ---
 ---++ And now about SWI-Prolog ...
