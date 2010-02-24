@@ -41,16 +41,20 @@ People are listed in alphabetical order.
 
 
   * AVL library by [[Brad Appleton][http://www.cmcrossroads.com/bradapp/]] used in Semweb package
+  * [[GEOS][http://trac.osgeo.org/geos/]] (Geometry Engine, Open Source)
   * [[GMP][http://gmplib.org/]] (Unbounded and rational arithmetic)
   * [[GNU][http://www.gnu.org]] (Linux, development tools, libraries, etc.)
   * [[MacPorts][http://www.macports.org]] (Porting environment for MacOS)
   * [[Maildrop][http://www.courier-mta.org/maildrop/]] (MIME decoding)
   * [[MurmurHash][http://murmurhash.googlepages.com/]] (string hashing)
   * [[Nullsoft][http://nsis.sourceforge.net/]] (Windows installer)
+  * [[NetBSD][http://www.netbsd.org/]] (crypt implementation for Windows)
   * [[OpenSSL][http://www.openssl.org/]] (secure sockets)
   * SHA routines by [[Brian Gladman][http://www.gladman.me.uk/]]
   * [[Snowball][http://snowball.tartarus.org/]] NLP stemmer library
+  * [[spatialindex][http://trac.gispython.org/spatialindex/wiki]] Multi-dimensional indexing package
   * [[UnixODBC][http://www.unixodbc.org/]] (Database connectivity on Unix)
+  * [[utf8proc][http://www.public-software-group.org/utf8proc]] (unicode normalization)
   * [[X.org][http://www.x.org/]] (Graphics on Unix)
   * [[Zlib][http://www.zlib.net/]] (compression)
 
