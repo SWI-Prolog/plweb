@@ -53,11 +53,28 @@ end up in the HTML =head=.
 
 http:location(www,	    root(www),		       []).
 http:location(script,	    www(script),	       [js(true)]).
-%http:location(yui_base,    www('yui/2.7.0'),	       []).
-http:location(yui_base,	    'http://yui.yahooapis.com/2.7.0/', []).
 http:location(yui,	    yui_base(build),	       [js(true)]).
 http:location(yui_examples, yui_base(examples),	       [js(true)]).
 
+:- if(absolute_file_name(yui(.), _, [ access(read),
+				      file_type(directory),
+				      file_errors(fail)
+				    ])).
+http:location(yui_base,    www('yui/2.7.0'),	       []).
+
+:- use_module(library(http/http_dispatch)).
+
+:- http_handler(yui_base(.), serve_file, [prefix]).
+
+serve_file(Request) :-
+	memberchk(path_info(Path), Request),
+	http_reply_file(yui(Path), [], Request).
+
+:- else.
+
+http:location(yui_base,	    'http://yui.yahooapis.com/2.7.0/', []).
+
+:- endif.
 
 		 /*******************************
 		 *	YUI DEPENDENCIES	*

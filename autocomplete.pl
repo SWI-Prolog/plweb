@@ -60,7 +60,7 @@ prolog:doc_search_field(Options) -->
 	  max_results_displayed(Max)
 	},
 	autocomplete(ac_predicate,
-		     [ query_delay(0.5),
+		     [ query_delay(0.3),
 		       auto_highlight(false),
 		       max_results_displayed(Max),
 		       width(Wem)
