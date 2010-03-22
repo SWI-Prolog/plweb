@@ -1,4 +1,4 @@
-#!/home/jan/bin/pl -q -g true -t main -s
+#!/home/janw/bin/swipl -q -g true -t main -s
 
 :- use_module(stat).
 :- use_module(plstat).
@@ -56,6 +56,7 @@ sums(Options, Terms) :-
 	flatten(L, List),
 	aggregate_all(sum(X), member(_=X, List), Count),
 	format('Total downloads over ~d: ~D~n', [Y, Count]).
+sums(_,_).
 
 
 :- prolog_load_context(directory, Dir),
