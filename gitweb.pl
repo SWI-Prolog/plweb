@@ -105,8 +105,4 @@ http_cgi:environment('PATH', '/bin:/usr/bin:/usr/local/bin').
 
 git_http(Request) :-
 	memberchk(path_info(Local), Request),
-	\+ sub_atom(Local, _, _, _, '../'),
-	absolute_file_name(plgit(Local), File,
-			   [ access(read)
-			   ]),
-	http_reply_file(File, [], Request).
+	http_reply_file(plgit(Local), [], Request).
