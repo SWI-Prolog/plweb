@@ -22,8 +22,8 @@ check [[relnotes-5.10][http://www.swi-prolog.org/git/pl.git?a=blob;f=ReleaseNote
 ---++ Highlights for the 5.10.x release:
 
     * All platforms now use consistent naming.  The SWI-Prolog executable
-    is called swipl, the linker swipl-ld and the resouce-file manager
-    swipl-rc.
+    is called *swipl*, the linker *|swipl-ld|* and the resouce-file
+    manager *|swipl-rc|*.
 
     * New stack memory-management that is based on stack-shifting rather
     than allocating the stacks sparsely in the virtual address-space.  This
@@ -48,6 +48,7 @@ check [[relnotes-5.10][http://www.swi-prolog.org/git/pl.git?a=blob;f=ReleaseNote
 
     * The number of variables in clauses is now limited to 1,000,000,000;
     this was 65535.  In addition, the system provides graceful exceptions
-    when trying to assert illegal terms (e.g. cyclic terms).
+    when encountering resource-errors or trying to assert illegal terms
+    such as cyclic terms.
 
-    * Compatibility to both YAP and SICStus in enhanced.
+    * Compatibility to both YAP and SICStus is enhanced.
