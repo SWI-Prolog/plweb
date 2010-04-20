@@ -16,25 +16,21 @@ errors are found that affect many users. GIT access to the development
 is provided. All releases are tagged as VMajor.Minor.Patch Release
 milestones
 
-  $ 5.9.x: This upcomming release will provide better memory management.
-  Notably a stack-shifter to reduce address-space usage; no max_thread
-  limit; better trail handling and generational garbage collection.
+  $ 5.11.x: External requirements have forced the release of 5.10.x
+  before the wishlist of new functionality was complete. Notably
+  generational GC remains on the wishlist.
+
+  $ 5.10.x: Stable branch with the achieved 5.9.x enhancements: better
+  scalability in terms of memory usage and concurrency, better
+  reliability and better compatibility.
 
   $ 5.8.x: Stable branch providing performance enhancements from 5.7.x,
   many extensions and enhancements to the libraries; notably the
   web and semantic web libraries.
 
-  $ 5.7.x: Development branch that enhances the virtual machine with
-  two purposes: make it a lot easier to understand and modify and make
-  it a lot faster.
-
   $ 5.6.x: Stable branch providing UNICODE handling, unbounded and
   rational arithmetic, enhanced Leuven CHR system, clp(q,r), clp(fd),
   much enhanced (semantic) web libraries, etc.
-
-  $ 5.5.x: Development branch introducing wide-character (UNICODE,
-  UTF-8) support as well as costraint Logic Programming over Reals
-  (clp(R)).
 
   $ 5.4.x: Stable branch providing attributed variables, coroutining,
   CHR (Constraint Handling Rules), infinite trees (cyclic terms) and

@@ -16,7 +16,7 @@ People are listed in alphabetical order.
   * Leslie de Koninck (CLP(QR) port)
   * Markus Triska (CLP(FD) and other (constraint) libraries)
   * Matt Lilley (testing, patches)
-  * Nicos Angelopoulos (Interface to R)
+  * Nicos Angelopoulos ([[R][http://www.r-project.org/]]-interface)
   * Paul Singleton (JPL, interface to Java)
   * Richard O'Keefe (libraries, extensive comments)
   * Sergey Tikhonov (testing multi-threading, patches)
@@ -25,6 +25,8 @@ People are listed in alphabetical order.
   * Uwe Lesta (interface to C#)
   * Vitor Santos Costa (various libraries copied from [[YAP][http://www.dcc.fc.up.pt/~vsc/Yap/]])
   * Willem Robert van Hage (space package: multi-dimensional indexing)
+  * Torbjörn Lager (SWAPP)
+  * Samer Abdallah ([[FANN][http://leenissen.dk/]] and [[OSC][http://opensoundcontrol.org/]] interfaces.
 
 ---++ Other _Contributors_
 

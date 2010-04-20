@@ -1,40 +1,53 @@
----++ About the 5.8.x release
+---++ About the 5.10.x release
 
-The 5.8.x release consolidates the 5.7.x development stream, which makes
-the virtual machine implementation much easier to maintain and extend.
-This has been used to improve it at various places: proper compilation
-of =/2, dedicated instructions for common arithmetic operations, a few
-super-instructions for common list operations and dedicated indexing
-code for common constructs.
+SWI-Prolog 5.10.0 provides no new functionality beyond a few predicates.
+This version improves  SWI-Prolog  notably   in  terms  of  scalability,
+reliability, compatibility and performance for   a  couple of built-ins.
 
----++ Upgrading code for 5.6.64 to 5.8.x
-
-We are assembling tricks and tips for upgrading your Prolog source to
-run on 5.8.0 [[here][</Upgrade-5.8.html>]].
+---++ Upgrading code for 5.6.64 to 5.8.x and 5.10.x
 
 
----++ Highlights:
+We are assembling tricks and tips for upgrading your 5.6.X Prolog source
+to run on 5.8.0 and later [[here][</Upgrade-5.8.html>]].
 
-    * Performance improvement on larger programs is between 10 and 40%,
-    depending on the programming style. Notably the constraint solvers
-    profit significantly. Small programs sometimes show much bigger
-    speedups.
+The main difference is that SWI-Prolog is now called *swipl* on all
+platforms. This may require updating PrologScript files (calling Prolog
+using =|#!/path/to/swipl -s|=) or other script files calling Prolog.
 
-    * Updated module system:
-          * Compile : if sufficiently instantiated
-          * Provide real support for :- meta_predicate/1. Most of
-	  the library code has replaced :- module_transparent/1
-	  with :- meta_predicate/1.
-	  * System libraries are no longer sensitive for predicates,
-	  operators and changes of the unknown-flag in the user module.
+Otherwise, SWI-Prolog 5.10.x is compatible to 5.8.x, with possible
+exceptions of extreme corner cases. If you experience problems, please
+check [[relnotes-5.10][http://www.swi-prolog.org/git/pl.git?a=blob;f=ReleaseNotes/relnotes-5.10]]
 
-    * Various compatibility enhancements resulting from discussion in
-    the _|Prolog Commons|_ project.
 
-	* Above mentioned meta_predicate/1 handling.
-	* Support Ciao's _anonymous_ modules.
-	* Support the ISO proposal for extensions to the core.
-	* Added atomic_list_concat/2 and several friends.
-	* Make :- initialization/1 ISO compatible (runs _after_ loading
-	the file completes).
+---++ Highlights for the 5.10.x release:
 
+    * All platforms now use consistent naming.  The SWI-Prolog executable
+    is called swipl, the linker swipl-ld and the resouce-file manager
+    swipl-rc.
+
+    * New stack memory-management that is based on stack-shifting rather
+    than allocating the stacks sparsely in the virtual address-space.  This
+    change allows for much better scalability in the number of threads, so
+    we also removed the old thread-count limit of 100.  The stack-limits
+    can now be raised and reduced at runtime using set_prolog_stack/2.
+
+    * The default stack-size-limits are now 128Mb per stack on 32-bit and
+    256Mb on 64-bit hardware.
+
+    * Extensive leak and stress-testing have fixed a number of leaks and
+    race conditions, making the system much more robust in 24x7 server
+    setup.
+
+    * A start has been made to avoid using the C-stack for recursing into
+    terms.  This allows processing much more deeply nested terms and provides
+    a clean exception if there are insufficient resources to traverse the
+    term.  There is still much to do in this area.
+
+    * SWI-Prolog 5.10.0 introduces safe references to database terms (assertz/2,
+    recordz/3) and streams (open/3).
+
+    * The number of variables in clauses is now limited to 1,000,000,000;
+    this was 65535.  In addition, the system provides graceful exceptions
+    when trying to assert illegal terms (e.g. cyclic terms).
+
+    * Compatibility to both YAP and SICStus in enhanced.
