@@ -345,7 +345,7 @@ win_type(win32) --> "w32".
 win_type(win64) --> "w64".
 
 long_version(version(Major, Minor, Patch)) -->
-	int(Major, 1), ".", int(Minor, 1), ".", int(Patch, 2), !.
+	int(Major, 1), ".", int(Minor, 2), ".", int(Patch, 2), !.
 
 int(Value, MaxDigits) -->
 	digits(Digits),
@@ -361,9 +361,18 @@ short_version(version(Major, Minor, Patch)) -->
 	    number_codes(Minor, [D2]),
 	    number_codes(Patch, [D3])
 	;   Digits = [D1,D2,D3,D4]
+	->  (   D2 == 0'1		% 5.1X.Y
+	    ->  number_codes(Major, [D1]),
+	        number_codes(Minor, [D2,D3]),
+		number_codes(Patch, [D4])
+	    ;   number_codes(Major, [D1]),
+	        number_codes(Minor, [D2]),
+		number_codes(Patch, [D3,D4])
+	    )
+	;   Digits = [D1,D2,D3,D4,D5]
 	->  number_codes(Major, [D1]),
-	    number_codes(Minor, [D2]),
-	    number_codes(Patch, [D3,D4])
+	    number_codes(Minor, [D2,D3]),
+	    number_codes(Patch, [D4,D5])
 	}.
 
 %%	sort_files(+In, -Out, +Options)
