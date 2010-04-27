@@ -4,10 +4,10 @@
 
     * [[Stable release][</download/stable>]]
     Sources and executables for MS-Windows, Linux and MacOS X
-    version *|5.8.x|*
+    version *|5.10.x|*
     * [[Development release][</download/devel>]]
     Sources and executables for MS-Windows and MacOS X
-    version *|5.9.x|*
+    version *|5.11.x|*
     * Some popular [[old versions][</download/old?show=all>]]
     * [[GIT access][git.txt]], browse GIT [[repository][</git/>]]
 

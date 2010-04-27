@@ -1,6 +1,7 @@
 ---++ About this release
 
-The 5.9.x branch will improve memory management.
+Verstion 5.9.11 is practically the same as 5.10.0. The next development
+release will be 5.11.0.
 
 The development branches have their own GIT repository at the address
 below. See the general [[GIT][</git.html>]] instructions for details.
@@ -9,34 +10,43 @@ below. See the general [[GIT][</git.html>]] instructions for details.
 % git clone git://www.swi-prolog.org/home/pl/git/pl-devel.git
 ==
 
----++ Windows
+---++ 5.11.x planned enhancements
 
-    * With thanks to `Degski', building the Windows version has
-    become a lot simpler.  The above Windows binaries are created
-    using his configuration framework with Microsoft VC9.  Uptill
-    now, the Win32 binary was compiled with VC6 and the Win64
-    version with VC8.
-
----++ Space package
-
-    * The section *|Package binaries|* contains binary installers
-    for the space-package, providing spatial indexing designed to
-    be used with the RDF libraries, but they can also be used as
-    general purpose library for multi-dimensional indexing and
-    dealing with geo-data formats.
-
-    Non-Windows users should download and build from the GIT 
-    sources.
-
----++ 5.9.x planned enhancements
-
-    * Replace sparse-address-space based stack allocation by
-    stack-relocation (stack-shifting).  This seriously reduces
-    address-space requirements, which is of great importance to
-    applications using many _threads_. (*done*)
-
-    * Remove =max_threads= limitation. (*done*)
+SWI-Prolog 5.10.0 was released a bit early, in the sense that two
+enhancements in memory management are not or only partly realised.
+These are moved to the 5.11.0 agenda:
 
     * Reduce trail-stack usage. (*partly*)
-
     * Provide generational garbage collection.
+
+Otherwise, priorities have not yet settled. Just to show this doesn't
+mean there are no plans, some points in random order.  Feel free to
+suggest more or -better- help :-)
+
+    * Kernel issues
+
+      * Better indexing, including support for tries
+      * Tabling
+      * Further cleanup of the VM instruction API to simplify maintenance
+	and future enhancements
+      * Rewrite more/all term-traversing functions to avoid the use of
+	C-based recursion.  This allows processing more deeply nested
+	terms and proper resource-exceptions if there is insufficient
+	memory
+      * Handle malloc() failures with exceptions rather then a
+	fatal-error.
+
+    * Libraries
+
+      * RDF enhancements: better write-concurrency, get more out of
+	named graphs and handle owl:sameAs mappings efficiently.
+      * Move many goodies from
+	[[ClioPatria][http://e-culture.multimedian.nl/software/ClioPatria.shtml]]
+	to the HTTP and semweb libraries.
+
+    * Community and development issues
+
+      * Come to a better model for dealing with contributed code.  This
+        model should allow for more independent and distributed
+	development and make it easy for users to download and install
+	packages.

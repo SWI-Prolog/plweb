@@ -7,7 +7,6 @@
   * Mailinglist.txt
   * Support.txt
   * Links.txt
-  * News.txt
   * Contact.txt
 --
   * IDE.txt (developing)

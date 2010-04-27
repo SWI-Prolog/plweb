@@ -1,3 +1,3 @@
-Self-installing executable for MS-Windows. Installs *|plwin.exe|* and
-*|plcon.exe|*. Works on Windows NT/2000/XP/Vista. Users of Windows
-95/98/ME should [[download version 5.4.7][</download/old>]].
+Self-installing executable for MS-Windows. Installs *|swipl.exe|*
+and *|swipl-win.exe|*. Works on Windows NT/2000/XP/Vista/7. Users of
+Windows 95/98/ME should [[download version 5.4.7][</download/old>]].
