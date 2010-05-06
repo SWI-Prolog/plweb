@@ -5,8 +5,10 @@ At rare weak moments I am pursuaded to write articles about aspects of
 SWI-Prolog or its libraries. If you use SWI-Prolog and write academic
 publiciations, please consider citing one of these papers.
 
+    * [[Portability of Prolog programs: theory and case-studies][<swipub:porting.pdf>]]
+    Jan Wielemaker and Vitor Santos Costa.  Accepted for CICLOPS-10
     * [[Precise Garbage Collection in Prolog][<swipub:lifegc.pdf>]]
-    Jan Wielemaker and Ulrich Neumerkel CYCLOPS-08. [[BibTeX][<swipub:lifegc.bib>]]
+    Jan Wielemaker and Ulrich Neumerkel CICLOPS-08. [[BibTeX][<swipub:lifegc.bib>]]
     * [[Thesaurus-Based Search in Large Heterogeneous Collections][<pub:iswc-08.pdf>]],
     ISWC-08, [[BibTeX][<pub:iswc-08.bib>]]
     * [[Using Prolog as the fundament for applications on the semantic web][<pub:mn9c.pdf>]],
