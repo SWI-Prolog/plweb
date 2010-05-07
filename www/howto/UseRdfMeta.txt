@@ -43,8 +43,8 @@ a human-readable way:
 
 ---++ Using prefixes in your program
 
-Remember, internally all resources are atoms. The transformations above
-are realised at *|compile-time|* using rules for goal_expansion/2
+Remember, _|internally all resources are atoms|_. The transformations
+above are realised at *|compile-time|* using rules for goal_expansion/2
 provided by the rdf_db library. If we want to use prefixes in programs,
 we have to ensure two things:
 
@@ -53,6 +53,7 @@ we have to ensure two things:
     E.g.:
 
 	==
+	:- use_module(library(semweb/rdf_db)).
 	:- use_module(library(semweb/rdfs)).
 	:- rdf_load(library(semweb/rdfs)).
 
@@ -73,7 +74,7 @@ we have to ensure two things:
 	    person(r).
 	==
 
-    Now I can ask the query below.  Without the rdf_meta/1 declaration
+    Now, we can ask the query below.  Without the rdf_meta/1 declaration
     above, the query below results in a type-error.
 
         ==
@@ -84,4 +85,24 @@ we have to ensure two things:
     Note that the rdf_meta/1 declaration is only needed for predicates
     that we want to call from the Prolog source using the
     <alias>:<name> notation.
+
+---+++ Using prefixes in the heads of clauses
+
+Sometimes, one wishes to write clauses where head-arguments must match a
+resource. E.g., suppose we want to state which predicates specify a
+`label'.  Here too, we can use the rdf_meta/1 declaration:
+
+==
+:- use_module(library(semweb/rdf_db)).
+
+:- rdf_meta
+	label_predicate(r).
+
+label_predicate(rdfs:label).
+label_predicate(skos:prefLabel).
+label_predicate(skos:altLabel).
+==
+
+*|Note:|* Expansion of clause-heads was added to the GIT at May 7, 2010.
+It will become part of SWI-Prolog 5.11.1.
 
