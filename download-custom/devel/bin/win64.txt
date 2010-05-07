@@ -1,3 +1,4 @@
-Self-installing executable for Microsoft's 64-bit platforms (XP and
-Vista 64-bit editions). See the [[reference manual][</man/64bits.html>]]
-for deciding on whether to use the 32- or 64-bits version.
+Self-installing executable for Microsoft's 64-bit platforms (XP-64,
+Vista 64-bit and Windows 7 64-bit). See the [[reference
+manual][</man/64bits.html>]] for deciding on whether to use the 32- or
+64-bits version.

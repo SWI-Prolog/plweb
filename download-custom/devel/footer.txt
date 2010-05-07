@@ -1,7 +1,4 @@
----++ About this release
-
-Verstion 5.9.11 is practically the same as 5.10.0. The next development
-release will be 5.11.0.
+---++ About the development releases
 
 The development branches have their own GIT repository at the address
 below. See the general [[GIT][</git.html>]] instructions for details.
