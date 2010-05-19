@@ -40,17 +40,19 @@ SWI-Prolog [[packages][</packages/>]]
 
     * [[Logtalk][http://www.logtalk.org/]]:
     Prolog object package by Paulo Moura
+    * [[Alpino: a dependency parser for Dutch][http://www.let.rug.nl/vannoord/alp/Alpino/]]
     * [[Attempto Parsing Engine (APE)][http://semanticweb.org/wiki/Attempto_Parsing_Engine]]
     A parser for Attempto Controlled English (ACE).
-    * [[About Prolog, RDF and XML by Bijan Parsia][http://www.xml.com/pub/a/2001/04/25/prologrdf/index.html]]
     * [[ProNTo = Prolog Natural Language Tools][http://www.ai.uga.edu/mc/ProNTo/]]
+    * [[DES -- Datalog Educational System by Fernando Saenz Perez][http://des.sourceforge.net/]]
+    * [[Thea: A Prolog library for OWL2][http://www.semanticweb.gr/thea/index.html]]
     * [[plimk -- An SWI-Prolog interface to ImageMagick][http://plimk.sourceforge.net/]]
     * [[A SWI-Prolog interface to Matlab by Samer Abdallah (Unix (Linux, MacOSX only)][http://www.elec.qmul.ac.uk/digitalmusic/downloads/index.html#plml]]
-    * [[DES -- Datalog Educational System by Fernando Saenz Perez][http://des.sourceforge.net/]]
     * [[PySWIP -- a bridge between Python and SWI-Prolog by Yuce Tekol][http://code.google.com/p/pyswip/]]
 
   * *|(SWI-)Prolog on the web|*
 
+    * [[About Prolog, RDF and XML by Bijan Parsia][http://www.xml.com/pub/a/2001/04/25/prologrdf/index.html]]
     * [[Long story about using SWI-Prolog RDF and HTML infrastructure][http://www.xml.com/pub/a/2001/07/25/prologrdf.html]] by Bijan Parsia
     * [[Why Use Prolog?][http://www.j-paine.org/why_prolog.html]] by Jocelyn Paine
     * [[Tom's Declarative Languages Blog
