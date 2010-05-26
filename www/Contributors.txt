@@ -26,7 +26,9 @@ People are listed in alphabetical order.
   * Vitor Santos Costa (various libraries copied from [[YAP][http://www.dcc.fc.up.pt/~vsc/Yap/]])
   * Willem Robert van Hage (space package: multi-dimensional indexing)
   * Torbjörn Lager (SWAPP)
-  * Samer Abdallah ([[FANN][http://leenissen.dk/]] and [[OSC][http://opensoundcontrol.org/]] interfaces.
+  * Samer Abdallah ([[OSC, MIDI, Random and Matlab
+  interfaces][</contrib/SamerAbdallah/>]])
+  * Degski ([[FANN][http://leenissen.dk/]], Windows porting)
 
 ---++ Other _Contributors_
 
