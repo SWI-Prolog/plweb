@@ -46,11 +46,10 @@ Some packages are distributed separately.
     features: it scales well and it can handle multiple ontologies and
     allows for editing them in a unified view.
 
-    $ [[The ClioPatria semantic search web-server][<cliopatria:>]] :
-    This library resulted from the [[MultimediaN][<multimedian:>]]
-    project.  It is used in various large projects and provides
-    a [[SPARQL][<sparql:>]] and [[SeRQL][<serql:>]] endpoint. These
-    end-points can also be use without the rest of ClioPatria.
+    $ [[The ClioPatria semantic search web-server][<ClioPatria.html>]] :
+    This library provides a ready-to-run web-server that includes
+    a SPARQL endpoint, user-right management and RDF development tools.
+    ClioPatria is an RDF-application development framework.
 
     $ [[Thea, an OWL library for SWI-Prolog][<thea:>]] :
     Provides access to OWL ontologies at the level of the abstract

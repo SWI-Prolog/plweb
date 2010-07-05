@@ -104,7 +104,6 @@ user:url_path(tortoisegit, 'http://code.google.com/p/tortoisegit/').
 user:url_path(macports,	 'http://www.macports.org/').
 user:url_path(xquartz,	 'http://xquartz.macosforge.org/').
 user:url_path(json,	 'http://json.org/').
-user:url_path(cliopatria, 'http://e-culture.multimedian.nl/software/ClioPatria.shtml').
 user:url_path(multimedian, 'http://e-culture.multimedian.nl/').
 user:url_path(thea,	 'http://www.semanticweb.gr/TheaOWLLib/').
 user:url_path(dig,	 'http://dl.kr.org/dig/interface.html').
