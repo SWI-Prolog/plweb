@@ -42,7 +42,7 @@ already exist and are being used actively.
 	explorer-like view on a directory holding Prolog sourcefiles.
 	Sourcesfiles can be expanded in the tree, showing predicates,
 	exports, XPCE classes and methods. Can be used to edit entities
-	or enable debugging them (spy). 
+	or enable debugging them (spy).
 
 The Windows Prolog console *|plwin.exe|* provides a menu to access many
 of these facilities directly.
@@ -62,3 +62,6 @@ to run XPCE GUI programs.
 Especially for classroom usage on MS-Windows you should consider this
 version. The site also contains some demo material.
 
+---++ Eclipse based
+
+  * [[Prolog Development Tools - ProDT][http://prodevtools.sourceforge.net/]]
