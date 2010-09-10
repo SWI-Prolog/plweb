@@ -138,6 +138,13 @@ find_file(Relative, File) :-
 			   [ access(read),
 			     file_errors(fail)
 			   ]).
+find_file(Relative, File) :-
+	absolute_file_name(document_root(Relative),
+			   File,
+			   [ access(read),
+			     file_errors(fail),
+			     file_type(directory)
+			   ]).
 
 
 %%	serve_file(+File, +Request) is det.
