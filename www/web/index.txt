@@ -35,7 +35,7 @@ processing.
     instructions for building the dependencies and the indexer itself.
 
 
----++ Seperately distributed packages
+---++ Separately distributed packages
 
 Some packages are distributed separately.
 
@@ -53,7 +53,7 @@ Some packages are distributed separately.
 
     $ [[Thea, an OWL library for SWI-Prolog][<thea:>]] :
     Provides access to OWL ontologies at the level of the abstract
-    syntax. Can interact with external DL reasonder using
+    syntax. Can interact with external DL reasoner using
     [[DIG][<dig:>]].  The project is [[hosted on
     GitHUB][http://wiki.github.com/vangelisv/thea]].  See also
     [[Blip Blog, Logic Programming in Biology][http://blipkit.wordpress.com/category/web/semantic-web-web/]]
