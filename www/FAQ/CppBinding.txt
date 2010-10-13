@@ -4,7 +4,7 @@ Actually, there are two. One is the original, written by me (Jan
 Wielemaker), which is part of the standard SWI-Prolog packages. It
 consists of the file SWI-cpp.h and is documented in:
 
-    * http://www.swi-prolog.org/package/pl2cpp.html
+    * http://www.swi-prolog.org/pldoc/package/pl2cpp.html
 
 Now, I'm not much of a C++ programmer, so Volker Wysk has created
 another one with my help explaining the viewpoint from Prolog. It is
