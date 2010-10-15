@@ -64,9 +64,12 @@
 :- use_module(customise).
 :- use_module(tests).
 
-:- http_handler(root(.),	     serve_page,  [prefix, priority(10), spawn(wiki)]).
-:- http_handler(root('favicon.ico'), favicon,	  [priority(10)]).
-:- http_handler(root(man),	     manual_file, [prefix, priority(10), spawn(wiki)]).
+:- http_handler(root(.), serve_page(document_root),
+		[prefix, priority(10), spawn(wiki)]).
+:- http_handler(root('favicon.ico'), favicon,
+		[priority(10)]).
+:- http_handler(root(man), manual_file,
+		[prefix, priority(10), spawn(wiki)]).
 
 /** <module> Server for PlDoc wiki pages and SWI-Prolog website
 
@@ -102,20 +105,20 @@ favicon(Request) :-
 		 *	      SERVICES		*
 		 *******************************/
 
-%%	serve_page(+Request)
+%%	serve_page(+Alias, +Request)
 %
 %	HTTP handler for files below document-root.
 
-serve_page(Request) :-
+serve_page(Alias, Request) :-
 	memberchk(path_info(Relative), Request),
-	Spec =.. [ document_root(Relative) ],
+	Spec =.. [ Alias, Relative ],
 	http_safe_file(Spec, []),
 	find_file(Relative, File), !,
 	serve_file(File, Request).
-serve_page(Request) :-
+serve_page(Alias, Request) :-
 	\+ memberchk(path_info(_), Request), !,
-	serve_page([path_info('index.html')|Request]).
-serve_page(Request) :-
+	serve_page(Alias, [path_info('index.html')|Request]).
+serve_page(_, Request) :-
 	memberchk(path(Path), Request),
 	existence_error(http_location, Path).
 
