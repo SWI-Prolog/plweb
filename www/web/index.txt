@@ -46,7 +46,7 @@ Some packages are distributed separately.
     features: it scales well and it can handle multiple ontologies and
     allows for editing them in a unified view.
 
-    $ [[The ClioPatria semantic search web-server][<ClioPatria.html>]] :
+    $ [[The ClioPatria semantic search web-server][<ClioPatria/>]] :
     This library provides a ready-to-run web-server that includes
     a SPARQL endpoint, user-right management and RDF development tools.
     ClioPatria is an RDF-application development framework.
