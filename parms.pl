@@ -84,7 +84,7 @@ user:url_path(lgpl, 	fsf('copyleft/lesser.html')).
 user:url_path(wordnet, 	'http://www.cogsci.princeton.edu/~wn/').
 user:url_path(gmp,	'http://www.swox.com/gmp/').
 user:url_path(mailman,	'http://www.list.org/').
-user:url_path(bonn,	'https://mailbox.iai.uni-bonn.de/mailman').
+user:url_path(bonn,	'https://lists.iai.uni-bonn.de/mailman').
 user:url_path(maillist,	bonn('listinfo.cgi/swi-prolog')).
 user:url_path(mailarchive, bonn('public/swi-prolog/')).
 user:url_path(oldmail,	'http://gollem.science.uva.nl/SWI-Prolog/mailinglist/archive/').
