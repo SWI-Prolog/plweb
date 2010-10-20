@@ -10,9 +10,8 @@ questions.
 The mailinglist is kindly hosted by the University of Bonn using the
 [[Mailman][<mailman:>]] list software. You can manage your subscription
 using [[this web-page][<maillist:>]]. To post new messages, send mail to
-<mailto:swi-prolog@lists.iai.uni-bonn.de>. The list is archived by
-[[mailman][<mailarchive:>]] and [[on the swi-prolog
-site][<oldmail:>]]
+<mailto:swi-prolog@lists.iai.uni-bonn.de>. The list is
+[[archived][https://lists.iai.uni-bonn.de/pipermail/swi-prolog]].
 
 ---++ Related mailinglists
 
