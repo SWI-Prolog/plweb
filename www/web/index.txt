@@ -60,4 +60,5 @@ Some packages are distributed separately.
 
 @see [[Publications][</Publications.html>]]
 @see [[documentation overview][</pldoc/index.html>]]
+@see [[Topos: A Semantic Web, Linked Data application][http://www.semanticweb.gr/topos/]]
 @see [[DBTune blogs tagged SWI-Prolog][http://blog.dbtune.org/tag/swi-prolog]]
