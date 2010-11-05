@@ -1,13 +1,12 @@
 ---+ Building SWI-Prolog on MS-Windows
 
-If you have access to MSVC 6.0 or later, you may decide to build the
-Windows version of SWI-Prolog yourself. There are only a few cases where
-you would like to do that:
+There are only a few cases where you would like to build the Windows
+version from source:
 
     * You want a debugging version to simplify debugging of foreign code
     you add to SWI-Prolog.
     * You want to modify SWI-Prolog.
-    * You want to use libraries optimised for your system (f.e. GMP).
+    * You want to use libraries optimised for your system (e.g., GMP).
     * You want to stay in touch with the bleeding edge using GIT.
 
 As of the integrated XPCE/SWI-Prolog 4.0.0, the installation is no
@@ -21,8 +20,10 @@ NMAKE that run from a command window.
     are not supported after 5.4.x and even the 5.4.x versions can only
     be compiled on NT based platforms.
 
-    * MSVC 6.0 or later. We use
-    [[Microsoft Windows SDK for Windows 7 and .NET Framework 3.5 SP1][http://www.microsoft.com/downloads/details.aspx?familyid=71DEB800-C591-4F97-A900-BEA146E4FAE1&displaylang=en]].
+    * VC2008 or later. We use
+    [[Microsoft Windows SDK for Windows 7 and .NET Framework 3.5 SP1][http://www.microsoft.com/downloads/details.aspx?familyid=71DEB800-C591-4F97-A900-BEA146E4FAE1&displaylang=en]],
+    which contains a free version of the VC2008 C-compiler and
+    associated command line tools.
 
     * The pthread-win32 POSIX thread API library from
     [[Redhat][http://sources.redhat.com/pthreads-win32/]]. (1)
@@ -37,15 +38,19 @@ NMAKE that run from a command window.
 
     * OpenSSL binaries from
     [[Shining Light Productions][http://www.slproweb.com/products/Win32OpenSSL.html]]
-    , if you want ssl functionality. (2)
+    , if you want ssl functionality. Note that the standard OpenSSL
+    installation is not ok.  Install OpenSSL in the =|Program Files|=
+    folder (e.g., =|C:\Program Files\OpenSSL|=) and install the binaries
+    inside the OpenSSL folder. Latest version that we tested is
+    =|Win64OpenSSL-1_0_0a.exe|= (2)
 
     * The SUN Java2 SDK, downloadable from SUN if you want the JPL
-    Java/Prolog interface. (2)
+    Java/Prolog interface.  Latest version that we tested is
+    =|jdk-6u22-windows-x64.exe|= (2)
 
-
-    (1) Will be downloaded automatically from the SWI-Prolog web-site
+ 1. Will be downloaded automatically from the SWI-Prolog web-site
     in the procedure outlined below.
-    (2) Optional.
+ 2. Optional.
 
 
 ---++ Now proceed as follows:
