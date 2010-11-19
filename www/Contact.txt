@@ -10,11 +10,11 @@ suggestions, etc.
 
     * E-mail [[General enquiries][<mailto:info@swi-prolog.org>]]
     * E-mail [[Bug reports][<mailto:bugs@swi-prolog.org>]] or (better)
-    use [[Bugzilla][http://gollem.science.uva.nl/bugzilla/]] 
+    use [[Bugzilla][<bugzilla:>]]
 
 ---++ PGP signature
 
 In cases where PGP signing or encryption is required, here is our PGP
 public key, signed by Jan Wielemaker <jan@swi-prolog.org>. See also our
 PGP page. When in doubt on the authenticity of the key, please contact
-us using the above address. 
+us using the above address.
