@@ -1,10 +1,11 @@
 ---+ How do I enlarge the stacks?
 
-SWI-Prolog's runtime stacks are by default a bit small for demanding
-programs. The default limit is choosen such that many small programs run
-just fine and if you make a mistake that makes the stack grow without
-control it quickly signals this, so you don't have to wait minutes while
-Prolog is eating all your computer's memory.
+Old versions of SWI-Prolog had quite limited default stack-sizes. As of
+version 5.10.0, there are no resources involved with unused spack-space
+and the limits on 32-bit platforms are by default the maximum that can
+be handled on these platforms: 128Mb. On 64-bit platforms the default is
+256Mb, which typically means you have the same limit as on 32-bit
+systems. However, on 64-bit platforms you can extend the limits.
 
 ---++ But, my program is too big. What now?
 
@@ -14,8 +15,9 @@ to find choicepoints.
 
 ---++ But I really have a lot of choicepoints and data
 
-No worries. SWI-Prolog can handle that, but it depends on the platform
-how to. Continue at the appropriate section.
+SWI-Prolog can handle that on 64-bit systems. As of version 5.10.0, the
+limits can be modified at runtime using set_prolog_stack/2. In addition,
+the mechanisms beloe can be used.  Continue at the appropriate section.
 
 ---+++ Enlarging the stacks in Windows
 
@@ -29,23 +31,23 @@ In windows you have several options.
     * You can use the PrologScript.txt magic sequence, which is handled
     for a Prolog file you open using double-click just as the Unix
     version does, except that the path to the executable is ignored (but
-    some path must be specified). 
+    some path must be specified).
 
 ---+++ Enlarge the stacks in Unix
 
     * Use a shell script
     * Use a PrologScript.txt
-    * Use command-line options 
+    * Use command-line options
 
 ---++++ Specifying stack-sizes using Prolog Script
 
 Make sure your file starts with #!, followed by location of Prolog,
 followed by options you want to pass and ending with the -s (script)
-option. Here is an example using 64Mbytes global stack on a default
+option. Here is an example using 4Gbytes global stack on a default
 Linux installation:
 
 ==
-#!/usr/bin/pl -G64m -s
+#!/usr/bin/swipl -G4g -s
 ==
 
 ---++++ Stack related commandline options
@@ -56,13 +58,13 @@ postfix) or Gbytes (using *g* postfix).
     $ -L<size>[kmg] :
       Specify local stack. Here go environments and choicepoints.
       Determinism and last-call optimization (tail-recursion) keep it
-      small. 
+      small.
 
     $ -G<size>[kmg] :
       Global stack. Here are compound terms, lists, floats, large
       integers and strings. Efficient data-structures and determinism
-      keep it small. 
+      keep it small.
 
     $ -T<size>[kmg] :
       Trail stack. Here goes information for rewinding to a choicepoint.
-      Again determinism is a dominant factor to keep it small. 
+      Again determinism is a dominant factor to keep it small.
