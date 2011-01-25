@@ -40,15 +40,9 @@ processing.
 Some packages are distributed separately.
 
 
-    $ [[The Triple20 ontology editor][Triple20.txt]] :
-    Graphical tool for browsing and editing ontologies.  Not very well
-    maintained, but useful for browsing loaded RDF and it has two nice
-    features: it scales well and it can handle multiple ontologies and
-    allows for editing them in a unified view.
-
-    $ [[The ClioPatria semantic search web-server][<ClioPatria/>]] :
-    This library provides a ready-to-run web-server that includes
-    a SPARQL endpoint, user-right management and RDF development tools.
+    $ [[The ClioPatria semantic search web-server][http://cliopatria.swi-prolog.org]] :
+    This library provides a ready-to-run web-server that includes a
+    SPARQL endpoint, user-right management and RDF development tools.
     ClioPatria is an RDF-application development framework.
 
     $ [[Thea, an OWL library for SWI-Prolog][<thea:>]] :
@@ -57,6 +51,12 @@ Some packages are distributed separately.
     [[DIG][<dig:>]].  The project is [[hosted on
     GitHUB][http://wiki.github.com/vangelisv/thea]].  See also
     [[Blip Blog, Logic Programming in Biology][http://blipkit.wordpress.com/category/web/semantic-web-web/]]
+
+    $ [[The Triple20 ontology editor][Triple20.txt]] :
+    Graphical tool for browsing and editing ontologies.  Not very well
+    maintained, but useful for browsing loaded RDF and it has two nice
+    features: it scales well and it can handle multiple ontologies and
+    allows for editing them in a unified view.
 
 @see [[Publications][</Publications.html>]]
 @see [[documentation overview][</pldoc/index.html>]]
