@@ -100,8 +100,11 @@ http_cgi:environment('PATH', '/bin:/usr/bin:/usr/local/bin').
 %	Server files from the git tree to make this work:
 %
 %	    ==
-%	    git clone http://prolog.cs.vu/nl/home/pl/git/pl.git
+%	    git clone http://www.swi-prolog.org/nl/home/pl/git/pl.git
 %	    ==
+%
+%	Note that we must generate a   proper 404 for non-existent files
+%	to make the GIT client happy.
 
 git_http(Request) :-
 	memberchk(path_info(Local), Request),
