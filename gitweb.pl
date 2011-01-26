@@ -105,4 +105,8 @@ http_cgi:environment('PATH', '/bin:/usr/bin:/usr/local/bin').
 
 git_http(Request) :-
 	memberchk(path_info(Local), Request),
-	http_reply_file(plgit(Local), [], Request).
+	catch(http_reply_file(plgit(Local), [], Request),
+	      error(existence_error(source_sink, _), _),
+	      (	  memberchk(path(Path), Request),
+		  throw(error(existence_error(http_location, Path), _))
+	      )).
