@@ -337,6 +337,7 @@ macos_version(snow_leopard) --> "snow-leopard".
 
 macos_cpu(ppc)   --> "powerpc".
 macos_cpu(intel) --> "intel".
+macos_cpu(x86)   --> "32bit".
 
 macos_def_cpu(snow_leopard, intel) :- !.
 macos_def_cpu(_, ppc).
