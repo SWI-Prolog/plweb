@@ -5,6 +5,9 @@ At rare weak moments I am pursuaded to write articles about aspects of
 SWI-Prolog or its libraries. If you use SWI-Prolog and write academic
 publiciations, please consider citing one of these papers.
 
+    * [[Portability of Prolog programs: theory and case-studies][http://dx.doi.org/10.1007/978-3-642-18378-2_8]]
+    Jan Wielemaker and Vitor Santos Costa. PADL-11. Updated version of
+    CICLOPS-10 paper with the same title. [[BibTeX][<swipub:padl-porting.bib>]]
     * [[SWI-Prolog][http://arxiv.org/abs/1011.5332]] Jan Wielemaker, Tom
     Schrijvers, Markus Triska, Torbjörn Lager. Accepted for publication
     in TPLP.
