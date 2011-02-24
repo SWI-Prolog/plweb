@@ -128,7 +128,7 @@ list_files(Dir, SubDir, Class, Label, Options) -->
 	{ atomic_list_concat([Dir, /, SubDir], Directory),
 	  atom_concat(Directory, '/*', Pattern),
 	  expand_file_name(Pattern, Files),
-	  classsify_files(Files, Class, Classified),
+	  classify_files(Files, Class, Classified),
 	  sort_files(Classified, Sorted, Options),
 	  Sorted \== [], !
 	},
@@ -282,18 +282,18 @@ platform_note_file(pdf,		   'doc-pdf.txt').
 		 *	   CLASSIFY FILES	*
 		 *******************************/
 
-classsify_files([], _, []).
-classsify_files([H0|T0], Class, [H|T]) :-
-	classsify_file(H0, H),
+classify_files([], _, []).
+classify_files([H0|T0], Class, [H|T]) :-
+	classify_file(H0, H),
 	arg(1, H, Classification),
-	subsumes_chk(Class, Classification), !,
-	classsify_files(T0, Class, T).
-classsify_files([_|T0], Class, T) :-
-	classsify_files(T0, Class, T).
+	subsumes_term(Class, Classification), !,
+	classify_files(T0, Class, T).
+classify_files([_|T0], Class, T) :-
+	classify_files(T0, Class, T).
 
-%%	classsify_file(+Path, -Term) is semidet.
+%%	classify_file(+Path, -Term) is semidet.
 
-classsify_file(Path, file(Type, Platform, Version, Name, Path)) :-
+classify_file(Path, file(Type, Platform, Version, Name, Path)) :-
 	file_base_name(Path, Name),
 	atom_codes(Name, Codes),
 	phrase(file(Type, Platform, Version), Codes).
