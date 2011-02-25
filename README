@@ -11,7 +11,7 @@ Finally, SWI-Prolog hosts itself on the web.
 	    * By version, platform/src
 	    * By time period
     * Allow Wiki editing?
-	* Local-host only (like PlDoc)?
+	* Local-host only (like PlDoc) [OK]
 	* Wiki-style
     * Process .txt links in @see (See PceEmacs in FAQ)
 
@@ -23,12 +23,8 @@ Finally, SWI-Prolog hosts itself on the web.
       concurrent(N) determine the number of concurrent clients.
 
 	==
-	pl -s replay.pl
+	swipl -s replay.pl
 	?- debug(replay).
 	?- http_replay('httpd-stress.log',
 		       [host(localhost), port(3040), concurrent(4)]).
 	==
-
-Update Apache (local note):
-
-    * /usr/local/apache2/bin/apachectl -k graceful
