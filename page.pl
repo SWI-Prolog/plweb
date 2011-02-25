@@ -33,16 +33,25 @@
 	  ]).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
+:- use_module(library(pldoc/doc_index)).
 :- use_module(wiki).
 
-%	user:body(Body)//
+%%	user:body(+Style, +Body)//
 %
 %	Redefine body behaviour
 
 :- multifile
-	user:body//1.
+	user:body//2.
 
-user:body(Body) -->
+user:body(wiki, Body) --> !,
+	html(body(class(['yui-skin-sam', wiki]),
+		  [ \html_requires(plweb),
+		    div(class(sidebar), \sidebar),
+		    \doc_links([], [search_options(false)]),
+		    div(class(content), Body),
+		    div(class(footer), \server_address)
+		  ])).
+user:body(_, Body) -->
 	html(body(class('yui-skin-sam'),
 		  [ \html_requires(plweb),
 		    div(class(sidebar), \sidebar),
