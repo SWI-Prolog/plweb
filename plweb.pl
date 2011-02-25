@@ -223,20 +223,32 @@ serve_wiki_page(Title, DOM) :-
 			],
 			DOM).
 
-insert_edit_button(DOM, _, Request, DOM) :-
-	\+ catch(http:authenticate(pldoc(edit), Request, _), _, fail), !.
-insert_edit_button([h1(Attrs,Title)|DOM], File, _,
+insert_edit_button(DOM0, File, Request, DOM) :-
+	(   catch(http:authenticate(pldoc(edit), Request, _), _, fail)
+	->  insert_edit_button(DOM0, \edit_button(File, [edit(true)]), DOM)
+	;   memberchk(request_uri(Location), Request),
+	    insert_edit_button(DOM0, \wiki_edit_button(Location), DOM)
+	), !.
+insert_edit_button(DOM, _, _, DOM).
+
+insert_edit_button([h1(Attrs,Title)|DOM], Action,
 		   [h1(Attrs,[ span(style('float:right'),
-				   \edit_button(File, [edit(true)]))
+				    Action)
 			     | Title
 			     ])|DOM]) :- !.
-insert_edit_button(DOM, File, _,
+insert_edit_button(DOM, Action,
 		   [ h1(class(wiki),
 			[ span(style('float:right'),
-			       \edit_button(File, [edit(true)]))
+			       Action)
 			])
 		   | DOM
 		   ]).
+
+:- public wiki_edit_button//1.
+:- multifile wiki_edit:edit_button//1.
+
+wiki_edit_button(Location) -->
+	wiki_edit:edit_button(Location), !.
 
 %%	prolog:doc_directory(+Dir) is semidet.
 %
