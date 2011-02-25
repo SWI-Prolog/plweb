@@ -1,10 +1,5 @@
 ---+ SWI-Prolog's home
 
-	[[ssp362x60.gif;alt="stopsoftwarepatents.eu petition banner"][http://petition.stopsoftwarepatents.eu/761005372505]]
-
----
----++ And now about SWI-Prolog ...
-
 [[coolstar.gif;align="right",alt="Open directory cool site"][<dmoz_pl:>]]
 SWI-Prolog offers a comprehensive [[Free Software][<fsf:>]] Prolog
 environment, licensed under the Lesser GNU Public License. Together with

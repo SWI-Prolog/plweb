@@ -8,12 +8,13 @@ e.g., _Tomcat_ servers on the web.
 
 ---++ If there is no other web-server running on the machine
 
-This used to be rare, but good and cheap virtualization it might be less
-rare these days. You can simply start the Prolog server at port 80, but
-... on Unix, you need root privileges to open port 80. You don't want to
-run a webserver as root, not even inside a virtual machine. There is
-currently no solution to this, but it can be solved rather easily, so
-please contact us if you want to follow this route.
+This used to be rare, but given today's good and cheap virtualization it
+might be less rare now. You can simply start the Prolog server at port
+80, but ... on Unix, you need root privileges to open port 80. You don't
+want to run a webserver as root, not even inside a virtual machine.
+There is currently no ready-to-use solution to this, but it can be
+solved rather easily, so please contact us if you want to follow this
+route.
 
 ---++ Using Apache
 
@@ -48,7 +49,7 @@ the same host.  You can easily use apache as proxy for Prolog servers
 running on other hosts by entering the appropriate hostname.
 
 
----++ Without a virtual host
+---+++ Without a virtual host
 
 If you want Prolog to serve only part of a website, you have to
 organize the server such that all the locations that it serves have a

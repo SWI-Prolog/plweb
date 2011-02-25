@@ -9,6 +9,11 @@ div.sidebar
   width: 180px;
 }
 
+body.wiki div.navhdr
+{ margin-left: 180px;
+  padding-left: 5px;
+}
+
 div.content
 { margin-left: 180px;
   padding-left: 5px;
