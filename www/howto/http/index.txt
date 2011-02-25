@@ -17,6 +17,7 @@ Deploying Prolog-based web-servers
     * [[Making the server accessible at port 80][Access80.txt]]
     * [[Running the server under VNC][ServerVNC.txt]]
     * [[Running the server from Unix (x)inetd][ServerInetd.txt]]
+    * [[Running the server from Unix init][ServerInit.txt]]
 
 
 This is work in progress!   If you want to contribute or comment,
