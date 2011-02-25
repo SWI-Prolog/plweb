@@ -2,27 +2,20 @@
 
 SWI-Prolog internally represents floats using the C-language type
 double. On most today systems this implies using a 64-bit IEEE
-representation. All math functions are based on the C math-library.
+representation. All floating point math functions are based on the C
+math-library.
 
-The write/1 predicate and friends using the C-function printf() using
-the format specified by the Prolog flag =float_format=, default =|%g|=.
-So, to print floats using 10 decimals do
-
-==
-:- set_prolog_flag(float_format, '%.10f').
-==
-
-See the manual page for printf() for details on printf format
-specifiers. The predicate format/3 prints floats using ~f which has an
-optional precision specifier:
+The write/1 predicate and friends use the =dtoa= library by _|David M.
+Gay|_ that prints floating point numbers with the minimal number of
+digits such that read/1 reads back the same value.  If you want floats
+printed with a specific number of digits, use format/2:
 
 ==
-?- A is pi,
-   format('Pi = ~15f~n', [A]).
-Pi = 3.141592653589793
-
-A = 3.14159.
+?- A is pi, format('Pi = ~5f~n', [A]).
+Pi = 3.14159
+A = 3.141592653589793.
 ==
 
-If all this isn't enough, please check out SWI-Prolog's support for
-rational numbers in the [[manual][</man/arith.html>]].
+Floating point numbers are not exact. If you want exact arthmetic,
+please check out SWI-Prolog's support for rational numbers in the
+[[manual][</man/arith.html>]].

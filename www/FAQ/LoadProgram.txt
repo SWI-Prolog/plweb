@@ -17,21 +17,20 @@ of the program:
 ==
 
 On *Unix*, it is normal to start Prolog in the same directory as the
-program resides and run the following commands.  Note that on *MacOSX*,
-=pl= is called =swipl=.
+program resides and run the following commands.
 
 ==
-% pl
+% swipl
 <banner>
 ?- [load].
 <consult messages ...>
-?- 
+?-
 ==
 
 Alternatively, you may wish to use
 
 ==
-% pl -s load.pl
+% swipl -s load.pl
 <banner>
 ?-
 ==

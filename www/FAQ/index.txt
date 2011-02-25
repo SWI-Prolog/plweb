@@ -50,8 +50,6 @@
   * *|Using SWI-Prolog with Java|*
     * [[Is there a Java interface to Prolog?][Java.txt]]
 
-  * *|Using Prolog for WEB-related tasks|*
-
   * *|About datatypes|*
     * [[Representation and printing of floating point numbers][floats.txt]]
 

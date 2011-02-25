@@ -17,9 +17,9 @@ to find choicepoints.
 
 SWI-Prolog can handle that on 64-bit systems. As of version 5.10.0, the
 limits can be modified at runtime using set_prolog_stack/2. In addition,
-the mechanisms beloe can be used.  Continue at the appropriate section.
+the mechanisms below can be used.  Continue at the appropriate section.
 
----+++ Enlarging the stacks in Windows
+---+++ Enlarging the stacks in Windows without using set_prolog_stack/2
 
 In windows you have several options.
 

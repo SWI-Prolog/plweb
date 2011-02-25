@@ -10,7 +10,7 @@ prolog-flag =toplevel_print_options= and the one for the debugger is in
 ==
 ?- current_prolog_flag(toplevel_print_options, X).
 
-X = [quoted(true), portray(true), max_depth(10)]
+X = [quoted(true), portray(true), max_depth(10), spacing(next_argument)].
 ==
 
 The option max_depth(10) says anything nested more then 10 levels should
@@ -20,10 +20,14 @@ be written as =|...|=.
 
 If the system prints an answer that is abbreviated and you want to see
 it all, type *w* and the system will use plain write/1 for printing the
-answer: (the user pressed =w= at the place it says =|[write]|=).
+answer: (the user pressed *w* at the place the diagram says
+=|[write]|=). Note the *|; true|*. This is used to introduce
+_|non-determinism|_ that makes Prolog wait after the answer. If the
+answer is _deterministic_, Prolog prints it with the default settings
+and prompts for the next command.
 
 ==
-?- atom_chars(goodbye_prolog, X).
+?- atom_chars(goodbye_prolog, X) ; true.
 
 X = [g, o, o, d, b, y, e, '_', p|...] [write]
 
@@ -32,7 +36,7 @@ X = [g, o, o, d, b, y, e, '_', p, r, o, l, o, g]
 
 Use the *p* command to get the default behaviour.
 
-The debugger has the options *w* and *p* to switch between
+The debugger also has the commands *w* and *p* to switch between
 writeq/1 (quoted write without portray) and print/1 (use the
 =toplevel_print_options= options).
 
