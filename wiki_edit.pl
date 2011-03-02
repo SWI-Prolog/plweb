@@ -33,6 +33,8 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/http_authenticate)).
+
 
 /** <module> Edit PlDoc wiki pages
 
@@ -68,6 +70,7 @@ edit_button(Location) -->
 %	HTTP handler that deals with editing a wiki page.
 
 wiki_edit(Request) :-
+	authenticate(Request, _Fields),
 	http_parameters(Request,
 			[ location(Location,
 				   [ description('Wiki location to edit')
@@ -112,6 +115,7 @@ edit_page(Location, File) -->
 %	HTTP handler that saves a new or modified wiki page.
 
 wiki_save(Request) :-
+	authenticate(Request, _Fields),
 	http_parameters(Request,
 			[ location(Location,
 				   [ description('Path of the file to edit')
@@ -161,6 +165,16 @@ save_file(File, Text) :-
 			   write(Out, Text),
 			   close(Out)).
 
+
+%%	authenticate(+Request, -Fields)
+%
+%
+
+authenticate(Request, Fields) :-
+	(   http_authenticate(basic(passwd), Request, Fields)
+	->  true
+	;   throw(http_reply(authorise(basic, 'SWI-Prolog wiki editor')))
+	).
 
 %%	allowed_file(+File) is semidet.
 
