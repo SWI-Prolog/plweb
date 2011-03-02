@@ -136,7 +136,7 @@ wiki_save(Request) :-
 
 %%	location_wiki_file(+Location, -Path)
 %
-%	@see find_file in plweb.pl
+%	@see Merge with find_file from plweb.pl
 
 location_wiki_file(Relative, File) :-
 	file_name_extension(Base, html, Relative),
@@ -153,6 +153,16 @@ location_wiki_file(Relative, File) :-
 			   [ access(write),
 			     file_errors(fail)
 			   ]).
+location_wiki_file(Relative, File) :-
+	absolute_file_name(document_root(Relative),
+			   Dir,
+			   [ file_type(directory),
+			     file_errors(fail)
+			   ]),
+	setting(http:index_files, Indices),
+        member(Index, Indices),
+	directory_file_path(Dir, Index, File),
+        access_file(File, write), !.
 
 %%	save_file(+File, +Text)
 %
