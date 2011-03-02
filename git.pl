@@ -35,12 +35,17 @@
 	    git_describe/2,		% -Version, +Options
 	    git_remote_url/3,		% +Remote, -URL, +Options
 	    git_default_branch/2,	% -DefaultBranch, +Options
-	    git_tags_on_branch/3	% +Dir, +Branch, -Tags
+	    git_tags_on_branch/3,	% +Dir, +Branch, -Tags
+	    git_shortlog/3,		% +Dir, -Shortlog, +Options
+	    git_log_data/3,		% +Field, Record, -Value
+	    git_show/4,			% +Dir, +Hash, -Commit, +Options
+	    git_commit_data/3		% +Field, Record, -Value
 	  ]).
 :- use_module(library(process)).
 :- use_module(library(readutil)).
 :- use_module(library(option)).
 :- use_module(library(http/dcg_basics)).
+:- use_module(library(record)).
 
 :- meta_predicate
 	git_process_output(+, 1, +).
@@ -337,6 +342,211 @@ tags(Tags, Tags) -->
 	skip_rest.
 
 skip_rest(_,_).
+
+
+		 /*******************************
+		 *	  READ GIT HISTORY	*
+		 *******************************/
+
+%%	git_shortlog(+Dir, -ShortLog, +Options) is det.
+%
+%	Fetch information like the  GitWeb   change  overview. Processed
+%	options:
+%
+%	    * limit(+Count)
+%	    Maximum number of commits to show (default is 10)
+%	    * path(+Path)
+%	    Only show commits that affect Path
+%
+%	@param ShortLog is a list of =git_log= records.
+
+:- record
+	git_log(commit_hash:atom,
+		committer_name:atom,
+		committer_date_relative:atom,
+		subject:atom,
+		ref_names:list).
+
+git_shortlog(Dir, ShortLog, Options) :-
+	option(limit(Limit), Options, 10),
+	(   option(path(Path), Options)
+	->  Extra = ['--', Path]
+	;   Extra = []
+	),
+	git_format_string(git_log, Fields, Format),
+	git_process_output([ log, '-n', Limit, Format
+			   | Extra
+			   ],
+			   read_git_formatted(git_log, Fields, ShortLog),
+			   [directory(Dir)]).
+
+
+read_git_formatted(Record, Fields, ShortLog, In) :-
+	read_line_to_codes(In, Line0),
+	read_git_formatted(Line0, In, Record, Fields, ShortLog).
+
+read_git_formatted(end_of_file, _, _, _, []).
+read_git_formatted(Line, In, Record, Fields, [H|T]) :-
+	record_from_line(Record, Fields, Line, H),
+	read_line_to_codes(In, Line1),
+	read_git_formatted(Line1, In, Record, Fields, T).
+
+record_from_line(RecordName, Fields, Line, Record) :-
+	phrase(fields_from_line(Fields, Values), Line),
+	Record =.. [RecordName|Values].
+
+fields_from_line([], []) --> [].
+fields_from_line([F|FT], [V|VT]) -->
+	to_nul_s(Codes),
+	{ field_to_prolog(F, Codes, V) },
+	fields_from_line(FT, VT).
+
+to_nul_s([]) --> [0], !.
+to_nul_s([H|T]) --> [H], to_nul_s(T).
+
+field_to_prolog(ref_names, Line, List) :-
+	phrase(ref_names(List), Line), !.
+field_to_prolog(_, Line, Atom) :-
+	atom_codes(Atom, Line).
+
+ref_names([]) --> [].
+ref_names(List) -->
+	blanks, "(", ref_name_list(List), ")".
+
+ref_name_list([H|T]) -->
+	string_without(",)", Codes),
+	{ atom_codes(H, Codes) },
+	(   ",", blanks
+	->  ref_name_list(T)
+	;   {T=[]}
+	).
+
+
+%%	git_show(+Dir, +Hash, -Commit, +Options) is det.
+%
+%	Fetch info from a GIT commit.  Options processed:
+%
+%	  * diff(Diff)
+%	  GIT option on how to format diffs.  E.g. =stat=
+%	  * max_lines(Count)
+%	  Truncate the body at Count lines.
+%
+%	@param	Commit is a term git_commit(...)-Body.  Body is currently
+%		a list of lines, each line represented as a list of
+%		codes.
+
+:- record
+	git_commit(tree_hash:atom,
+		   parent_hashes:list,
+		   author_name:atom,
+		   author_date:atom,
+		   committer_name:atom,
+		   committer_date:atom,
+		   subject:atom).
+
+git_show(Dir, Hash, Commit, Options) :-
+	git_format_string(git_commit, Fields, Format),
+	option(diff(Diff), Options, patch),
+	diff_arg(Diff, DiffArg),
+	git_process_output([ show, DiffArg, Hash, Format ],
+			   read_commit(Fields, Commit, Options),
+			   [directory(Dir)]).
+
+diff_arg(patch, '-p').
+diff_arg(stat, '--stat').
+
+read_commit(Fields, Data-Body, Options, In) :-
+	read_line_to_codes(In, Line1),
+	record_from_line(git_commit, Fields, Line1, Data),
+	read_line_to_codes(In, Line2),
+	Line2 == [],
+	option(max_lines(Max), Options, -1),
+	read_n_lines(In, Max, Body).
+
+read_n_lines(In, Max, Lines) :-
+	read_line_to_codes(In, Line1),
+	read_n_lines(Line1, Max, In, Lines).
+
+read_n_lines(end_of_file, _, _, []) :- !.
+read_n_lines(_, 0, In, []) :- !,
+	setup_call_cleanup(open_null_stream(Out),
+			   copy_stream_data(In, Out),
+			   close(Out)).
+read_n_lines(Line, Max0, In, [Line|More]) :-
+	read_line_to_codes(In, Line2),
+	Max is Max0-1,
+	read_n_lines(Line2, Max, In, More).
+
+
+%%	git_format_string(:Record, -FieldNames, -Format)
+%
+%	If Record is a record with  fields   whose  names  match the GIT
+%	format field-names, Format is a  git =|--format=|= argument with
+%	the appropriate format-specifiers,  terminated   by  %x00, which
+%	causes the actual field to be 0-terminated.
+
+:- meta_predicate
+	git_format_string(:, -, -).
+
+git_format_string(M:RecordName, Fields, Format) :-
+	current_record(RecordName, M:Term),
+	findall(F, record_field(Term, F), Fields),
+	maplist(git_field_format, Fields, Formats),
+	atomic_list_concat(['--format='|Formats], Format).
+
+record_field(Term, Name) :-
+	arg(_, Term, Field),
+	field_name(Field, Name).
+
+field_name(Name:_Type=_Default, Name) :- !.
+field_name(Name:_Type, Name) :- !.
+field_name(Name=_Default, Name) :- !.
+field_name(Name, Name).
+
+git_field_format(Field, Fmt) :-
+	(   git_format(NoPercent, Field)
+	->  atomic_list_concat(['%', NoPercent, '%x00'], Fmt)
+	;   existence_error(git_format, Field)
+	).
+
+git_format('H', commit_hash).
+git_format('h', abbreviated_commit_hash).
+git_format('T', tree_hash).
+git_format('t', abbreviated_tree_hash).
+git_format('P', parent_hashes).
+git_format('p', abbreviated_parent_hashes).
+
+git_format('an', author_name).
+git_format('aN', author_name_mailcap).
+git_format('ae', author_email).
+git_format('aE', author_email_mailcap).
+git_format('ad', author_date).
+git_format('aD', author_date_rfc2822).
+git_format('ar', author_date_relative).
+git_format('at', author_date_unix).
+git_format('ai', author_date_iso8601).
+
+git_format('cn', committer_name).
+git_format('cN', committer_name_mailcap).
+git_format('ce', committer_email).
+git_format('cE', committer_email_mailcap).
+git_format('cd', committer_date).
+git_format('cD', committer_date_rfc2822).
+git_format('cr', committer_date_relative).
+git_format('ct', committer_date_unix).
+git_format('ci', committer_date_iso8601).
+
+git_format('d', ref_names).		% git log?
+git_format('e', encoding).		% git log?
+
+git_format('s', subject).
+git_format('f', subject_sanitized).
+git_format('b', body).
+git_format('N', notes).
+
+git_format('gD', reflog_selector).
+git_format('gd', shortened_reflog_selector).
+git_format('gs', reflog_subject).
 
 
 		 /*******************************

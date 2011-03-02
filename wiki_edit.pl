@@ -33,8 +33,10 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/html_head)).
 :- use_module(library(http/http_authenticate)).
 :- use_module(git).
+:- use_module(git_html).
 
 
 /** <module> Edit PlDoc wiki pages
@@ -88,7 +90,8 @@ edit_page(Location, File) -->
 	{ (   exists_file(File)
 	  ->  read_file_to_codes(File, Codes, []),
 	      string_to_list(Content, Codes),
-	      Title = 'Edit'
+	      Title = 'Edit',
+	      file_directory_name(File, Dir)
 	  ;   Content = '',
 	      Title = 'Create'
 	  ),
@@ -96,6 +99,7 @@ edit_page(Location, File) -->
 	},
 	html(div(class(wiki_edit),
 		 [ h1(class(wiki), [Title, ' ', Location]),
+		   \shortlog(Dir, [path(File)]),
 		   form(action(Action),
 			[ \hidden(location, Location),
 			  table(class(wiki_edit),
@@ -112,6 +116,13 @@ edit_page(Location, File) -->
 				])
 			])
 		 ])).
+
+
+shortlog(Dir, _Options) -->
+	{ var(Dir) }, !.
+shortlog(Dir, Options) -->
+	html_requires(css('git.css')),
+	git_shortlog(Dir, Options).
 
 
 		 /*******************************
@@ -142,11 +153,14 @@ wiki_save(Request) :-
 	->  GitMsg = Msg
 	;   atomic_list_concat([Msg, Comment], '\n\n', GitMsg)
 	),
+	file_directory_name(File, Dir),
 	git([commit,
 	     '-m', GitMsg,
 	     '--author', Author,
 	     File
-	    ], []),
+	    ],
+	    [ directory(Dir)
+	    ]),
 	http_redirect(see_other, Location, Request).
 
 author([_User, Name, EMail], Author) :-
