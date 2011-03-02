@@ -162,9 +162,9 @@ wiki_save(Request) :-
 	->  git([add, File], [ directory(Dir) ])
 	;   true
 	),
+	atom_concat('--author=', Author, AuthorArg),
 	git([commit,
-	     '-m', GitMsg,
-	     '--author', Author,
+	     '-m', GitMsg, AuthorArg,
 	     File
 	    ],
 	    [ directory(Dir)
