@@ -34,6 +34,7 @@
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_authenticate)).
+:- use_module(git).
 
 
 /** <module> Edit PlDoc wiki pages
@@ -122,7 +123,8 @@ edit_page(Location, File) -->
 %	HTTP handler that saves a new or modified wiki page.
 
 wiki_save(Request) :-
-	authenticate(Request, _Fields),
+	authenticate(Request, Fields),
+	author(Fields, Author),
 	http_parameters(Request,
 			[ location(Location,
 				   [ description('Path of the file to edit')
@@ -136,7 +138,21 @@ wiki_save(Request) :-
 	location_wiki_file(Location, File),
 	allowed_file(File),
 	save_file(File, Text),
+	(   var(Comment)
+	->  GitMsg = Msg
+	;   atomic_list_concat([Msg, Comment], '\n\n', GitMsg)
+	),
+	git([commit,
+	     '-m', GitMsg,
+	     '--author', Author,
+	     File
+	    ], []),
 	http_redirect(see_other, Location, Request).
+
+author([_User, Name, EMail], Author) :-
+	atomic_list_concat([Name, ' <', EMail, '>'], Author).
+author([_User, Name], Author) :-
+	atomic_list_concat([Name, ' <nospam@nospam.org>'], Author).
 
 
 		 /*******************************
