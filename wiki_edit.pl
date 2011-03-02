@@ -97,9 +97,16 @@ edit_page(Location, File) -->
 		 [ h1(class(wiki), [Title, ' ', Location]),
 		   form(action(Action),
 			[ \hidden(location, Location),
-			  table([ tr(td(textarea([ cols(80),rows(20),name(text) ],
+			  table(class(wiki_edit),
+				[ tr(td([ class(wiki_text), colspan(2) ],
+					textarea([ cols(80),rows(20),name(text) ],
 						 Content))),
-				  tr(td(align(right),
+				  tr([td(class(label), 'Comment summary:'),
+				      td(input([class(git_msg), name(msg)]))]),
+				  tr([td(class(label), 'Comment:'),
+				      td(textarea([ class(git_comment), cols(55), rows(5), name(comment)],
+						  ''))]),
+				  tr(td([ align(right), colspan(2) ],
 					input([type(submit), value(save)])))
 				])
 			])
@@ -122,7 +129,9 @@ wiki_save(Request) :-
 				   ]),
 			  text(Text,
 			       [ description('Wiki content for the file')
-			       ])
+			       ]),
+			  msg(Msg, []),
+			  comment(Comment, [optional(true)])
 			]),
 	location_wiki_file(Location, File),
 	allowed_file(File),

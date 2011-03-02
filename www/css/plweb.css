@@ -114,3 +114,19 @@ span.acmatch
   overflow-x:hidden; /* set scrolling */
   _height:30em; /* ie6 */
 }
+
+/* Wiki editing */
+
+table.wiki_edit .git_msg
+{ width: 100%;
+}
+
+table.wiki_edit .git_comment
+{ width: 100%;
+}
+
+table.wiki_edit td.label
+{ text-align: right;
+  font-weight: bold;
+  font-size: 80%;
+}
