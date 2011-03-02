@@ -149,8 +149,8 @@ wiki_save(Request) :-
 	location_wiki_file(Location, File),
 	allowed_file(File),
 	(   exists_file(File)
-	->  New = true
-	;   New = false
+	->  New = false
+	;   New = true
 	),
 	save_file(File, Text),
 	(   var(Comment)
@@ -233,9 +233,21 @@ authenticate(Request, Fields) :-
 	;   throw(http_reply(authorise(basic, 'SWI-Prolog wiki editor')))
 	).
 
-%%	allowed_file(+File) is semidet.
+%%	allowed_file(+File) is det.
+%
+%	@error	permission_error(edit, file, File) if the user is not
+%		allowed to edit File.
 
-allowed_file(_).
+allowed_file(File) :-
+	absolute_file_name(document_root(.),
+			   DocRoot,
+			   [ file_type(directory)
+			   ]),
+	sub_atom(File, 0, _, _, DocRoot),
+	access_file(File, write), !.
+allowed_file(File) :-
+	permission_error(edit, file, File).
+
 
 hidden(Name, Value) -->
 	html(input([type(hidden), name(Name), value(Value)])).
