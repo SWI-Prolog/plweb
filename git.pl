@@ -362,8 +362,8 @@ skip_rest(_,_).
 
 :- record
 	git_log(commit_hash:atom,
-		committer_name:atom,
-		committer_date_relative:atom,
+		author_name:atom,
+		author_date_relative:atom,
 		subject:atom,
 		ref_names:list).
 

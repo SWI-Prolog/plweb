@@ -61,8 +61,8 @@ shortlog_rows([H|T], Pack, Row) -->
 	shortlog_rows(T, Pack, Next).
 
 shortlog_row(Record, Pack) -->
-	html([ \td_git_log(Pack, committer_date_relative, Record),
-	       \td_git_log(Pack, committer_name, Record),
+	html([ \td_git_log(Pack, author_date_relative, Record),
+	       \td_git_log(Pack, author_name, Record),
 	       \td_git_log(Pack, subject_and_refnames, Record)
 	     ]).
 
