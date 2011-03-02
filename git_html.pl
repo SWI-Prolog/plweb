@@ -121,7 +121,8 @@ git_show(Request) :-
 	file_base_name(Dir, Base),
 	reply_html_page(cliopatria(cpack),
 			title('Commit info'),
-			[ h1([Base, /, commit]),
+			[ h1(class(wiki), [Base, /, commit]),
+			  \html_requires(css('plweb.css')),
 			  \git_commit_info(Dir, Hash, [diff(Diff)])
 			]).
 
@@ -140,7 +141,7 @@ git_commit_info(Dir, Hash, Options) -->
 	},
 	html_requires(css('git.css')),
 	html(div(class(cpack),
-		 [ h2(Subject),
+		 [ h2(class(wiki), Subject),
 		   table(class(commit),
 			 [ \tr_commit(author,	 author_name, Record),
 			   \tr_commit('',        author_date, Record),

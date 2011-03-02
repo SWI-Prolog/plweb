@@ -99,7 +99,7 @@ edit_page(Location, File) -->
 	},
 	html(div(class(wiki_edit),
 		 [ h1(class(wiki), [Title, ' ', Location]),
-		   \shortlog(Dir, [path(File)]),
+		   \shortlog(Dir, [path(File), limit(5)]),
 		   form(action(Action),
 			[ \hidden(location, Location),
 			  table(class(wiki_edit),
@@ -148,12 +148,20 @@ wiki_save(Request) :-
 			]),
 	location_wiki_file(Location, File),
 	allowed_file(File),
+	(   exists_file(File)
+	->  New = true
+	;   New = false
+	),
 	save_file(File, Text),
 	(   var(Comment)
 	->  GitMsg = Msg
 	;   atomic_list_concat([Msg, Comment], '\n\n', GitMsg)
 	),
 	file_directory_name(File, Dir),
+	(   New == true
+	->  git([add, File], [ directory(Dir) ])
+	;   true
+	),
 	git([commit,
 	     '-m', GitMsg,
 	     '--author', Author,

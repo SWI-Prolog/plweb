@@ -82,14 +82,16 @@ file(Path, Options) -->
 	},
 	pldoc_html:file(Path,
 			[ label(Label),
-			  map_extension([txt-html])
+			  map_extension([txt-html]),
+			  edit_handler(wiki_edit)
 			| Options1
 			]).
 file(File, Options) -->
 	{ file_href(Options, Options1)
 	},
 	pldoc_html:file(File,
-			[ map_extension([txt-html])
+			[ map_extension([txt-html]),
+			  edit_handler(wiki_edit)
 			| Options1
 			]).
 
