@@ -2,7 +2,8 @@
 :- load_files([ library(pldoc/doc_library),
 		library(thread_pool),
 		library(http/http_session),
-		plweb
+		plweb,
+		wiki_edit
 	      ],
 	      [ silent(true)
 	      ]).
