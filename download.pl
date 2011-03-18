@@ -157,6 +157,8 @@ file_icon(file(Type, PlatForm, _, _, _)) -->
 file_icon(_) -->
 	html(?).			% no defined icon
 
+icon_for_file(bin, linux(universal),
+	      'linux.png', 'Linux 32/64 intel').
 icon_for_file(bin, linux(_,_),
 	      'linux32.gif', 'Linux RPM').
 icon_for_file(bin, macos(snow_leopard,_),
@@ -234,6 +236,8 @@ delete_leading_slash(SlashPath, Path) :-
 	atom_concat(/, Path, SlashPath), !.
 delete_leading_slash(Path, Path).
 
+platform(linux(universal)) -->
+	html(['Linux 32/64 bits (TAR)']).
 platform(linux(rpm, _)) -->
 	html(['i586/Linux (RPM)']).
 platform(macos(Name, CPU)) -->
@@ -266,16 +270,17 @@ platform_notes(Platform, Path) -->
 platform_notes(_, _) -->
 	[].
 
-platform_note_file(linux(_,_),	   'linux.txt').
-platform_note_file(windows(win32), 'win32.txt').
-platform_note_file(windows(win64), 'win64.txt').
-platform_note_file(pkg(Pkg),       File) :-
+platform_note_file(linux(rpm,_),     'linux-rpm.txt').
+platform_note_file(linux(universal), 'linux.txt').
+platform_note_file(windows(win32),   'win32.txt').
+platform_note_file(windows(win64),   'win64.txt').
+platform_note_file(pkg(Pkg),         File) :-
 	file_name_extension(Pkg, txt, File).
 platform_note_file(macos(Version,_), File) :-
 	atomic_list_concat([macosx, -, Version, '.txt'], File).
-platform_note_file(macos(_,_),	   'macosx.txt').
-platform_note_file(tgz,		   'src-tgz.txt').
-platform_note_file(pdf,		   'doc-pdf.txt').
+platform_note_file(macos(_,_),	     'macosx.txt').
+platform_note_file(tgz,		     'src-tgz.txt').
+platform_note_file(pdf,		     'doc-pdf.txt').
 
 
 		 /*******************************
@@ -321,6 +326,10 @@ file(bin, linux(rpm, suse), Version) -->
 	),
 	long_version(Version), "-", digits(_Build),
 	".i586.rpm", !.
+file(bin, linux(universal), Version) -->
+	"swipl-",
+	long_version(Version), "-", "linux",
+	".tar.gz", !.
 file(src, tgz, Version) -->
 	"pl-", long_version(Version), ".tar.gz", !.
 file(doc, pdf, Version) -->
@@ -401,7 +410,8 @@ map_type(File, Tag) :-
 	File = file(Type, Platform, _Version, _Name, _Path),
 	type_tag(Type, Platform, Tag).
 
-type_tag(bin, linux(A,B), tag(10, linux(A,B))) :- !.
+type_tag(bin, linux(A),   tag(10, linux(A))) :- !.
+type_tag(bin, linux(A,B), tag(11, linux(A,B))) :- !.
 type_tag(bin, windows(A), tag(20, windows(A))) :- !.
 type_tag(bin, macos(A,B), tag(Tg, macos(A,B))) :- !,
 	mac_tag(A, Tg2),
