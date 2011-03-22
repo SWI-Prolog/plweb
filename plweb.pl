@@ -284,28 +284,15 @@ manual_file(Request) :-
 	existence_error(http_location, Path).
 
 
-%%	init_thread_pools
-%
-%	Create pools of threads  as   defined  by  thread_pool_create/3.
-%	Currently it defined two pools with `special' actions:
-%
-%	    * media
-%	    Remote media.  Allow higher number of concurrent servers
-%	    * www
-%	    Local files.  Allow higher number of concurrent servers
-%	    * search
-%	    Allow not too many clients and use large stacks
+		 /*******************************
+		 *     THREAD POOL HANDLING	*
+		 *******************************/
 
-init_thread_pools :-
-	findall(Name-pool(Size,Options), thread_pool(Name, Size, Options), Pairs),
-	group_pairs_by_key(Pairs, Grouped),
-	maplist(start_pool, Grouped).
+:- multifile
+	http:create_pool/1.
 
-start_pool(Name-[pool(Size,Options)|_]) :-
-	(   current_thread_pool(Name)
-	->  thread_pool_destroy(Name)
-	;   true
-	),
+http:create_pool(Name) :-
+	thread_pool(Name, Size, Options),
 	thread_pool_create(Name, Size, Options).
 
 thread_pool(wiki,     100, []).
