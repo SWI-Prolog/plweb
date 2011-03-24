@@ -75,6 +75,7 @@ download_table(Request) :-
 list_downloads(Dir, Options) :-
 	reply_html_page(title('SWI-Prolog downloads'),
 			[ \wiki(Dir, 'header.txt'),
+			  div(&(nbsp)),
 			  table(class(downloads),
 				\download_table(Dir, Options)),
 			  \wiki(Dir, 'footer.txt')
@@ -397,7 +398,11 @@ short_version(version(Major, Minor, Patch)) -->
 %	    One of =all= or =latest=.
 
 sort_files(In, Out, Options) :-
-	map_list_to_pairs(map_type, In, Typed),
+	map_list_to_pairs(map_type, In, Typed0),
+	(   option(show(all), Options)
+	->  Typed = Typed0
+	;   exclude(old_tagged_file, Typed0, Typed)
+	),
 	keysort(Typed, TSorted),
 	group_pairs_by_key(TSorted, TGrouped),
 	maplist(sort_group_by_version, TGrouped, TGroupSorted),
@@ -439,6 +444,16 @@ take_latest([_-[H|_]|T0], [H|T]) :- !,
 	take_latest(T0, T).
 take_latest([_-[]|T0], T) :- !,		% emty set
 	take_latest(T0, T).
+
+%%	old_tagged_file(+TypeFile) is semidet.
+
+old_tagged_file(tag(_,Type)-_File) :-
+	old_file_type(Type).
+
+old_file_type(linux(_)).
+old_file_type(linux(_,_)).
+old_file_type(macos(_,ppc)).
+old_file_type(macos(tiger,_)).
 
 
 		 /*******************************

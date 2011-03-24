@@ -1,1 +1,6 @@
 ---+ Download SWI-Prolog development versions
+
+[[linux.png;align="left"][</build/LinuxDistro.txt>]] Linux versions are
+often available as a package for your distribution. We collect
+information about available packages and issues for building on specific
+distros [[here][</build/LinuxDistro.txt>]].
