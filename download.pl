@@ -39,6 +39,7 @@
 :- use_module(library(lists)).
 :- use_module(library(apply)).
 :- use_module(library(error)).
+:- use_module(library(filesex)).
 :- use_module(wiki).
 
 %%	download(+Request) is det.
@@ -80,7 +81,7 @@ list_downloads(Dir, Options) :-
 			]).
 
 wiki(Dir, File) -->
-	{ concat_atom([Dir, /, File], WikiFile),
+	{ directory_file_path(Dir, File, WikiFile),
 	  access_file(WikiFile, read), !,
 	  wiki_file_to_dom(WikiFile, DOM)
 	},
@@ -125,7 +126,7 @@ toggle_show(_) -->
 %	    One of =all= or =latest= (default).
 
 list_files(Dir, SubDir, Class, Label, Options) -->
-	{ atomic_list_concat([Dir, /, SubDir], Directory),
+	{ directory_file_path(Dir, SubDir, Directory),
 	  atom_concat(Directory, '/*', Pattern),
 	  expand_file_name(Pattern, Files),
 	  classify_files(Files, Class, Classified),
