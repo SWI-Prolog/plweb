@@ -370,7 +370,8 @@ skip_rest(_,_).
 git_shortlog(Dir, ShortLog, Options) :-
 	option(limit(Limit), Options, 10),
 	(   option(path(Path), Options)
-	->  Extra = ['--', Path]
+	->  relative_file_name(Path, Dir, RelPath),
+	    Extra = ['--', RelPath]
 	;   Extra = []
 	),
 	git_format_string(git_log, Fields, Format),
