@@ -158,14 +158,15 @@ wiki_save(Request) :-
 	;   atomic_list_concat([Msg, Comment], '\n\n', GitMsg)
 	),
 	file_directory_name(File, Dir),
+	file_base_name(File, Rel),
 	(   New == true
-	->  git([add, File], [ directory(Dir) ])
+	->  git([add, Rel], [ directory(Dir) ])
 	;   true
 	),
 	atom_concat('--author=', Author, AuthorArg),
 	git([commit,
 	     '-m', GitMsg, AuthorArg,
-	     File
+	     Rel
 	    ],
 	    [ directory(Dir)
 	    ]),
