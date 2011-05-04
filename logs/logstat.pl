@@ -82,6 +82,7 @@ read_log(File) :-
 read_log(File, Options) :-
 	make_log_state(Options, State, _),
 	rb_empty(Open),
+	style_check(-atom),
 	setup_call_cleanup(myopen(File, In),
 			   (   read(In, Term0),
 			       read_log(Term0, In, 1, Open, State)
@@ -104,7 +105,8 @@ read_log(end_of_file, _, _, _, _) :- !.
 read_log(Term, In, Count0, Open0, State) :-
 	assert_log(Term, Count0, Count1, Open0, Open1), !,
 	progress(Count1, State),
-	read(In, Term2),
+	repeat,
+	catch(read(In, Term2), E, (print_message(error, E),fail)), !,
 	read_log(Term2, In, Count1, Open1, State).
 read_log(Term, In, Count, Open, State) :-
 	(   skip_term(Term, State)
