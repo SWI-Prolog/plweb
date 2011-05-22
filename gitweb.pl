@@ -68,6 +68,7 @@ gitweb(Request) :-
 	memberchk(path(Path), Request),
 	file_base_name(Path, Base),
 	resource_file(Base, File), !,
+	debug(gitweb, 'Sending resource ~q', [File]),
 	http_reply_file(File, [], Request).
 gitweb(Request) :-
 	absolute_file_name(gitweb('gitweb.cgi'), ScriptPath,
@@ -77,6 +78,7 @@ gitweb(Request) :-
 
 
 resource_file('gitweb.css',	 gitweb('static/gitweb.css')).
+resource_file('gitweb.js',	 gitweb('static/gitweb.js')).
 resource_file('git-logo.png',	 gitweb('static/git-logo.png')).
 resource_file('git-favicon.png', gitweb('static/git-favicon.png')).
 
