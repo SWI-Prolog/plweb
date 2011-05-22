@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009, VU University Amsterdam
+    Copyright (C): 2009-2011, VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -31,6 +31,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(apply)).
 :- use_module(library(url)).
+:- use_module(library(debug)).
 :- use_module(http_cgi).
 
 /** <module> Provide gitweb support
@@ -75,19 +76,21 @@ gitweb(Request) :-
 	http_run_cgi(ScriptPath, Request).
 
 
-resource_file('gitweb.css',	 gitweb('gitweb.css')).
-resource_file('git-logo.png',	 gitweb('git-logo.png')).
-resource_file('git-favicon.png', gitweb('git-favicon.png')).
+resource_file('gitweb.css',	 gitweb('static/gitweb.css')).
+resource_file('git-logo.png',	 gitweb('static/git-logo.png')).
+resource_file('git-favicon.png', gitweb('static/git-favicon.png')).
 
 
 :- multifile
 	http_cgi:environment/2.
 
 http_cgi:environment('PROJECT_ROOT', Root) :-
-	absolute_file_name(plgit(.), Root,
+	absolute_file_name(plgit(.), RootDir,
 			   [ access(read),
 			     file_type(directory)
-			   ]).
+			   ]),
+	atom_concat(RootDir, /, Root),
+	debug(gitweb, 'PROJECT_ROOT = ~q', [Root]).
 http_cgi:environment('GITWEB_CONFIG', Config) :-
 	absolute_file_name(gitweb('gitweb.conf'), Config,
 			   [ access(read)
