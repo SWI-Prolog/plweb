@@ -117,6 +117,7 @@ read_log(Term, In, Count, Open, State) :-
 	read_log(Term2, In, Count, Open, State).
 
 skip_term(completed(_, _, _, 400, _), _).
+skip_term(completed(0, _, _, 500, error(_)), _).
 skip_term(completed(_, _, _, _, _), State) :-
 	log_state_skip_bad_requests(State, true).
 
