@@ -142,16 +142,36 @@ http_run_cgi(ScriptSpec, Options, Request) :-
 	debug(http(cgi), 'Waiting for CGI data ...', []),
 	maplist(header_option, Options),
 	call_cleanup(copy_cgi_data(CGI, current_output, Options),
-		     (	 process_wait(PID, Status),
-			 close(CGI),
-			 debug(http(cgi), '~w ended with status ~w',
-			       [Script, Status])
-		     )).
+		     cgi_cleanup(Script, CGI, PID)), !.
+
+%%	header_option(+Option) is det.
+%
+%	Write additional HTTP headers.
 
 header_option(transfer_encoding(Encoding)) :- !,
 	format('Transfer-encoding: ~w\r\n', [Encoding]).
 header_option(_).
 
+%%	cgi_cleanup(+Script, +ScriptStream, +PID) is det.
+%
+%	Cleanup the CGI process and close  the   stream  use to read the
+%	output of the CGI process. Note that  we close the output first.
+%	This deals with the  possibility  that   the  client  reset  the
+%	connection, copy_cgi_data/3 returns and exception   and  we wait
+%	for the process that never  ends.   By  closing  our stream, the
+%	process will receive a sigpipe if it continues writing.
+
+cgi_cleanup(Script, ScriptStream, PID) :-
+	close(ScriptStream),
+	process_wait(PID, Status),
+	debug(http(cgi), '~w ended with status ~w',
+	      [Script, Status]).
+
+%%	input_handle(+Request, -Handle) is det.
+%
+%	Decide what to do with the input   stream of the CGI process. If
+%	this is a PUT/POST request, we must   send data. Otherwise we do
+%	not redirect the script's input.
 
 input_handle(Request, pipe(_)) :-
 	memberchk(method(Method), Request),
