@@ -37,6 +37,7 @@
 :- use_module(library(debug)).
 :- use_module(library(lists)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_stream)).
 
 /** <module> Run CGI scripts from the SWI-Prolog web-server
 
