@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009, VU University Amsterdam
+    Copyright (C): 2009-2011, VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -28,7 +28,7 @@
 */
 
 :- module(http_cgi,
-	  [ http_run_cgi/2,		% +Script, +Request
+	  [ http_run_cgi/3,		% +Script, +Options, +Request
 	    http_cgi_handler/2		% +Alias, +Request
 	  ]).
 :- use_module(library(process)).
@@ -58,7 +58,7 @@ Run CGI scripts.  This module provides two interfaces:
 :- multifile
 	environment/2.
 
-:- http_handler(root('cgi-bin'), http_run_cgi(cgi_bin),
+:- http_handler(root('cgi-bin'), http_cgi_handler(cgi_bin),
 		[prefix, spawn([])]).
 
 %%	http_cgi_handler(+Alias, +Request)
@@ -80,12 +80,18 @@ http_cgi_handler(Alias, Request) :-
 	absolute_file_name(Spec, ScriptFileName,
 			   [ access(execute)
 			   ]),
-	http_run_cgi(ScriptFileName, Request2).
+	http_run_cgi(ScriptFileName, [], Request2).
 
 
 ensure_no_leading_slash(Abs, Rel) :-
 	atom_concat(/, Rel, Abs), !.
 ensure_no_leading_slash(Rel, Rel).
+
+ensure_leading_slash(PathInfo, Abs) :-
+	(   sub_atom(PathInfo, 0, _, _, /)
+	->  Abs = PathInfo
+	;   atom_concat(/, PathInfo, Abs)
+	).
 
 path_info(RelPath, Script, Req, [path_info(Info)|Req]) :-
 	sub_atom(RelPath, Before, _, After, /), !,
@@ -94,7 +100,7 @@ path_info(RelPath, Script, Req, [path_info(Info)|Req]) :-
 path_info(Script, Script, Request, Request).
 
 
-%%	http_run_cgi(+Script, +Request) is det.
+%%	http_run_cgi(+Script, +Options, +Request) is det.
 %
 %	Execute the given CGI script.
 %
@@ -103,7 +109,8 @@ path_info(Script, Script, Request, Request).
 %	@param	Request holds the current HTTP request passed from
 %		the HTTP handler.
 
-http_run_cgi(ScriptSpec, Request) :-
+http_run_cgi(ScriptSpec, Options, Request) :-
+	option(argv(Argv), Options, []),
 	absolute_file_name(ScriptSpec, Script,
 			   [ access(execute)
 			   ]),
@@ -114,7 +121,8 @@ http_run_cgi(ScriptSpec, Request) :-
 		    | Request
 		    ], Value),
 		Env),
-	process_create(Script, [],
+	debug(http(cgi), 'Environment: ~w', [Env]),
+	process_create(Script, Argv,
 		       [ stdin(ScriptInput),
 			 stdout(pipe(CGI)),
 			 stderr(std),
@@ -186,7 +194,8 @@ env('REQUEST_METHOD', Request, Method) :-
 	memberchk(method(LwrCase), Request),
 	upcase_atom(LwrCase, Method).
 env('PATH_INFO', Request, PathInfo) :-
-	memberchk(path_info(PathInfo), Request).
+	memberchk(path_info(PathInfo0), Request),
+	ensure_leading_slash(PathInfo0, PathInfo).
 env('PATH_TRANSLATED', _, _) :- fail.
 env('SCRIPT_NAME', _, _) :- fail.
 env('SCRIPT_FILENAME', Request, ScriptFilename) :-

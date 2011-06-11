@@ -74,7 +74,7 @@ gitweb(Request) :-
 	absolute_file_name(gitweb('gitweb.cgi'), ScriptPath,
 			   [ access(execute)
 			   ]),
-	http_run_cgi(ScriptPath, Request).
+	http_run_cgi(ScriptPath, [], Request).
 
 
 resource_file('gitweb.css',	 gitweb('static/gitweb.css')).
@@ -86,18 +86,24 @@ resource_file('git-favicon.png', gitweb('static/git-favicon.png')).
 :- multifile
 	http_cgi:environment/2.
 
-http_cgi:environment('PROJECT_ROOT', Root) :-
+http_cgi:environment('PROJECT_ROOT', Root) :-		% gitweb
+	git_project_root(Root).
+http_cgi:environment('GIT_PROJECT_ROOT', Root) :-	% git-http
+	git_project_root(Root).
+http_cgi:environment('GITWEB_CONFIG', Config) :-
+	absolute_file_name(gitweb('gitweb.conf'), Config,
+			   [ access(read)
+			   ]).
+http_cgi:environment('PATH', '/bin:/usr/bin:/usr/local/bin').
+
+
+git_project_root(Root) :-
 	absolute_file_name(plgit(.), RootDir,
 			   [ access(read),
 			     file_type(directory)
 			   ]),
 	atom_concat(RootDir, /, Root),
 	debug(gitweb, 'PROJECT_ROOT = ~q', [Root]).
-http_cgi:environment('GITWEB_CONFIG', Config) :-
-	absolute_file_name(gitweb('gitweb.conf'), Config,
-			   [ access(read)
-			   ]).
-http_cgi:environment('PATH', '/bin:/usr/bin:/usr/local/bin').
 
 
 %%	git_http(+Request) is det.
@@ -112,9 +118,4 @@ http_cgi:environment('PATH', '/bin:/usr/bin:/usr/local/bin').
 %	to make the GIT client happy.
 
 git_http(Request) :-
-	memberchk(path_info(Local), Request),
-	catch(http_reply_file(plgit(Local), [], Request),
-	      error(existence_error(source_sink, _), _),
-	      (	  memberchk(path(Path), Request),
-		  throw(error(existence_error(http_location, Path), _))
-	      )).
+	http_run_cgi(path(git), [argv(['http-backend'])], Request).
