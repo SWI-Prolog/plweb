@@ -118,4 +118,9 @@ git_project_root(Root) :-
 %	to make the GIT client happy.
 
 git_http(Request) :-
-	http_run_cgi(path(git), [argv(['http-backend'])], Request).
+	http_run_cgi(path(git),
+		     [ argv(['http-backend']),
+		       transfer_encoding(chunked),
+		       buffer(line)
+		     ],
+		     Request).

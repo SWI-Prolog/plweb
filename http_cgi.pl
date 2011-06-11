@@ -102,7 +102,16 @@ path_info(Script, Script, Request, Request).
 
 %%	http_run_cgi(+Script, +Options, +Request) is det.
 %
-%	Execute the given CGI script.
+%	Execute the given CGI script.  Options processed:
+%
+%	  * argv(+List)
+%	  Argument vector to give to the CGI script.  Defaults to
+%	  no arguments.
+%	  * transfer_encoding(Encoding)
+%	  Emit a =|Transfer-encoding|= header
+%	  * buffer(+Buffer)
+%	  Set buffering of the CGI output stream.  Typically used
+%	  together with transfer_encoding(chunked).
 %
 %	@param	Script specifies the location of the script as a
 %		specification for absolute_file_name/3.
@@ -131,12 +140,18 @@ http_run_cgi(ScriptSpec, Options, Request) :-
 		       ]),
 	setup_input(ScriptInput, Request),
 	debug(http(cgi), 'Waiting for CGI data ...', []),
-	call_cleanup(copy_stream_data(CGI, current_output),
+	maplist(header_option, Options),
+	call_cleanup(copy_cgi_data(CGI, current_output, Options),
 		     (	 process_wait(PID, Status),
 			 close(CGI),
 			 debug(http(cgi), '~w ended with status ~w',
 			       [Script, Status])
 		     )).
+
+header_option(transfer_encoding(Encoding)) :- !,
+	format('Transfer-encoding: ~w\r\n', [Encoding]).
+header_option(_).
+
 
 input_handle(Request, pipe(_)) :-
 	memberchk(method(Method), Request),
@@ -146,23 +161,93 @@ input_handle(_, std).
 method_has_data(post).
 method_has_data(put).
 
+%%	setup_input(+ScriptInput, +Request) is det.
+%
+%	Setup passing of the POST/PUT data to the script.
+
 setup_input(std, _).
 setup_input(pipe(Stream), Request) :-
-	memberchk(input(In), Request),
-	(   memberchk(content_length(Len), Request)
-	->  true
-	;   Len = unknown
-	),
-	thread_create(copy_post_data(In, Stream, Len), _,
+	memberchk(input(HTTPIn), Request),
+	set_stream(Stream, encoding(octet)),
+	setup_input_filters(HTTPIn, In, Request, Close),
+	thread_create(copy_post_data(In, Stream, Close), _,
 		      [ detached(true)
 		      ]).
 
-copy_post_data(In, Script, unknown) :-
+setup_input_filters(RawIn, In, Request, (Close2,Close1)) :-
+	setup_length_filter(RawIn, In2, Request, Close1),
+	setup_encoding_filter(In2, In, Request, Close2).
+
+setup_length_filter(In0, In, Request, close(In)) :-
+	memberchk(content_length(Len), Request), !,
+	debug(http(cgi), 'Setting input length to ~D', [Len]),
+	stream_range_open(In0, In, [size(Len)]).
+setup_length_filter(In, In, _, true).
+
+setup_encoding_filter(In0, In, Request, close(In)) :-
+	memberchk(content_encoding(Enc), Request),
+	z_format(Enc), !,
+	debug(http(cgi), 'Adding ~w input filter', [Enc]),
+	zopen(In0, In, [format(Enc), close_parent(false)]).
+setup_encoding_filter(In, In, _, true).
+
+z_format(gzip).
+z_format(deflate).
+
+
+%%	copy_post_data(+DataIn, -ScriptIn, :Close) is det.
+%
+%	Copy data from the CGI script to the client.
+
+copy_post_data(In, Script, Close) :-
+	debugging(http(cgi)), !,
+	setup_call_cleanup(open('post.data', write, Debug, [type(binary)]),
+			   catch(debug_post_data(In, Script, Debug),
+				 E,
+				 print_message(error, E)),
+			   close(Debug)),
+	catch(Close, E, print_message(error, E)),
+	close(Script, [force(true)]).
+copy_post_data(In, Script, Close) :-
 	catch(copy_stream_data(In, Script), _, true),
+	catch(Close, E, print_message(error, E)),
 	close(Script, [force(true)]).
-copy_post_data(In, Script, Len) :-
-	catch(copy_stream_data(In, Script, Len), _, true),
-	close(Script, [force(true)]).
+
+
+debug_post_data(In, Script, Debug) :-
+	get_byte(In, Byte),
+	(   Byte == -1
+	->  true
+	;   put_byte(Script, Byte),
+	    put_byte(Debug, Byte),
+	    debug_post_data(In, Script, Debug)
+	).
+
+
+%%	copy_cgi_data(+CGI, -Out, +Options) is det.
+
+copy_cgi_data(CGI, Out, Options) :-
+	debugging(http(cgi)), !,
+	maplist(set_cgi_stream(Out), Options),
+	setup_call_cleanup(open('cgi.out', write, Debug, [type(binary)]),
+			   debug_cgi_data(CGI, Out, Debug),
+			   close(Debug)).
+copy_cgi_data(CGI, Out, Options) :-
+	maplist(set_cgi_stream(Out), Options),
+	copy_stream_data(CGI, Out).
+
+set_cgi_stream(Out, buffer(Buffer)) :- !,
+	set_stream(Out, buffer(Buffer)).
+set_cgi_stream(_, _).
+
+debug_cgi_data(CGI, Out, Debug) :-
+	get_byte(CGI, Byte),
+	(   Byte == -1
+	->  true
+	;   put_byte(Out, Byte),
+	    put_byte(Debug, Byte),
+	    debug_cgi_data(CGI, Out, Debug)
+	).
 
 
 %%	env(?Name, +Request, -Value) is nondet.
