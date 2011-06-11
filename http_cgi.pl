@@ -235,11 +235,11 @@ copy_post_data(In, Script, Close) :-
 
 
 debug_post_data(In, Script, Debug) :-
-	get_byte(In, Byte),
+	get_code(In, Byte),
 	(   Byte == -1
 	->  true
-	;   put_byte(Script, Byte),
-	    put_byte(Debug, Byte),
+	;   put_code(Script, Byte),
+	    put_code(Debug, Byte),
 	    debug_post_data(In, Script, Debug)
 	).
 
@@ -261,11 +261,11 @@ set_cgi_stream(Out, buffer(Buffer)) :- !,
 set_cgi_stream(_, _).
 
 debug_cgi_data(CGI, Out, Debug) :-
-	get_byte(CGI, Byte),
+	get_code(CGI, Byte),
 	(   Byte == -1
 	->  true
-	;   put_byte(Out, Byte),
-	    put_byte(Debug, Byte),
+	;   put_code(Out, Byte),
+	    put_code(Debug, Byte),
 	    debug_cgi_data(CGI, Out, Debug)
 	).
 

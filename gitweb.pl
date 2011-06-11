@@ -114,13 +114,23 @@ git_project_root(Root) :-
 %	    git clone http://www.swi-prolog.org/nl/home/pl/git/pl.git
 %	    ==
 %
-%	Note that we must generate a   proper 404 for non-existent files
-%	to make the GIT client happy.
+%	The comment "git http-backend" does  not provide much meaningful
+%	info when accessed  from  a  browser.   Therefore  we  run  "git
+%	http-backend" only if w think this the  request comes from a git
+%	backend. Otherwise we redirect to the gitweb page.
 
 git_http(Request) :-
+	(   memberchk(method(post), Request)
+	;   memberchk(search(Search), Request),
+	    memberchk(service=_, Search)
+	), !,
 	http_run_cgi(path(git),
 		     [ argv(['http-backend']),
 		       transfer_encoding(chunked),
 		       buffer(line)
 		     ],
 		     Request).
+git_http(Request) :-
+	memberchk(request_uri(URI), Request),
+	atom_concat('/home/pl', GitWebURI, URI),
+	throw(http_reply(see_other(GitWebURI))).
