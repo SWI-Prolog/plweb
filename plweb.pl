@@ -50,6 +50,7 @@
 :- use_module(library(lists)).
 :- use_module(library(occurs)).
 :- use_module(library(pairs)).
+:- use_module(library(option)).
 :- use_module(library(thread_pool)).
 :- use_module(library(http/http_dirindex)).
 
@@ -81,15 +82,17 @@
 		 *******************************/
 
 server :-
+	server([]).
+
+server(Options) :-
 	load_settings('plweb.conf'),
 	setting(http:port, Port),
 	setting(http:workers, Workers),
-	server([ port(Port),
-		 workers(Workers)
-	       ]).
-
-server(Options) :-
-	http_server(http_dispatch, Options).
+	merge_options(Options,
+		      [ port(Port),
+			workers(Workers)
+		      ], HTTPOptions),
+	http_server(http_dispatch, HTTPOptions).
 
 
 %%	favicon(+Request)
