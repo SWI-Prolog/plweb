@@ -1,9 +1,11 @@
 :- doc_collect(true).
 :- load_files([ library(pldoc/doc_library),
-		library(thread_pool),
 		library(debug),
+		library(settings),
+		library(option),
 		http_fork,
-		plweb
+		plweb,
+		wiki_edit
 	      ],
 	      [ silent(true)
 	      ]).
@@ -13,7 +15,17 @@
 :- debug(http(fork)).
 
 run :-
-	forked_server(3040,
-		      [ workers(5),
-			init(plweb:init_thread_pools)
+	run([]).
+
+run(Options) :-
+	load_settings('plweb.conf'),
+	setting(http:port, Port),
+	setting(http:workers, Workers),
+	merge_options(Options,
+		      [ port(Port),
+			workers(Workers)
+		      ], HTTPOptions),
+	option(port(Port), HTTPOptions),
+	forked_server(Port,
+		      [ HTTPOptions
 		      ]).

@@ -18,7 +18,7 @@ the main server forks again to create a new server.
 @compat This library is limited to systems providing a proper
 	copy-on-write implementation of the POSIX fork() system call.
 	In practice, these are Unix versions (including Linux, MacOSX, etc.
- 	but excluding Windows).
+	but excluding Windows).
 
 @tbd	The current implementation does not support session-management
 	if multiple servers are preforked because sessions may `hop'
@@ -45,7 +45,7 @@ the main server forks again to create a new server.
 %	Similar to http_server/2 from   library(http/thread_httpd),  but
 %	the main process starts  and  monitors   a  pool  of  processes.
 %	Additional options processed:
-%	
+%
 %	    * prefork(+Count)
 %	    The number of servers to fork (default 1)
 %	    * init(:Goal)
@@ -57,7 +57,7 @@ forked_server(Port, Options) :-
 	tcp_setopt(Socket, reuseaddr),
 	tcp_bind(Socket, Port),
 	tcp_listen(Socket, 5),
-	atom_concat('httpd@', Port, Queue),
+	thread_httpd:make_addr_atom('httpd@', Port, Queue),
 	prefork_servers([ queue(Queue),
 			  tcp_socket(Socket),
 			  port(Port)
