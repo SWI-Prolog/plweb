@@ -12,7 +12,7 @@
 
 :- doc_load_library.
 
-:- debug(http(fork)).
+:- debug(http(_)).
 
 run :-
 	run([]).
@@ -26,6 +26,11 @@ run(Options) :-
 			workers(Workers)
 		      ], HTTPOptions),
 	option(port(Port), HTTPOptions),
-	forked_server(Port,
-		      [ HTTPOptions
+	thread_create(forked_server(Port,
+				    [ HTTPOptions
+				    ]),
+		      _,
+		      [ alias(http_server_monitor),
+			detached(true)
 		      ]).
+
