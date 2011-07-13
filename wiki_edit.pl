@@ -220,8 +220,23 @@ save_file(File, Text) :-
 	setup_call_cleanup(open(File, write, Out,
 				[ encoding(utf8)
 				]),
-			   write(Out, Text),
+			   write_text(Out, Text),
 			   close(Out)).
+
+%%	write_text(+Out, +Text:atom) is det.
+%
+%	Write the text. Text may have  LF   or  CR/LF line endings. This
+%	code fixes this. I'm not sure  output encoding issues. Hopefully
+%	the text is submitted as UTF-8 and converted appropriately.
+
+write_text(Out, Text) :-
+	forall(sub_atom(Text, _, 1, _, Char),
+	       put_non_cr(Out, Char)).
+
+put_non_cr(_Out, Char) :-
+	char_code(Char, 13), !.
+put_non_cr(Out, Char) :-
+	put_char(Out, Char).
 
 
 %%	authenticate(+Request, -Fields)
