@@ -72,6 +72,8 @@
 :- http_handler(root(man), manual_file,
 		[prefix, priority(10), spawn(wiki)]).
 
+:- create_prolog_flag(wiki_edit, true, []).
+
 /** <module> Server for PlDoc wiki pages and SWI-Prolog website
 
 @tbd	Turn directory listing into a library.
@@ -226,7 +228,8 @@ serve_wiki_page(Title, DOM) :-
 			DOM).
 
 insert_edit_button(DOM0, File, Request, DOM) :-
-	(   catch(http:authenticate(pldoc(edit), Request, _), _, fail)
+	(   current_prolog_flag(wiki_edit, false),
+	    catch(http:authenticate(pldoc(edit), Request, _), _, fail)
 	->  insert_edit_button(DOM0, \edit_button(File, [edit(true)]), DOM)
 	;   memberchk(request_uri(Location), Request),
 	    insert_edit_button(DOM0, \wiki_edit_button(Location), DOM)
