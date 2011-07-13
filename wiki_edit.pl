@@ -30,6 +30,8 @@
 :- module(wiki_edit,
 	  [
 	  ]).
+:- use_module(library(lists)).
+:- use_module(library(debug)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
@@ -73,7 +75,8 @@ edit_button(Location) -->
 %	HTTP handler that deals with editing a wiki page.
 
 wiki_edit(Request) :-
-	authenticate(Request, _Fields),
+	authenticate(Request, Fields),
+	nth1(2, Fields, Author),
 	http_parameters(Request,
 			[ location(Location,
 				   [ description('Wiki location to edit')
@@ -84,9 +87,9 @@ wiki_edit(Request) :-
 	file_base_name(File, BaseName),
 	reply_html_page(wiki,
 			title('Edit ~w'-[BaseName]),
-			\edit_page(Location, File)).
+			\edit_page(Location, File, Author)).
 
-edit_page(Location, File) -->
+edit_page(Location, File, Author) -->
 	{ (   exists_file(File)
 	  ->  read_file_to_codes(File, Codes, []),
 	      string_to_list(Content, Codes),
@@ -112,11 +115,32 @@ edit_page(Location, File) -->
 				      td(textarea([ class(git_comment), cols(55), rows(5), name(comment)],
 						  ''))]),
 				  tr(td([ align(right), colspan(2) ],
-					input([type(submit), value(save)])))
+					[ \amend_button(Dir, File, Author), ' ',
+					  input([type(submit), value(save)])
+					]))
 				])
 			])
 		 ])).
 
+%%	amend_button(+Dir, +File, +Author)//
+%
+%	Show button to amend the previous commit.
+
+amend_button(Dir, File, Author) -->
+	{ exists_file(File),
+	  git_shortlog(Dir, [ShortLog], [path(File), limit(1)]),
+	  git_log_data(author_name, ShortLog, LastAuthor),
+	  debug(git, 'Amend: LastAuthor = ~q, Author = ~q', [LastAuthor, Author]),
+	  LastAuthor == Author
+	},
+	html(input([class(amend),
+		    type(checkbox), name(amend), value(yes)],
+		   'Amend previous commit')).
+amend_button(_,_,_) --> [].
+
+%%	shortlog(+Dir, +Options)//
+%
+%	Include a GIT shortlog
 
 shortlog(Dir, _Options) -->
 	{ var(Dir) }, !.
@@ -143,6 +167,10 @@ wiki_save(Request) :-
 			  text(Text,
 			       [ description('Wiki content for the file')
 			       ]),
+			  amend(Amend,
+				[ optional(true),
+				  description('Amend previous commit')
+				]),
 			  msg(Msg, []),
 			  comment(Comment, [optional(true)])
 			]),
@@ -164,15 +192,17 @@ wiki_save(Request) :-
 	;   true
 	),
 	atom_concat('--author=', Author, AuthorArg),
-	git([commit,
-	     '-m', GitMsg, AuthorArg,
-	     Rel
-	    ],
+	GitArgs0 = [ '-m', GitMsg, AuthorArg, Rel ],
+	(   Amend == yes
+	->  append([commit, '--amend'], GitArgs0, GitArgs)
+	;   append([commit], GitArgs0, GitArgs)
+	),
+	git(GitArgs,
 	    [ directory(Dir)
 	    ]),
 	http_redirect(see_other, Location, Request).
 
-author([_User, Name, EMail], Author) :-
+author([_User, Name, EMail], Author) :- !,
 	atomic_list_concat([Name, ' <', EMail, '>'], Author).
 author([_User, Name], Author) :-
 	atomic_list_concat([Name, ' <nospam@nospam.org>'], Author).
