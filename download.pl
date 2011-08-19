@@ -252,6 +252,7 @@ platform(windows(win64)) -->
 html_macos_version(tiger)        --> html('10.4 (Tiger)').
 html_macos_version(leopard)      --> html('10.5 (Leopard)').
 html_macos_version(snow_leopard) --> html('10.6 (Snow Leopard)').
+html_macos_version(lion)	 --> html('10.7 (Lion)').
 html_macos_version(OS)	         --> html(OS).
 
 %%	platform_notes(+Platform, +Path) is det.
@@ -345,6 +346,7 @@ opt_devel -->
 macos_version(tiger)        --> "tiger".
 macos_version(leopard)      --> "leopard".
 macos_version(snow_leopard) --> "snow-leopard".
+macos_version(lion)         --> "lion".
 
 macos_cpu(ppc)   --> "powerpc".
 macos_cpu(intel) --> "intel".
