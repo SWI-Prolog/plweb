@@ -163,6 +163,8 @@ icon_for_file(bin, linux(universal),
 	      'linux.png', 'Linux 32/64 intel').
 icon_for_file(bin, linux(_,_),
 	      'linux32.gif', 'Linux RPM').
+icon_for_file(bin, macos(lion,_),
+	      'lion.png', 'Lion').
 icon_for_file(bin, macos(snow_leopard,_),
 	      'snowleopard.gif', 'Snow Leopard').
 icon_for_file(bin, macos(_,_),
@@ -353,6 +355,7 @@ macos_cpu(intel) --> "intel".
 macos_cpu(x86)   --> "32bit".
 
 macos_def_cpu(snow_leopard, intel) :- !.
+macos_def_cpu(lion, intel) :- !.
 macos_def_cpu(_, ppc).
 
 win_type(win32) --> "w32".
@@ -428,6 +431,7 @@ type_tag(src, Format,     tag(40, Format)) :- !.
 type_tag(doc, Format,     tag(50, Format)) :- !.
 type_tag(X,   Y,	  tag(60, X-Y)).
 
+mac_tag(lion,	      6).
 mac_tag(snow_leopard, 7).
 mac_tag(leopard,      8).
 mac_tag(tiger,        9).
