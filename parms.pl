@@ -77,17 +77,16 @@ user:url_path(hcs,	'http://hcs.science.uva.nl').
 user:url_path(pkg,	pl(package)).
 user:url_path(dmoz,	'http://dmoz.org').
 user:url_path(dmoz_pl,	dmoz('Computers/Programming/Languages/Prolog/Implementations/')).
-user:url_path(ffii, 	'http://swpat.ffii.org/index.en.html').
-user:url_path(fsf, 	'http://www.fsf.org').
-user:url_path(gpl, 	fsf('copyleft/gpl.html')).
-user:url_path(lgpl, 	fsf('copyleft/lesser.html')).
-user:url_path(wordnet, 	'http://www.cogsci.princeton.edu/~wn/').
-user:url_path(gmp,	'http://www.swox.com/gmp/').
+user:url_path(ffii,	'http://swpat.ffii.org/index.en.html').
+user:url_path(fsf,	'http://www.fsf.org').
+user:url_path(gpl,	fsf('copyleft/gpl.html')).
+user:url_path(lgpl,	fsf('copyleft/lesser.html')).
+user:url_path(wordnet,	'http://www.cogsci.princeton.edu/~wn/').
+user:url_path(gmp,	'http://gmplib.org/').
 user:url_path(mailman,	'http://www.list.org/').
 user:url_path(bonn,	'https://lists.iai.uni-bonn.de/mailman').
 user:url_path(maillist,	bonn('listinfo.cgi/swi-prolog')).
 user:url_path(mailarchive, bonn('public/swi-prolog/')).
-user:url_path(oldmail,	'http://gollem.science.uva.nl/SWI-Prolog/mailinglist/archive/').
 user:url_path(nabble,	'http://www.nabble.com').
 user:url_path(pl_nabble, nabble('SWI-Prolog-f448.html')).
 user:url_path(gmane,     'http://blog.gmane.org').
@@ -139,8 +138,8 @@ user:url_path(serql,	 'http://www.openrdf.org').
 
 user:file_search_path(document_root, plweb(www)).
 user:file_search_path(plgit,	     plweb(git)).
-user:file_search_path(icons, 	     document_root(icons)).
-user:file_search_path(css, 	     document_root(css)).
+user:file_search_path(icons,	     document_root(icons)).
+user:file_search_path(css,	     document_root(css)).
 user:file_search_path(yui,	     document_root('yui/2.7.0')).
 user:file_search_path(cgi_bin,	     plweb('git-web')).
 user:file_search_path(download,	     plweb(download)).
