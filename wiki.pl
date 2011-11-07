@@ -41,6 +41,12 @@
 :- use_module(library(readutil)).
 :- use_module(library(option)).
 
+:- predicate_options(file//2, 2,
+		     [ absolute_path(atom),
+		       label(any)
+		     ]).
+:- predicate_options(include//3, 3,
+		     [pass_to(pldoc_html:include/5, 3)]).
 
 %%	wiki_file_to_dom(+File, +DOM) is det.
 %

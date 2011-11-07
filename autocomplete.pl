@@ -52,7 +52,18 @@
 
 max_results_displayed(100).
 
-%	prolog:doc_search_field(+Options) is det.
+:- predicate_options(autocomplete//2, 2,
+		     [ width(atom),
+		       name(atom),
+		       value(atom),
+		       query_delay(number),
+		       auto_highlight(boolean),
+		       max_results_displayed(nonneg)
+		     ]).
+
+%%	prolog:doc_search_field(+Options) is det.
+%
+%	Emit the manual-search field.
 
 prolog:doc_search_field(Options) -->
 	{ select_option(size(W), Options, Options1),

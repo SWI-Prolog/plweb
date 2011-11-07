@@ -42,6 +42,14 @@
 :- html_meta
 	odd_even_row(+, -, html, ?, ?).
 
+:- predicate_options(git_commit_info//3, 3,
+		     [ diff(oneof([patch,stat])),
+		       pass_to(git:git_show/4, 4)
+		     ]).
+:- predicate_options(git_shortlog//2, 2,
+		     [ pass_to(git:git_shortlog/3, 3)
+		     ]).
+
 :- http_handler(root(git_show), git_show, []).
 
 %%	git_shortlog(+Dir, +Options)//

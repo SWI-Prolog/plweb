@@ -53,6 +53,35 @@
 /** <module> Run GIT commands
 */
 
+:- predicate_options(git/2, 2,
+		     [ directory(atom),
+		       error(-codes),
+		       output(-codes)
+		     ]).
+:- predicate_options(git_default_branch/2, 2,
+		     [ pass_to(git_process_output/3, 3)
+		     ] ).
+:- predicate_options(git_describe/2, 2,
+		     [ commit(atom),
+		       directory(atom),
+		       match(atom)
+		     ]).
+:- predicate_options(git_process_output/3, 3,
+		     [ directory(atom),
+		       error(-codes)
+		     ]).
+:- predicate_options(git_remote_url/3, 3,
+		     [ pass_to(git_process_output/3, 3)
+		     ]).
+:- predicate_options(git_shortlog/3, 3,
+		     [ limit(nonneg),
+		       path(atom)
+		     ]).
+:- predicate_options(git_show/4, 4,
+		     [ diff(oneof([patch,stat]))
+		     ]).
+
+
 %%	git(+Argv, +Options) is det.
 %
 %	Run a GIT command.  Defined options:

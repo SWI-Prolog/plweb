@@ -39,6 +39,12 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_stream)).
 
+:- predicate_options(http_run_cgi/3, 2,
+		     [ argv(list),
+		       transfer_encoding(atom),
+		       buffer(oneof([full,line,none]))
+		     ]).
+
 /** <module> Run CGI scripts from the SWI-Prolog web-server
 
 Run CGI scripts.  This module provides two interfaces:
