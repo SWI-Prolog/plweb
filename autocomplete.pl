@@ -200,6 +200,8 @@ obj_result(_Name-Obj, json([ label=Label,
 
 obj_name(c(Function), Name, cfunc) :- !,
 	atom_concat(Function, '()', Name).
+obj_name(f(Func/Arity), Name, function) :- !,
+	format(atom(Name), '~w/~w (function)', [Func, Arity]).
 obj_name((_:Term), Name, pred) :- !,
 	format(atom(Name), '~w', [Term]).
 obj_name(Term, Name, pred) :-
@@ -282,6 +284,7 @@ completion_target(Name/_,   Name).
 completion_target(M:Name/A, Name) :-
 	functor(Head, Name, A),
 	predicate_property(M:Head, exported).
+completion_target(f(Name/_),Name).
 completion_target(c(Name),  Name).
 
 start_inside_token(Token, Inside) :-
