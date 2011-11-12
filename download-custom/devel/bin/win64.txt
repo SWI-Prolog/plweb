@@ -1,3 +1,5 @@
 Self-installing executable for Microsoft's XP/Vista/7 64-bit editions.
-See the [[reference manual][</man/64bits.html>]] for deciding on whether
-to use the 32- or 64-bits version.
+See the [[reference manual][</man/64bits.html>]] for deciding on
+whether to use the 32- or 64-bits version.  This binary is linked
+against GMP 4, which implies that it is covered by the LGPL-V3
+license.  See below.

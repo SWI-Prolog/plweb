@@ -22,7 +22,8 @@ suggest more or -better- help :-)
 
     * Kernel issues
 
-      * Better indexing, including support for tries
+      * Better indexing, including support for tries ([[new.gif]],
+	multi-argument JIT indexing is provided as of 5.11.29.
       * Tabling
       * Further cleanup of the VM instruction API to simplify maintenance
 	and future enhancements
@@ -47,3 +48,14 @@ suggest more or -better- help :-)
         model should allow for more independent and distributed
 	development and make it easy for users to download and install
 	packages.
+
+---++ License issues of the binaries
+
+The SWI-Prolog sources are covered by version 2 or later of the GNU
+licenses ([[details][</license.html>]]).  The binaries are currently
+linked against recent versions of the GMP bignum library, which is
+licensed under LGPL version 3.  This implies that the distributed
+SWI-Prolog binaries are covered by version 3 of these licenses.
+
+It is possible to build SWI-Prolog with older versions of GMP (e.g.,
+version 3) or without GMP.
