@@ -1,7 +1,8 @@
 ---++ About the 6.0.x release
 
-SWI-Prolog 6.0.x is a milestone in the stable release cycle.  For almost
-all user programs it should be compatible with 5.10.x.
+SWI-Prolog 6.0.x is a milestone in the stable release cycle. For almost
+all user programs, this version should be compatible with 5.10.x.
+Version 6.0.0 is based on version 5.11.37.
 
 ---++ Highlights for the 6.0.x release:
 
