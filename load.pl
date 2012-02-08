@@ -3,7 +3,8 @@
 		library(thread_pool),
 		library(http/http_session),
 		plweb,
-		wiki_edit
+		wiki_edit,
+		stats
 	      ],
 	      [ silent(true)
 	      ]).
