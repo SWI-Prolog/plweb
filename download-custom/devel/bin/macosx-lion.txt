@@ -1,4 +1,6 @@
 Installer with binaries created using [[Macports][<macports:>]].
 Installs =|/opt/local/bin/swipl|=. Needs X11 (bundled with the MacOS X
 installer) and Developer Tools (Xcode) installed for running the
-[[development tools][</IDE.html>]].
+[[development tools][</IDE.html>]].  his binary is linked against GMP
+5.0.2, which implies that it is covered by the LGPL-V3 license. See
+below.
