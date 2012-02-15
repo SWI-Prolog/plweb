@@ -7,30 +7,25 @@ below. See the general [[GIT][</git.html>]] instructions for details.
 % git clone git://www.swi-prolog.org/home/pl/git/pl-devel.git
 ==
 
----++ 5.11.x planned enhancements
+---++ 6.1.x planned enhancements
 
-SWI-Prolog 5.10.0 was released a bit early, in the sense that two
-enhancements in memory management are not or only partly realised.
-These are moved to the 5.11.0 agenda:
-
-    * Reduce trail-stack usage. (*partly*)
-    * Provide generational garbage collection.
-
-Otherwise, priorities have not yet settled. Just to show this doesn't
-mean there are no plans, some points in random order.  Feel free to
-suggest more or -better- help :-)
+Below is a lost of things on the TODO list. Current active development
+is mainly focussed on the RDF library and enhancement of concurrent
+performance.
 
     * Kernel issues
 
-      * Better indexing, including support for tries ([[new.gif]],
-	multi-argument JIT indexing is provided as of 5.11.29.
+      * Reduce locking around atom-handling to provide better
+	performance for multi-threaded applications that create
+	many atoms.
+      * Reduce trail-stack usage. (*partly*).
+      * Reduce local-stack usage for multiple disjunctions in clauses.
+      * Provide generational garbage collection.
+      * Extend indexing with combined arguments and indexing inside
+        compound terms.
       * Tabling
       * Further cleanup of the VM instruction API to simplify maintenance
 	and future enhancements
-      * Rewrite more/all term-traversing functions to avoid the use of
-	C-based recursion.  This allows processing more deeply nested
-	terms and proper resource-exceptions if there is insufficient
-	memory
       * Handle malloc() failures with exceptions rather then a
 	fatal-error.
 
