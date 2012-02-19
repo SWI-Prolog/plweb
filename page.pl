@@ -69,6 +69,7 @@ sidebar -->
 		   a(href('http://www.swi-prolog.org'),
 		     img([id(logo),
 			  border(0),
+			  alt('SWI-Prolog logo'),
 			  src('/icons/swipl.jpeg')
 			 ]))),
 	       div(class(menu), \menu)

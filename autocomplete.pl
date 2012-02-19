@@ -102,7 +102,12 @@ autocomplete(Handler, Options) -->
 	},
 	html([ \html_requires(yui('autocomplete/autocomplete.js')),
 	       \html_requires(yui('autocomplete/assets/skins/sam/autocomplete.css')),
-	       div(id(CompleteID),
+	       div([ id(CompleteID),
+		     style('width:'+Width+'; \c
+		            padding-bottom:0em; \c
+			    display:inline-block; \c
+			    vertical-align:top')
+		   ],
 		   [ input([ id(InputID),
 			     name(Name),
 			     value(Value),
@@ -110,10 +115,6 @@ autocomplete(Handler, Options) -->
 			   ]),
 		     div(id(ContainerID), [])
 		   ]),
-	       style(type('text/css'),
-		     [ '#', CompleteID, '\n',
-		       '{ width:~w; padding-bottom:0em; display:inline-block; vertical-align:top}'-[Width]
-		     ]),
 	       \autocomplete_script(Path, InputID, ContainerID, Options3)
 	     ]).
 
@@ -131,7 +132,7 @@ autocomplete_script(HandlerID, Input, Container, Options) -->
 '  var oAC = new YAHOO.widget.AutoComplete("~w", "~w", oDS);\n'-[Input, Container],
 '  oAC.resultTypeList = false;\n',
 '  oAC.formatResult = function(oResultData, sQuery, sResultMatch) {
-     var into = "<span class=\\"acmatch\\">"+sQuery+"</span>";
+     var into = "<span class=\\"acmatch\\">"+sQuery+"<\\/span>";
      var sLabel = oResultData.label.replace(sQuery, into);
      return sLabel;
    };\n',
