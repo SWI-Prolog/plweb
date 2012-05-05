@@ -481,7 +481,10 @@ download(Request) :-
 	broadcast(download(Download, Remote)),
 	http_reply_file(AbsFile, [unsafe(true)], Request).
 download(Request) :-
-	memberchk(path_info(Download), Request),
+	(   memberchk(path_info(Download), Request)
+	->  true
+	;   Download = '.'
+	),
 	absolute_file_name(download(Download),
 			   AbsFile,
 			   [ access(read),
