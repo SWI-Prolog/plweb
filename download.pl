@@ -477,12 +477,18 @@ download(Request) :-
 			   [ access(read),
 			     file_errors(fail)
 			   ]), !,
-	(   exists_directory(AbsFile)
-	->  http_reply_dirindex(AbsFile, [unsafe(true)], Request)
-	;   remote_ip(Request, Remote),
-	    broadcast(download(Download, Remote)),
-	    http_reply_file(AbsFile, [unsafe(true)], Request)
-	).
+	remote_ip(Request, Remote),
+	broadcast(download(Download, Remote)),
+	http_reply_file(AbsFile, [unsafe(true)], Request).
+download(Request) :-
+	memberchk(path_info(Download), Request),
+	absolute_file_name(download(Download),
+			   AbsFile,
+			   [ access(read),
+			     file_errors(fail),
+			     file_type(directory)
+			   ]), !,
+	http_reply_dirindex(AbsFile, [unsafe(true)], Request).
 download(Request) :-
 	memberchk(path(Path), Request),
 	existence_error(http_location, Path).
