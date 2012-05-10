@@ -102,7 +102,7 @@ pack_query(install(URL, SHA1, Info), Peer, Reply) :-
 %	  - downloads(Downloads)
 %	    This hash was downloaded Downloads times from a unique IP
 %	    address
-%	  - provides(Token, Pack, Version, URLs)
+%	  - dependency(Token, Pack, Version, URLs)
 %	    The requirement Token can be provided by Pack@Version, which
 %	    may be downloaded from the given URLs (a list).
 
@@ -114,13 +114,19 @@ install_info(URL, SHA1, alt_hash(Downloads, URLs, Hash)) :-
 	sha1_urls(Hash, URLs).
 install_info(_, SHA1, downloads(Count)) :-
 	sha1_downloads(SHA1, Count).
-install_info(_, SHA1, provides(Token, Pack, Version, URLs)) :-
+install_info(_, SHA1, dependency(Token, Pack, Version, URLs)) :-
 	sha1_requires(SHA1, Token),
-	sha1_provides(Hash, Token),
-	sha1_pack(Hash, Pack),
-	sha1_info(Hash, Info),
-	memberchk(version(Version), Info),
-	findall(URL, sha1_url(Hash, URL), URLs).
+	(   (   sha1_pack(Hash, Token),
+		Pack = Token
+	    ;	sha1_provides(Hash, Token),
+		sha1_pack(Hash, Pack)
+	    ),
+	    sha1_info(Hash, Info),
+	    memberchk(version(Version), Info),
+	    findall(URL, sha1_url(Hash, URL), URLs)
+	*-> true
+	;   Pack = (-), Version = (-), URLs = []
+	).
 
 sha1_downloads(Hash, Count) :-
 	aggregate_all(count, sha1_download(Hash, _), Count).
@@ -307,7 +313,7 @@ pack_title(SHA1) -->
 %	Provided detailed information about a package.
 %
 %	@tbd	provide many more details
-%	@tbd	Show resolutions for requirements
+%	@tbd	Show dependency for requirements/provides
 
 pack_info(Pack) -->
 	{ pack_latest_version(Pack, SHA1, Version, _Older),
