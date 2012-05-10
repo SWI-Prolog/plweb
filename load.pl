@@ -4,7 +4,8 @@
 		library(http/http_session),
 		plweb,
 		wiki_edit,
-		stats
+		stats,
+		pack
 	      ],
 	      [ silent(true)
 	      ]).
