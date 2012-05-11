@@ -82,6 +82,10 @@ peer_to_atom(ip(A,B,C,D), Atom) :-
 pack_query(install(URL, SHA1, Info), Peer, Reply) :-
 	with_mutex(pack, save_request(URL, SHA1, Info, Peer)),
 	findall(ReplyInfo, install_info(URL, SHA1, ReplyInfo), Reply).
+pack_query(locate(Pack), _, Reply) :-
+	urls_for_pack(Pack, Reply).
+pack_query(search(Word), _, Reply) :-
+	search_packs(Word, Reply).
 
 
 		 /*******************************
@@ -146,6 +150,46 @@ sha1_title(Hash, Title) :-
 	;   Title = '<no title>'
 	).
 
+%%	urls_for_pack(+Pack, -Locations) is det.
+%
+%	@param	Locations is a list Version-URLs, sorted latest version
+%		first.
+%	@tbd	Handle versions with multiple hashes!
+
+urls_for_pack(Pack, Locations) :-
+	setof(SHA1, sha1_pack(SHA1, Pack), Hashes),
+	map_list_to_pairs(sha1_version, Hashes, Versions),
+	keysort(Versions, Sorted),
+	reverse(Sorted, LastFirst),
+	maplist(pack_download_url, LastFirst, Locations).
+
+pack_download_url(Version-Hash, VersionA-URLs) :-
+	prolog_pack:atom_version(VersionA, Version),
+	findall(URL, sha1_url(Hash, URL), URLs).
+
+%%	search_packs(+Search, -Packs) is det.
+%
+%	Search packs by keyword, returning a list
+%
+%		pack(Pack, Status, Version, Title, URLs).
+
+search_packs(Search, Packs) :-
+	setof(Pack, matching_pack(Search, Pack), Names), !,
+	maplist(pack_search_result, Names, Packs).
+
+matching_pack(Search, Pack) :-
+	sha1_pack(SHA1, Pack),
+	(   '$apropos_match'(Search, Pack)
+	->  true
+	;   sha1_title(SHA1, Title),
+	    '$apropos_match'(Search, Title)
+	).
+
+pack_search_result(Pack, pack(Pack, p, Title, VersionA, URLs)) :-
+	sha1_title(SHA1, Title),
+	pack_latest_version(Pack, SHA1, Version, _Older),
+	prolog_pack:atom_version(VersionA, Version),
+	findall(URL, sha1_url(SHA1, URL), URLs).
 
 
 		 /*******************************
