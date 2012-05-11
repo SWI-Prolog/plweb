@@ -81,7 +81,7 @@ peer_to_atom(ip(A,B,C,D), Atom) :-
 
 pack_query(install(URL, SHA1, Info), Peer, Reply) :-
 	with_mutex(pack, save_request(URL, SHA1, Info, Peer)),
-	findall(ReplyInfo, install_info(URL, SHA1, ReplyInfo), Reply).
+	findall(ReplyInfo, install_info(URL, SHA1, ReplyInfo, []), Reply).
 pack_query(locate(Pack), _, Reply) :-
 	urls_for_pack(Pack, Reply).
 pack_query(search(Word), _, Reply) :-
@@ -92,7 +92,7 @@ pack_query(search(Word), _, Reply) :-
 		 *	COMPUTATIONAL LOGIC	*
 		 *******************************/
 
-%%	install_info(+URL, +SHA1, -Info) is nondet.
+%%	install_info(+URL, +SHA1, -Info, +Seen) is nondet.
 %
 %	Info is relevant information  for  the   client  who  whishes to
 %	install URL, which has the given   SHA1 hash. Currently provided
@@ -106,29 +106,34 @@ pack_query(search(Word), _, Reply) :-
 %	  - downloads(Downloads)
 %	    This hash was downloaded Downloads times from a unique IP
 %	    address
-%	  - dependency(Token, Pack, Version, URLs)
+%	  - dependency(Token, Pack, Version, URLs, SubSeps)
 %	    The requirement Token can be provided by Pack@Version, which
-%	    may be downloaded from the given URLs (a list).
+%	    may be downloaded from the given URLs (a list).  Pack has
+%	    install info as specified by SubSeps (recursive
+%	    dependencies)
 
-install_info(URL, SHA1, alt_hash(Downloads, URLs, Hash)) :-
+install_info(_, SHA1, _, Seen) :-
+	memberchk(SHA1, Seen), !, fail.
+install_info(URL, SHA1, alt_hash(Downloads, URLs, Hash), _) :-
 	file_base_name(URL, File),
 	sha1_file(Hash, File),
 	Hash \== SHA1,
 	sha1_downloads(Hash, Downloads),
 	sha1_urls(Hash, URLs).
-install_info(_, SHA1, downloads(Count)) :-
+install_info(_, SHA1, downloads(Count), _) :-
 	sha1_downloads(SHA1, Count).
-install_info(_, SHA1, dependency(Token, Pack, Version, URLs)) :-
+install_info(_, SHA1, dependency(Token, Pack, Version, URLs, SubDeps), Seen) :-
 	sha1_requires(SHA1, Token),
 	(   (   sha1_pack(Hash, Token),
 		Pack = Token
 	    ;	sha1_provides(Hash, Token),
-		sha1_pack(Hash, Pack)
+		sha1_pack(Hash, Pack),
+		Pack \== Token
 	    ),
 	    sha1_info(Hash, Info),
 	    memberchk(version(Version), Info),
 	    findall(URL, sha1_url(Hash, URL), URLs)
-	*-> true
+	*-> findall(SubDep, install_info(-, Hash, SubDep, [SHA1|Seen]), SubDeps)
 	;   Pack = (-), Version = (-), URLs = []
 	).
 
