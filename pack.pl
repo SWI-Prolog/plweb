@@ -296,6 +296,14 @@ pack_listing(All) -->
 	  sort(Packs, Sorted)
 	},
 	html([ h1(class(wiki), 'Available packages'),
+	       p([ 'Below is a list of known packages.  Please be aware that ',
+		   'packages are ', b('not moderated'), '. Installing a pack ',
+		   ' does not execute code in the pack, but simply loading a ',
+		   'library from the pack may execute arbitrary code. ',
+		   'More information about packages is available ',
+		   a(href('http://www.swi-prolog.org/howto/Pack.html'), here),
+		   '.'
+		 ]),
 	       \html_requires(css('pack.css')),
 	       table(class(packlist),
 		     [ tr([ th(id(pack),      'Pack'),
