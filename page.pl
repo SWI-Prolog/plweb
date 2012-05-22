@@ -33,6 +33,7 @@
 	  ]).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
+:- use_module(library(http/http_path)).
 :- use_module(library(pldoc/doc_index)).
 :- use_module(wiki).
 
@@ -46,6 +47,7 @@
 user:body(wiki, Body) --> !,
 	html(body(class(['yui-skin-sam', wiki]),
 		  [ \html_requires(plweb),
+		    \favicon(icons('favicon.ico')),
 		    div(class(sidebar), \sidebar),
 		    \doc_links([], [search_options(false)]),
 		    div(class(content), Body),
@@ -54,10 +56,19 @@ user:body(wiki, Body) --> !,
 user:body(_, Body) -->
 	html(body(class('yui-skin-sam'),
 		  [ \html_requires(plweb),
+		    \favicon(icons('favicon.ico')),
 		    div(class(sidebar), \sidebar),
 		    div(class(content), Body),
 		    div(class(footer), \server_address)
 		  ])).
+
+favicon(Spec) -->
+	{ http_absolute_location(Spec, URL, [])
+	},
+	html_post(head,
+                  link([ rel('shortcut icon'),
+                         href(URL)
+                       ])).
 
 
 %%	sidebar//
@@ -70,7 +81,7 @@ sidebar -->
 		     img([id(logo),
 			  border(0),
 			  alt('SWI-Prolog logo'),
-			  src('/icons/swipl.jpeg')
+			  src('/icons/swipl.png')
 			 ]))),
 	       div(class(menu), \menu)
 	     ]).
