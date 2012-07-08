@@ -396,22 +396,67 @@ property(Label, Value) -->
 	html(tr([th([Label, :]), td(Value)])).
 
 info(Term, Info) -->
-	{ findall(Term, member(Term, Info), [T0|More]), !,
-	  prolog_pack:pack_level_info(_, Term, LabelFmt, _),
-	  (   LabelFmt = Label-Fmt
-	  ->  true
-	  ;   Label = LabelFmt, Fmt = '~w'
-	  ),
-	  T0 =.. [_|Values]
+	{ findall(Term, member(Term, Info), [T0|More]), !
 	},
-	html(tr([th([Label, :]), td(Fmt-Values)])),
-	extra_values(More, Fmt).
+	html(tr([th([\label(T0), :]), td(\value(T0))])),
+	extra_values(More).
 info(_, _) --> [].
 
-extra_values([], _) --> [].
-extra_values([H|T], Fmt) -->
-	{ H =.. [_|Values] },
-	html(tr([th([]), td(Fmt-Values)])),
-	extra_values(T, Fmt).
+extra_values([]) --> [].
+extra_values([H|T]) -->
+	html(tr([th([]), td(\value(H))])),
+	extra_values(T).
 
+label(Term) -->
+	{ prolog_pack:pack_level_info(_, Term, LabelFmt, _),
+	  (   LabelFmt = Label-_
+	  ->  true
+	  ;   Label = LabelFmt
+	  )
+	},
+	html(Label).
+
+value(Term) -->
+	{ name_address(Term, Name, Address) }, !,
+	html([span(class(name), Name), ' ']),
+	address(Address).
+value(Term) -->
+	{ url(Term, Label, URL) },
+	html(a(href(URL), Label)).
+value(Term) -->
+	{ prolog_pack:pack_level_info(_, Term, LabelFmt, _),
+	  (   LabelFmt = _-Fmt
+	  ->  true
+	  ;   Fmt = '~w'
+	  ),
+	  Term =.. [_|Values]
+	},
+	html(Fmt-Values).
+
+address(Address) -->
+	{ sub_atom(Address, _, _, _, @) }, !,
+	html(['<', Address, '>']).
+address(URL) -->
+	html(a(href(URL), URL)).
+
+name_address(author(    Name, Address), Name, Address).
+name_address(maintainer(Name, Address), Name, Address).
+name_address(packager(  Name, Address), Name, Address).
+
+url(home(URL), URL, URL).
+url(download(Pattern), Pattern, URL) :-
+	(   wildcard_pattern(Pattern)
+	->  file_directory_name(Pattern, Dir),
+	    ensure_slash(Dir, URL)
+	;   URL = Pattern
+	).
+
+wildcard_pattern(URL) :- sub_atom(URL, _, _, _, *).
+wildcard_pattern(URL) :- sub_atom(URL, _, _, _, ?).
+
+ensure_slash(Dir, DirS) :-
+	(   sub_atom(Dir, _, _, 0, /)
+	->  DirS = Dir
+	;   atom_concat(Dir, /, DirS)
+	).
 
