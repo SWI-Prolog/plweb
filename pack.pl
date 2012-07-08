@@ -224,9 +224,9 @@ save_request(URL, SHA1, _Info, Peer) :-
 	register_url(SHA1, URL).		% but maybe from a different URL
 save_request(URL, SHA1, Info, Peer) :-
 	memberchk(name(Pack), Info),
+	register_url(SHA1, URL),
 	register_pack(SHA1, Pack),
 	register_info(SHA1, Info),
-	register_url(SHA1, URL),
 	assert_sha1_download(SHA1, Peer).
 
 register_pack(SHA1, Pack) :-
@@ -261,14 +261,19 @@ register_provides(SHA1, Token) :-
 register_url(SHA1, URL) :-
 	(   sha1_url(SHA1, URL)
 	->  true
-	;   assert_sha1_url(SHA1, URL),
-	    file_base_name(URL, File),
-	    register_file(SHA1, File)
+	;   sha1_url(SHA2, URL)
+	->  throw(modified_hash(SHA1-URL, SHA2-[URL]))
+	;   file_base_name(URL, File),
+	    register_file(SHA1, File, URL),
+	    assert_sha1_url(SHA1, URL)
 	).
 
-register_file(SHA1, File) :-
+register_file(SHA1, File, URL) :-
 	(   sha1_file(SHA1, File)
 	->  true
+	;   sha1_file(SHA2, File),
+	    sha1_urls(SHA2, URLs)
+	->  throw(modified_hash(SHA1-URL, SHA2-URLs))
 	;   assert_sha1_file(SHA1, File)
 	).
 
@@ -373,15 +378,23 @@ pack_title(SHA1) -->
 %	@tbd	Show dependency for requirements/provides
 
 pack_info(Pack) -->
+	pack_info_table(Pack),
+	pack_file_table(Pack).
+
+%%	pack_info_table(+Pack)// is det.
+%
+%	Provide basic information on the package
+
+pack_info_table(Pack) -->
 	{ pack_latest_version(Pack, SHA1, Version, _Older),
 	  prolog_pack:atom_version(VersionA, Version),
 	  sha1_title(SHA1, Title),
 	  sha1_info(SHA1, Info)
 	},
 	html(table(class(pack),
-		   [ \property('Title', Title),
+		   [ \property('Title', span(class(title), Title)),
 		     \property('Latest version', VersionA),
-		     \property('SHA1 sum', SHA1),
+		     \property('SHA1 sum', \hash(SHA1)),
 		     \info(author(_,_), Info),
 		     \info(maintainer(_,_), Info),
 		     \info(packager(_,_), Info),
@@ -460,3 +473,58 @@ ensure_slash(Dir, DirS) :-
 	;   atom_concat(Dir, /, DirS)
 	).
 
+%%	pack_file_table(+Pack)// is det.
+%
+%	Provide a table with the files, sorted by version, providing
+%	statistics on downloads.
+
+pack_file_table(Pack) -->
+	{ setof(Version-Hash, pack_version_hash(Pack, Hash, Version), Pairs),
+	  group_pairs_by_key(Pairs, Grouped)
+	},
+	html(h2(class(wiki), 'Details by download location')),
+	html(table(class(pack_file_table),
+		   [ tr([th('Version'), th('SHA1'), th('#Downloads'), th('URL')])
+		   | \pack_file_rows(Grouped)
+		   ])).
+
+pack_file_rows([]) --> [].
+pack_file_rows([H|T]) --> pack_file_row(H), pack_file_rows(T).
+
+pack_file_row(Version-[H0|Hashes]) -->
+	{ sha1_downloads(H0, Count),
+	  sha1_urls(H0, [URL|URLs])
+	},
+	html(tr([ td(\version(Version)),
+		  td(\hash(H0)),
+		  \count(Count),
+		  td(\download_url(URL))
+		])),
+	alt_urls(URLs),
+	alt_hashes(Hashes).
+
+alt_urls([]) --> [].
+alt_urls([H|T]) --> alt_url(H), alt_urls(T).
+
+alt_url(H) -->
+	html(td([td(''), td(''), td(''), td(\download_url(H))])).
+
+alt_hashes([]) --> [].
+alt_hashes([H|T]) --> alt_hash(H), alt_hashes(T).
+
+alt_hash(H) -->
+	{ sha1_downloads(H, Count),
+	  sha1_urls(H, [URL|URLs])
+	},
+	html([td(''), td(\hash(H)), \count(Count), td(\download_url(URL))]),
+	alt_urls(URLs).
+
+hash(H)		  --> html(span(class(hash), H)).
+download_url(URL) --> html(a(href(URL), URL)).
+count(N)          --> html(td(class(count), N)).
+version(V)        --> { prolog_pack:atom_version(Atom, V) },
+		      html(Atom).
+
+pack_version_hash(Pack, Hash, Version) :-
+	sha1_pack(Hash, Pack),
+	sha1_version(Hash, Version).
