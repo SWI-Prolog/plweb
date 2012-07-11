@@ -46,7 +46,8 @@
 %	is of type text/x-prolog.   Reply is also a Prolog term.
 
 pack_query(Request) :-
-	memberchk(content_type('text/x-prolog'), Request), !,
+	memberchk(content_type(ContentType), Request),
+	sub_atom(ContentType, 0, _, _, 'text/x-prolog'), !,
 	peer(Request, Peer),
 	setup_call_cleanup(
 	    new_memory_file(MemFile),
@@ -61,12 +62,12 @@ pack_query(Request) :-
 	    ),
 	    free_memory_file(MemFile)),
 	(   catch(pack_query(Query, Peer, Reply), E, true)
-	->  format('Content-type: text/x-prolog~n~n'),
+	->  format('Content-type: text/x-prolog; charset=UTF8~n~n'),
 	    (   var(E)
 	    ->	format('~q.~n', [true(Reply)])
 	    ;	format('~w.~n', [exception(E)])
 	    )
-	;   format('Content-type: text/x-prolog~n~n'),
+	;   format('Content-type: text/x-prolog; charset=UTF8~n~n'),
 	    format('false.~n')
 	).
 
