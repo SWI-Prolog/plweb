@@ -378,7 +378,7 @@ short_version(version(Major, Minor, Patch)) -->
 	    number_codes(Minor, [D2]),
 	    number_codes(Patch, [D3])
 	;   Digits = [D1,D2,D3,D4]
-	->  (   D2 == 0'1		% 5.1X.Y
+	->  (   [D1,D2] = "51"		% 5.1X.Y
 	    ->  number_codes(Major, [D1]),
 	        number_codes(Minor, [D2,D3]),
 		number_codes(Patch, [D4])
