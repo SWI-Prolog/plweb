@@ -146,6 +146,7 @@ http_run_cgi(ScriptSpec, Options, Request) :-
 			 process(PID)
 		       ]),
 	setup_input(ScriptInput, Request),
+	set_stream(CGI, encoding(octet)),
 	debug(http(cgi), 'Waiting for CGI data ...', []),
 	maplist(header_option, Options),
 	call_cleanup(copy_cgi_data(CGI, current_output, Options),
