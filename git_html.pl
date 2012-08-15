@@ -32,8 +32,8 @@
 	    git_commit_info//3		% +Dir, +Hash, +Options
 	  ]).
 :- use_module(git).
+:- use_module(library(dcg/basics)).
 :- use_module(library(http/http_dispatch)).
-:- use_module(library(http/dcg_basics)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_wrapper)).

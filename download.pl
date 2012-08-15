@@ -32,8 +32,8 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/http_parameters)).
-:- use_module(library(http/dcg_basics)).
 :- use_module(library(http/http_dirindex)).
+:- use_module(library(dcg/basics)).
 :- use_module(library(broadcast)).
 :- use_module(library(pairs)).
 :- use_module(library(lists)).
