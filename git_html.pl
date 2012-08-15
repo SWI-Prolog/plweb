@@ -31,7 +31,7 @@
 	  [ git_shortlog//2,		% +Dir, +Options
 	    git_commit_info//3		% +Dir, +Hash, +Options
 	  ]).
-:- use_module(git).
+:- use_module(library(git)).
 :- use_module(library(dcg/basics)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/html_write)).

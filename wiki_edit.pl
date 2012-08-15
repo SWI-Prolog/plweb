@@ -37,7 +37,7 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_authenticate)).
-:- use_module(git).
+:- use_module(library(git)).
 :- use_module(git_html).
 
 
