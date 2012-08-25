@@ -1,7 +1,12 @@
+:- dynamic
+	pre_files/1.
+:- findall(F, source_file(F), FL),
+   assertz(pre_files(FL)).
 :- doc_collect(true).
 :- load_files([ library(pldoc/doc_library),
 		library(thread_pool),
 		library(http/http_session),
+		library(prolog_source),
 		plweb,
 		wiki_edit,
 		stats,
@@ -10,6 +15,37 @@
 	      [ silent(true)
 	      ]).
 
+%%	read_comments(+File)
+%
+%	Reads PlDoc comments for a file that was already loaded before
+%	the server was started.
+
+read_comments(File) :-
+	source_file_property(File, module(M)),  !,
+	setup_call_cleanup(
+	    ( prolog_open_source(File, In),
+	      set_prolog_flag(xref, true),
+	      '$set_source_module'(Old, M)
+	    ),
+	    ( repeat,
+	        prolog_read_source_term(In, Term, _,
+					[ process_comment(true)
+					]),
+	        Term == end_of_file,
+	      !
+	    ),
+	    ( '$set_source_module'(_, Old),
+	      set_prolog_flag(xref, false),
+	      close(In)
+	    )).
+read_comments(_).				% not a module, we do not care
+
+reload_pre_files :-
+	pre_files(FL),
+	forall(member(F, FL),
+	       read_comments(F)).
+
+:- reload_pre_files.
 :- doc_load_library.
 :- http_set_session_options([enabled(false)]).
 :- send(@pce, catch_error_signals, @off).
