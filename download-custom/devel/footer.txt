@@ -7,17 +7,13 @@ below. See the general [[GIT][</git.html>]] instructions for details.
 % git clone git://www.swi-prolog.org/home/pl/git/pl-devel.git
 ==
 
----++ 6.1.x planned enhancements
+---++ 6.3.x planned enhancements
 
-Below is a lost of things on the TODO list. Current active development
-is mainly focussed on the RDF library and enhancement of concurrent
-performance.
+Below is a list of things on the TODO list.
 
     * Kernel issues
 
-      * Reduce locking around atom-handling to provide better
-	performance for multi-threaded applications that create
-	many atoms.
+      * Use larger allocation chunks for findall/3 to reduce contention.
       * Reduce trail-stack usage. (*partly*).
       * Reduce local-stack usage for multiple disjunctions in clauses.
       * Provide generational garbage collection.
@@ -31,26 +27,13 @@ performance.
 
     * Libraries
 
-      * RDF enhancements: better write-concurrency, get more out of
-	named graphs and handle owl:sameAs mappings efficiently.
+      * RDF enhancements: Enhance handling of literals using the _|value
+	space|_.  Figure out Boehm-GC based installations to support
+	RDF store 3.0.
       * Move many goodies from
 	[[ClioPatria][http://e-culture.multimedian.nl/software/ClioPatria.shtml]]
 	to the HTTP and semweb libraries.
 
     * Community and development issues
 
-      * Come to a better model for dealing with contributed code.  This
-        model should allow for more independent and distributed
-	development and make it easy for users to download and install
-	packages.
-
----++ License issues of the binaries
-
-The SWI-Prolog sources are covered by version 2 or later of the GNU
-licenses ([[details][</license.html>]]).  The binaries are currently
-linked against recent versions of the GMP bignum library, which is
-licensed under LGPL version 3.  This implies that the distributed
-SWI-Prolog binaries are covered by version 3 of these licenses.
-
-It is possible to build SWI-Prolog with older versions of GMP (e.g.,
-version 3) or without GMP.
+      * Further enhance the `pack' system and try to get it popular.
