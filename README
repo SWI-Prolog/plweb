@@ -1,30 +1,19 @@
----+ The new SWI-Prolog web-site
+---+ The SWI-Prolog web-site
 
-Finally, SWI-Prolog hosts itself on the web.
+This repository contains the software  of http://www.swi-prolog.org. The
+(wiki) content of the website is stored in a git submodule. This must be
+installed seperately using the command below.
 
----++ TODO
+  ==
+  git submodule update --init
+  ==
 
-    * Provide last-modified support for wiki pages
-    * Support bug-reporting
-    * Downloads (less urgent now that we can use webalizer)
-	* Support download statistics
-	    * By version, platform/src
-	    * By time period
-    * Allow Wiki editing?
-	* Local-host only (like PlDoc) [OK]
-	* Wiki-style
-    * Process .txt links in @see (See PceEmacs in FAQ)
+After installing the submodule, the website may be started locally using
+the commands below. After that, you have   access to the same content as
+available  from  http://www.swi-prolog.org,  except   for  the  download
+section of the website.
 
----++ Stress-testing
-
-    * Obtain a log-file (as =|httpd-stress.log|= in the example below)
-    * Run the web-server (here on localhost, port 3040)
-    * Run the stress-tester using the template below.  The option
-      concurrent(N) determine the number of concurrent clients.
-
-	==
-	swipl -s replay.pl
-	?- debug(replay).
-	?- http_replay('httpd-stress.log',
-		       [host(localhost), port(3040), concurrent(4)]).
-	==
+  ==
+  % swipl -s load.pl
+  ?- server.
+  ==
