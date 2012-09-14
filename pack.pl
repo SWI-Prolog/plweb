@@ -163,11 +163,12 @@ sha1_title(Hash, Title) :-
 %	@tbd	Handle versions with multiple hashes!
 
 urls_for_pack(Pack, Locations) :-
-	setof(SHA1, sha1_pack(SHA1, Pack), Hashes),
+	setof(SHA1, sha1_pack(SHA1, Pack), Hashes), !,
 	map_list_to_pairs(sha1_version, Hashes, Versions),
 	keysort(Versions, Sorted),
 	reverse(Sorted, LastFirst),
 	maplist(pack_download_url, LastFirst, Locations).
+urls_for_pack(_, []).
 
 pack_download_url(Version-Hash, VersionA-URLs) :-
 	prolog_pack:atom_version(VersionA, Version),
