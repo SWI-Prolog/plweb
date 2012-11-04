@@ -10,7 +10,8 @@
 		plweb,
 		wiki_edit,
 		stats,
-		pack
+		pack,
+		register
 	      ],
 	      [ silent(true)
 	      ]).
