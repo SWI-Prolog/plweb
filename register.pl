@@ -51,7 +51,7 @@ reg_body -->
 		   'Such pages are stored as PlDoc wiki text.  Editing requires ',
 		   'you to be familiar with PlDoc. '
 		 ]),
-	       h2(class(wiki), 'The form'),
+	       h2(class(wiki), 'Registration form'),
 	       \form,
 	       h2(class(wiki), 'Privacy'),
 	       p([ 'The information provided is sent to the site maintainer. ',
