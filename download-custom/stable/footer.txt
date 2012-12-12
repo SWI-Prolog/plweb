@@ -1,6 +1,7 @@
 ---++ About the 6.2.x release
 
-SWI-Prolog 6.2.x is based on version 6.1.13 with some addional patches.
+SWI-Prolog 6.2.4 is based on version 6.3.4 with some addional patches.
+The semantic web (RDF) package is held back at version 2.
 
 ---++ Highlights for the 6.x.x release:
 
