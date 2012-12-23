@@ -79,8 +79,9 @@ user:url_path(dmoz,	'http://dmoz.org').
 user:url_path(dmoz_pl,	dmoz('Computers/Programming/Languages/Prolog/Implementations/')).
 user:url_path(ffii,	'http://swpat.ffii.org/index.en.html').
 user:url_path(fsf,	'http://www.fsf.org').
-user:url_path(gpl,	fsf('copyleft/gpl.html')).
-user:url_path(lgpl,	fsf('copyleft/lesser.html')).
+user:url_path(gnu,	'http://www.gnu.org/').
+user:url_path(gpl,	gnu('licences/gpl.html')).
+user:url_path(lgpl,	gnu('licences/lgpl.html')).
 user:url_path(wordnet,	'http://www.cogsci.princeton.edu/~wn/').
 user:url_path(gmp,	'http://gmplib.org/').
 user:url_path(mailman,	'http://www.list.org/').
