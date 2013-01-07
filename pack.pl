@@ -239,7 +239,7 @@ register_pack(SHA1, Pack) :-
 
 register_info(SHA1, Info0) :-
 	sort(Info0, Info),
-	(   sha1_info(SHA1, Info)
+	(   sha1_info(SHA1, _Info)
 	->  true
 	;   assert_sha1_info(SHA1, Info),
 	    forall(member(requires(Token), Info),
