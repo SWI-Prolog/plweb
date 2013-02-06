@@ -36,6 +36,9 @@
 
 :- http_handler(root(update), update, []).
 
+:- meta_predicate
+	collect_messages(0, -).
+
 %%	update(+Request)
 %
 %	HTTP Handler for /update.  Performs  a   GIT  pull  and a Prolog
@@ -93,7 +96,7 @@ make -->
 	message/2.
 
 collect_messages(Goal, Messages) :-
-	asserta((user:message_hook(_Term, Level, Lines) :-
+	asserta((user:thread_message_hook(_Term, Level, Lines) :-
 			assert(message(Level, Lines))), Ref),
 	call_cleanup(Goal, erase(Ref)),
 	findall(Level-Lines, retract(message(Level, Lines)), Messages).

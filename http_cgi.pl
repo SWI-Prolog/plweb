@@ -65,6 +65,9 @@ Run CGI scripts.  This module provides two interfaces:
 :- multifile
 	environment/2.
 
+:- meta_predicate
+	copy_post_data(+, -, 0).
+
 :- http_handler(root('cgi-bin'), http_cgi_handler(cgi_bin),
 		[prefix, spawn([])]).
 
