@@ -11,6 +11,7 @@
 		wiki_edit,
 		stats,
 		pack,
+		pack_info,
 		register
 	      ],
 	      [ silent(true)
@@ -50,6 +51,10 @@ reload_pre_files :-
 :- doc_load_library.
 :- http_set_session_options([enabled(false)]).
 :- send(@pce, catch_error_signals, @off).
+:- thread_create(update_pack_metadata, _,
+		 [ detached(true),
+		   alias(update_pack_metadata)
+		 ]).
 
 %%	show_fd
 %

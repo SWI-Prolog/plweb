@@ -4,3 +4,8 @@ download
 git
 passwd
 .pl-history
+packs.db
+logs
+pl.supp
+pack
+plweb.conf

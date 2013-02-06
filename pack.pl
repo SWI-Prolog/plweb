@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2012, VU University Amsterdam
+    Copyright (C): 2013, VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -27,7 +27,11 @@
     the GNU General Public License.
 */
 
-:- module(pack, []).
+:- module(pack,
+	  [ pack/1,			% ?Pack
+	    pack_version_urls/2,	% +Pack, -VersionUrlPairs
+	    pack_url_hash/2		% +Url, -SHA1
+	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_client)).
@@ -36,9 +40,11 @@
 :- use_module(library(persistency)).
 :- use_module(library(aggregate)).
 :- use_module(library(memfile)).
+:- use_module(pack_info).
 
-:- http_handler(root(pack/query), pack_query, []).
-:- http_handler(root(pack/list),  pack_list, []).
+:- http_handler(root(pack/query),	 pack_query,	    []).
+:- http_handler(root(pack/list),	 pack_list,	    []).
+:- http_handler(root(pack/file_details), pack_file_details, [prefix]).
 
 %%	pack_query(+Request)
 %
@@ -84,7 +90,7 @@ pack_query(install(URL, SHA1, Info), Peer, Reply) :-
 	with_mutex(pack, save_request(URL, SHA1, Info, Peer)),
 	findall(ReplyInfo, install_info(URL, SHA1, ReplyInfo, []), Reply).
 pack_query(locate(Pack), _, Reply) :-
-	urls_for_pack(Pack, Reply).
+	pack_version_urls(Pack, Reply).
 pack_query(search(Word), _, Reply) :-
 	search_packs(Word, Reply).
 
@@ -156,19 +162,19 @@ sha1_title(Hash, Title) :-
 	;   Title = '<no title>'
 	).
 
-%%	urls_for_pack(+Pack, -Locations) is det.
+%%	pack_version_urls(+Pack, -Locations) is det.
 %
 %	@param	Locations is a list Version-URLs, sorted latest version
 %		first.
 %	@tbd	Handle versions with multiple hashes!
 
-urls_for_pack(Pack, Locations) :-
+pack_version_urls(Pack, Locations) :-
 	setof(SHA1, sha1_pack(SHA1, Pack), Hashes), !,
 	map_list_to_pairs(sha1_version, Hashes, Versions),
 	keysort(Versions, Sorted),
 	reverse(Sorted, LastFirst),
 	maplist(pack_download_url, LastFirst, Locations).
-urls_for_pack(_, []).
+pack_version_urls(_, []).
 
 pack_download_url(Version-Hash, VersionA-URLs) :-
 	prolog_pack:atom_version(VersionA, Version),
@@ -279,6 +285,22 @@ register_file(SHA1, File, URL) :-
 	;   assert_sha1_file(SHA1, File)
 	).
 
+%%	pack_url_hash(?URL, ?Hash) is nondet.
+%
+%	True when Hash is the registered hash for URL.
+
+pack_url_hash(URL, Hash) :-
+	sha1_url(Hash, URL).
+
+%%	pack(?Pack) is nondet.
+%
+%	True when Pack is a currently known pack.
+
+pack(Pack) :-
+	findall(Pack, sha1_pack(_,Pack), Packs),
+	sort(Packs, Sorted),
+	member(Pack, Sorted).
+
 
 		 /*******************************
 		 *	     USER API		*
@@ -292,7 +314,8 @@ pack_list(Request) :-
 	http_parameters(Request,
 			[ p(Pack, [optional(true)])
 			]),
-	reply_html_page(title('SWI-Prolog packages'),
+	reply_html_page(wiki,
+			title('SWI-Prolog packages'),
 			[ \pack_listing(Pack)
 			]).
 
@@ -314,8 +337,8 @@ pack_listing(All) -->
 	       \html_requires(css('pack.css')),
 	       table(class(packlist),
 		     [ tr([ th(id(pack),      'Pack'),
-			    th(id(version),   'Version (#older)'),
-			    th(id(downloads), 'Downloads (#latest)'),
+			    th(id(version),   ['Version', br([]), '(#older)']),
+			    th(id(downloads), ['Downloads', br([]), '(#latest)']),
 			    th(id(title),     'Title')
 			  ])
 		     | \pack_rows(Sorted)
@@ -381,7 +404,12 @@ pack_title(SHA1) -->
 
 pack_info(Pack) -->
 	pack_info_table(Pack),
-	pack_file_table(Pack).
+	pack_file_table(Pack),
+	( pack_readme(Pack) -> [] ; [] ),
+	(   pack_file_hierarchy(Pack)
+	->  []
+	;   html(p(class(warning), 'Failed to process pack'))
+	).
 
 %%	pack_info_table(+Pack)// is det.
 %
@@ -530,3 +558,26 @@ version(V)        --> { prolog_pack:atom_version(Atom, V) },
 pack_version_hash(Pack, Hash, Version) :-
 	sha1_pack(Hash, Pack),
 	sha1_version(Hash, Version).
+
+
+%%	pack_file_details(+Request)
+%
+%	HTTP handler to provide details on a file in a pack
+
+pack_file_details(Request) :-
+	memberchk(path_info(SlashPackAndFile), Request),
+	\+ sub_atom(SlashPackAndFile, _, _, _, '/../'), !,
+	http_parameters(Request,
+			[ public_only(Public),
+			  show(Show)
+			],
+			[ attribute_declarations(pldoc_http:param)
+			]),
+	atom_concat(/, PackAndFile, SlashPackAndFile),
+	sub_atom(PackAndFile, B, _, A, /), !,
+	sub_atom(PackAndFile, 0, B, _, Pack),
+	sub_atom(PackAndFile, _, A, 0, File),
+	pack_file_details(Pack, File,
+			  [ public_only(Public),
+			    show(Show)
+			  ]).

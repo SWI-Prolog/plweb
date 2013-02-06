@@ -30,14 +30,21 @@
 :- module(pack_analyzer,
 	  [ pack_analysis/2,			% +Pack, -Results
 	    xref_pack/1,			% +Pack
+	    pack_prolog_entry/1,		% +Entry
 	    xref_pack_file/2,			% +Pack, +File
-	    pack_members/2			% +Pack, -Members
+	    pack_members/2,			% +Pack, -Members
+	    pack_open_entry/3			% +Pack, +Entry, -Stream
 	  ]).
 :- use_module(library(lists)).
 :- use_module(library(apply)).
 :- use_module(library(archive)).
 :- use_module(library(filesex)).
 :- use_module(library(prolog_xref)).
+:- use_module(library(prolog_source)).
+:- use_module(library(option)).
+:- use_module(library(debug)).
+
+:- use_module(pack_info).
 
 /** <module> Analyse the content of a Prolog pack
 
@@ -45,7 +52,7 @@ This module analyses a Prolog pack without loading it.
 */
 
 :- dynamic
-	xref_pack/2.
+	pack_dependency/4.
 
 :- meta_predicate
 	find_unique(?, 0, ?, ?).
@@ -183,12 +190,14 @@ classify_predicate_source(imported(File), Pack, From) :-
 %	Run the cross-referencer on all Prolog files inside pack.
 
 xref_pack(Pack) :-
-	pack_members(Pack, Members),
+	absolute_file_name(Pack, PackPath),
+	retractall(pack_dependency(PackPath, _Spec, _How, _Dep)),
+	pack_members(PackPath, Members),
 	maplist(arg(1), Members, Entries),
-	include(prolog_entry, Entries, PrologEntries),
-	maplist(xref_pack_file(Pack), PrologEntries).
+	include(pack_prolog_entry, Entries, PrologEntries),
+	maplist(xref_pack_file(PackPath), PrologEntries).
 
-prolog_entry(Entry) :-
+pack_prolog_entry(Entry) :-
 	sub_atom(Entry, 0, _, _, 'prolog/'),
 	file_name_extension(_, Ext, Entry),
 	user:prolog_file_type(Ext, prolog), !.
@@ -199,36 +208,14 @@ prolog_entry(Entry) :-
 %	Run the cross-referencer on File inside Pack.
 
 xref_pack_file(Pack, File) :-
-	absolute_file_name(Pack, AbsPack,
-			   [ file_type(directory),
-			     file_errors(fail),
-			     access(read)
-			   ]), !,
-	ensure_slash(AbsPack, Prefix),
-	atom_concat(PlainPack, /, Prefix),
 	directory_file_path(Pack, File, Path),
-	assert_pack(PlainPack, Prefix),
 	xref_source(Path, [register_called(all)]).
 xref_pack_file(Pack, File) :-
 	absolute_file_name(Pack, AbsPack,
 			   [ access(read)
 			   ]),
-	atom_concat(AbsPack, /, Prefix),
 	directory_file_path(AbsPack, File, Path),
-	assert_pack(Pack, Prefix),
 	xref_source(Path, [register_called(all)]).
-
-assert_pack(Pack, Prefix) :-
-	xref_pack(Pack, Prefix), !.
-assert_pack(Pack, Prefix) :-
-	assertz(xref_pack(Pack, Prefix)).
-
-
-ensure_slash(Path, PathSlash) :-
-	(   sub_atom(Path, _, _, 0, /)
-	->  PathSlash = Path
-	;   atom_concat(Path, /, PathSlash)
-	).
 
 
 		 /*******************************
@@ -250,11 +237,13 @@ pack_open_entry(Archive, Entry, Stream) :-
 	archive_open(Archive, Handle, []),
 	archive_next_header(Handle, Name),
 	archive_open_entry(Handle, Stream),
-	format(atom(StreamName), 'pack://~w/~w', [Archive, Entry]),
+	archive_close(Handle),
+	format(atom(StreamName), '~w/~w', [Archive, Entry]),
 	set_stream(Stream, file_name(StreamName)).
 
 :- dynamic
-	ar_prefix_cache/2.
+	ar_prefix_cache/2,
+	ar_members_cache/3.
 
 ar_prefix(Archive, Prefix) :-
 	ar_prefix_cache(Archive, Prefix0), !,
@@ -275,8 +264,16 @@ pack_members(Archive, Members) :-
 	ar_pack_members(Archive, Members0, Prefix),
 	maplist(strip_prefix(Prefix), Members0, Members).
 
+ar_pack_members(Archive, Members, Prefix) :-
+	(   ar_members_cache(Archive, Members0, Prefix0)
+	->  true
+	;   read_ar_pack_members(Archive, Members0, Prefix0)
+	->  asserta(ar_members_cache(Archive, Members0, Prefix0))
+	),
+	Members = Members0,
+	Prefix  = Prefix0.
 
-ar_pack_members(Archive, Members0, Prefix) :-
+read_ar_pack_members(Archive, Members0, Prefix) :-
 	setup_call_cleanup(
 	    archive_open(Archive, Handle, []),
 	    findall(Member, ar_member(Handle, Member), Members0),
@@ -294,9 +291,16 @@ ar_member(Handle, Entry) :-
 	;   !, fail
 	),
 	archive_header_property(Handle, filetype(Type)),
+	make_entry(Type, Handle, File, Entry).
+
+make_entry(file, Handle, File, file(File, Size)) :- !,
+	archive_header_property(Handle, size(Size)).
+make_entry(link, Handle, File, link(File, Target)) :- !,
+	archive_header_property(Handle, link_target(Target)).
+make_entry(Type, _, Name, Entry) :-
 	Type \== directory,
-	archive_header_property(Handle, size(Size)),
-	Entry =.. [Type, File, Size].
+	Entry =.. [Type, Name].
+
 
 strip_prefix(Prefix, Term0, Term) :-
 	Term0 =.. [Type, Name, Size],
@@ -351,30 +355,79 @@ special(..).
 	prolog:xref_source_identifier/2,
 	prolog:xref_source_file/3.
 
+%%	prolog:xref_open_source(+Id, -Stream) is semidet.
+%
+%	If Id refers to a known  Prolog   pack,  open  the pack entry. A
+%	pack-file identifier is the path-name  of   the  archive or pack
+%	direcory, followed by the entry in the pack.
+
 prolog:xref_open_source(File, Stream) :-
-	xref_pack(Pack, Prefix),
+	pack_prefix(Pack, Prefix),
 	atom_concat(Prefix, Entry, File),
 	pack_open_entry(Pack, Entry, Stream).
 
 prolog:xref_source_identifier(Path, Path) :-
 	atom(Path),
-	pack_file(Path).
+	pack_file(Path, _, _).
 
-pack_file(Path) :-
-	xref_pack(Pack, Prefix),
+%%	pack_file(+Path, -Pack, -Entry) is semidet.
+%
+%	True if Path originates from Entry in Pack.
+
+pack_file(Path, Pack, Entry) :-
+	pack_prefix(Pack, Prefix),
 	atom_concat(Prefix, Entry, Path),
-	pack_members(Pack, Members),		% TBD: cache
+	pack_members(Pack, Members),
 	memberchk(file(Entry,_Size), Members).
 
+%%	resolve_pack_file(+Spec, -Source, -SourcePack, -SourceEntry) is	nondet.
+%
+%	True if Spec appearing in OrgPack can  be resolved by file Entry
+%	in ResPack.
+
+resolve_pack_file(library(File), Source, SourcePack, SourceEntry) :-
+	(   atom(File)
+	->  FileName = File
+	;   path_segments_atom(File, FileName)
+	),
+	directory_file_path(prolog, FileName, EntryNoExt),
+	user:prolog_file_type(Ext, prolog),
+	file_name_extension(EntryNoExt, Ext, SourceEntry),
+	pack_file(Source, SourcePack, SourceEntry).
+
+%%	assert_dependency(OrgPack, OrgSpec, How, Src) is det.
+
+assert_dependency(OrgPack, OrgSpec, How, Src) :-
+	pack_dependency(OrgPack, OrgSpec, How, Src), !.
+assert_dependency(OrgPack, OrgSpec, How, Src) :-
+	asserta(pack_dependency(OrgPack, OrgSpec, How, Src)).
+
+%%	prolog:xref_source_file(+Spec, -SourceID, +Options) is semidet.
+
+prolog:xref_source_file(library(File), Source, Options) :-
+	option(relative_to(Origin), Options),
+	pack_file(Origin, OrgPack, _OrigEntry),
+	debug(pack(xref), 'Search for ~q from pack ~q',
+	      [library(File), OrgPack]),
+	findall(t(Src, SrcPack, SrcEntry),
+		resolve_pack_file(library(File), Src, SrcPack, SrcEntry),
+		Triples),
+	(   select(t(Source, OrgPack, _), Triples, Alt)
+	->  true
+	;   select(t(Source, _, _), Triples, Alt),
+	    assert_dependency(OrgPack, library(File), dep, Source)
+	),
+	forall(member(t(AltSrc,_,_), Alt),
+	       assert_dependency(OrgPack, library(File), alt, AltSrc)).
 prolog:xref_source_file(Spec, Source, _Options) :-
 	atom(Spec),
-	(   pack_file(Spec)
+	(   pack_file(Spec, _, _)
 	->  Source = Spec
 	;   user:prolog_file_type(Ext, prolog),
 	    file_name_extension(Spec, Ext, Source),
-	    pack_file(Source)
-	).
-
+	    pack_file(Source, _, _)
+	),
+	debug(pack(xref), 'Resolved ~q to ~q', [Spec, Source]).
 
 %%	xref_pack_source(+Pack, ?Entry, ?Source) is nondet.
 %
@@ -382,5 +435,10 @@ prolog:xref_source_file(Spec, Source, _Options) :-
 
 xref_pack_source(Pack, Entry, Source) :-
 	xref_current_source(Source),
-	xref_pack(Pack, Prefix),
+	pack_prefix(Pack, Prefix),
 	atom_concat(Prefix, Entry, Source).
+
+
+pack_prefix(Archive, Prefix) :-
+	pack_archive(_Pack, _Hash, Archive),
+	atom_concat(Archive, /, Prefix).
