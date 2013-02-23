@@ -29,6 +29,7 @@
 
 :- module(plweb_wiki,
 	  [ wiki_file_to_dom/2,		% +File, -DOM
+	    wiki_file_codes_to_dom/3,	% +Codes, +File, -DOM
 	    file//2,			% +File, +Options
 	    include//3			% +Object, +Type, +Options
 	  ]).
@@ -54,13 +55,23 @@
 
 wiki_file_to_dom(File, DOM) :-
 	read_file_to_codes(File, String, []),
+	wiki_file_codes_to_dom(String, File, DOM).
+
+%%	wiki_codes_to_dom(+Codes, +File, -DOM)
+%
+%	DOM is the HTML dom representation for Codes that originate from
+%	File.
+
+wiki_file_codes_to_dom(String, File, DOM) :-
 	(   nb_current(pldoc_file, OrgFile)
-	->  b_setval(pldoc_file, File),
-	    call_cleanup(wiki_codes_to_dom(String, [], DOM),
-			 b_setval(pldoc_file, OrgFile))
-	;   b_setval(pldoc_file, File),
-	    call_cleanup(wiki_codes_to_dom(String, [], DOM),
-			 nb_delete(pldoc_file))
+	->  setup_call_cleanup(
+		b_setval(pldoc_file, File),
+		wiki_codes_to_dom(String, [], DOM),
+		b_setval(pldoc_file, OrgFile))
+	;   setup_call_cleanup(
+		b_setval(pldoc_file, File),
+		wiki_codes_to_dom(String, [], DOM),
+		nb_delete(pldoc_file))
 	).
 
 
