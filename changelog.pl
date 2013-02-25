@@ -206,6 +206,7 @@ git_repo(Repo) :-
 %	True if Version is a stable version
 
 branch_version(stable, Version) :- !,
-	atomic_list_concat([_Major,Minor,_Patch], '.', Version),
+	atomic_list_concat([_Major,MinorAtom,_Patch], '.', Version),
+	atom_number(MinorAtom, Minor),
 	Minor mod 2 =:= 0.
 branch_version(_, _).
