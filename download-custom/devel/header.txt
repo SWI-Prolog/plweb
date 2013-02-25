@@ -12,3 +12,7 @@ naming conventions this implies that extension DLLs are neither forward
 nor backward compatible. Please check the [[windows release
 nodes][</windows.html>]] (also in the SWI-Prolog startup menu of your
 installed version).
+
+[[WIP.png;width="42",align="left"][</ChangeLog?branch=development>]]
+Examine the [[ChangeLog][</ChangeLog?branch=development>]].
+

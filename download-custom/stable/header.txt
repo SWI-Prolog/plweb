@@ -4,3 +4,6 @@
 often available as a package for your distribution. We collect
 information about available packages and issues for building on specific
 distros [[here][</build/LinuxDistro.txt>]].
+
+[[WIP.png;width="42",align="left"][</ChangeLog?branch=stable>]]
+Examine the [[ChangeLog][</ChangeLog?branch=stable>]].

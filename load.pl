@@ -12,7 +12,8 @@
 		stats,
 		pack,
 		pack_info,
-		register
+		register,
+		changelog
 	      ],
 	      [ silent(true)
 	      ]).

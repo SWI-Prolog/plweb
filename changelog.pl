@@ -37,8 +37,7 @@ changelog(Request) :-
 			  branch(Branch, [optional(true)])
 			]),
 	defaults(VFrom, VTo, Branch),
-	changelog(VFrom-VTo, Codes),
-	wiki_file_codes_to_dom(Codes, -, DOM),
+	changelog_dom(VFrom-VTo, DOM),
 	(   memberchk(h1(_, TitleParts), DOM)
 	->  atomic_list_concat(TitleParts, Title)
 	;   Title = 'SWI-Prolog ChangeLog'
@@ -60,6 +59,33 @@ defaults(VFrom, VTo, Branch) :-
 	branch_versions(Branch, Versions),
 	append(_, [VTo,VFrom|_], Versions), !.
 
+:- dynamic
+	changelog_cache/2,
+	changelog_seen/2.
+
+changelog_dom(Range, DOM) :-
+	changelog_cache(Range, DOM), !,
+	get_time(Now),
+	retractall(changelog_seen(Range, _)),
+	assertz(changelog_seen(Range, Now)).
+changelog_dom(Range, DOM) :-
+	changelog(Range, Codes),
+	wiki_file_codes_to_dom(Codes, -, DOM),
+	assertz(changelog_cache(Range, DOM)),
+	get_time(Now),
+	assertz(changelog_seen(Range, Now)),
+	clean_cached_changelogs.
+
+clean_cached_changelogs :-
+	repeat,
+	predicate_property(changelog_cache(_,_), number_of_clauses(N)),
+	(   N > 5
+	->  retract(changelog_seen(Range, _)),
+	    retractall(changelog_cache(Range, _)),
+	    fail
+	;   !
+	).
+
 changelog(Range, Codes) :-
 	setting(sources, SourceDir0),
 	expand_file_name(SourceDir0, [SourceDir]),
@@ -77,20 +103,26 @@ range_arg(From-To, Versions) :-
 	atomic_list_concat([From, To], '..', Versions).
 range_arg(From, From).
 
+%%	alt_branches(+Current)// is det.
+
 alt_branches(Branch) -->
-	{ setting(branches, Branches)
+	{ setting(branches, Branches),
+	  maplist(arg(1), Branches, Aliases)
 	},
-	html([ b('Branch:')
-	     | \branches(Branches, Branch)
-	     ]).
+	html(b('Branch:')),
+	(   { select(Branch, Aliases, Switch) }
+	->  (   { Switch \== [] }
+	    ->	html([' ', Branch, ' (switch to ' | \branches(Switch)]),
+		html(')')
+	    ;	[]
+	    )
+	;   branches(Aliases)
+	).
 
+branches([]) --> [].
+branches([H|T]) --> branch(H), branches(T).
 
-branches([], _) --> [].
-branches([H|T], Def) --> branch(H, Def), branches(T, Def).
-
-branch(B=_, B) --> !,
-	html([' ', span(B)]).
-branch(B=_, _) -->
+branch(B) -->
 	{ http_link_to_id(changelog, [branch(B)], HREF)
 	},
 	html([' ', a(href(HREF), B)]).
@@ -108,7 +140,7 @@ alt_versions(Branch, VFrom, VTo) -->
 		      b(' to version '),
 		      \select(to, Versions, VTo), ' ',
 		      input([ type(submit),
-			      value('Update ChangeLog')
+			      value('Update')
 			    ])
 		    ])
 	     ]).
@@ -142,7 +174,8 @@ versions(Branch, Versions) :-
 	Now-Retrieved < 600, !.
 versions(Branch, Versions) :-
 	retractall(version_cache(Branch, _, _)),
-	versions_no_cache(Branch, Versions),
+	versions_no_cache(Branch, AllVersions),
+	include(branch_version(Branch), AllVersions, Versions),
 	get_time(Now),
 	assertz(version_cache(Branch, Now, Versions)).
 
@@ -167,3 +200,12 @@ tags_versions([H|T], Versions) :-
 git_repo(Repo) :-
 	setting(sources, SourceDir0),
 	expand_file_name(SourceDir0, [Repo]).
+
+%%	branch_version(+BranchAlias, +Version)
+%
+%	True if Version is a stable version
+
+branch_version(stable, Version) :- !,
+	atomic_list_concat([_Major,Minor,_Patch], '.', Version),
+	Minor mod 2 =:= 0.
+branch_version(_, _).
