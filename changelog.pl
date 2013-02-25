@@ -166,16 +166,16 @@ value(V, _) -->
 branch_versions(Alias, Versions) :-
 	setting(branches, Map),
 	memberchk(Alias=Branch, Map),
-	versions(Branch, Versions).
+	versions(Alias, Branch, Versions).
 
-versions(Branch, Versions) :-
+versions(_, Branch, Versions) :-
 	version_cache(Branch, Retrieved, Versions),
 	get_time(Now),
 	Now-Retrieved < 600, !.
-versions(Branch, Versions) :-
+versions(Alias, Branch, Versions) :-
 	retractall(version_cache(Branch, _, _)),
 	versions_no_cache(Branch, AllVersions),
-	include(branch_version(Branch), AllVersions, Versions),
+	include(branch_version(Alias), AllVersions, Versions),
 	get_time(Now),
 	assertz(version_cache(Branch, Now, Versions)).
 
