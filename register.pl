@@ -63,17 +63,25 @@ reg_body -->
 	     ]).
 
 form -->
-	{ http_location_by_id(submit_registration, Action)
+	{ http_location_by_id(submit_registration, Action),
+	  PlaceHolder = 'Please tell us your plans, so that we can \c
+	  tell you are a genuine human Prolog user'
 	},
 	html(form(action(Action),
 		  table([ tr([ th([align(right)], 'Nick name:'),
-			       td(input([name(login)]))
+			       td(input([name(login),
+					 placeholder('Use this for login')
+					]))
 			     ]),
 			  tr([ th([align(right)], 'Real name:'),
-			       td(input([name(name)]))
+			       td(input([name(name),
+					 placeholder('Displayed with GIT commit')
+					]))
 			     ]),
 			  tr([ th([align(right)], 'Email:'),
-			       td(input([name(email)]))
+			       td(input([name(email),
+					 placeholder('Displayed with GIT commit')
+					]))
 			     ]),
 			  tr([ th([align(right)], 'Password:'),
 			       td(input([name(passwd1), type(password)]))
@@ -83,7 +91,9 @@ form -->
 			     ]),
 			  tr([ th([align(right), valign(top)], 'Comments:'),
 			       td([ class(wiki_text), colspan(2) ],
-				  textarea([ cols(50),rows(10),name(comment) ],
+				  textarea([ cols(50),rows(10),name(comment),
+					     placeholder(PlaceHolder)
+					   ],
 					   ''))
 			     ]),
 			  tr([ td([ colspan(2), align(right) ],
