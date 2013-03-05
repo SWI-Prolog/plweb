@@ -199,8 +199,8 @@ matching_pack(Search, Pack) :-
 	).
 
 pack_search_result(Pack, pack(Pack, p, Title, VersionA, URLs)) :-
-	sha1_title(SHA1, Title),
 	pack_latest_version(Pack, SHA1, Version, _Older),
+	sha1_title(SHA1, Title),
 	prolog_pack:atom_version(VersionA, Version),
 	findall(URL, sha1_url(SHA1, URL), URLs).
 
