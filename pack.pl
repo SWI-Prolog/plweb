@@ -270,7 +270,7 @@ register_url(SHA1, URL) :-
 	(   sha1_url(SHA1, URL)
 	->  true
 	;   sha1_url(SHA2, URL)
-	->  throw(modified_hash(SHA1-URL, SHA2-[URL]))
+	->  throw(pack(modified_hash(SHA1-URL, SHA2-[URL])))
 	;   file_base_name(URL, File),
 	    register_file(SHA1, File, URL),
 	    assert_sha1_url(SHA1, URL)
@@ -281,7 +281,7 @@ register_file(SHA1, File, URL) :-
 	->  true
 	;   sha1_file(SHA2, File),
 	    sha1_urls(SHA2, URLs)
-	->  throw(modified_hash(SHA1-URL, SHA2-URLs))
+	->  throw(pack(modified_hash(SHA1-URL, SHA2-URLs)))
 	;   assert_sha1_file(SHA1, File)
 	).
 
