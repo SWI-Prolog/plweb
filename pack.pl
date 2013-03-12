@@ -71,7 +71,7 @@ pack_query(Request) :-
 	->  format('Content-type: text/x-prolog; charset=UTF8~n~n'),
 	    (   var(E)
 	    ->	format('~q.~n', [true(Reply)])
-	    ;	format('~w.~n', [exception(E)])
+	    ;	format('~q.~n', [exception(E)])
 	    )
 	;   format('Content-type: text/x-prolog; charset=UTF8~n~n'),
 	    format('false.~n')
