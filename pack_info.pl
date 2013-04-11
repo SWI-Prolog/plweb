@@ -29,6 +29,7 @@
 
 :- module(pack_info,
 	  [ update_pack_metadata/0,
+	    update_pack_metadata_in_background/0,
 	    pack_file_hierarchy//1,		% +Pack
 	    pack_readme//1,			% +Pack
 	    pack_file_details/3,		% +Pack, +File, +Options
@@ -62,9 +63,12 @@
 	pack_file/4,			% ?Pack, ?File, ?Info, ?XrefID
 	xreffed_pack/2.
 
-%%	update_pack_metadata
+%%	update_pack_metadata is det.
+%%	update_pack_metadata_in_background is det.
 %
-%	Destroy and recompute all pack meta-data
+%	Destroy     and     recompute     all       pack      meta-data.
+%	update_pack_metadata_in_background/0 runs update_pack_metadata/0
+%	in a detached thread.
 
 update_pack_metadata :-
 	clean_pack_metadata,
@@ -80,6 +84,12 @@ clean_pack_metadata :-
 	       )),
 	retractall(xreffed_pack(_,_)).
 
+
+update_pack_metadata_in_background :-
+	thread_create(update_pack_metadata, _,
+		      [ detached(true),
+			alias(update_pack_metadata)
+		      ]).
 
 %%	mirror_packs
 %

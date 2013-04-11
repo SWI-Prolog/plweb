@@ -6,12 +6,12 @@
 :- load_files([ library(pldoc/doc_library),
 		library(thread_pool),
 		library(http/http_session),
+		library(http/http_unix_daemon),
 		library(prolog_source),
 		plweb,
 		wiki_edit,
 		stats,
 		pack,
-		pack_info,
 		register,
 		changelog
 	      ],
@@ -52,10 +52,6 @@ reload_pre_files :-
 :- doc_load_library.
 :- http_set_session_options([enabled(false)]).
 :- send(@pce, catch_error_signals, @off).
-:- thread_create(update_pack_metadata, _,
-		 [ detached(true),
-		   alias(update_pack_metadata)
-		 ]).
 
 %%	show_fd
 %

@@ -28,7 +28,8 @@
 */
 
 :- module(plweb,
-	  [ server/0
+	  [ server/0,
+	    server/1
 	  ]).
 
 :- use_module(library(pldoc)).
@@ -64,6 +65,7 @@
 :- use_module(autocomplete).
 :- use_module(customise).
 :- use_module(tests).
+:- use_module(pack_info).
 
 :- http_handler(root(.), serve_page(document_root),
 		[prefix, priority(10), spawn(wiki)]).
@@ -94,8 +96,15 @@ server(Options) :-
 		      [ port(Port),
 			workers(Workers)
 		      ], HTTPOptions),
-	http_server(http_dispatch, HTTPOptions).
+	http_server(http_dispatch, HTTPOptions),
+	update_pack_metadata_in_background.
 
+
+:- multifile
+	http_unix_daemon:http_server_hook/1.
+
+http_unix_daemon:http_server_hook(Options) :-
+	server(Options).
 
 %%	favicon(+Request)
 %
