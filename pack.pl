@@ -29,8 +29,10 @@
 
 :- module(pack,
 	  [ pack/1,			% ?Pack
+	    pack_version_hashes/2,	% +Pack, -VersionHashesPairs
 	    pack_version_urls/3,	% +Pack, ?Type, -VersionUrlPairs
-	    pack_url_hash/2		% +Url, -SHA1
+	    hash_git_url/2,		% +Hash, -URL
+	    pack_url_hash/2		% +URL, -SHA1
 	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
@@ -182,6 +184,22 @@ sha1_title(Hash, Title) :-
 	;   Title = '<no title>'
 	).
 
+%%	pack_version_hashes(+Pack, -VersionHashesPairs) is semidet.
+%
+%	True when HashesByVersion is  an   ordered  list Version-Hashes,
+%	latest version first.
+
+pack_version_hashes(Pack, VersionAHashesPairs) :-
+	setof(SHA1, sha1_pack(SHA1, Pack), Hashes),
+	map_list_to_pairs(sha1_version, Hashes, VersionHashPairs),
+	keysort(VersionHashPairs, Sorted),
+	group_pairs_by_key(Sorted, VersionHashesPairs),
+	reverse(VersionHashesPairs, RevPairs),
+	maplist(atomic_version_hashes, RevPairs, VersionAHashesPairs).
+
+atomic_version_hashes(Version-Hashes, VersionA-Hashes) :-
+	prolog_pack:atom_version(VersionA, Version).
+
 %%	pack_version_urls(+Pack, ?Type, -Locations) is nondet.
 %
 %	True when Locations is a set of Version-list(URL) pairs used for
@@ -323,6 +341,16 @@ register_file(SHA1, File, URL) :-
 	->  throw(pack(modified_hash(SHA1-URL, SHA2-URLs)))
 	;   assert_sha1_file(SHA1, File)
 	).
+
+%%	hash_git_url(+SHA1, -GitURL) is semidet.
+%
+%	True when SHA1 was installed using GIT from GitURL.
+
+hash_git_url(SHA1, GitURL) :-
+	sha1_info(SHA1, Info),
+	memberchk(git(true), Info), !,
+	sha1_url(SHA1, GitURL).
+
 
 %%	pack_url_hash(?URL, ?Hash) is nondet.
 %

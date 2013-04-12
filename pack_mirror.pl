@@ -56,30 +56,38 @@ pack_mirror_dir('pack/mirror').
 %	SHA1 hash of the pack archive.  If   the  hash of the downloaded
 %	file does not match, the download file is deleted.
 
-pack_mirror(Pack, MirrorDir, Hash) :-
-	pack_version_urls(Pack, git, [_Latest-URLs|_Older]),
+pack_mirror(Pack, Mirror, Hash) :-
+	pack_version_hashes(Pack, [_Latest-Hashes|_Older]),
+	pack_mirror(Pack, Hashes, Mirror, Hash).
+
+pack_mirror(Pack, Hashes, MirrorDir, Hash) :-
+	setof(GitURL, hashes_git_url(Hashes, GitURL), GitURLs),
 	pack_git_mirror(Pack, MirrorDir),
 	GitOptions = [directory(MirrorDir)],
 	(   exists_directory(MirrorDir)
-	->  (   member(URL, URLs),
+	->  (   Hashes = [Hash],
+		git_hash(Hash, GitOptions)
+	    ->	true
+	    ;	member(URL, GitURLs),
 	        git_remote_url(origin, URL, GitOptions),
 		catch(git([pull], GitOptions), E,
 		      ( print_message(warning, E), fail))
+	    ->	git_hash(Hash, GitOptions)
 	    ;	print_message(warning, pack_mirror(Pack)), % TBD
 		fail
 	    )
-	;   member(URL, URLs),
+	;   member(URL, GitURLs),
 	    catch(git([clone, URL, MirrorDir], []), E,
 		  ( print_message(warning, E), fail))
-	), !,
-	git_hash(Hash, GitOptions).
-pack_mirror(Pack, File, Hash) :-
-	pack_version_urls(Pack, archive, [_Latest-URLs|_Older]),
-	member(URL, URLs),
+	->  git_hash(Hash, GitOptions)
+	), !.
+pack_mirror(_Pack, Hashes, File, Hash) :-
+	member(Hash, Hashes),
 	pack_url_hash(URL, Hash),
 	hash_file(Hash, File),
 	(   exists_file(File)
-	;   debug(pack(mirror), 'Downloading ~q into ~q', [URL, File]),
+	;   pack_url_hash(URL, Hash),
+	    debug(pack(mirror), 'Downloading ~q into ~q', [URL, File]),
 	    catch(setup_call_cleanup(
 		      http_open(URL, In,
 				[ cert_verify_hook(ssl_verify)
@@ -102,6 +110,10 @@ pack_mirror(Pack, File, Hash) :-
 		fail
 	    )
 	), !.
+
+hashes_git_url(Hashes, URL) :-
+	member(Hash, Hashes),
+	hash_git_url(Hash, URL).
 
 :- public ssl_verify/5.
 
