@@ -30,7 +30,7 @@
 :- module(pack,
 	  [ pack/1,			% ?Pack
 	    pack_version_hashes/2,	% +Pack, -VersionHashesPairs
-	    pack_version_urls/3,	% +Pack, ?Type, -VersionUrlPairs
+	    pack_version_urls/2,	% +Pack, -VersionUrlPairs
 	    hash_git_url/2,		% +Hash, -URL
 	    pack_url_hash/2		% +URL, -SHA1
 	  ]).
@@ -99,9 +99,6 @@ peer_to_atom(ip(A,B,C,D), Atom) :-
 %	  * locate(+Pack)
 %	  Query download locations for Pack.  Same as
 %	  locate(archive, Pack).
-%	  * locate(?Type, +Pack)
-%	  Query download locations for Pack by Type.  Type is one of
-%	  =git= or =archive=
 %	  * search(+Keyword)
 %	  Find packs that match Keyword.
 
@@ -109,10 +106,7 @@ pack_query(install(URL, SHA1, Info), Peer, Reply) :-
 	with_mutex(pack, save_request(URL, SHA1, Info, Peer)),
 	findall(ReplyInfo, install_info(URL, SHA1, ReplyInfo, []), Reply).
 pack_query(locate(Pack), _, Reply) :-
-	pack_version_urls(Pack, archive, Reply).
-pack_query(locate(Type, Pack), _, Reply) :-
-	pack_version_urls(Pack, Type, Locations),
-	Reply =.. [Type, Locations].
+	pack_version_urls(Pack, Reply).
 pack_query(search(Word), _, Reply) :-
 	search_packs(Word, Reply).
 
@@ -200,42 +194,23 @@ pack_version_hashes(Pack, VersionAHashesPairs) :-
 atomic_version_hashes(Version-Hashes, VersionA-Hashes) :-
 	prolog_pack:atom_version(VersionA, Version).
 
-%%	pack_version_urls(+Pack, ?Type, -Locations) is nondet.
+%%	pack_version_urls(+Pack, -Locations) is nondet.
 %
 %	True when Locations is a set of Version-list(URL) pairs used for
-%	installing Pack. Type is one  of   =archive=  for  installs from
-%	archive files or =git= for installs from git repositories. Fails
-%	if there is no location (of the given type).  May backtrack over
-%	the different types.
+%	installing Pack.
 %
 %	@param	Locations is a list Version-URLs, sorted latest version
 %		first.
-%	@param	Type is one of =archive= or =git=
 %	@tbd	Handle versions with multiple hashes!
 
-pack_version_urls(Pack, Type, Locations) :-
-	download_type(Type),
-	setof(SHA1, sha1_pack(SHA1, Pack), Hashes),
-	include(url_type(Type), Hashes, TypedHashes),
-	TypedHashes \== [],
-	map_list_to_pairs(sha1_version, TypedHashes, Versions),
-	keysort(Versions, Sorted),
-	reverse(Sorted, LastFirst),
-	maplist(pack_download_url, LastFirst, Locations).
+pack_version_urls(Pack, VersionURLs) :-
+	pack_version_hashes(Pack, VersionHashes),
+	maplist(version_hashes_urls, VersionHashes, VersionURLs).
 
-download_type(archive).
-download_type(git).
+version_hashes_urls(Version-Hashes, Version-URLs) :-
+	maplist(sha1_url, Hashes, URLs0),
+	sort(URLs0, URLs).
 
-url_type(git, SHA1) :-
-	sha1_info(SHA1, Info),
-	memberchk(git(true), Info), !.
-url_type(archive, SHA1) :-
-	sha1_info(SHA1, Info),
-	\+ memberchk(git(true), Info), !.
-
-pack_download_url(Version-Hash, VersionA-URLs) :-
-	prolog_pack:atom_version(VersionA, Version),
-	setof(URL, sha1_url(Hash, URL), URLs).
 
 %%	search_packs(+Search, -Packs) is det.
 %
@@ -469,6 +444,10 @@ pack_title(SHA1) -->
 %	@tbd	provide many more details
 %	@tbd	Show dependency for requirements/provides
 
+pack_info(Pack) -->
+	{ \+ pack(Pack) }, !,
+	html(p(class(warning),
+	       'Sorry, I know nothing about a pack named "~w"'-[Pack])).
 pack_info(Pack) -->
 	pack_info_table(Pack),
 	pack_file_table(Pack),
