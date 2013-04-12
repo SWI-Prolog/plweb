@@ -86,11 +86,31 @@ peer(Request, PeerAtom) :-
 peer_to_atom(ip(A,B,C,D), Atom) :-
 	atomic_list_concat([A,B,C,D], '.', Atom).
 
+%%	pack_query(+Query, +Peer, -Reply)
+%
+%	Implements  the  various  queries    from   the  pack_install/1.
+%	Currently defined Query values are:
+%
+%	  * install(+URL, +SHA1, +Info)
+%	  User tries to install from URL an object with the indicated
+%	  hash and Info.
+%	  * locate(+Pack)
+%	  Query download locations for Pack.  Same as
+%	  locate(archive, Pack).
+%	  * locate(?Type, +Pack)
+%	  Query download locations for Pack by Type.  Type is one of
+%	  =git= or =archive=
+%	  * search(+Keyword)
+%	  Find packs that match Keyword.
+
 pack_query(install(URL, SHA1, Info), Peer, Reply) :-
 	with_mutex(pack, save_request(URL, SHA1, Info, Peer)),
 	findall(ReplyInfo, install_info(URL, SHA1, ReplyInfo, []), Reply).
 pack_query(locate(Pack), _, Reply) :-
-	pack_version_urls(Pack, Reply).
+	pack_version_urls(Pack, archive, Reply).
+pack_query(locate(Type, Pack), _, Reply) :-
+	pack_version_urls(Pack, Type, Locations),
+	Reply =.. [Type, Locations].
 pack_query(search(Word), _, Reply) :-
 	search_packs(Word, Reply).
 
