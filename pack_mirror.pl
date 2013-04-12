@@ -32,6 +32,7 @@
 	  ]).
 :- use_module(pack).
 :- use_module(library(sha)).
+:- use_module(library(git)).
 :- use_module(library(http/http_open)).
 :- use_module(library(http/http_ssl_plugin)).
 :- use_module(library(filesex)).
@@ -55,8 +56,25 @@ pack_mirror_dir('pack/mirror').
 %	SHA1 hash of the pack archive.  If   the  hash of the downloaded
 %	file does not match, the download file is deleted.
 
+pack_mirror(Pack, MirrorDir, Hash) :-
+	pack_version_urls(Pack, git, [_Latest-URLs|_Older]),
+	pack_git_mirror(Pack, MirrorDir),
+	GitOptions = [directory(MirrorDir)],
+	(   exists_directory(MirrorDir)
+	->  (   member(URL, URLs),
+	        git_remote_url(origin, URL, GitOptions),
+		catch(git([pull], GitOptions), E,
+		      ( print_message(warning, E), fail))
+	    ;	print_message(warning, pack_mirror(Pack)), % TBD
+		fail
+	    )
+	;   member(URL, URLs),
+	    catch(git([clone, URL, MirrorDir], []), E,
+		  ( print_message(warning, E), fail))
+	), !,
+	git_hash(Hash, GitOptions).
 pack_mirror(Pack, File, Hash) :-
-	pack_version_urls(Pack, [_Latest-URLs|_Older]),
+	pack_version_urls(Pack, archive, [_Latest-URLs|_Older]),
 	member(URL, URLs),
 	pack_url_hash(URL, Hash),
 	hash_file(Hash, File),
@@ -108,6 +126,16 @@ hash_file(Hash, File) :-
 	atomic_list_concat([Root, Dir0, Dir1], /, Dir),
 	make_directory_path(Dir),
 	directory_file_path(Dir, Hash, File).
+
+%%	pack_git_mirror(+Pack, -GitDir)
+%
+%	True when MirrorDir is the directory in which we mirror Pack.
+
+pack_git_mirror(Pack, GitDir) :-
+	pack_mirror_dir(Root),
+	directory_file_path(Root, 'GIT', GitRoot),
+	make_directory_path(GitRoot),
+	directory_file_path(GitRoot, Pack, GitDir).
 
 
 		 /*******************************

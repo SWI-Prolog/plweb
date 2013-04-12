@@ -29,7 +29,7 @@
 
 :- module(pack,
 	  [ pack/1,			% ?Pack
-	    pack_version_urls/2,	% +Pack, -VersionUrlPairs
+	    pack_version_urls/3,	% +Pack, ?Type, -VersionUrlPairs
 	    pack_url_hash/2		% +Url, -SHA1
 	  ]).
 :- use_module(library(http/http_dispatch)).
@@ -182,23 +182,42 @@ sha1_title(Hash, Title) :-
 	;   Title = '<no title>'
 	).
 
-%%	pack_version_urls(+Pack, -Locations) is det.
+%%	pack_version_urls(+Pack, ?Type, -Locations) is nondet.
+%
+%	True when Locations is a set of Version-list(URL) pairs used for
+%	installing Pack. Type is one  of   =archive=  for  installs from
+%	archive files or =git= for installs from git repositories. Fails
+%	if there is no location (of the given type).  May backtrack over
+%	the different types.
 %
 %	@param	Locations is a list Version-URLs, sorted latest version
 %		first.
+%	@param	Type is one of =archive= or =git=
 %	@tbd	Handle versions with multiple hashes!
 
-pack_version_urls(Pack, Locations) :-
-	setof(SHA1, sha1_pack(SHA1, Pack), Hashes), !,
-	map_list_to_pairs(sha1_version, Hashes, Versions),
+pack_version_urls(Pack, Type, Locations) :-
+	download_type(Type),
+	setof(SHA1, sha1_pack(SHA1, Pack), Hashes),
+	include(url_type(Type), Hashes, TypedHashes),
+	TypedHashes \== [],
+	map_list_to_pairs(sha1_version, TypedHashes, Versions),
 	keysort(Versions, Sorted),
 	reverse(Sorted, LastFirst),
 	maplist(pack_download_url, LastFirst, Locations).
-pack_version_urls(_, []).
+
+download_type(archive).
+download_type(git).
+
+url_type(git, SHA1) :-
+	sha1_info(SHA1, Info),
+	memberchk(git(true), Info), !.
+url_type(archive, SHA1) :-
+	sha1_info(SHA1, Info),
+	\+ memberchk(git(true), Info), !.
 
 pack_download_url(Version-Hash, VersionA-URLs) :-
 	prolog_pack:atom_version(VersionA, Version),
-	findall(URL, sha1_url(Hash, URL), URLs).
+	setof(URL, sha1_url(Hash, URL), URLs).
 
 %%	search_packs(+Search, -Packs) is det.
 %
