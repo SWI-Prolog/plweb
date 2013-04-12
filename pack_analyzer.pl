@@ -43,6 +43,7 @@
 :- use_module(library(prolog_source)).
 :- use_module(library(option)).
 :- use_module(library(debug)).
+:- use_module(library(git)).
 
 :- use_module(pack_info).
 
@@ -208,6 +209,7 @@ pack_prolog_entry(Entry) :-
 %	Run the cross-referencer on File inside Pack.
 
 xref_pack_file(Pack, File) :-
+	exists_directory(Pack), !,
 	directory_file_path(Pack, File, Path),
 	xref_source(Path, [register_called(all)]).
 xref_pack_file(Pack, File) :-
@@ -254,8 +256,15 @@ ar_prefix(Archive, Prefix) :-
 
 %%	pack_members(+Pack, -Members:list) is det.
 %
-%	Members is a list of file(File,Size)
+%	Members is a list of file(File,Size) that represent the files in
+%	Pack. Pack is either a git repository, a directory holding files
+%	or an archive.
 
+pack_members(Directory, Members) :-
+	is_git_directory(Directory), !,
+	git_ls_tree(Entries, [directory(Directory)]),
+	include(git_blob, Entries, Blobs),
+	maplist(git_entry, Blobs, Members).
 pack_members(Directory, Members) :-
 	exists_directory(Directory), !,
 	recursive_directory_files(Directory, Files),
@@ -263,6 +272,9 @@ pack_members(Directory, Members) :-
 pack_members(Archive, Members) :-
 	ar_pack_members(Archive, Members0, Prefix),
 	maplist(strip_prefix(Prefix), Members0, Members).
+
+git_blob(object(_Mode, blob, _Hash, _Size, _Name)).
+git_entry(object(_Mode, blob, _Hash, Size, Name), file(Name, Size)).
 
 ar_pack_members(Archive, Members, Prefix) :-
 	(   ar_members_cache(Archive, Members0, Prefix0)
@@ -338,7 +350,7 @@ dir_files([H|T], Dir, Prefix, Files, Rest) :-
 
 dir_prefix(., '') :- !.
 dir_prefix(Dir, Prefix) :-
-	(   sub_atom(Dir, _, _, _, /)
+	(   sub_atom(Dir, _, _, 0, /)
 	->  Prefix = Dir
 	;   atom_concat(Dir, /, Prefix)
 	).
@@ -359,7 +371,7 @@ special(..).
 %
 %	If Id refers to a known  Prolog   pack,  open  the pack entry. A
 %	pack-file identifier is the path-name  of   the  archive or pack
-%	direcory, followed by the entry in the pack.
+%	directory, followed by the entry in the pack.
 
 prolog:xref_open_source(File, Stream) :-
 	pack_prefix(Pack, Prefix),
