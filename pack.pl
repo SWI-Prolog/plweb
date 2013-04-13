@@ -259,15 +259,22 @@ pack_search_result(Pack, pack(Pack, p, Title, VersionA, URLs)) :-
 %	if the request is new, which means   the  same SHA1 has not been
 %	downloaded from the same Peer.
 
-save_request(URL, SHA1, _Info, Peer) :-
+save_request(URL, SHA1, Info, Peer) :-
 	sha1_download(SHA1, Peer), !,		% already downloaded from here
-	register_url(SHA1, URL).		% but maybe from a different URL
+	info_is_git(Info, IsGIT),
+	register_url(SHA1, IsGIT, URL).		% but maybe from a different URL
 save_request(URL, SHA1, Info, Peer) :-
 	memberchk(name(Pack), Info),
-	register_url(SHA1, URL),
+	info_is_git(Info, IsGIT),
+	register_url(SHA1, IsGIT, URL),
 	register_pack(SHA1, Pack),
 	register_info(SHA1, Info),
 	assert_sha1_download(SHA1, Peer).
+
+info_is_git(Info, IsGIT) :-
+	memberchk(git(IsGIT), Info), !.
+info_is_git(_, false).
+
 
 register_pack(SHA1, Pack) :-
 	(   sha1_pack(SHA1, Pack)
@@ -298,11 +305,16 @@ register_provides(SHA1, Token) :-
 	;   assert_sha1_provides(SHA1, Token)
 	).
 
-register_url(SHA1, URL) :-
+register_url(SHA1, IsGIT, URL) :-
 	(   sha1_url(SHA1, URL)
 	->  true
-	;   sha1_url(SHA2, URL)
+	;   sha1_url(SHA2, URL),
+	    \+ ( IsGIT == true,
+		 hash_git_url(SHA2, URL)
+	       )
 	->  throw(pack(modified_hash(SHA1-URL, SHA2-[URL])))
+	;   IsGIT == true
+	->  assert_sha1_url(SHA1, URL)
 	;   file_base_name(URL, File),
 	    register_file(SHA1, File, URL),
 	    assert_sha1_url(SHA1, URL)

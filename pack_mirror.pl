@@ -68,6 +68,9 @@ pack_mirror(Pack, Hashes, MirrorDir, Hash) :-
 	->  (   Hashes = [Hash],
 		git_hash(Hash, GitOptions)
 	    ->	true
+	    ;	forall(member(Hash, Hashes),
+		       git_has_commit(MirrorDir, Hash))
+	    ->	git_hash(Hash, GitOptions)
 	    ;	member(URL, GitURLs),
 	        git_remote_url(origin, URL, GitOptions),
 		catch(git([pull], GitOptions), E,
@@ -114,6 +117,25 @@ pack_mirror(_Pack, Hashes, File, Hash) :-
 hashes_git_url(Hashes, URL) :-
 	member(Hash, Hashes),
 	hash_git_url(Hash, URL).
+
+%%	git_has_commit(+Repo, +Commit)
+%
+%	True if Repo contains Commit.  Cashed,   which  is  safe because
+%	objects to not vanish in GIT.
+
+:- dynamic
+	git_commit_in_repo/2.
+
+git_has_commit(Repo, Commit) :-
+	git_commit_in_repo(Commit, Repo), !.
+git_has_commit(Repo, Commit) :-
+	catch(git_branches(_,
+			   [ commit(Commit),
+			     error(_),
+			     directory(Repo)
+			   ]), _, fail),
+	assertz(git_commit_in_repo(Commit, Repo)).
+
 
 :- public ssl_verify/5.
 
