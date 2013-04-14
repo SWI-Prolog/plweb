@@ -141,6 +141,7 @@ user:file_search_path(document_root, plweb(www)).
 user:file_search_path(plgit,	     plweb(git)).
 user:file_search_path(icons,	     document_root(icons)).
 user:file_search_path(css,	     document_root(css)).
+user:file_search_path(js,	     document_root(js)).
 user:file_search_path(yui,	     document_root('yui/2.7.0')).
 user:file_search_path(cgi_bin,	     plweb('git-web')).
 user:file_search_path(download,	     plweb(download)).
