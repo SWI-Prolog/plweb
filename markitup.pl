@@ -34,6 +34,7 @@
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
+:- use_module(library(option)).
 :- use_module(markdown).
 
 :- http_handler(root('markitup/preview/markdown'), preview_markdown, []).
@@ -48,22 +49,38 @@
 			      js('markitup/sets/markdown/style.css')
 			    ])
 		 ]).
+:- html_resource(markdown,
+		 [ virtual(true),
+		   requires([ js('markitup/sets/markdown/set.js')
+			    ])
+		 ]).
+
+%%	markitup(Options)// is det.
+%
+%	Insert a =textarea= with markItUp support.
 
 markitup(Options) -->
-	{ option(id(Id), Options, pldoc),
+	{ option(markup(Language), Options, markdown),
+	  option(id(Id), Options, markdown),
 	  option(cols(Cols), Options, 80),
 	  option(rows(Rows), Options, 20),
 	  option(value(Content), Options, [])
 	},
-	html_requires(js('markitup/sets/markdown/set.js')),
+	html_requires(Language),
 	html([ textarea([id(Id), cols(Cols), rows(Rows)], Content),
 	       script(type('text/javascript'),
 		      \[ '$(document).ready(function(){\n',
-			 '$("#',Id,'").markItUp(mySettings);\n',
+			 '$("#',Id,'").markItUp(',Language,'_settings);\n',
 			 '});\n'
 		       ])
 	     ]).
 
+
+%%	preview_markdown(+Request)
+%
+%	Handle preview requests from markItUp.  The data is send using
+%	a POST request, where the =data= field contains the content of
+%	the textarea.
 
 preview_markdown(Request) :-
 	http_parameters(Request,
