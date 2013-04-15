@@ -53,6 +53,8 @@ user:body(wiki, Body) --> !,
 		    div(class(content), Body),
 		    div(class(footer), \server_address)
 		  ])).
+user:body(plain, Body) --> !,
+	html(body(class([wiki]), Body)).
 user:body(_, Body) -->
 	html(body(class('yui-skin-sam'),
 		  [ \html_requires(plweb),
