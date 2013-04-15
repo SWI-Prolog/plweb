@@ -36,8 +36,10 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(option)).
 :- use_module(markdown).
+:- use_module(wiki).
 
 :- http_handler(root('markitup/preview/markdown'), preview_markdown, []).
+:- http_handler(root('markitup/preview/pldoc'),    preview_pldoc,    []).
 
 :- html_resource(js('markitup/jquery.markitup.js'),
 		 [ requires([ jquery
@@ -52,6 +54,17 @@
 :- html_resource(markdown,
 		 [ virtual(true),
 		   requires([ js('markitup/sets/markdown/set.js')
+			    ])
+		 ]).
+:- html_resource(js('markitup/sets/pldoc/set.js'),
+		 [ requires([ js('markitup/jquery.markitup.js'),
+			      js('markitup/skins/markitup/style.css'),
+			      js('markitup/sets/pldoc/style.css')
+			    ])
+		 ]).
+:- html_resource(pldoc,
+		 [ virtual(true),
+		   requires([ js('markitup/sets/pldoc/set.js')
 			    ])
 		 ]).
 
@@ -92,6 +105,28 @@ preview_markdown(Request) :-
 	phrase(html(DOM), Tokens),
 	format('Content-type: text/html; charset=UTF-8\n\n'),
 	print_html(Tokens).
+
+%%	preview_pldoc(+Request)
+%
+%	Handle preview requests from markItUp.  The data is send using
+%	a POST request, where the =data= field contains the content of
+%	the textarea.
+
+preview_pldoc(Request) :-
+	http_parameters(Request,
+			[ data(Data, [])
+			]),
+	debug(markitup(preview), 'Preview:~n~w~n', [Data]),
+	atom_codes(Data, Codes),
+	wiki_file_codes_to_dom(Codes, '/', DOM), % FIXME: What file to pass?
+	phrase(page(plain, [], [\html_requires(pldoc)|DOM]), Tokens),
+	format('Content-type: text/html; charset=UTF-8\n\n'),
+	print_html(Tokens).
+
+
+		 /*******************************
+		 *	       UTIL		*
+		 *******************************/
 
 open_atom_stream(Atom, Stream) :-
 	atom_to_memory_file(Atom, MF),
