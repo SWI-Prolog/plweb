@@ -41,6 +41,11 @@
 :- http_handler(root('markitup/preview/markdown'), preview_markdown, []).
 :- http_handler(root('markitup/preview/pldoc'),    preview_pldoc,    []).
 
+:- html_resource(jquery,
+		 [ virtual(true),
+		   requires([ jq('jquery.js')
+			    ])
+		 ]).
 :- html_resource(js('markitup/jquery.markitup.js'),
 		 [ requires([ jquery
 			    ])
@@ -108,7 +113,7 @@ preview(_) -->
 
 preview_markdown(Request) :-
 	http_parameters(Request,
-			[ data(Data, [])
+			[ data(Data, [optional(true), default('')])
 			]),
 	debug(markitup(preview), 'Preview:~n~w~n', [Data]),
 	open_atom_stream(Data, In),
@@ -125,7 +130,7 @@ preview_markdown(Request) :-
 
 preview_pldoc(Request) :-
 	http_parameters(Request,
-			[ data(Data, [])
+			[ data(Data, [optional(true), default('')])
 			]),
 	debug(markitup(preview), 'Preview:~n~w~n', [Data]),
 	atom_codes(Data, Codes),
