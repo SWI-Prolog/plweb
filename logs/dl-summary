@@ -1,4 +1,4 @@
-#!/home/janw/bin/swipl -q -g true -t main -s
+#!/usr/local/bin/swipl -q -g true -t main -s
 
 :- use_module(logstat).
 :- use_module(plstat).
