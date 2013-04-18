@@ -83,11 +83,21 @@ markitup(Options) -->
 	html_requires(Language),
 	html([ textarea([id(Id), name(Name), cols(Cols), rows(Rows)], Content),
 	       script(type('text/javascript'),
-		      \[ '$(document).ready(function(){\n',
-			 '$("#',Id,'").markItUp(',Language,'_settings);\n',
-			 '});\n'
-		       ])
+		      [ \[ '$(document).ready(function(){\n',
+			   '$("#',Id,'").markItUp(',Language,'_settings);\n'
+			 ],
+			\preview(Options),
+			\[ '});\n'
+			 ]
+		      ])
 	     ]).
+
+preview(Options) -->
+	{ option(preview(true), Options, false) },
+	html(\['  $(\'a[title="Preview"]\').trigger(\'mouseup\');\n']).
+preview(_) -->
+	[].
+
 
 
 %%	preview_markdown(+Request)
