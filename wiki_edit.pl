@@ -37,6 +37,7 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_authenticate)).
+:- use_module(library(http/http_path)).
 :- use_module(library(git)).
 :- use_module(git_html).
 :- use_module(markitup).
@@ -46,8 +47,9 @@
 
 */
 
-:- http_handler(root(wiki_edit), wiki_edit, []).
-:- http_handler(root(wiki_save), wiki_save, []).
+:- http_handler(root(wiki_edit),    wiki_edit, []).
+:- http_handler(root(wiki_save),    wiki_save, []).
+:- http_handler(root(wiki/sandbox), wiki_sandbox, []).
 
 %%	edit_button(+Location)//
 %
@@ -300,3 +302,32 @@ allowed_file(File) :-
 
 hidden(Name, Value) -->
 	html(input([type(hidden), name(Name), value(Value)])).
+
+
+%%	wiki_sandbox(+Request)
+%
+%	HTTP handler that displays a Wiki sandbox
+
+wiki_sandbox(_Request) :-
+	reply_html_page(wiki,
+			title('PlDoc wiki sandbox'),
+			[ \sandbox
+			]).
+
+sandbox -->
+	{ http_absolute_location(root('pldoc/package/pldoc.html'), PlDoc, [])
+	},
+	html([ h1('PlDoc wiki sandbox'),
+	       p([ 'This page provides a sandbox for the ',
+		   a(href(PlDoc), 'PlDoc'),
+		   ' wiki format.  The preview window is updated every ',
+		   'time you hit the RETURN or TAB key.'
+		 ]),
+	       p([ 'Note that PlDoc wiki is normally embedded in a ',
+		   'Prolog source file using a ', i('structured comment'),
+		   ', i.e., a comment that starts with %! or /**'
+		 ]),
+	       div(\markitup([ markup(pldoc),
+			       preview(true)
+			     ]))
+	     ]).
