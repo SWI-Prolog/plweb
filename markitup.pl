@@ -75,12 +75,13 @@
 markitup(Options) -->
 	{ option(markup(Language), Options, markdown),
 	  option(id(Id), Options, markdown),
+	  option(name(Name), Options, Id),
 	  option(cols(Cols), Options, 80),
 	  option(rows(Rows), Options, 20),
 	  option(value(Content), Options, [])
 	},
 	html_requires(Language),
-	html([ textarea([id(Id), cols(Cols), rows(Rows)], Content),
+	html([ textarea([id(Id), name(Name), cols(Cols), rows(Rows)], Content),
 	       script(type('text/javascript'),
 		      \[ '$(document).ready(function(){\n',
 			 '$("#',Id,'").markItUp(',Language,'_settings);\n',

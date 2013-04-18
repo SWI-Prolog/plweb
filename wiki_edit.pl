@@ -39,7 +39,7 @@
 :- use_module(library(http/http_authenticate)).
 :- use_module(library(git)).
 :- use_module(git_html).
-
+:- use_module(markitup).
 
 /** <module> Edit PlDoc wiki pages
 
@@ -107,8 +107,10 @@ edit_page(Location, File, Author) -->
 			[ \hidden(location, Location),
 			  table(class(wiki_edit),
 				[ tr(td([ class(wiki_text), colspan(2) ],
-					textarea([ cols(80),rows(20),name(text) ],
-						 Content))),
+					\markitup([ markup(pldoc),
+						    id(text),
+						    value(Content)
+						  ]))),
 				  tr([td(class(label), 'Comment summary:'),
 				      td(input([class(git_msg), name(msg)]))]),
 				  tr([td(class(label), 'Comment:'),
@@ -133,9 +135,10 @@ amend_button(Dir, File, Author) -->
 	  debug(git, 'Amend: LastAuthor = ~q, Author = ~q', [LastAuthor, Author]),
 	  LastAuthor == Author
 	},
-	html(input([class(amend),
-		    type(checkbox), name(amend), value(yes)],
-		   'Amend previous commit')).
+	html([ input([class(amend),
+		      type(checkbox), name(amend), value(yes)]),
+	       'Amend previous commit'
+	     ]).
 amend_button(_,_,_) --> [].
 
 %%	shortlog(+Dir, +Options)//
