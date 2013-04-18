@@ -48,7 +48,6 @@
 :- use_module(pack_analyzer).
 :- use_module(pack_mirror).
 :- use_module(wiki).
-:- use_module(markdown).
 
 
 /** <module> Visual (web) components that show info about packs
@@ -323,15 +322,6 @@ pack_readme(_Pack, File, Size) -->
 	html(p(class(warning),
 	       'Readme file ~w too large (~D bytes; maximum size is ~D)'-
 	       [File, Size, MaxSize])).
-pack_readme(Pack, File, _) -->
-	{ file_name_extension(_, md, File), !,
-	  pack_archive(Pack, _, Archive),
-	  setup_call_cleanup(
-	      pack_open_entry(Archive, File, Stream),
-	      markdown_dom(stream(Stream), DOM),
-	      close(Stream))
-	},
-	html(div(class(markdown), DOM)).
 pack_readme(Pack, File, _) -->
 	{ pack_archive(Pack, _, Archive),
 	  format(atom(FileURL), '~w/~w', [Archive, File]),
