@@ -41,11 +41,6 @@
 :- http_handler(root('markitup/preview/markdown'), preview_markdown, []).
 :- http_handler(root('markitup/preview/pldoc'),    preview_pldoc,    []).
 
-:- html_resource(jquery,
-		 [ virtual(true),
-		   requires([ jq('jquery.js')
-			    ])
-		 ]).
 :- html_resource(js('markitup/jquery.markitup.js'),
 		 [ requires([ jquery
 			    ])

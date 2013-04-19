@@ -380,17 +380,14 @@ pack_file_details(Pack, File, Options) :-
 	    source_to_html(Path, stream(current_output), [])
 	).
 pack_file_details(Pack, File, _Options) :-
-	pack_file(Pack, File, file(_Size), -),
-	file_name_extension(_, md, File), !,
-	pack_archive(Pack, _Hash, Archive),
-	setup_call_cleanup(
-	    pack_open_entry(Archive, File, Stream),
-	    markdown_dom(stream(Stream), DOM),
-	    close(Stream)),
+	pack_file(Pack, File, file(Size), -),
+	file_base_name(File, Base),
+	downcase_atom(Base, BaseLwr),
+	wiki_file(BaseLwr), !,
 	format(atom(Title), 'Pack ~w -- ~w', [Pack, File]),
 	reply_html_page(wiki,
 			title(Title),
-			DOM).
+			\pack_readme(Pack, File, Size)).
 pack_file_details(Pack, File, _Options) :-
 	pack_file(Pack, File, file(_Size), -),
 	pack_archive(Pack, _Hash, Archive),
@@ -400,3 +397,8 @@ pack_file_details(Pack, File, _Options) :-
 	    pack_open_entry(Archive, File, Stream),
 	    copy_stream_data(Stream, current_output),
 	    close(Stream)).
+
+wiki_file(readme).
+wiki_file(todo).
+wiki_file(Name) :- file_name_extension(_, md, Name).
+wiki_file(Name) :- file_name_extension(_, txt, Name).
