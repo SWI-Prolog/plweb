@@ -59,10 +59,11 @@
 		 *	     LOCATIONS		*
 		 *******************************/
 
-http:location(pldoc,	root(pldoc),    [priority(10)]).
-http:location(download, root(download), []).
-http:location(icons,    root(icons),    []).
-http:location(css,	root(css),      []).
+http:location(pldoc,	root(pldoc),	   [priority(10)]).
+http:location(download,	root(download),	   []).
+http:location(icons,	root(icons),	   []).
+http:location(css,	root(css),	   []).
+http:location(jq,	root('js/jquery'), []).
 
 
 		 /*******************************
@@ -121,7 +122,11 @@ user:url_path(serql,	 'http://www.openrdf.org').
 			      css('plweb.css')
 			    ])
 		 ]).
-
+:- html_resource(jquery,
+		 [ virtual(true),
+		   requires([ jq('jquery.js')
+			    ])
+		 ]).
 
 
 		 /*******************************

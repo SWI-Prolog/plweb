@@ -35,16 +35,6 @@
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
 
-:- multifile http:location/3.
-:- dynamic   http:location/3.
-
-http:location(jq, root('js/jquery'), []).
-
-:- html_resource(jquery,
-		 [ virtual(true),
-		   requires([ jq('jquery.js')
-			    ])
-		 ]).
 :- html_resource(jq('jRating.jquery.min.js'),
 		 [ requires([ jquery,
 			      jq('jRating.jquery.css')
