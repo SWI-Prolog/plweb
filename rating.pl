@@ -34,6 +34,7 @@
 :- use_module(library(http/http_dispatch), []).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
+:- use_module(library(option)).
 
 :- html_resource(jq('jRating.jquery.min.js'),
 		 [ requires([ jquery,
@@ -42,7 +43,9 @@
 		 ]).
 
 
-/** <module> Deal with user feedback
+/** <module> Provide a star-rating widget
+
+@see http://www.myjqueryplugins.com/jquery-plugin/jrating
 */
 
 rate(Options) -->
@@ -52,24 +55,36 @@ rate(Options) -->
 	  option(rate_max(RateMax), Options, 20),
 	  option(step(Step), Options, false),
 	  option(type(Type), Options, big),
+	  option(can_rate_again(CanRateAgain), Options, false),
 	  http_absolute_location(jq('icons/stars.png'), BSP, []),
 	  http_absolute_location(jq('icons/small.png'), SSP, [])
 	},
 	html_requires(jq('jRating.jquery.min.js')),
 	html([ div([ class(jrating), 'data-id'(Id)], []),
 	       script(type('text/javascript'),
-		      \[ '$(document).ready(function(){\n',
-			 '$(".jrating").jRating(\n',
-			 '   { bigStarsPath:"',BSP,'",\n',
-			 '     smallStarsPath:"',SSP,'",\n',
-			 '     phpPath:"',OnRating,'",\n',
-			 '     step:',Step,',\n',
-			 '     type:"',Type,'",\n',
-			 '     length:',Length,',\n',
-			 '     rateMax:',RateMax,',\n',
-			 '   });\n',
-			 '});\n'
+		      [ \[ '$(document).ready(function(){\n',
+			   '$(".jrating").jRating(\n',
+			   '   { bigStarsPath:"',BSP,'",\n',
+			   '     smallStarsPath:"',SSP,'",\n',
+			   '     phpPath:"',OnRating,'",\n',
+			   '     step:',Step,',\n',
+			   '     type:"',Type,'",\n',
+			   '     length:',Length,',\n',
+			   '     rateMax:',RateMax,',\n',
+			   '     canRateAgain:',CanRateAgain,',\n'
+			 ],
+			\set_field(Options),
+			\[ '   });\n',
+			   '});\n'
+			 ]
 		       ])
 
 	     ]).
 
+set_field(Options) -->
+	{ option(set_field(Field), Options) }, !,
+	html(\[ '     onSuccess: function(e,r)\n',
+		'     { $(\'input[name=~w]\').val(r);\n'-[Field],
+		'     }\n'
+	      ]).
+set_field(_) --> [].
