@@ -38,6 +38,11 @@
 :- use_module(markdown).
 :- use_module(wiki).
 
+/** <module> Wrapper for markItUp ajax markup editor
+
+@see http://markitup.jaysalvat.com/home/
+*/
+
 :- http_handler(root('markitup/preview/markdown'), preview_markdown, []).
 :- http_handler(root('markitup/preview/pldoc'),    preview_pldoc,    []).
 
