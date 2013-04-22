@@ -33,6 +33,7 @@
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
 :- use_module(library(persistency)).
+:- use_module(library(aggregate)).
 
 :- use_module(markitup).
 :- use_module(rating).
@@ -85,7 +86,7 @@ pack_review(Request) :-
 		   [ input([type(hidden), name(p), value(Pack)]),
 		     table([ \reviewer(OpenId),
 			     \rating(Pack, OpenId),
-			     \comment(Pack),
+			     \comment(Pack, OpenId),
 			     tr(td([colspan(2), align(right)],
 				   input([ type(submit),
 					   value('Submit review')
@@ -96,7 +97,19 @@ pack_review(Request) :-
 
 
 explain(Pack, _User) -->
-	html([ p('You requested to review pack ~w'-[Pack])
+	html([ p([ 'You requested to review pack ', b(Pack), '. ',
+		   'The requested ', i('Name'), ', is displayed with the ',
+		   'review.  ', i('Anonymous'), ' is used if you leave this ',
+		   'blank.  The ', i('E-Mail'), ' may be used by the site ',
+		   'administration to contact you in -now- unforeseen ',
+		   'circumstances.  The text field uses PlDoc wiki format, ',
+		   'which is a superset of Markdown.  You can use the two ',
+		   'left-most icons to open and close a preview window.'
+		 ]),
+	       p([ 'Any user can have at most one review per pack.  Trying ',
+		   'to submit a new review will return the old review and ',
+		   'allow you to update your opinion.'
+		 ])
 	     ]).
 
 %%	reviewer(+OpenID)// is det.
@@ -159,12 +172,18 @@ pack_rating(Request) :-
 	format('true\n').
 
 
-comment(_Pack) -->
+comment(Pack, OpenId) -->
+	{ (   review(Pack, OpenId, _, _, Comment)
+	  ->  Extra = [value(Comment)]
+	  ;   Extra = []
+	  )
+	},
 	html(tr(td(colspan(2),
 		   \markitup([ id(comment),
 			       markup(pldoc),
 			       cold(60),
 			       rows(10)
+			     | Extra
 			     ])))).
 
 
@@ -255,8 +274,9 @@ show_review(Pack, OpenID) -->
 	  http_link_to_id(pack_review, [p(Pack)], Update)
 	},
 	html([ div(class(review),
-		   [ b('Reviewer: '), \show_reviewer(OpenID), ', ',
-		     b('Rating: '),   \show_rating(Rating),
+		   [ b('Reviewer: '),    \show_reviewer(OpenID), ', ',
+		     b('Your rating: '), \show_rating_value(Rating),
+		     b('Overall rating: '), \show_rating(Pack),
 		     div(class(comment), \show_comment(Comment)),
 		     div(class(update),
 			 [ a(href(Update), 'Update'), ' my review'
@@ -273,7 +293,24 @@ show_reviewer(OpenID) -->
 show_reviewer(_OpenID) -->
 	html(i(anonymous)).
 
-show_rating(Value) -->
+show_rating(Pack) -->
+	{ pack_rating(Pack, Rating, Votes) },
+	html(span(class(rating),
+		  [ \show_rating_value(Rating),
+		    span(class(votes), ' (~D votes)'-[Votes])
+		  ])).
+
+
+pack_rating(Pack, Rating, Votes) :-
+	aggregate_all(count-sum(R), pack_rating(Pack, R), Votes-Sum),
+	Votes > 0,
+	Rating is Sum/Votes.
+
+pack_rating(Pack, Rating) :-
+	review(Pack, _, _, Rating, _),
+	Rating > 0.
+
+show_rating_value(Value) -->
 	{ http_link_to_id(pack_rating, [], HREF),
 	  (   Value =:= 0
 	  ->  Extra = []
