@@ -42,7 +42,11 @@
 :- use_module(library(persistency)).
 :- use_module(library(aggregate)).
 :- use_module(library(memfile)).
+:- use_module(library(record)).
+:- use_module(library(pairs)).
+
 :- use_module(pack_info).
+:- use_module(review).
 
 :- http_handler(root(pack/query),	 pack_query,	    []).
 :- http_handler(root(pack/list),	 pack_list,	    []).
@@ -366,18 +370,24 @@ pack(Pack) :-
 
 pack_list(Request) :-
 	http_parameters(Request,
-			[ p(Pack, [optional(true)])
+			[ p(Pack, [optional(true)]),
+			  sort(Sort, [ oneof([name,downloads,rating]),
+				       optional(true),
+				       default(name)
+				     ])
 			]),
 	reply_html_page(wiki,
 			title('SWI-Prolog packages'),
-			[ \pack_listing(Pack)
+			[ \pack_listing(Pack, Sort)
 			]).
 
-
-pack_listing(All) -->
+pack_listing(All, SortBy) -->
 	{ var(All), !,
-	  findall(Pack, sha1_pack(_,Pack), Packs),
-	  sort(Packs, Sorted)
+	  (   setof(Pack, current_pack(Pack), Packs)
+	  ->  true
+	  ;   Packs = []
+	  ),
+	  sort_packs(SortBy, Packs, Sorted)
 	},
 	html([ h1(class(wiki), 'Available packages'),
 	       p([ 'Below is a list of known packages.  Please be aware that ',
@@ -390,15 +400,21 @@ pack_listing(All) -->
 		 ]),
 	       \html_requires(css('pack.css')),
 	       table(class(packlist),
-		     [ tr([ th(id(pack),      'Pack'),
-			    th(id(version),   ['Version', br([]), '(#older)']),
-			    th(id(downloads), ['Downloads', br([]), '(#latest)']),
-			    th(id(title),     'Title')
+		     [ tr([ \pack_header(name,  SortBy,
+					 'Pack'),
+			    \pack_header(version, SortBy,
+					 ['Version', br([]), '(#older)']),
+			    \pack_header(downloads, SortBy,
+					 ['Downloads', br([]), '(#latest)']),
+			    \pack_header(rating, SortBy,
+					 ['Rating']),
+			    \pack_header(title, SortBy,
+					 'Title')
 			  ])
 		     | \pack_rows(Sorted)
 		     ])
 	     ]).
-pack_listing(Pack) -->
+pack_listing(Pack, _) -->
 	html([ h1(class(wiki), 'Package "~w"'-[Pack]),
 	       \html_requires(css('pack.css')),
 	       \pack_info(Pack)
@@ -409,18 +425,101 @@ pack_rows([]) --> [].
 pack_rows([H|T]) --> pack_row(H), pack_rows(T).
 
 pack_row(Pack) -->
-	{ http_link_to_id(pack_list, [p(Pack)], HREF) },
-	html(tr([ td(a(href(HREF),Pack)),
-		  td(\pack_version(Pack, SHA1)),
-		  td(\pack_downloads(Pack, SHA1)),
-		  td(\pack_title(SHA1))
+	{ pack_name(Pack, Name),
+	  http_link_to_id(pack_list, [p(Name)], HREF)
+	},
+	html(tr([ td(a(href(HREF),Name)),
+		  td(\pack_version(Pack)),
+		  td(\pack_downloads(Pack)),
+		  td(\pack_rating(Pack)),
+		  td(\pack_title(Pack))
 		])).
 
-pack_version(Pack, SHA1) -->
-	{ pack_latest_version(Pack, SHA1, Version, Older),
+pack_header(Name, SortBy, Title) -->
+	{ Name \== SortBy,
+	  sortable(Name), !,
+	  http_link_to_id(pack_list, [sort(Name)], HREF)
+	},
+	html(th(id(Name), a(href(HREF), Title))).
+pack_header(Name, Name, Title) -->
+	html(th(id(Name), i(Title))).
+pack_header(Name, _, Title) -->
+	html(th(id(Name), Title)).
+
+sortable(name).
+sortable(downloads).
+sortable(rating).
+
+pack_version(Pack) -->
+	{ pack_version(Pack, Version),
+	  pack_older_versions(Pack, Older),
 	  prolog_pack:atom_version(Atom, Version)
 	},
-	html('~w (~d)'-[Atom,Older]).
+	(   { Older =\= 0 }
+	->  html([Atom, span(class(grey), ' (~D)'-[Older])])
+	;   html(Atom)
+	).
+
+pack_downloads(Pack) -->
+	{ pack_downloads(Pack, Total),
+	  pack_download_latest(Pack, DownLoadLatest)
+	},
+	(   { Total =:= DownLoadLatest }
+	->  html('~D'-[Total])
+	;   html(['~D'-[Total], span(class(grey), ' (~D)'-[DownLoadLatest])])
+	).
+
+pack_rating(Pack) -->
+	{ pack_rating(Pack, Rating),
+	  pack_votes(Pack, Votes),
+	  pack_name(Pack, Name)
+	},
+	show_pack_rating(Name, Rating, Votes).
+
+pack_title(Pack) -->
+	{ pack_hash(Pack, SHA1),
+	  sha1_title(SHA1, Title)
+	},
+	html(Title).
+
+:- record
+	pack(name:atom,				% Name of the pack
+	     hash:atom,				% SHA1 of latest version
+	     version:list(integer),		% Latest Version
+	     older_versions:integer,		% # older versions
+	     downloads:integer,			% Total downloads
+	     download_latest:integer,		% # downloads latest version
+	     rating:number,			% Average rating
+	     votes:integer).			% Vote count
+
+current_pack(pack(Pack, SHA1,
+		  Version, OlderVersionCount,
+		  Downloads, DLLatest,
+		  Rating, Votes)) :-
+	sha1_pack(_,Pack),
+	pack_latest_version(Pack, SHA1, Version, OlderVersionCount),
+	pack_downloads(Pack, SHA1, Downloads, DLLatest),
+	pack_rating_votes(Pack, Rating, Votes).
+
+%%	sort_packs(+Field, +Packs, -Sorted)
+
+sort_packs(By, Packs, Sorted) :-
+	map_list_to_pairs(pack_data(By), Packs, Keyed),
+	keysort(Keyed, KeySorted),
+	pairs_values(KeySorted, Sorted0),
+	reverse_sort(By, Sorted0, Sorted).
+
+reverse_sort(name, Packs, Packs) :- !.
+reverse_sort(_, Packs, RevPacks) :-
+	reverse(Packs, RevPacks).
+
+
+pack_downloads(Pack, SHA1, Total, DownLoadLatest) :-
+	setof(Hash, sha1_pack(Hash, Pack), Hashes),
+	map_list_to_pairs(sha1_downloads, Hashes, Pairs),
+	memberchk(DownLoadLatest-SHA1, Pairs),
+	pairs_keys(Pairs, Counts),
+	sum_list(Counts, Total).
 
 %%	pack_latest_version(+Pack, -SHA1, -Version, -OlderCount)
 %
@@ -435,19 +534,10 @@ pack_latest_version(Pack, SHA1, Version, Older) :-
 	Older is Count - 1,
 	last(Sorted, Version-SHA1).
 
-pack_downloads(Pack, SHA1) -->
-	{ setof(Hash, sha1_pack(Hash, Pack), Hashes),
-	  map_list_to_pairs(sha1_downloads, Hashes, Pairs),
-	  memberchk(DownLoadLatest-SHA1, Pairs),
-	  pairs_keys(Pairs, Counts),
-	  sum_list(Counts, Total)
-	},
-	html('~D (~D)'-[Total, DownLoadLatest]).
 
-pack_title(SHA1) -->
-	{ sha1_title(SHA1, Title)
-	},
-	html(Title).
+		 /*******************************
+		 *	  DETAILED INFO		*
+		 *******************************/
 
 %%	pack_info(+Pack)//
 %

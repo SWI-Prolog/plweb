@@ -27,7 +27,10 @@
     the GNU General Public License.
 */
 
-:- module(pack_review, []).
+:- module(pack_review,
+	  [ pack_rating_votes/3,		% +Pack, -Rating, -Votes
+	    show_pack_rating//3			% +Pack, +Rating, +Votes
+	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_openid)).
 :- use_module(library(http/http_parameters)).
@@ -275,7 +278,7 @@ show_review(Pack, OpenID) -->
 	},
 	html([ div(class(review),
 		   [ b('Reviewer: '),    \show_reviewer(OpenID), ', ',
-		     b('Your rating: '), \show_rating_value(Rating),
+		     b('Your rating: '), \show_rating_value(Pack, Rating),
 		     b('Overall rating: '), \show_rating(Pack),
 		     div(class(comment), \show_comment(Comment)),
 		     div(class(update),
@@ -294,23 +297,25 @@ show_reviewer(_OpenID) -->
 	html(i(anonymous)).
 
 show_rating(Pack) -->
-	{ pack_rating(Pack, Rating, Votes) },
-	html(span(class(rating),
-		  [ \show_rating_value(Rating),
-		    span(class(votes), ' (~D votes)'-[Votes])
-		  ])).
+	{ pack_rating_votes(Pack, Rating, Votes) },
+	show_pack_rating(Pack, Rating, Votes).
 
 
-pack_rating(Pack, Rating, Votes) :-
+%%	pack_rating_votes(+Pack, -Rating, -Votes) is det.
+%
+%	Rating is the current rating for Pack, based on Votes.
+
+pack_rating_votes(Pack, Rating, Votes) :-
 	aggregate_all(count-sum(R), pack_rating(Pack, R), Votes-Sum),
-	Votes > 0,
+	Votes > 0, !,
 	Rating is Sum/Votes.
+pack_rating_votes(_Pack, 0, 0).
 
 pack_rating(Pack, Rating) :-
 	review(Pack, _, _, Rating, _),
 	Rating > 0.
 
-show_rating_value(Value) -->
+show_rating_value(Pack, Value) -->
 	{ http_link_to_id(pack_rating, [], HREF),
 	  (   Value =:= 0
 	  ->  Extra = []
@@ -319,12 +324,28 @@ show_rating_value(Value) -->
 	},
 	rate([ on_rating(HREF),
 	       rate_max(5),
+	       data_id(Pack),
 	       type(small),
 	       can_rate_again(true),
-	       class(rated),
-	       is_disabled(true)
+	       class(rated)
 	     | Extra
 	     ]).
+
+%%	show_pack_rating(+Pack, +Rating, +Votes)// is det.
+%
+%	Show rating for Pack.
+
+show_pack_rating(Pack, Rating, 0) --> !,
+	show_rating_value(Pack, Rating).
+show_pack_rating(Pack, Rating, Votes) -->
+	html(span(class(rating),
+		  [ \show_rating_value(Pack, Rating),
+		    span(class(votes), ' (~D votes)'-[Votes])
+		  ])).
+
+%%	show_comment(+Comment)// is det.
+%
+%	Display Comment.  Comment is an atom holding Wiki text.
 
 show_comment('') --> !,
 	html(i('No comment')).
