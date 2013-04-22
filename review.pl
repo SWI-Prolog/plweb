@@ -49,8 +49,17 @@
 		 *******************************/
 
 :- persistent
-	review(pack:atom, openid:atom, time:number, rating:integer, comment:atom),
-	author(openid:atom, name:atom, email:atom).
+	review(pack:atom,
+	       openid:atom,
+	       time:number,
+	       rating:integer,
+	       comment:atom),
+	author(openid:atom,
+	       name:atom,
+	       email:atom).
+
+
+:- db_attach(reviews, []).
 
 
 		 /*******************************
@@ -74,7 +83,6 @@ pack_review(Request) :-
 	      \explain(Pack, OpenId),
 	      form([ class(review), action(Action) ],
 		   [ input([type(hidden), name(p), value(Pack)]),
-		     input([type(hidden), name(rating), value(-1)]),
 		     table([ \reviewer(OpenId),
 			     \rating(Pack, OpenId),
 			     \comment(Pack),
@@ -114,17 +122,25 @@ reviewer(OpenId) -->
 
 
 rating(Pack, OpenId) -->
-	{ http_link_to_id(pack_rating, [], HREF)
+	{ http_link_to_id(pack_rating, [], HREF),
+	  (   review(Pack, OpenId, _, Rating0, _)
+	  ->  Extra = [data_average(Rating0)]
+	  ;   Extra = [],
+	      Rating0 = -1
+	  )
 	},
 	html(tr([ th('Your rating for ~w'-[Pack]),
-		  td( \rate([ on_rating(HREF),
-			      data_id(Pack),
-			      set_field(rating),
-			      rate_max(5),
-			      step(true),
-			      type(big),
-			      can_rate_again(true)
-			    ]))
+		  td( [ input([type(hidden), name(rating), value(Rating0)]),
+			\rate([ on_rating(HREF),
+				data_id(Pack),
+				set_field(rating),
+				rate_max(5),
+				step(true),
+				type(big),
+				can_rate_again(true)
+			      | Extra
+			      ])
+		      ])
 		])).
 
 
@@ -159,7 +175,7 @@ pack_submit_review(Request) :-
 	openid_user(Request, OpenID, []),
 	http_parameters(Request,
 			[ p(Pack, []),
-			  rating(Rating, []),
+			  rating(Rating, [number]),
 			  name(Name, []),
 			  email(Email, [optional(true), default('')]),
 			  comment(Comment, [optional(true), default('')])

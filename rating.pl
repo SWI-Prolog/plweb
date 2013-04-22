@@ -55,15 +55,20 @@ rate(Options) -->
 	  option(rate_max(RateMax), Options, 20),
 	  option(step(Step), Options, false),
 	  option(type(Type), Options, big),
+	  option(class(Class), Options, jrating),
 	  option(can_rate_again(CanRateAgain), Options, false),
 	  http_absolute_location(jq('icons/stars.png'), BSP, []),
-	  http_absolute_location(jq('icons/small.png'), SSP, [])
+	  http_absolute_location(jq('icons/small.png'), SSP, []),
+	  (   option(data_average(Avg), Options)
+	  ->  Extra = ['data-average'(Avg)]
+	  ;   Extra = []
+	  )
 	},
 	html_requires(jq('jRating.jquery.min.js')),
-	html([ div([ class(jrating), id(3_4), 'data-id'(Id)], []),
+	html([ div([ class(Class), 'data-id'(Id)| Extra], []),
 	       script(type('text/javascript'),
 		      [ \[ '$(document).ready(function(){\n',
-			   '$(".jrating").jRating(\n',
+			   '$(".',Class,'").jRating(\n',
 			   '   { bigStarsPath:"',BSP,'",\n',
 			   '     smallStarsPath:"',SSP,'",\n',
 			   '     phpPath:"',OnRating,'",\n',
