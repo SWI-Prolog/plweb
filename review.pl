@@ -37,6 +37,7 @@
 :- use_module(markitup).
 :- use_module(rating).
 :- use_module(openid).
+:- use_module(wiki).
 
 :- http_handler(root(pack/review),        pack_review,        []).
 :- http_handler(root(pack/review/submit), pack_submit_review, []).
@@ -223,7 +224,7 @@ user_details(OpenID) -->
 
 update_review(Pack, OpenID, Rating, Comment) -->
 	{ review(Pack, OpenID, _Time, Rating, Comment) }, !,
-	html(h4('Review was not updated')),
+	html(h4(class(wiki), 'No changes, showing your existing comment')),
 	show_review(Pack, OpenID).
 update_review(Pack, OpenID, Rating, Comment) -->
 	{ review(Pack, OpenID, _Time, _Rating, _Comment), !,
@@ -231,25 +232,70 @@ update_review(Pack, OpenID, Rating, Comment) -->
 	  get_time(Time),
 	  assert_review(Pack, OpenID, Time, Rating, Comment)
 	},
-	html(h4('Updated review for pack ~w'-[Pack])),
+	html(h4(class(wiki), 'Updated your comments for pack ~w'-[Pack])),
 	show_review(Pack, OpenID).
 update_review(Pack, OpenID, Rating, Comment) -->
 	{ get_time(Time),
 	  assert_review(Pack, OpenID, Time, Rating, Comment)
 	},
-	html(h4('Added review for pack ~w'-[Pack])),
+	html(h4(class(wiki), 'Added comment for pack ~w'-[Pack])),
 	show_review(Pack, OpenID).
 
+
+		 /*******************************
+		 *	   SHOW RESULTS		*
+		 *******************************/
 
 %%	show_review(+Pack, +OpenID)// is det.
 %
 %	Show an individual review about Pack
 
 show_review(Pack, OpenID) -->
-	{ review(Pack, OpenID, _Time, Rating, Comment) },
-	html([ table([ tr([th('User:'), td(OpenID)]),
-		       tr([th('Rating:'), td(Rating)]),
-		       tr([th('Comment:'), td(Comment)])
-		     ])
+	{ review(Pack, OpenID, _Time, Rating, Comment),
+	  http_link_to_id(pack_review, [p(Pack)], Update)
+	},
+	html([ div(class(review),
+		   [ b('Reviewer: '), \show_reviewer(OpenID), ', ',
+		     b('Rating: '),   \show_rating(Rating),
+		     div(class(comment), \show_comment(Comment)),
+		     div(class(update),
+			 [ a(href(Update), 'Update'), ' my review'
+			 ])
+		   ])
 	     ]).
 
+
+
+
+show_reviewer(OpenID) -->
+	{ author(OpenID, Name, _Email) }, !,
+	html(Name).
+show_reviewer(_OpenID) -->
+	html(i(anonymous)).
+
+show_rating(Value) -->
+	{ http_link_to_id(pack_rating, [], HREF),
+	  (   Value =:= 0
+	  ->  Extra = []
+	  ;   Extra = [data_average(Value)]
+	  )
+	},
+	rate([ on_rating(HREF),
+	       rate_max(5),
+	       type(small),
+	       can_rate_again(true),
+	       class(rated),
+	       is_disabled(true)
+	     | Extra
+	     ]).
+
+show_comment('') --> !,
+	html(i('No comment')).
+show_comment(Text) -->
+	{ atom_codes(Text, Codes),
+	  wiki_file_codes_to_dom(Codes, /, DOM0),
+	  clean_dom(DOM0, DOM)
+	},
+	html(DOM).
+
+clean_dom([p(X)], X).

@@ -55,6 +55,7 @@ rate(Options) -->
 	  option(rate_max(RateMax), Options, 20),
 	  option(step(Step), Options, false),
 	  option(type(Type), Options, big),
+	  option(is_disabled(Disabled), Options, false),
 	  option(class(Class), Options, jrating),
 	  option(can_rate_again(CanRateAgain), Options, false),
 	  http_absolute_location(jq('icons/stars.png'), BSP, []),
@@ -74,6 +75,7 @@ rate(Options) -->
 			   '     phpPath:"',OnRating,'",\n',
 			   '     step:',Step,',\n',
 			   '     type:"',Type,'",\n',
+			   '     isDisabled:"',Disabled,'",\n',
 			   '     length:',Length,',\n',
 			   '     rateMax:',RateMax,',\n',
 			   '     canRateAgain:',CanRateAgain,',\n'
