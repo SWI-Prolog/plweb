@@ -29,7 +29,6 @@
 
 :- module(pack_review, []).
 :- use_module(library(http/http_dispatch)).
-:- use_module(library(http/http_session)).
 :- use_module(library(http/http_openid)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
@@ -123,10 +122,11 @@ reviewer(OpenId) -->
 
 rating(Pack, OpenId) -->
 	{ http_link_to_id(pack_rating, [], HREF),
-	  (   review(Pack, OpenId, _, Rating0, _)
+	  (   review(Pack, OpenId, _, Rating0, _),
+	      Rating0 > 0
 	  ->  Extra = [data_average(Rating0)]
 	  ;   Extra = [],
-	      Rating0 = -1
+	      Rating0 = 0
 	  )
 	},
 	html(tr([ th('Your rating for ~w'-[Pack]),
