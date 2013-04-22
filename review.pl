@@ -33,6 +33,7 @@
 :- use_module(library(http/http_openid)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
+:- use_module(library(persistency)).
 
 :- use_module(markitup).
 :- use_module(rating).
@@ -41,6 +42,20 @@
 :- http_handler(root(pack/review),        pack_review,        []).
 :- http_handler(root(pack/review/submit), pack_submit_review, []).
 :- http_handler(root(pack/review/rating), pack_rating,        []).
+
+
+		 /*******************************
+		 *	       DATA		*
+		 *******************************/
+
+:- persistent
+	review(pack:atom, openid:atom, time:number, rating:integer, comment:atom),
+	author(openid:atom, name:atom, email:atom).
+
+
+		 /*******************************
+		 *	     INTERFACE		*
+		 *******************************/
 
 %%	pack_review(+Request)
 %
@@ -52,35 +67,66 @@ pack_review(Request) :-
 			[ p(Pack, [])
 			]),
 	http_link_to_id(pack_submit_review, [], Action),
-	reply_html_page(wiki,
-			title('Review pack ~w'-[Pack]),
-			[ h1('Review pack ~w'-[Pack]),
-			  \explain(Pack, OpenId),
-			  form([ class(review), action(Action) ],
-			       [ input([type(hidden), name(p), value(Pack)]),
-				 input([type(hidden), name(rating), value(-1)]),
-				 \rating(Pack),
-				 \comment(Pack),
-				 input([type(submit), value('Submit review')])
-			       ])
-			]).
+	reply_html_page(
+	    wiki,
+	    title('Review pack ~w'-[Pack]),
+	    [ h1('Review pack ~w'-[Pack]),
+	      \explain(Pack, OpenId),
+	      form([ class(review), action(Action) ],
+		   [ input([type(hidden), name(p), value(Pack)]),
+		     input([type(hidden), name(rating), value(-1)]),
+		     table([ \reviewer(OpenId),
+			     \rating(Pack, OpenId),
+			     \comment(Pack),
+			     tr(td([colspan(2), align(right)],
+				   input([ type(submit),
+					   value('Submit review')
+					 ])))
+			   ])
+		   ])
+	    ]).
 
 
 explain(Pack, _User) -->
 	html([ p('You requested to review pack ~w'-[Pack])
 	     ]).
 
-rating(Pack) -->
+%%	reviewer(+OpenID)// is det.
+%
+%	Present details about the reviewer
+
+reviewer(OpenId) -->
+	{ (   author(OpenId, Name, Email)
+	  ->  true
+	  ;   Name = '',
+	      Email = ''
+	  )
+	}, !,
+	html([ tr([th('Name:'),   td(input([ name(name),
+					     value(Name),
+					     placeholder('Your (nick) name')
+					   ]))]),
+	       tr([th('E-Mail:'), td(input([ name(email),
+					     value(Email),
+					     placeholder('Your E-mail')
+					   ]))])
+	     ]).
+
+
+rating(Pack, OpenId) -->
 	{ http_link_to_id(pack_rating, [], HREF)
 	},
-	rate([ on_rating(HREF),
-	       data_id(Pack),
-	       set_field(rating),
-	       rate_max(5),
-	       step(true),
-	       type(big),
-	       can_rate_again(true)
-	     ]).
+	html(tr([ th('Your rating for ~w'-[Pack]),
+		  td( \rate([ on_rating(HREF),
+			      data_id(Pack),
+			      set_field(rating),
+			      rate_max(5),
+			      step(true),
+			      type(big),
+			      can_rate_again(true)
+			    ]))
+		])).
+
 
 %%	pack_rating(+Request)
 %
@@ -97,11 +143,12 @@ pack_rating(Request) :-
 
 
 comment(_Pack) -->
-	markitup([ id(comment),
-		   markup(pldoc),
-		   cold(60),
-		   rows(10)
-		 ]).
+	html(tr(td(colspan(2),
+		   \markitup([ id(comment),
+			       markup(pldoc),
+			       cold(60),
+			       rows(10)
+			     ])))).
 
 
 %%	pack_submit_review(+Request)
@@ -109,16 +156,84 @@ comment(_Pack) -->
 %	Handle a pack review submission
 
 pack_submit_review(Request) :-
-	openid_user(Request, User, []),
+	openid_user(Request, OpenID, []),
 	http_parameters(Request,
 			[ p(Pack, []),
 			  rating(Rating, []),
+			  name(Name, []),
+			  email(Email, [optional(true), default('')]),
 			  comment(Comment, [optional(true), default('')])
 			]),
-	reply_html_page(wiki,
-			title('Thanks for your review of ~w'-[Pack]),
-			[ table([ tr([th('User:'), td(User)]),
-				  tr([th('Rating:'), td(Rating)]),
-				  tr([th('Comment:'), td(Comment)])
-				])
-			]).
+	reply_html_page(
+	    wiki,
+	    title('Thanks for your review of ~w'-[Pack]),
+	    [ \update_user(OpenID, Name, Email),
+	      \update_review(Pack, OpenID, Rating, Comment)
+	    ]).
+
+
+%%	update_user(+OpenID, +Name, +Email)// is det.
+%
+%	Assert/update identity information about the user.
+
+update_user(OpenId, Name, Email) -->
+	{ author(OpenId, Name, Email) }, !.
+update_user(OpenId, Name, Email) -->
+	{ author(OpenId, _, _), !,
+	  retractall_author(OpenId, Name, Email),
+	  assert_author(OpenId, Name, Email)
+	},
+	html([ h4(class(wiki), 'Updated user details'),
+	       \user_details(OpenId)
+	     ]).
+update_user(OpenId, Name, Email) -->
+	{ assert_author(OpenId, Name, Email)
+	},
+	html([ h4(class(wiki), 'Stored user details'),
+	       \user_details(OpenId)
+	     ]).
+
+user_details(OpenID) -->
+	{ author(OpenID, Name, Email) },
+	html(table([ tr([th('OpenID'), td(OpenID)]),
+		     tr([th('Name'),   td(Name)]),
+		     tr([th('Email'),  td(Email)])
+		   ])).
+
+
+%%	update_review(+Pack, +OpenID, +Rating, +Comment)// is det.
+%
+%	Assert/update a review about a pack.
+
+update_review(Pack, OpenID, Rating, Comment) -->
+	{ review(Pack, OpenID, _Time, Rating, Comment) }, !,
+	html(h4('Review was not updated')),
+	show_review(Pack, OpenID).
+update_review(Pack, OpenID, Rating, Comment) -->
+	{ review(Pack, OpenID, _Time, _Rating, _Comment), !,
+	  retractall_review(Pack, OpenID, _, _, _),
+	  get_time(Time),
+	  assert_review(Pack, OpenID, Time, Rating, Comment)
+	},
+	html(h4('Updated review for pack ~w'-[Pack])),
+	show_review(Pack, OpenID).
+update_review(Pack, OpenID, Rating, Comment) -->
+	{ get_time(Time),
+	  assert_review(Pack, OpenID, Time, Rating, Comment)
+	},
+	html(h4('Added review for pack ~w'-[Pack])),
+	show_review(Pack, OpenID).
+
+
+%%	show_review(+Pack, +OpenID)// is det.
+%
+%	Show an individual review about Pack
+
+show_review(Pack, OpenID) -->
+	{ review(Pack, OpenID, _Time, Rating, Comment) },
+	html([ table([ tr([th('User:'), td(OpenID)]),
+		       tr([th('Rating:'), td(Rating)]),
+		       tr([th('Comment:'), td(Comment)])
+		     ])
+	     ]).
+

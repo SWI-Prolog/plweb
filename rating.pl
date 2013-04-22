@@ -60,7 +60,7 @@ rate(Options) -->
 	  http_absolute_location(jq('icons/small.png'), SSP, [])
 	},
 	html_requires(jq('jRating.jquery.min.js')),
-	html([ div([ class(jrating), 'data-id'(Id)], []),
+	html([ div([ class(jrating), id(3_4), 'data-id'(Id)], []),
 	       script(type('text/javascript'),
 		      [ \[ '$(document).ready(function(){\n',
 			   '$(".jrating").jRating(\n',
