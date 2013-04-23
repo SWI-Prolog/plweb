@@ -398,6 +398,9 @@ pack_listing(All, SortBy) -->
 		   a(href('http://www.swi-prolog.org/howto/Pack.html'), here),
 		   '.'
 		 ]),
+	       p([ 'Clicking the package shows details and allows you to ',
+		   'rate and comment the pack.'
+		 ]),
 	       \html_requires(css('pack.css')),
 	       table(class(packlist),
 		     [ tr([ \pack_header(name,  SortBy,

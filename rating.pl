@@ -69,7 +69,6 @@ script(Options) -->
 	  option(rate_max(RateMax), Options, 20),
 	  option(step(Step), Options, false),
 	  option(type(Type), Options, big),
-%	  option(is_disabled(Disabled), Options, false),
 	  option(class(Class), Options, jrating),
 	  option(can_rate_again(CanRateAgain), Options, false),
 	  http_absolute_location(jq('icons/stars.png'), BSP, []),
@@ -82,17 +81,23 @@ script(Options) -->
 			 '     smallStarsPath:"',SSP,'",\n',
 			 '     step:',Step,',\n',
 			 '     type:"',Type,'",\n',
-%			 '     isDisabled:"',Disabled,'",\n',
 			 '     length:',Length,',\n',
 			 '     rateMax:',RateMax,',\n',
 			 '     canRateAgain:',CanRateAgain,',\n'
 		       ],
+		      \set_disabled(Options),
 		      \set_action(Options),
 		      \set_field(Options),
 		      \[ '   });\n',
 			 '});\n'
 		       ]
 		    ])).
+
+set_disabled(Options) -->
+	{ option(disabled(true), Options) }, !,
+	html(\[ '     isDisabled:true,\n'
+	      ]).
+set_disabled(_) --> [].
 
 set_action(Options) -->
 	{ option(on_rating(OnRating), Options) }, !,

@@ -381,7 +381,7 @@ show_pack_rating(Pack) -->
 	->  { http_link_to_id(pack_review, [p(Pack)], HREF) },
 	    html(span(class(not_rated),
 		      [ 'Not rated.  ', a(href(HREF), 'Create'),
-			'the first rating!'
+			' the first rating!'
 		      ]))
 	;   { pack_comment_count(Pack, Count) },
 	    show_pack_rating(Pack, Rating, Votes, Count, [])
@@ -418,7 +418,7 @@ show_rating_value(Pack, Value, Options) -->
 	rate([ rate_max(5),
 	       data_id(Pack),
 	       type(small),
-	       can_rate_again(true),
+	       disabled(true),
 	       class(rated),
 	       post(rating_scripts),
 	       data_average(Value)

@@ -61,11 +61,20 @@ plweb_login_page(Request) :-
 	reply_html_page(wiki,
 			[ title('SWI-Prolog login')
 			],
-			[ \explain,
-			  \openid_login_form(ReturnTo, [])
+			[ \openid_login_form(ReturnTo, []),
+			  \explain
 			]).
 
 explain -->
-	html(p([ 'To avoid spam, we ask you to login with your OpenID ',
-		 'identity.'
-	       ])).
+	html([ div(class('openid-explanation'),
+		   [ p([ 'Unfortunately, we have to take some measures to avoid ',
+			 'abuse of this service.  We demand login using ',
+			 a(href('http://openid.net/'), 'OpenID'), '. ',
+			 'Currently, we accept any OpenID provider.'
+		       ]),
+		     p([ 'After logging in for the first time, we will ask for ',
+			 'some additional information.  All information is ',
+			 'optional.'
+		       ])
+		   ])
+	     ]).
