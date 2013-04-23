@@ -401,15 +401,16 @@ pack_listing(All, SortBy) -->
 	       \html_requires(css('pack.css')),
 	       table(class(packlist),
 		     [ tr([ \pack_header(name,  SortBy,
-					 'Pack'),
+					 'Pack', []),
 			    \pack_header(version, SortBy,
-					 ['Version', br([]), '(#older)']),
+					 'Version', '(#older)'),
 			    \pack_header(downloads, SortBy,
-					 ['Downloads', br([]), '(#latest)']),
+					 'Downloads', '(#latest)'),
 			    \pack_header(rating, SortBy,
-					 ['Rating']),
+					 'Rating', ['(#votes/', br([]),
+						    '#comments)']),
 			    \pack_header(title, SortBy,
-					 'Title')
+					 'Title', [])
 			  ])
 		     | \pack_rows(Sorted)
 		     ]),
@@ -436,16 +437,20 @@ pack_row(Pack) -->
 		  td(\pack_title(Pack))
 		])).
 
-pack_header(Name, SortBy, Title) -->
+pack_header(Name, SortBy, Title, Subtitle) -->
 	{ Name \== SortBy,
 	  sortable(Name), !,
 	  http_link_to_id(pack_list, [sort(Name)], HREF)
 	},
-	html(th(id(Name), a(href(HREF), Title))).
-pack_header(Name, Name, Title) -->
-	html(th(id(Name), i(Title))).
-pack_header(Name, _, Title) -->
-	html(th(id(Name), Title)).
+	html(th(id(Name), [a(href(HREF), Title), \subtitle(Subtitle)])).
+pack_header(Name, Name, Title, Subtitle) -->
+	html(th(id(Name), [i(Title), \subtitle(Subtitle)])).
+pack_header(Name, _, Title, Subtitle) -->
+	html(th(id(Name), [Title, \subtitle(Subtitle)])).
+
+subtitle([]) --> [].
+subtitle(Subtitle) --> html(div(class(sth), Subtitle)).
+
 
 sortable(name).
 sortable(downloads).
@@ -457,7 +462,7 @@ pack_version(Pack) -->
 	  prolog_pack:atom_version(Atom, Version)
 	},
 	(   { Older =\= 0 }
-	->  html([Atom, span(class(grey), ' (~D)'-[Older])])
+	->  html([Atom, span(class(annot), '~D'-[Older])])
 	;   html(Atom)
 	).
 
@@ -467,15 +472,19 @@ pack_downloads(Pack) -->
 	},
 	(   { Total =:= DownLoadLatest }
 	->  html('~D'-[Total])
-	;   html(['~D'-[Total], span(class(grey), ' (~D)'-[DownLoadLatest])])
+	;   html(['~D'-[Total], span(class(annot), '~D'-[DownLoadLatest])])
 	).
 
 pack_rating(Pack) -->
 	{ pack_rating(Pack, Rating),
 	  pack_votes(Pack, Votes),
-	  pack_name(Pack, Name)
+	  pack_comments(Pack, CommentCount),
+	  pack_name(Pack, Name),
+	  http_link_to_id(pack_rating, [], OnRating)
 	},
-	show_pack_rating(Name, Rating, Votes).
+	show_pack_rating(Name, Rating, Votes, CommentCount,
+			 [ on_rating(OnRating)
+			 ]).
 
 pack_title(Pack) -->
 	{ pack_hash(Pack, SHA1),
@@ -491,16 +500,18 @@ pack_title(Pack) -->
 	     downloads:integer,			% Total downloads
 	     download_latest:integer,		% # downloads latest version
 	     rating:number,			% Average rating
-	     votes:integer).			% Vote count
+	     votes:integer,			% Vote count
+	     comments:integer).			% Comment count
 
 current_pack(pack(Pack, SHA1,
 		  Version, OlderVersionCount,
 		  Downloads, DLLatest,
-		  Rating, Votes)) :-
+		  Rating, Votes, CommentCount)) :-
 	sha1_pack(_,Pack),
 	pack_latest_version(Pack, SHA1, Version, OlderVersionCount),
 	pack_downloads(Pack, SHA1, Downloads, DLLatest),
-	pack_rating_votes(Pack, Rating, Votes).
+	pack_rating_votes(Pack, Rating, Votes),
+	pack_comment_count(Pack, CommentCount).
 
 %%	sort_packs(+Field, +Packs, -Sorted)
 

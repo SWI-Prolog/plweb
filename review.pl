@@ -28,8 +28,9 @@
 */
 
 :- module(pack_review,
-	  [ pack_rating_votes/3,		% +Pack, -Rating, -Votes
-	    show_pack_rating//3			% +Pack, +Rating, +Votes
+	  [ pack_rating_votes/3,	% +Pack, -Rating, -Votes
+	    pack_comment_count/2,	% +Pack, -CommentCount
+	    show_pack_rating//5		% +Pack, +Rating, +Votes, +Comment, +Opts
 	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_openid)).
@@ -278,7 +279,7 @@ show_review(Pack, OpenID) -->
 	},
 	html([ div(class(review),
 		   [ b('Reviewer: '),    \show_reviewer(OpenID), ', ',
-		     b('Your rating: '), \show_rating_value(Pack, Rating),
+		     b('Your rating: '), \show_rating_value(Pack, Rating, []),
 		     b('Overall rating: '), \show_rating(Pack),
 		     div(class(comment), \show_comment(Comment)),
 		     div(class(update),
@@ -299,8 +300,10 @@ show_reviewer(_OpenID) -->
 	html(i(anonymous)).
 
 show_rating(Pack) -->
-	{ pack_rating_votes(Pack, Rating, Votes) },
-	show_pack_rating(Pack, Rating, Votes).
+	{ pack_rating_votes(Pack, Rating, Votes),
+	  pack_comment_count(Pack, Count)
+	},
+	show_pack_rating(Pack, Rating, Votes, Count, []).
 
 
 %%	pack_rating_votes(+Pack, -Rating, -Votes) is det.
@@ -317,7 +320,19 @@ pack_rating(Pack, Rating) :-
 	review(Pack, _, _, Rating, _),
 	Rating > 0.
 
-show_rating_value(Pack, Value) -->
+%%	pack_comment_count(Pack, Count)
+%
+%	True when Count is the number of comments for Pack.
+
+pack_comment_count(Pack, Count) :-
+	aggregate_all(count,
+		      ( review(Pack, _, _, _, Comment),
+			Comment \== ''
+		      ),
+		      Count).
+
+
+show_rating_value(Pack, Value, Options) -->
 	{ http_link_to_id(pack_rating, [], HREF)
 	},
 	rate([ on_rating(HREF),
@@ -328,18 +343,20 @@ show_rating_value(Pack, Value) -->
 	       class(rated),
 	       post(pack),
 	       data_average(Value)
+	     | Options
 	     ]).
 
-%%	show_pack_rating(+Pack, +Rating, +Votes)// is det.
+%%	show_pack_rating(+Pack, +Rating, +Votes, +CommentCount,
+%%			 +Options)// is det.
 %
 %	Show rating for Pack.
 
-show_pack_rating(Pack, Rating, 0) --> !,
-	show_rating_value(Pack, Rating).
-show_pack_rating(Pack, Rating, Votes) -->
+show_pack_rating(Pack, Rating, 0, 0, Options) --> !,
+	show_rating_value(Pack, Rating, Options).
+show_pack_rating(Pack, Rating, Votes, Count, Options) -->
 	html(span(class(rating),
-		  [ \show_rating_value(Pack, Rating),
-		    span(class(votes), ' (~D votes)'-[Votes])
+		  [ \show_rating_value(Pack, Rating, Options),
+		    span(class(votes), ' (~D/~D)'-[Votes, Count])
 		  ])).
 
 %%	show_comment(+Comment)// is det.
