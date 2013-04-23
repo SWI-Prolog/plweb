@@ -36,7 +36,7 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(option)).
 
-:- html_resource(jq('jRating.jquery.min.js'),
+:- html_resource(jq('jRating.jquery.js'),
 		 [ requires([ jquery,
 			      jq('jRating.jquery.css')
 			    ])
@@ -49,44 +49,56 @@
 */
 
 rate(Options) -->
-	{ option(data_id(Id), Options, rating),
-	  option(on_rating(OnRating), Options, '/on_rating'),
-	  option(length(Length), Options, 5),
+	{ option(class(Class), Options, jrating),
+	  select_option(data_id(Id), Options, Options1, rating),
+	  (   select_option(data_average(Avg), Options1, Options2)
+	  ->  Extra = ['data-average'(Avg)]
+	  ;   Extra = [],
+	      Options2 = Options
+	  )
+	},
+	html_requires(jq('jRating.jquery.js')),
+	html(div([ class(Class), 'data-id'(Id)| Extra], [])),
+	(   { option(post(Post), Options2) }
+	->  html_post(Post, \script(Options2))
+	;   script(Options2)
+	).
+
+script(Options) -->
+	{ option(length(Length), Options, 5),
 	  option(rate_max(RateMax), Options, 20),
 	  option(step(Step), Options, false),
 	  option(type(Type), Options, big),
-	  option(is_disabled(Disabled), Options, false),
+%	  option(is_disabled(Disabled), Options, false),
 	  option(class(Class), Options, jrating),
 	  option(can_rate_again(CanRateAgain), Options, false),
 	  http_absolute_location(jq('icons/stars.png'), BSP, []),
-	  http_absolute_location(jq('icons/small.png'), SSP, []),
-	  (   option(data_average(Avg), Options)
-	  ->  Extra = ['data-average'(Avg)]
-	  ;   Extra = []
-	  )
+	  http_absolute_location(jq('icons/small.png'), SSP, [])
 	},
-	html_requires(jq('jRating.jquery.min.js')),
-	html([ div([ class(Class), 'data-id'(Id)| Extra], []),
-	       script(type('text/javascript'),
-		      [ \[ '$(document).ready(function(){\n',
-			   '$(".',Class,'").jRating(\n',
-			   '   { bigStarsPath:"',BSP,'",\n',
-			   '     smallStarsPath:"',SSP,'",\n',
-			   '     phpPath:"',OnRating,'",\n',
-			   '     step:',Step,',\n',
-			   '     type:"',Type,'",\n',
-			   '     isDisabled:"',Disabled,'",\n',
-			   '     length:',Length,',\n',
-			   '     rateMax:',RateMax,',\n',
-			   '     canRateAgain:',CanRateAgain,',\n'
-			 ],
-			\set_field(Options),
-			\[ '   });\n',
-			   '});\n'
-			 ]
-		       ])
+	html(script(type('text/javascript'),
+		    [ \[ '$(document).ready(function(){\n',
+			 '$(".',Class,'").jRating(\n',
+			 '   { bigStarsPath:"',BSP,'",\n',
+			 '     smallStarsPath:"',SSP,'",\n',
+			 '     step:',Step,',\n',
+			 '     type:"',Type,'",\n',
+%			 '     isDisabled:"',Disabled,'",\n',
+			 '     length:',Length,',\n',
+			 '     rateMax:',RateMax,',\n',
+			 '     canRateAgain:',CanRateAgain,',\n'
+		       ],
+		      \set_action(Options),
+		      \set_field(Options),
+		      \[ '   });\n',
+			 '});\n'
+		       ]
+		    ])).
 
-	     ]).
+set_action(Options) -->
+	{ option(on_rating(OnRating), Options) }, !,
+	html(\[ '     phpPath:"',OnRating,'",\n'
+	      ]).
+set_action(_) --> [].
 
 set_field(Options) -->
 	{ option(set_field(Field), Options) }, !,

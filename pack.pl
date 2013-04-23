@@ -412,7 +412,8 @@ pack_listing(All, SortBy) -->
 					 'Title')
 			  ])
 		     | \pack_rows(Sorted)
-		     ])
+		     ]),
+	       \html_receive(pack)
 	     ]).
 pack_listing(Pack, _) -->
 	html([ h1(class(wiki), 'Package "~w"'-[Pack]),

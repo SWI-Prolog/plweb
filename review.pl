@@ -167,10 +167,10 @@ rating(Pack, OpenId) -->
 
 pack_rating(Request) :-
 	http_parameters(Request,
-			[ action(Action, []),
+			[ idBox(IdBox, []),
 			  rate(Rate, [number])
 			], []),
-	debug(rating, 'Got Action = ~q, Rate = ~q', [Action,Rate]),
+	debug(rating, 'Got idBox = ~q, Rate = ~q', [IdBox,Rate]),
 	format('Content-type: text/plain\n\n'),
 	format('true\n').
 
@@ -199,7 +199,7 @@ pack_submit_review(Request) :-
 	http_parameters(Request,
 			[ p(Pack, []),
 			  rating(Rating, [number]),
-			  name(Name, []),
+			  name(Name, [optional(true), default('')]),
 			  email(Email, [optional(true), default('')]),
 			  comment(Comment, [optional(true), default('')])
 			]),
@@ -291,7 +291,9 @@ show_review(Pack, OpenID) -->
 
 
 show_reviewer(OpenID) -->
-	{ author(OpenID, Name, _Email) }, !,
+	{ author(OpenID, Name, _Email),
+	  Name \== ''
+	}, !,
 	html(Name).
 show_reviewer(_OpenID) -->
 	html(i(anonymous)).
@@ -316,19 +318,16 @@ pack_rating(Pack, Rating) :-
 	Rating > 0.
 
 show_rating_value(Pack, Value) -->
-	{ http_link_to_id(pack_rating, [], HREF),
-	  (   Value =:= 0
-	  ->  Extra = []
-	  ;   Extra = [data_average(Value)]
-	  )
+	{ http_link_to_id(pack_rating, [], HREF)
 	},
 	rate([ on_rating(HREF),
 	       rate_max(5),
 	       data_id(Pack),
 	       type(small),
 	       can_rate_again(true),
-	       class(rated)
-	     | Extra
+	       class(rated),
+	       post(pack),
+	       data_average(Value)
 	     ]).
 
 %%	show_pack_rating(+Pack, +Rating, +Votes)// is det.
