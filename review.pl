@@ -30,6 +30,8 @@
 :- module(pack_review,
 	  [ pack_rating_votes/3,	% +Pack, -Rating, -Votes
 	    pack_comment_count/2,	% +Pack, -CommentCount
+	    pack_reviews//1,		% +Pack
+	    show_pack_rating//1,		% +Pack
 	    show_pack_rating//5		% +Pack, +Rating, +Votes, +Comment, +Opts
 	  ]).
 :- use_module(library(http/http_dispatch)).
@@ -38,6 +40,7 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(persistency)).
 :- use_module(library(aggregate)).
+:- use_module(library(record)).
 
 :- use_module(markitup).
 :- use_module(rating).
@@ -269,6 +272,70 @@ update_review(Pack, OpenID, Rating, Comment) -->
 		 *	   SHOW RESULTS		*
 		 *******************************/
 
+%%	pack_reviews(Pack)// is det.
+%
+%	Show reviews for Pack
+
+pack_reviews(Pack) -->
+	html(h2(class(wiki), 'Reviews')),
+	show_reviews(Pack).
+
+show_reviews(Pack) -->
+	{ \+ review(Pack, _, _, _, _), !,
+	  http_link_to_id(pack_review, [p(Pack)], HREF)
+	},
+	html([ p([ 'No reviews.  ',
+		   a(href(HREF), 'Create'), ' the first review!.'
+		 ])
+	     ]).
+show_reviews(Pack) -->
+	{ findall(review(Pack, OpenID, Time, Rating, Comment),
+		  ( review(Pack, OpenID, Time, Rating, Comment),
+		    Comment \== ''
+		  ),
+		  Reviews),
+	  length(Reviews, Count),
+	  sort_reviews(time, Reviews, Sorted),
+	  http_link_to_id(pack_review, [p(Pack)], HREF)
+	},
+	html([ p([ 'Showing ~D reviews, sorted by date entered, last '-[Count],
+		   'review first. ',
+		   'Click ', a(href(HREF), 'here'), ' to add a rating or ',
+		   'create a new review'
+		 ])
+	     ]),
+	list_reviews(Sorted),
+	html_receive(rating_scripts).
+
+list_reviews([]) --> [].
+list_reviews([H|T]) --> list_review(H), list_reviews(T).
+
+list_review(Review) -->
+	{ review_name(Review, Pack),
+	  review_openid(Review, OpenID),
+	  review_rating(Review, Rating),
+	  review_comment(Review, Comment)
+	},
+	html([ div(class(review),
+		   [ b('Reviewer: '),    \show_reviewer(OpenID), ', ',
+		     b('Rating: '),      \show_rating_value(Pack, Rating, []),
+		     div(class(comment), \show_comment(Comment))
+		   ])
+	     ]).
+
+:- record
+	  review(name:atom,
+		 openid:atom,
+		 time:number,
+		 rating:integer,
+		 comment:atom).
+
+sort_reviews(By, Reviews, Sorted) :-
+	map_list_to_pairs(review_data(By), Reviews, Keyed),
+	keysort(Keyed, KeySorted),
+	pairs_values(KeySorted, Sorted0),
+	reverse(Sorted0, Sorted).
+
 %%	show_review(+Pack, +OpenID)// is det.
 %
 %	Show an individual review about Pack
@@ -286,9 +353,8 @@ show_review(Pack, OpenID) -->
 			 [ a(href(Update), 'Update'), ' my review'
 			 ])
 		   ])
-	     ]).
-
-
+	     ]),
+	html_receive(rating_scripts).
 
 
 show_reviewer(OpenID) -->
@@ -304,6 +370,22 @@ show_rating(Pack) -->
 	  pack_comment_count(Pack, Count)
 	},
 	show_pack_rating(Pack, Rating, Votes, Count, []).
+
+%%	show_pack_rating(+Pack)// is det.
+%
+%	Show overall rating. If there is no rating, offer to create one.
+
+show_pack_rating(Pack) -->
+	{ pack_rating_votes(Pack, Rating, Votes) },
+	(   { Votes =:= 0 }
+	->  { http_link_to_id(pack_review, [p(Pack)], HREF) },
+	    html(span(class(not_rated),
+		      [ 'Not rated.  ', a(href(HREF), 'Create'),
+			'the first rating!'
+		      ]))
+	;   { pack_comment_count(Pack, Count) },
+	    show_pack_rating(Pack, Rating, Votes, Count, [])
+	).
 
 
 %%	pack_rating_votes(+Pack, -Rating, -Votes) is det.
@@ -333,15 +415,12 @@ pack_comment_count(Pack, Count) :-
 
 
 show_rating_value(Pack, Value, Options) -->
-	{ http_link_to_id(pack_rating, [], HREF)
-	},
-	rate([ on_rating(HREF),
-	       rate_max(5),
+	rate([ rate_max(5),
 	       data_id(Pack),
 	       type(small),
 	       can_rate_again(true),
 	       class(rated),
-	       post(pack),
+	       post(rating_scripts),
 	       data_average(Value)
 	     | Options
 	     ]).

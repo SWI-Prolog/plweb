@@ -414,7 +414,7 @@ pack_listing(All, SortBy) -->
 			  ])
 		     | \pack_rows(Sorted)
 		     ]),
-	       \html_receive(pack)
+	       \html_receive(rating_scripts)
 	     ]).
 pack_listing(Pack, _) -->
 	html([ h1(class(wiki), 'Package "~w"'-[Pack]),
@@ -564,6 +564,7 @@ pack_info(Pack) -->
 	       'Sorry, I know nothing about a pack named "~w"'-[Pack])).
 pack_info(Pack) -->
 	pack_info_table(Pack),
+	pack_reviews(Pack),
 	pack_file_table(Pack),
 	( pack_readme(Pack) -> [] ; [] ),
 	(   pack_file_hierarchy(Pack)
@@ -583,6 +584,7 @@ pack_info_table(Pack) -->
 	},
 	html(table(class(pack),
 		   [ \property('Title', span(class(title), Title)),
+		     \property('Rating', \show_pack_rating(Pack)),
 		     \property('Latest version', VersionA),
 		     \property('SHA1 sum', \hash(SHA1)),
 		     \info(author(_,_), Info),
