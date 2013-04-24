@@ -29,7 +29,8 @@
 
 :- module(plweb_openid,
 	  [ site_user/2,		% +Request, -User
-	    site_user_property/2	% +User, ?Property
+	    site_user_property/2,	% +User, ?Property
+	    current_user//0
 	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
@@ -37,6 +38,7 @@
 :- use_module(library(http/http_openid)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/recaptcha)).
+:- use_module(library(http/http_wrapper)).
 :- use_module(library(persistency)).
 :- use_module(library(settings)).
 
@@ -60,6 +62,7 @@
 
 :- http_handler(root(user/create_profile),  create_profile, []).
 :- http_handler(root(user/submit_profile),  submit_profile, []).
+:- http_handler(root(user/logout),	    logout, []).
 
 
 		 /*******************************
@@ -243,3 +246,50 @@ explain -->
 		       ])
 		   ])
 	     ]).
+
+
+		 /*******************************
+		 *	      LOGOUT		*
+		 *******************************/
+
+%%	logout(+Request)
+%
+%	Logout the current user and reload the current page.
+
+logout(Request) :-
+	http_parameters(Request,
+			[ return(Return, [optional(true)])
+			]),
+	openid_logged_in(OpenId), !,
+	openid_logout(OpenId),
+	(   nonvar(Return)
+	->  http_redirect(moved_temporary, Return, Request)
+	;   reply_html_page(
+		wiki,
+		title('Logged out'),
+		[ h1(class(wiki), 'Thanks for using www.swi-prolog.org')
+		])
+	).
+
+
+%%	current_user//
+
+current_user -->
+	{ openid_logged_in(User),
+	  (   site_user_property(User, name(Name)),
+	      Name \== ''
+	  ->  Display = Name
+	  ;   Display = User
+	  ),
+	  http_current_request(Request),
+	  option(request_uri(Here), Request),
+	  http_link_to_id(logout, [return(Here)], Logout)
+	},
+	html(div(class('current-user'),
+		 [ Display,
+		   ' (', a([class(logout), href(Logout)], 'logout'), ')'
+		 ])).
+current_user -->
+	[].
+
+
