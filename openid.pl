@@ -256,20 +256,22 @@ explain -->
 %
 %	Logout the current user and reload the current page.
 
-logout(Request) :-
-	http_parameters(Request,
-			[ return(Return, [optional(true)])
-			]),
+logout(_Request) :-
 	openid_logged_in(OpenId), !,
 	openid_logout(OpenId),
-	(   nonvar(Return)
-	->  http_redirect(moved_temporary, Return, Request)
-	;   reply_html_page(
-		wiki,
-		title('Logged out'),
-		[ h1(class(wiki), 'Thanks for using www.swi-prolog.org')
-		])
-	).
+	reply_html_page(
+	    wiki,
+	    title('Logged out'),
+	    [ h1(class(wiki), 'Logout'),
+	      p('Thanks for using www.swi-prolog.org')
+	    ]).
+logout(_Request) :-
+	reply_html_page(
+	    wiki,
+	    title('Not logged in'),
+	    [ h1(class(wiki), 'Logout'),
+	      p(class(warning), 'You were not logged in')
+	    ]).
 
 
 %%	current_user//
@@ -281,9 +283,7 @@ current_user -->
 	  ->  Display = Name
 	  ;   Display = User
 	  ),
-	  http_current_request(Request),
-	  option(request_uri(Here), Request),
-	  http_link_to_id(logout, [return(Here)], Logout)
+	  http_link_to_id(logout, [], Logout)
 	},
 	html(div(class('current-user'),
 		 [ Display,

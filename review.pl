@@ -89,7 +89,7 @@ pack_review(Request) :-
 	    [ h1('Review pack ~w'-[Pack]),
 	      \explain(Pack, OpenId),
 	      \html_requires(css('pack.css')),
-	      form([ class(review), action(Action) ],
+	      form([ class(review), action(Action), method('POST') ],
 		   [ input([type(hidden), name(p), value(Pack)]),
 		     table([ \reviewer(Request, OpenId),
 			     \rating(Pack, OpenId),
@@ -320,7 +320,8 @@ sort_reviews(By, Reviews, Sorted) :-
 
 show_review(Pack, OpenID) -->
 	{ review(Pack, OpenID, _Time, Rating, Comment),
-	  http_link_to_id(pack_review, [p(Pack)], Update)
+	  http_link_to_id(pack_review, [p(Pack)], Update),
+	  http_link_to_id(pack_list,   [p(Pack)], ListPack)
 	},
 	html_requires(css('pack.css')),
 	html([ div(class(review),
@@ -328,9 +329,9 @@ show_review(Pack, OpenID) -->
 		     b('Your rating: '), \show_rating_value(Pack, Rating, []),
 		     b('Overall rating: '), \show_rating(Pack),
 		     div(class(comment), \show_comment(Comment)),
-		     div(class(update),
-			 [ a(href(Update), 'Update'), ' my review'
-			 ])
+		     ul([ li([a(href(Update), 'Update'), ' my review']),
+			  li([a(href(ListPack), 'View'), ' pack ', Pack])
+			])
 		   ])
 	     ]),
 	html_receive(rating_scripts).
