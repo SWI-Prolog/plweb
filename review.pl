@@ -322,6 +322,7 @@ show_review(Pack, OpenID) -->
 	{ review(Pack, OpenID, _Time, Rating, Comment),
 	  http_link_to_id(pack_review, [p(Pack)], Update)
 	},
+	html_requires(css('pack.css')),
 	html([ div(class(review),
 		   [ b('Reviewer: '),    \show_reviewer(OpenID), ', ',
 		     b('Your rating: '), \show_rating_value(Pack, Rating, []),

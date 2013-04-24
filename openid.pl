@@ -121,10 +121,12 @@ create_profile(Request) :-
 
 
 create_profile(User, Return) -->
-	(   { has_profile(User) }
-	->  html(h1(class(wiki), 'Update profile'))
-	;   html(h1(class(wiki), 'Create profile'))
-	),
+	{ (   has_profile(User)
+	  ->  Op = 'Update profile'
+	  ;   Op = 'Create profile'
+	  )
+	},
+	html(h1(class(wiki), Op)),
 	{ http_link_to_id(submit_profile, [], Action),
 	  (   site_user_property(User, name(Name))
 	  ->  true
@@ -151,7 +153,7 @@ create_profile(User, Return) -->
 						       ]))]),
 			    tr(td(colspan(2), \recaptcha([]))),
 			    tr(td([colspan(2), align(right)],
-				  input([type(submit), value('Create profile')])))
+				  input([type(submit), value(Op)])))
 			  ])
 		  ])),
 	expain_create_profile.
@@ -222,7 +224,9 @@ plweb_login_page(Request) :-
 	reply_html_page(wiki,
 			[ title('SWI-Prolog login')
 			],
-			[ \openid_login_form(ReturnTo, []),
+			[ \openid_login_form(ReturnTo,
+					     [ show_stay(true)
+					     ]),
 			  \explain
 			]).
 
