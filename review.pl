@@ -38,6 +38,7 @@
 :- use_module(library(http/http_openid)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/html_head)).
 :- use_module(library(persistency)).
 :- use_module(library(aggregate)).
 :- use_module(library(record)).
@@ -51,6 +52,8 @@
 :- http_handler(root(pack/review/submit), pack_submit_review, []).
 :- http_handler(root(pack/review/rating), pack_rating,        []).
 
+/** <module> Handle rating and reviewing of packages
+*/
 
 		 /*******************************
 		 *	       DATA		*
@@ -61,13 +64,9 @@
 	       openid:atom,
 	       time:number,
 	       rating:integer,
-	       comment:atom),
-	author(openid:atom,
-	       name:atom,
-	       email:atom).
+	       comment:atom).
 
-
-:- db_attach(reviews, []).
+:- db_attach('reviews.db', []).
 
 
 		 /*******************************
@@ -79,7 +78,7 @@
 %	HTTP handler to review a pack.
 
 pack_review(Request) :-
-	openid_user(Request, OpenId, []), !,
+	site_user(Request, OpenId),
 	http_parameters(Request,
 			[ p(Pack, [])
 			]),
@@ -89,9 +88,10 @@ pack_review(Request) :-
 	    title('Review pack ~w'-[Pack]),
 	    [ h1('Review pack ~w'-[Pack]),
 	      \explain(Pack, OpenId),
+	      \html_requires(css('pack.css')),
 	      form([ class(review), action(Action) ],
 		   [ input([type(hidden), name(p), value(Pack)]),
-		     table([ \reviewer(OpenId),
+		     table([ \reviewer(Request, OpenId),
 			     \rating(Pack, OpenId),
 			     \comment(Pack, OpenId),
 			     tr(td([colspan(2), align(right)],
@@ -103,14 +103,12 @@ pack_review(Request) :-
 	    ]).
 
 
-explain(Pack, _User) -->
-	html([ p([ 'You requested to review pack ', b(Pack), '. ',
-		   'The requested ', i('Name'), ', is displayed with the ',
-		   'review.  ', i('Anonymous'), ' is used if you leave this ',
-		   'blank.  The ', i('E-Mail'), ' may be used by the site ',
-		   'administration to contact you in -now- unforeseen ',
-		   'circumstances.  The text field uses PlDoc wiki format, ',
-		   'which is a superset of Markdown.  You can use the two ',
+explain(Pack, OpenId) -->
+	{ site_user_property(OpenId, name(Name))
+	},
+	html([ p([ 'Dear ', Name, ', you requested to review pack ', b(Pack), '. ',
+		   'The text field uses PlDoc wiki format, which is a ',
+		   'superset of Markdown.  You can use the two ',
 		   'left-most icons to open and close a preview window.'
 		 ]),
 	       p([ 'Any user can have at most one review per pack.  Trying ',
@@ -119,25 +117,29 @@ explain(Pack, _User) -->
 		 ])
 	     ]).
 
-%%	reviewer(+OpenID)// is det.
+%%	reviewer(+Request, +OpenID)// is det.
 %
 %	Present details about the reviewer
 
-reviewer(OpenId) -->
-	{ (   author(OpenId, Name, Email)
-	  ->  true
-	  ;   Name = '',
-	      Email = ''
-	  )
+reviewer(Request, OpenId) -->
+	{ site_user_property(OpenId, name(Name)),
+	  site_user_property(OpenId, email(Email)),
+	  option(request_uri(RequestURI), Request),
+	  http_link_to_id(create_profile, [return(RequestURI)], UpdateURL),
+	  Update = a([class(update), href(UpdateURL)], update)
 	}, !,
-	html([ tr([th('Name:'),   td(input([ name(name),
-					     value(Name),
-					     placeholder('Your (nick) name')
-					   ]))]),
-	       tr([th('E-Mail:'), td(input([ name(email),
-					     value(Email),
-					     placeholder('Your E-mail')
-					   ]))])
+	html([ tr([th('Name:'),   td([ input([ name(name),
+					       value(Name),
+					       disabled(disabled)
+					     ]),
+				       Update
+				     ])]),
+	       tr([th('E-Mail:'), td([ input([ name(email),
+					       value(Email),
+					       disabled(disabled)
+					     ]),
+				       Update
+				     ])])
 	     ]).
 
 
@@ -150,7 +152,7 @@ rating(Pack, OpenId) -->
 	      Rating0 = 0
 	  )
 	},
-	html(tr([ th('Your rating for ~w'-[Pack]),
+	html(tr([ th('Your rating for ~w:'-[Pack]),
 		  td( [ input([type(hidden), name(rating), value(Rating0)]),
 			\rate([ on_rating(HREF),
 				data_id(Pack),
@@ -203,45 +205,13 @@ pack_submit_review(Request) :-
 	http_parameters(Request,
 			[ p(Pack, []),
 			  rating(Rating, [number]),
-			  name(Name, [optional(true), default('')]),
-			  email(Email, [optional(true), default('')]),
 			  comment(Comment, [optional(true), default('')])
 			]),
 	reply_html_page(
 	    wiki,
 	    title('Thanks for your review of ~w'-[Pack]),
-	    [ \update_user(OpenID, Name, Email),
-	      \update_review(Pack, OpenID, Rating, Comment)
+	    [ \update_review(Pack, OpenID, Rating, Comment)
 	    ]).
-
-
-%%	update_user(+OpenID, +Name, +Email)// is det.
-%
-%	Assert/update identity information about the user.
-
-update_user(OpenId, Name, Email) -->
-	{ author(OpenId, Name, Email) }, !.
-update_user(OpenId, Name, Email) -->
-	{ author(OpenId, _, _), !,
-	  retractall_author(OpenId, Name, Email),
-	  assert_author(OpenId, Name, Email)
-	},
-	html([ h4(class(wiki), 'Updated user details'),
-	       \user_details(OpenId)
-	     ]).
-update_user(OpenId, Name, Email) -->
-	{ assert_author(OpenId, Name, Email)
-	},
-	html([ h4(class(wiki), 'Stored user details'),
-	       \user_details(OpenId)
-	     ]).
-
-user_details(OpenID) -->
-	{ author(OpenID, Name, Email) },
-	html(table([ tr([th('OpenID'), td(OpenID)]),
-		     tr([th('Name'),   td(Name)]),
-		     tr([th('Email'),  td(Email)])
-		   ])).
 
 
 %%	update_review(+Pack, +OpenID, +Rating, +Comment)// is det.
@@ -298,8 +268,7 @@ show_reviews(Pack) -->
 	  sort_reviews(time, Reviews, Sorted),
 	  http_link_to_id(pack_review, [p(Pack)], HREF)
 	},
-	html([ p([ 'Showing ~D reviews, sorted by date entered, last '-[Count],
-		   'review first. ',
+	html([ p([ \showing_reviews(Count),
 		   'Click ', a(href(HREF), 'here'), ' to add a rating or ',
 		   'create a new review'
 		 ])
@@ -307,19 +276,28 @@ show_reviews(Pack) -->
 	list_reviews(Sorted),
 	html_receive(rating_scripts).
 
+showing_reviews(Count) -->
+	{ Count >= 2 },
+	html([ 'Showing ~D reviews, '-[Count],
+	       'sorted by date entered, last review first. '
+	     ]).
+showing_reviews(_) --> [].
+
+
 list_reviews([]) --> [].
 list_reviews([H|T]) --> list_review(H), list_reviews(T).
 
 list_review(Review) -->
 	{ review_name(Review, Pack),
 	  review_openid(Review, OpenID),
+	  review_time(Review, Time),
 	  review_rating(Review, Rating),
 	  review_comment(Review, Comment)
 	},
 	html([ div(class(review),
-		   [ b('Reviewer: '),    \show_reviewer(OpenID), ', ',
-		     b('Rating: '),      \show_rating_value(Pack, Rating, []),
-		     div(class(comment), \show_comment(Comment))
+		   [ div(class(rating),   \show_rating_value(Pack, Rating, [])),
+		     div(class(comment),  \show_comment(Comment)),
+		     div(class(reviewer), \show_reviewer(OpenID, Time))
 		   ])
 	     ]).
 
@@ -358,12 +336,20 @@ show_review(Pack, OpenID) -->
 
 
 show_reviewer(OpenID) -->
-	{ author(OpenID, Name, _Email),
+	{ site_user_property(OpenID, name(Name)),
 	  Name \== ''
 	}, !,
 	html(Name).
 show_reviewer(_OpenID) -->
 	html(i(anonymous)).
+
+show_reviewer(OpenID, Time) -->
+	{ format_time(atom(Date), '%A %d %B %Y, ', Time)
+	},
+	html(Date),
+	show_reviewer(OpenID).
+
+
 
 show_rating(Pack) -->
 	{ pack_rating_votes(Pack, Rating, Votes),
