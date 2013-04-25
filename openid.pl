@@ -44,6 +44,7 @@
 :- use_module(library(persistency)).
 :- use_module(library(settings)).
 :- use_module(library(debug)).
+:- use_module(library(uuid)).
 
 /** <module> Handle users of the SWI-Prolog website
 */
@@ -54,7 +55,8 @@
 :- persistent
 	openid_user_server(user:atom,
 			   server:atom),
-	site_user(openid:atom,
+	site_user(uuid:atom,
+		  openid:atom,
 		  name:atom,
 		  email:atom),
 	stay_signed_in(openid:atom,
@@ -77,14 +79,16 @@
 		 *	    USER ADMIN		*
 		 *******************************/
 
-site_user_property(OpenId, name(Name)) :-
-	site_user(OpenId, Name, _).
-site_user_property(OpenId, email(Email)) :-
-	site_user(OpenId, _, Email).
+site_user_property(UUID, openid(OpenId)) :-
+	site_user(UUID, OpenId, _, _).
+site_user_property(UUID, name(Name)) :-
+	site_user(UUID, _, Name, _).
+site_user_property(UUID, email(Email)) :-
+	site_user(UUID, _, _, Email).
 
 
 has_profile(OpenId) :-
-	site_user(OpenId, _, _), !.
+	site_user_property(_, openid(OpenId)).
 
 		 /*******************************
 		 *	 USER INTERACTION	*
@@ -106,8 +110,8 @@ recaptcha:key(private, Key) :- setting(recaptcha:private_key, Key).
 %	verify the user and create a profile.
 
 site_user(Request, User) :-
-	openid_user(Request, User, []),
-	(   has_profile(User)
+	openid_user(Request, OpenID, []),
+	(   site_user_property(User, openid(OpenID))
 	->  true
 	;   option(request_uri(RequestURI), Request),
 	    http_link_to_id(create_profile, [return(RequestURI)], HREF),
@@ -121,20 +125,21 @@ site_user(Request, User) :-
 %	location.
 
 create_profile(Request) :-
-	openid_user(Request, User, []),
+	openid_user(Request, OpenID, []),
 	http_parameters(Request,
 			[ return(Return, [])
 			]),
 	reply_html_page(
 	    wiki,
 	    title('Create user profile for SWI-Prolog'),
-	    \create_profile(User, Return)).
+	    \create_profile(OpenID, Return)).
 
 
-create_profile(User, Return) -->
-	{ (   has_profile(User)
+create_profile(OpenID, Return) -->
+	{ (   site_user_property(User, openid(OpenID))
 	  ->  Op = 'Update profile'
-	  ;   Op = 'Create profile'
+	  ;   uuid(User),		% new user
+	      Op = 'Create profile'
 	  )
 	},
 	html(h1(class(wiki), Op)),
@@ -150,8 +155,9 @@ create_profile(User, Return) -->
 	},
 	html(form([ class(create_profile), method('POST'), action(Action) ],
 		  [ input([type(hidden), name(return), value(Return)]),
+		    input([type(hidden), name(uuid), value(User)]),
 		    table([ tr([th('OpenID'), td(input([ name(openid),
-							 value(User),
+							 value(OpenID),
 							 disabled(disabled)
 						       ]))]),
 			    tr([th('Name'),   td(input([ name(name),
@@ -188,17 +194,18 @@ expain_create_profile -->
 %	Handle submission of the user profile
 
 submit_profile(Request) :-
-	openid_user(Request, User, []),
+	openid_user(Request, OpenID, []),
 	recaptcha_parameters(ReCAPTCHA),
 	http_parameters(Request,
-			[ name(Name,   [optional(true), default(anonymous)]),
+			[ uuid(User,   []),
+			  name(Name,   [optional(true), default(anonymous)]),
 			  email(Email, [optional(true), default('')]),
 			  return(Return, [])
 			| ReCAPTCHA
 			]),
 	(   recaptcha_verify(Request, ReCAPTCHA)
-	->  retractall_site_user(User, _, _),
-	    assert_site_user(User, Name, Email),
+	->  retractall_site_user(User, OpenID, _, _),
+	    assert_site_user(User, OpenID, Name, Email),
 	    http_redirect(moved_temporary, Return, Request)
 	;   reply_html_page(
 		wiki,
@@ -332,11 +339,12 @@ logout(_Request) :-
 %%	current_user//
 
 current_user -->
-	{ openid_logged_in(User),
-	  (   site_user_property(User, name(Name)),
+	{ openid_logged_in(OpenID),
+	  (   site_user_property(User, openid(OpenID)),
+	      site_user_property(User, name(Name)),
 	      Name \== ''
 	  ->  Display = Name
-	  ;   Display = User
+	  ;   Display = OpenID
 	  ),
 	  http_link_to_id(logout, [], Logout)
 	},

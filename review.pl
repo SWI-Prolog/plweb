@@ -35,7 +35,6 @@
 	    show_pack_rating//5		% +Pack, +Rating, +Votes, +Comment, +Opts
 	  ]).
 :- use_module(library(http/http_dispatch)).
-:- use_module(library(http/http_openid)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
@@ -61,7 +60,7 @@
 
 :- persistent
 	review(pack:atom,
-	       openid:atom,
+	       user:atom,		% UUID of the user
 	       time:number,
 	       rating:integer,
 	       comment:atom).
@@ -78,7 +77,7 @@
 %	HTTP handler to review a pack.
 
 pack_review(Request) :-
-	site_user(Request, OpenId),
+	site_user(Request, UUID),
 	http_parameters(Request,
 			[ p(Pack, [])
 			]),
@@ -87,13 +86,13 @@ pack_review(Request) :-
 	    wiki,
 	    title('Review pack ~w'-[Pack]),
 	    [ h1('Review pack ~w'-[Pack]),
-	      \explain(Pack, OpenId),
+	      \explain(Pack, UUID),
 	      \html_requires(css('pack.css')),
 	      form([ class(review), action(Action), method('POST') ],
 		   [ input([type(hidden), name(p), value(Pack)]),
-		     table([ \reviewer(Request, OpenId),
-			     \rating(Pack, OpenId),
-			     \comment(Pack, OpenId),
+		     table([ \reviewer(Request, UUID),
+			     \rating(Pack, UUID),
+			     \comment(Pack, UUID),
 			     tr(td([colspan(2), align(right)],
 				   input([ type(submit),
 					   value('Submit review')
@@ -103,8 +102,8 @@ pack_review(Request) :-
 	    ]).
 
 
-explain(Pack, OpenId) -->
-	{ site_user_property(OpenId, name(Name))
+explain(Pack, UUID) -->
+	{ site_user_property(UUID, name(Name))
 	},
 	html([ p([ 'Dear ', Name, ', you requested to review pack ', b(Pack), '. ',
 		   'The text field uses PlDoc wiki format, which is a ',
@@ -117,13 +116,13 @@ explain(Pack, OpenId) -->
 		 ])
 	     ]).
 
-%%	reviewer(+Request, +OpenID)// is det.
+%%	reviewer(+Request, +UUID)// is det.
 %
 %	Present details about the reviewer
 
-reviewer(Request, OpenId) -->
-	{ site_user_property(OpenId, name(Name)),
-	  site_user_property(OpenId, email(Email)),
+reviewer(Request, UUID) -->
+	{ site_user_property(UUID, name(Name)),
+	  site_user_property(UUID, email(Email)),
 	  option(request_uri(RequestURI), Request),
 	  http_link_to_id(create_profile, [return(RequestURI)], UpdateURL),
 	  Update = a([class(update), href(UpdateURL)], update)
@@ -143,9 +142,9 @@ reviewer(Request, OpenId) -->
 	     ]).
 
 
-rating(Pack, OpenId) -->
+rating(Pack, UUID) -->
 	{ http_link_to_id(pack_rating, [], HREF),
-	  (   review(Pack, OpenId, _, Rating0, _),
+	  (   review(Pack, UUID, _, Rating0, _),
 	      Rating0 > 0
 	  ->  Extra = [data_average(Rating0)]
 	  ;   Extra = [],
@@ -181,8 +180,8 @@ pack_rating(Request) :-
 	format('true\n').
 
 
-comment(Pack, OpenId) -->
-	{ (   review(Pack, OpenId, _, _, Comment)
+comment(Pack, UUID) -->
+	{ (   review(Pack, UUID, _, _, Comment)
 	  ->  Extra = [value(Comment)]
 	  ;   Extra = []
 	  )
@@ -201,7 +200,7 @@ comment(Pack, OpenId) -->
 %	Handle a pack review submission
 
 pack_submit_review(Request) :-
-	openid_user(Request, OpenID, []),
+	site_user(Request, UUID),
 	http_parameters(Request,
 			[ p(Pack, []),
 			  rating(Rating, [number]),
@@ -210,32 +209,33 @@ pack_submit_review(Request) :-
 	reply_html_page(
 	    wiki,
 	    title('Thanks for your review of ~w'-[Pack]),
-	    [ \update_review(Pack, OpenID, Rating, Comment)
+	    [ \update_review(Pack, UUID, Rating, Comment)
 	    ]).
 
 
-%%	update_review(+Pack, +OpenID, +Rating, +Comment)// is det.
+%%	update_review(+Pack, +UUID, +Rating, +Comment)// is det.
 %
 %	Assert/update a review about a pack.
 
-update_review(Pack, OpenID, Rating, Comment) -->
-	{ review(Pack, OpenID, _Time, Rating, Comment) }, !,
+update_review(Pack, UUID, Rating, Comment) -->
+	{ review(Pack, UUID, _Time, Rating, Comment) }, !,
 	html(h4(class(wiki), 'No changes, showing your existing comment')),
-	show_review(Pack, OpenID).
-update_review(Pack, OpenID, Rating, Comment) -->
-	{ review(Pack, OpenID, _Time, _Rating, _Comment), !,
-	  retractall_review(Pack, OpenID, _, _, _),
-	  get_time(Time),
-	  assert_review(Pack, OpenID, Time, Rating, Comment)
+	show_review(Pack, UUID).
+update_review(Pack, UUID, Rating, Comment) -->
+	{ review(Pack, UUID, _Time, _Rating, _Comment), !,
+	  retractall_review(Pack, UUID, _, _, _),
+	  get_time(TimeF),
+	  Time is round(TimeF),
+	  assert_review(Pack, UUID, Time, Rating, Comment)
 	},
 	html(h4(class(wiki), 'Updated your comments for pack ~w'-[Pack])),
-	show_review(Pack, OpenID).
-update_review(Pack, OpenID, Rating, Comment) -->
+	show_review(Pack, UUID).
+update_review(Pack, UUID, Rating, Comment) -->
 	{ get_time(Time),
-	  assert_review(Pack, OpenID, Time, Rating, Comment)
+	  assert_review(Pack, UUID, Time, Rating, Comment)
 	},
 	html(h4(class(wiki), 'Added comment for pack ~w'-[Pack])),
-	show_review(Pack, OpenID).
+	show_review(Pack, UUID).
 
 
 		 /*******************************
@@ -259,8 +259,8 @@ show_reviews(Pack) -->
 		 ])
 	     ]).
 show_reviews(Pack) -->
-	{ findall(review(Pack, OpenID, Time, Rating, Comment),
-		  ( review(Pack, OpenID, Time, Rating, Comment),
+	{ findall(review(Pack, UUID, Time, Rating, Comment),
+		  ( review(Pack, UUID, Time, Rating, Comment),
 		    Comment \== ''
 		  ),
 		  Reviews),
@@ -289,7 +289,7 @@ list_reviews([H|T]) --> list_review(H), list_reviews(T).
 
 list_review(Review) -->
 	{ review_name(Review, Pack),
-	  review_openid(Review, OpenID),
+	  review_user(Review, UUID),
 	  review_time(Review, Time),
 	  review_rating(Review, Rating),
 	  review_comment(Review, Comment)
@@ -297,13 +297,13 @@ list_review(Review) -->
 	html([ div(class(review),
 		   [ div(class(rating),   \show_rating_value(Pack, Rating, [])),
 		     div(class(comment),  \show_comment(Comment)),
-		     div(class(reviewer), \show_reviewer(OpenID, Time))
+		     div(class(reviewer), \show_reviewer(UUID, Time))
 		   ])
 	     ]).
 
 :- record
 	  review(name:atom,
-		 openid:atom,
+		 user:atom,
 		 time:number,
 		 rating:integer,
 		 comment:atom).
@@ -314,18 +314,18 @@ sort_reviews(By, Reviews, Sorted) :-
 	pairs_values(KeySorted, Sorted0),
 	reverse(Sorted0, Sorted).
 
-%%	show_review(+Pack, +OpenID)// is det.
+%%	show_review(+Pack, +UUID)// is det.
 %
 %	Show an individual review about Pack
 
-show_review(Pack, OpenID) -->
-	{ review(Pack, OpenID, _Time, Rating, Comment),
+show_review(Pack, UUID) -->
+	{ review(Pack, UUID, _Time, Rating, Comment),
 	  http_link_to_id(pack_review, [p(Pack)], Update),
 	  http_link_to_id(pack_list,   [p(Pack)], ListPack)
 	},
 	html_requires(css('pack.css')),
 	html([ div(class(review),
-		   [ b('Reviewer: '),    \show_reviewer(OpenID), ', ',
+		   [ b('Reviewer: '),    \show_reviewer(UUID), ', ',
 		     b('Your rating: '), \show_rating_value(Pack, Rating, []),
 		     b('Overall rating: '), \show_rating(Pack),
 		     div(class(comment), \show_comment(Comment)),
@@ -337,19 +337,19 @@ show_review(Pack, OpenID) -->
 	html_receive(rating_scripts).
 
 
-show_reviewer(OpenID) -->
-	{ site_user_property(OpenID, name(Name)),
+show_reviewer(UUID) -->
+	{ site_user_property(UUID, name(Name)),
 	  Name \== ''
 	}, !,
 	html(Name).
-show_reviewer(_OpenID) -->
+show_reviewer(_UUID) -->
 	html(i(anonymous)).
 
-show_reviewer(OpenID, Time) -->
+show_reviewer(UUID, Time) -->
 	{ format_time(atom(Date), '%A %d %B %Y, ', Time)
 	},
 	html(Date),
-	show_reviewer(OpenID).
+	show_reviewer(UUID).
 
 
 
@@ -440,3 +440,32 @@ show_comment(Text) -->
 	html(DOM).
 
 clean_dom([p(X)], X).
+
+
+		 /*******************************
+		 *	 PROFILE COMPONENTS	*
+		 *******************************/
+
+%%	profile_reviews(+UUID)// is det.
+%
+%	Create a =h2= section with all reviews by a given OpenID.
+
+profile_reviews(UUID) -->
+	{ \+ review(_, UUID, _, _, _) }.
+profile_reviews(UUID) -->
+	{ findall(review(Pack, UUID, Time, Rating, Comment),
+		  ( review(Pack, UUID, Time, Rating, Comment),
+		    Comment \== ''
+		  ),
+		  Reviews),
+	  length(Reviews, Count),
+	  sort_reviews(time, Reviews, Sorted),
+	  site_user_property(UUID, name(Name))
+	},
+	html([ h2(class(wiki), 'Reviews by ~w'-[Name]),
+	       p([ \showing_reviews(Count)
+		 ])
+	     ]),
+	list_reviews(Sorted),
+	html_receive(rating_scripts).
+
