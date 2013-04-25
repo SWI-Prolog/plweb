@@ -256,7 +256,8 @@ http_openid:openid_hook(logged_in(OpenId)) :-
 	    memberchk(cookie(Cookies), Request),
 	    memberchk(swipl_login=Cookie, Cookies),
 	    stay_signed_in(OpenId, Cookie, _Peer, _Time, _Expires)
-	->  http_session_assert(openid(OpenId)),
+	->  http_open_session(_, []),
+	    http_session_assert(openid(OpenId)),
 	    debug(openid(stay_signed_in),
 		  'Granted stay-signed-in for ~q', [OpenId])
 	).
