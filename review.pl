@@ -123,19 +123,12 @@ explain(Pack, UUID) -->
 
 reviewer(Request, UUID) -->
 	{ site_user_property(UUID, name(Name)),
-	  site_user_property(UUID, email(Email)),
 	  option(request_uri(RequestURI), Request),
 	  http_link_to_id(create_profile, [return(RequestURI)], UpdateURL),
-	  Update = a([class(update), href(UpdateURL)], update)
+	  Update = a([class(update), href(UpdateURL)], 'Update profile')
 	}, !,
-	html([ tr([th('Name:'),   td([ input([ name(name),
+	html([ tr([th('User:'),   td([ input([ name(name),
 					       value(Name),
-					       disabled(disabled)
-					     ]),
-				       Update
-				     ])]),
-	       tr([th('E-Mail:'), td([ input([ name(email),
-					       value(Email),
 					       disabled(disabled)
 					     ]),
 				       Update

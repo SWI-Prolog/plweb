@@ -460,7 +460,7 @@ plweb_login_page(Request) :-
 			]).
 
 explain -->
-	html([ div(class('openid-explanation'),
+	html([ div(class(smallprint),
 		   [ p([ 'Unfortunately, we have to take some measures to avoid ',
 			 'abuse of this service.  We demand login using ',
 			 a(href('http://openid.net/'), 'OpenID'), '. ',
@@ -510,11 +510,12 @@ current_user -->
 	  ->  Display = Name
 	  ;   Display = OpenID
 	  ),
+	  http_link_to_id(view_profile, [], Profile),
 	  http_link_to_id(logout, [], Logout)
 	},
 	html(div(class('current-user'),
-		 [ Display,
-		   ' (', a([class(logout), href(Logout)], 'logout'), ')'
+		 [ a([href(Profile)], Display),
+		   ' (', a([href(Logout)], 'logout'), ')'
 		 ])).
 current_user -->
 	[].
