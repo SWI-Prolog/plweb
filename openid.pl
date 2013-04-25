@@ -46,6 +46,8 @@
 :- use_module(library(debug)).
 :- use_module(library(uuid)).
 
+:- use_module(review).
+
 /** <module> Handle users of the SWI-Prolog website
 */
 
@@ -72,7 +74,8 @@
 
 :- http_handler(root(user/create_profile),  create_profile, []).
 :- http_handler(root(user/submit_profile),  submit_profile, []).
-:- http_handler(root(user/logout),	    logout, []).
+:- http_handler(root(user/logout),	    logout,         []).
+:- http_handler(root(user/profile/public),  public_profile, []).
 
 
 		 /*******************************
@@ -216,6 +219,25 @@ submit_profile(Request) :-
 		    ])
 		])
 	).
+
+%%	public_profile(+Request) is det.
+%
+%	HTTP handler showing the public profile for a user.
+
+public_profile(Request) :-
+	http_parameters(Request,
+			[ user(UUID, [])
+			]),
+	site_user_property(UUID, name(Name)),
+	reply_html_page(
+	    wiki,
+	    title('User ~w'-[Name]),
+	    [ h1(class(wiki), 'Public info for user ~w'-[Name]),
+	      \public_profile(UUID)
+	    ]).
+
+public_profile(UUID) -->
+	profile_reviews(UUID).
 
 
 		 /*******************************

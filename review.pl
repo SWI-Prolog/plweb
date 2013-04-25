@@ -31,8 +31,9 @@
 	  [ pack_rating_votes/3,	% +Pack, -Rating, -Votes
 	    pack_comment_count/2,	% +Pack, -CommentCount
 	    pack_reviews//1,		% +Pack
-	    show_pack_rating//1,		% +Pack
-	    show_pack_rating//5		% +Pack, +Rating, +Votes, +Comment, +Opts
+	    show_pack_rating//1,	% +Pack
+	    show_pack_rating//5,	% +Pack, +Rating, +Votes, +Comment, +Opts
+	    profile_reviews//1		% +UUID
 	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
@@ -273,7 +274,7 @@ show_reviews(Pack) -->
 		   'create a new review'
 		 ])
 	     ]),
-	list_reviews(Sorted),
+	list_reviews(Sorted, []),
 	html_receive(rating_scripts).
 
 showing_reviews(Count) -->
@@ -284,10 +285,10 @@ showing_reviews(Count) -->
 showing_reviews(_) --> [].
 
 
-list_reviews([]) --> [].
-list_reviews([H|T]) --> list_review(H), list_reviews(T).
+list_reviews([], _) --> [].
+list_reviews([H|T], Options) --> list_review(H, Options), list_reviews(T, Options).
 
-list_review(Review) -->
+list_review(Review, Options) -->
 	{ review_name(Review, Pack),
 	  review_user(Review, UUID),
 	  review_time(Review, Time),
@@ -295,7 +296,10 @@ list_review(Review) -->
 	  review_comment(Review, Comment)
 	},
 	html([ div(class(review),
-		   [ div(class(rating),   \show_rating_value(Pack, Rating, [])),
+		   [ div(class(rating),
+			 [ \show_pack(Pack, Options),
+			   \show_rating_value(Pack, Rating, [])
+			 ]),
 		     div(class(comment),  \show_comment(Comment)),
 		     div(class(reviewer), \show_reviewer(UUID, Time))
 		   ])
@@ -327,7 +331,7 @@ show_review(Pack, UUID) -->
 	html([ div(class(review),
 		   [ b('Reviewer: '),    \show_reviewer(UUID), ', ',
 		     b('Your rating: '), \show_rating_value(Pack, Rating, []),
-		     b('Overall rating: '), \show_rating(Pack),
+		     b('Average rating: '), \show_rating(Pack),
 		     div(class(comment), \show_comment(Comment)),
 		     ul([ li([a(href(Update), 'Update'), ' my review']),
 			  li([a(href(ListPack), 'View'), ' pack ', Pack])
@@ -337,21 +341,46 @@ show_review(Pack, UUID) -->
 	html_receive(rating_scripts).
 
 
+%%	show_pack(Pack, +Options)// is det.
+
+show_pack(Pack, Options) -->
+	{ option(show_pack(true), Options), !,
+	  http_link_to_id(pack_list, [p(Pack)], HREF)
+	},
+	html(span(['Pack: ', a(href(HREF), Pack)])).
+show_pack(_, _) --> [].
+
+
+%%	show_reviewer(+UUID)
+
 show_reviewer(UUID) -->
 	{ site_user_property(UUID, name(Name)),
-	  Name \== ''
+	  http_link_to_id(public_profile, [user(UUID)], HREF),
+	  Name \== '',
+	  aggregate_all(count,
+			( review(_, UUID, _, _, Comment), Comment \== '' ),
+			Comments),
+	  aggregate_all(count-sum(Rating),
+			( review(_, UUID, _, Rating, _), Rating > 0 ),
+			Ratings-Sum),
+	  (   Ratings > 0
+	  ->  Avg is Sum/Ratings,
+	      format(atom(Title), '~D comments, ~D ratings (avg ~1f)',
+		     [Comments, Ratings, Avg])
+	  ;   format(atom(Title), '~D comments', [Comments])
+	  )
 	}, !,
-	html(Name).
+	html(a([class(user), href(HREF), title(Title)], Name)).
 show_reviewer(_UUID) -->
 	html(i(anonymous)).
+
+%%	show_reviewer(+UUID, +Time)
 
 show_reviewer(UUID, Time) -->
 	{ format_time(atom(Date), '%A %d %B %Y, ', Time)
 	},
 	html(Date),
 	show_reviewer(UUID).
-
-
 
 show_rating(Pack) -->
 	{ pack_rating_votes(Pack, Rating, Votes),
@@ -462,10 +491,11 @@ profile_reviews(UUID) -->
 	  sort_reviews(time, Reviews, Sorted),
 	  site_user_property(UUID, name(Name))
 	},
+	html_requires(css('pack.css')),
 	html([ h2(class(wiki), 'Reviews by ~w'-[Name]),
 	       p([ \showing_reviews(Count)
 		 ])
 	     ]),
-	list_reviews(Sorted),
+	list_reviews(Sorted, [show_pack(true)]),
 	html_receive(rating_scripts).
 
