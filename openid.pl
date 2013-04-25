@@ -35,12 +35,15 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_session)).
+:- use_module(library(http/http_wrapper)).
 :- use_module(library(http/http_openid)).
+:- use_module(library(http/http_header)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/recaptcha)).
-:- use_module(library(http/http_wrapper)).
+:- use_module(library(http/http_stream)).
 :- use_module(library(persistency)).
 :- use_module(library(settings)).
+:- use_module(library(debug)).
 
 /** <module> Handle users of the SWI-Prolog website
 */
@@ -53,7 +56,12 @@
 			   server:atom),
 	site_user(openid:atom,
 		  name:atom,
-		  email:atom).
+		  email:atom),
+	stay_signed_in(openid:atom,
+		       cookie:atom,
+		       peer:atom,
+		       time:integer,
+		       expires:integer).
 
 :- initialization
 	db_attach('openid.db',
@@ -207,10 +215,56 @@ submit_profile(Request) :-
 		 *     OPENID CUSTOMIZATION	*
 		 *******************************/
 
+stay_login_cookie(swipl_login).
+
 http_openid:openid_hook(trusted(OpenId, Server)) :-
 	openid_user_server(OpenId, Server), !.
 http_openid:openid_hook(trusted(OpenId, Server)) :-
 	assert_openid_user_server(OpenId, Server), !.
+http_openid:openid_hook(stay_signed_in(OpenId)) :-
+	assertion(in_header_state),
+	http_session_cookie(Cookie),
+	get_time(NowF),
+	Now is round(NowF),
+	http_current_request(Request),
+	http_peer(Request, Peer),
+	Expires is Now+31*24*60*60,	% 31 days from now
+	assert_stay_signed_in(OpenId, Cookie, Peer, Now, Expires),
+	http_session_option(path(Path)),
+	debug(openid(stay_signed_in),
+	      'Created stay-signed-in for ~q', [OpenId]),
+	http_timestamp(Expires, RFC1123),
+	stay_login_cookie(CookieName),
+	format('Set-Cookie: ~w=~w; Expires=~w; path=~w\r\n',
+	       [CookieName, Cookie, RFC1123, Path]).
+http_openid:openid_hook(logout(OpenId)) :-
+	nonvar(OpenId),
+	assertion(in_header_state),
+	retractall_stay_signed_in(OpenId, _, _, _, _),
+	http_session_option(path(Path)),
+	stay_login_cookie(CookieName),
+	format('Set-Cookie: ~w=; \c
+	        expires=Tue, 01-Jan-1970 00:00:00 GMT; \c
+		path=~w\r\n',
+	       [CookieName, Path]),
+	fail.
+http_openid:openid_hook(logged_in(OpenId)) :-
+	(   http_in_session(_),
+	    http_session_data(openid(OpenId))
+	->  true
+	;   http_current_request(Request),
+	    memberchk(cookie(Cookies), Request),
+	    memberchk(swipl_login=Cookie, Cookies),
+	    stay_signed_in(OpenId, Cookie, _Peer, _Time, _Expires)
+	->  http_session_assert(openid(OpenId)),
+	    debug(openid(stay_signed_in),
+		  'Granted stay-signed-in for ~q', [OpenId])
+	).
+
+
+in_header_state :-
+	current_output(CGI),
+	cgi_property(CGI, state(header)), !.
 
 :- http_handler(openid(login),  plweb_login_page, []).
 
