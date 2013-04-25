@@ -76,7 +76,7 @@
 :- http_handler(root(user/create_profile),  create_profile, []).
 :- http_handler(root(user/submit_profile),  submit_profile, []).
 :- http_handler(root(user/logout),	    logout,         []).
-:- http_handler(root(user/profile/public),  public_profile, []).
+:- http_handler(root(user/view_profile),    view_profile,   []).
 
 
 		 /*******************************
@@ -221,25 +221,55 @@ submit_profile(Request) :-
 		])
 	).
 
-%%	public_profile(+Request) is det.
+%%	view_profile(+Request) is det.
 %
 %	HTTP handler showing the public profile for a user.
 
-public_profile(Request) :-
+view_profile(Request) :-
 	http_parameters(Request,
 			[ user(UUID, [])
 			]),
+	(   openid_logged_in(OpenID),
+	    site_user_property(UUID, openid(OpenID))
+	->  Options = view(private)
+	;   Options = view(public)
+	),
 	site_user_property(UUID, name(Name)),
 	reply_html_page(
 	    wiki,
 	    title('User ~w'-[Name]),
 	    [ h1(class(wiki), 'Public info for user ~w'-[Name]),
-	      \public_profile(UUID)
+	      \view_profile(UUID, Options)
 	    ]).
 
-public_profile(UUID) -->
+view_profile(UUID, Options) -->
+	private_profile(UUID, Options),
 	user_packs(UUID),
 	profile_reviews(UUID).
+
+private_profile(_UUID, Options) -->
+	{ \+ option(view(private), Options) }, !.
+private_profile(UUID, _) -->
+	html([ h2(class(wiki), 'Private profile data'),
+	       table([ \profile_data(UUID, 'Name',      name),
+		       \profile_data(UUID, 'OpenID',    openid),
+		       \profile_data(UUID, 'E-Mail',    email),
+		       \profile_data(UUID, 'Home page', home_url)
+		     ])
+	     ]).
+
+profile_data(UUID, Label, Field) -->
+	{ Term =.. [Field,Value],
+	  site_user_property(UUID, Term),
+	  value_dom(Field, Value, DOM)
+	},
+	html(tr([ th([Label,:]),
+		  td(DOM)
+		])).
+
+value_dom(name,  Name,  Name) :- !.
+value_dom(email, Email, a(href('mailto:'+Email), Email)) :- !.
+value_dom(_,     URL,   a(href(URL), URL)).
 
 user_packs(UUID) -->
 	{ setof(Pack, current_pack([author(UUID)], Pack), Packs), !,
@@ -248,7 +278,12 @@ user_packs(UUID) -->
 	},
 	html([ h2(class(wiki), 'Packages by ~w'-[Name])
 	     ]),
-	pack_table(Sorted, []).
+	pack_table(Sorted, []),
+	html([ div(class(smallprint),
+		   [ 'This list contains packages whose author name, e-mail ',
+		     'or homepage url matches the profile information.'
+		   ])
+	     ]).
 user_packs(_) -->
 	[].
 

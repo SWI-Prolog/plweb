@@ -551,13 +551,15 @@ current_pack(Filters,
 pack_filter(SHA1, author(Author)) :-
 	sha1_info(SHA1, Info),
 	member(author(Name, Contact), Info),
-	author_match(Author, Name, Contact).
+	once(author_match(Author, Name, Contact)).
 
-author_match(Author, Author, _).
-author_match(Author, _, Author).
-author_match(UUID, Name, Contact) :-
-	site_user_property(UUID, name(Name)),
-	site_user_property(UUID, email(Contact)).
+author_match(Author, Author, _).		% Specified author
+author_match(Author, _, Author).		% Specified contact
+author_match(UUID, Name, Contact) :-		% Specified UUID
+	(   site_user_property(UUID, name(Name))
+	;   site_user_property(UUID, email(Contact))
+	;   site_user_property(UUID, home_url(Contact))
+	).
 
 
 %%	sort_packs(+Field, +Packs, -Sorted)

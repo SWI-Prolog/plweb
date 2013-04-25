@@ -148,7 +148,7 @@ rating(Pack, UUID) -->
 	  (   review(Pack, UUID, _, Rating0, _),
 	      Rating0 > 0
 	  ->  Extra = [data_average(Rating0)]
-	  ;   Extra = [],
+	  ;   Extra = [data_average(0)],
 	      Rating0 = 0
 	  )
 	},
@@ -355,7 +355,7 @@ show_pack(_, _) --> [].
 
 show_reviewer(UUID) -->
 	{ site_user_property(UUID, name(Name)),
-	  http_link_to_id(public_profile, [user(UUID)], HREF),
+	  http_link_to_id(view_profile, [user(UUID)], HREF),
 	  Name \== '',
 	  aggregate_all(count,
 			( review(_, UUID, _, _, Comment), Comment \== '' ),
