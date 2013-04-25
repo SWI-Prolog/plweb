@@ -61,7 +61,8 @@
 	site_user(uuid:atom,
 		  openid:atom,
 		  name:atom,
-		  email:atom),
+		  email:atom,
+		  home_url:atom),
 	stay_signed_in(openid:atom,
 		       cookie:atom,
 		       peer:atom,
@@ -84,15 +85,14 @@
 		 *******************************/
 
 site_user_property(UUID, openid(OpenId)) :-
-	site_user(UUID, OpenId, _, _).
+	site_user(UUID, OpenId, _, _, _).
 site_user_property(UUID, name(Name)) :-
-	site_user(UUID, _, Name, _).
+	site_user(UUID, _, Name, _, _).
 site_user_property(UUID, email(Email)) :-
-	site_user(UUID, _, _, Email).
+	site_user(UUID, _, _, Email, _).
+site_user_property(UUID, home_url(Home)) :-
+	site_user(UUID, _, _, Home, _).
 
-
-has_profile(OpenId) :-
-	site_user_property(_, openid(OpenId)).
 
 		 /*******************************
 		 *	 USER INTERACTION	*
@@ -148,36 +148,41 @@ create_profile(OpenID, Return) -->
 	},
 	html(h1(class(wiki), Op)),
 	{ http_link_to_id(submit_profile, [], Action),
-	  (   site_user_property(User, name(Name))
-	  ->  true
-	  ;   Name = ''
-	  ),
-	  (   site_user_property(User, email(Email))
-	  ->  true
-	  ;   Email = ''
-	  )
+	  user_init_property(User, name(Name), ''),
+	  user_init_property(User, email(Email), ''),
+	  user_init_property(User, home_url(HomeURL), '')
 	},
 	html(form([ class(create_profile), method('POST'), action(Action) ],
 		  [ input([type(hidden), name(return), value(Return)]),
 		    input([type(hidden), name(uuid), value(User)]),
-		    table([ tr([th('OpenID'), td(input([ name(openid),
-							 value(OpenID),
-							 disabled(disabled)
-						       ]))]),
-			    tr([th('Name'),   td(input([ name(name),
-							 value(Name),
-							 placeholder('Displayed name')
-						       ]))]),
-			    tr([th('Email'),  td(input([ name(email),
-							 value(Email),
-							 placeholder('Your E-mail address')
-						       ]))]),
+		    table([ tr([th('OpenID'),   td(input([ name(openid),
+							   value(OpenID),
+							   disabled(disabled)
+							 ]))]),
+			    tr([th('Name'),     td(input([ name(name),
+							   value(Name),
+							   placeholder('Displayed name')
+							 ]))]),
+			    tr([th('Email'),    td(input([ name(email),
+							   value(Email),
+							   placeholder('Your E-mail address')
+							 ]))]),
+			    tr([th('Home URL'), td(input([ name(home_url),
+							   value(HomeURL),
+							   placeholder('http://')
+							 ]))]),
 			    tr(td(colspan(2), \recaptcha([]))),
 			    tr(td([colspan(2), align(right)],
 				  input([type(submit), value(Op)])))
 			  ])
 		  ])),
 	expain_create_profile.
+
+user_init_property(User, P, Default) :-
+	(   site_user_property(User, P)
+	->  true
+	;   arg(1, P, Default)
+	).
 
 
 expain_create_profile -->
@@ -201,15 +206,16 @@ submit_profile(Request) :-
 	openid_user(Request, OpenID, []),
 	recaptcha_parameters(ReCAPTCHA),
 	http_parameters(Request,
-			[ uuid(User,   []),
-			  name(Name,   [optional(true), default(anonymous)]),
-			  email(Email, [optional(true), default('')]),
+			[ uuid(User,     []),
+			  name(Name,     [optional(true), default(anonymous)]),
+			  email(Email,   [optional(true), default('')]),
+			  home_url(Home, [optional(true), default('')]),
 			  return(Return, [])
 			| ReCAPTCHA
 			]),
 	(   recaptcha_verify(Request, ReCAPTCHA)
-	->  retractall_site_user(User, OpenID, _, _),
-	    assert_site_user(User, OpenID, Name, Email),
+	->  retractall_site_user(User, OpenID, _, _, _),
+	    assert_site_user(User, OpenID, Name, Email, Home),
 	    http_redirect(moved_temporary, Return, Request)
 	;   reply_html_page(
 		wiki,
