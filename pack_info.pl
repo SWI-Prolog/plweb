@@ -70,9 +70,22 @@
 %	in a detached thread.
 
 update_pack_metadata :-
-	clean_pack_metadata,
-	mirror_packs,
-	xref_packs.
+	setup_call_cleanup(
+	    ( open('pack-warnings.log', write, ErrorOut),
+	      asserta((user:thread_message_hook(_Term, Kind, Lines) :-
+		        (   must_print(Kind)
+			->  print_message_lines(ErrorOut, kind(Kind), Lines)
+			;   true
+			)))
+	    ),
+	    ( clean_pack_metadata,
+	      mirror_packs,
+	      xref_packs
+	    ),
+	    close(ErrorOut)).
+
+must_print(warning).
+must_print(error).
 
 clean_pack_metadata :-
 	retractall(pack_archive(_,_,_)),
