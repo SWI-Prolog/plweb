@@ -45,9 +45,12 @@
 :- use_module(library(settings)).
 :- use_module(library(debug)).
 :- use_module(library(uuid)).
+:- use_module(library(option)).
 
 :- use_module(review).
 :- use_module(pack).
+:- use_module(wiki).
+:- use_module(markitup).
 
 /** <module> Handle users of the SWI-Prolog website
 */
@@ -63,6 +66,8 @@
 		  name:atom,
 		  email:atom,
 		  home_url:atom),
+	user_description(uuid:atom,
+			 description:atom),
 	stay_signed_in(openid:atom,
 		       cookie:atom,
 		       peer:atom,
@@ -91,7 +96,7 @@ site_user_property(UUID, name(Name)) :-
 site_user_property(UUID, email(Email)) :-
 	site_user(UUID, _, _, Email, _).
 site_user_property(UUID, home_url(Home)) :-
-	site_user(UUID, _, _, Home, _).
+	site_user(UUID, _, _, _, Home).
 
 
 		 /*******************************
@@ -171,6 +176,7 @@ create_profile(OpenID, Return) -->
 							   value(HomeURL),
 							   placeholder('http://')
 							 ]))]),
+			    \description(User),
 			    tr(td(colspan(2), \recaptcha([]))),
 			    tr(td([colspan(2), align(right)],
 				  input([type(submit), value(Op)])))
@@ -186,17 +192,37 @@ user_init_property(User, P, Default) :-
 
 
 expain_create_profile -->
-	html(div(class('openid-explanation'),
+	html(div(class('smallprint'),
 		 [ p([ 'On this page, we ask you to proof you are human and ',
 		       'create a minimal profile. '  ,
 		       'Your name is displayed along with comments that you create. ',
-		       'Your E-mail will only be used for communication by the site ',
-		       'administration in -currently- unforeseen circumstances. ',
-		       'Notably, it will not be displayed, not be used for spamming and ',
-		       'not be handed to third parties.'
+		       'Your E-mail and home URL are used to detect authorship of ',
+		       'packs. ',
+		       'Your E-mail and home URL will not be displayed, ',
+		       'not be used for spamming and not be handed to third parties.',
+		       'The editor can be used to add a short description about yourself. ',
+		       'This description is shown on your profile page that collects ',
+		       'your packages and ratings and reviews you performed.'
 		     ])
 		 ])).
 
+%%	description(+UUID)//
+%
+%	Provide field for entering a description about the user.
+
+description(UUID) -->
+	{ (   user_description(UUID, Description)
+	  ->  Extra = [value(Description)]
+	  ;   Extra = []
+	  )
+	},
+	html(tr(td(colspan(2),
+		   \markitup([ id(description),
+			       markup(pldoc),
+			       cold(60),
+			       rows(10)
+			     | Extra
+			     ])))).
 
 %%	submit_profile(+Request)
 %
@@ -206,16 +232,18 @@ submit_profile(Request) :-
 	openid_user(Request, OpenID, []),
 	recaptcha_parameters(ReCAPTCHA),
 	http_parameters(Request,
-			[ uuid(User,     []),
-			  name(Name,     [optional(true), default(anonymous)]),
-			  email(Email,   [optional(true), default('')]),
-			  home_url(Home, [optional(true), default('')]),
+			[ uuid(User,         []),
+			  name(Name,         [optional(true), default(anonymous)]),
+			  email(Email,       [optional(true), default('')]),
+			  home_url(Home,     [optional(true), default('')]),
+			  description(Descr, [optional(true), default('')]),
 			  return(Return, [])
 			| ReCAPTCHA
 			]),
 	(   recaptcha_verify(Request, ReCAPTCHA)
 	->  retractall_site_user(User, OpenID, _, _, _),
 	    assert_site_user(User, OpenID, Name, Email, Home),
+	    update_description(User, Descr),
 	    http_redirect(moved_temporary, Return, Request)
 	;   reply_html_page(
 		wiki,
@@ -227,6 +255,12 @@ submit_profile(Request) :-
 		])
 	).
 
+update_description(UUID, '') :- !,
+	retractall_user_description(UUID, _).
+update_description(UUID, Description) :- !,
+	retractall_user_description(UUID, _),
+	assert_user_description(UUID, Description).
+
 %%	view_profile(+Request) is det.
 %
 %	HTTP handler showing the public profile for a user.
@@ -237,32 +271,48 @@ view_profile(Request) :-
 			]),
 	(   openid_logged_in(OpenID),
 	    site_user_property(UUID, openid(OpenID))
-	->  Options = view(private)
-	;   Options = view(public)
+	->  Options = [view(private), edit_link(true)]
+	;   Options = [view(public)]
 	),
 	site_user_property(UUID, name(Name)),
 	reply_html_page(
 	    wiki,
 	    title('User ~w'-[Name]),
-	    [ h1(class(wiki), 'Public info for user ~w'-[Name]),
+	    [ \edit_link(UUID, Options),
+	      h1(class(wiki), 'Profile for user ~w'-[Name]),
 	      \view_profile(UUID, Options)
 	    ]).
 
 view_profile(UUID, Options) -->
 	private_profile(UUID, Options),
+	user_description(UUID, Options),
 	user_packs(UUID),
 	profile_reviews(UUID).
 
+%%	private_profile(+UUID, +Options)// is det.
+%
+%	If the user is viewing his/her own profile, show a table holding
+%	the private profile information.
+
 private_profile(_UUID, Options) -->
 	{ \+ option(view(private), Options) }, !.
-private_profile(UUID, _) -->
-	html([ h2(class(wiki), 'Private profile data'),
-	       table([ \profile_data(UUID, 'Name',      name),
-		       \profile_data(UUID, 'OpenID',    openid),
-		       \profile_data(UUID, 'E-Mail',    email),
-		       \profile_data(UUID, 'Home page', home_url)
-		     ])
+private_profile(UUID, _Options) -->
+	html([ div(class('private-profile'),
+		   [ h2(class(wiki), 'Private profile data'),
+		     table([ \profile_data(UUID, 'Name',      name),
+			     \profile_data(UUID, 'OpenID',    openid),
+			     \profile_data(UUID, 'E-Mail',    email),
+			     \profile_data(UUID, 'Home page', home_url)
+			   ])
+		   ]),
+	       div(class(smallprint),
+		   'This private information is shown only to the owner.')
 	     ]).
+
+create_profile_link(HREF) :-
+	http_current_request(Request),
+	option(request_uri(Here), Request),
+	http_link_to_id(create_profile, [return(Here)], HREF).
 
 profile_data(UUID, Label, Field) -->
 	{ Term =.. [Field,Value],
@@ -276,6 +326,44 @@ profile_data(UUID, Label, Field) -->
 value_dom(name,  Name,  Name) :- !.
 value_dom(email, Email, a(href('mailto:'+Email), Email)) :- !.
 value_dom(_,     URL,   a(href(URL), URL)).
+
+%%	user_description(UUID, +Options)// is det.
+%
+%	Show user description
+
+user_description(UUID, _Options) -->
+	{ user_description(UUID, Description),
+	  Description \== '', !,
+	  atom_codes(Description, Codes),
+	  wiki_file_codes_to_dom(Codes, /, DOM0),
+	  clean_dom(DOM0, DOM)
+	},
+	html(DOM).
+user_description(_UUID, Options) -->
+	{ option(edit_link(true), Options),
+	  create_profile_link(Edit)
+	},
+	html([ i('No description.'),
+	       ' Click ', a(href(Edit), here), ' to create one'
+	     ]).
+user_description(_, _) --> [].
+
+clean_dom([p(X)], X) :- !.
+clean_dom(X, X).
+
+edit_link(_UUID, Options) -->
+	{ option(edit_link(true), Options), !,
+	  create_profile_link(Edit)
+	},
+	html(div(class('edit-profile'),
+		 [ a(href(Edit), 'Edit'), ' profile'])).
+edit_link(_, _) --> [].
+
+
+%%	user_packs(UUID)// is det.
+%
+%	Show a filtered version of the pack table, holding the packs
+%	created by this user.
 
 user_packs(UUID) -->
 	{ setof(Pack, current_pack([author(UUID)], Pack), Packs), !,

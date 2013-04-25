@@ -468,7 +468,8 @@ show_comment(Text) -->
 	},
 	html(DOM).
 
-clean_dom([p(X)], X).
+clean_dom([p(X)], X) :- !.
+clean_dom(X, X).
 
 
 		 /*******************************
