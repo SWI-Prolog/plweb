@@ -242,10 +242,15 @@ public_profile(UUID) -->
 	profile_reviews(UUID).
 
 user_packs(UUID) -->
-	{ setof(Pack, current_pack([author(UUID)], Pack), Packs),
-	  sort_packs(rating, Packs, Sorted)
+	{ setof(Pack, current_pack([author(UUID)], Pack), Packs), !,
+	  sort_packs(rating, Packs, Sorted),
+	  site_user_property(UUID, name(Name))
 	},
-	pack_table(Sorted).
+	html([ h2(class(wiki), 'Packages by ~w'-[Name])
+	     ]),
+	pack_table(Sorted, []).
+user_packs(_) -->
+	[].
 
 
 		 /*******************************

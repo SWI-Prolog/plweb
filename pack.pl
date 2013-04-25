@@ -36,7 +36,7 @@
 
 	    current_pack/2,		% +Filter, -Pack
 	    sort_packs/3,		% +By, +Packs, -Sorted
-	    pack_table//1		% +Packs
+	    pack_table//2		% +Packs, +Options
 	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
@@ -376,7 +376,7 @@ pack(Pack) :-
 pack_list(Request) :-
 	http_parameters(Request,
 			[ p(Pack, [optional(true)]),
-			  author(Author), [optional([true])],
+			  author(Author, [optional(true)]),
 			  sort(Sort, [ oneof([name,downloads,rating]),
 				       optional(true),
 				       default(name)
@@ -417,13 +417,16 @@ pack_listing(_Pack, Author, SortBy) -->
 		   'rate and comment the pack.'
 		 ])
 	     ]),
-	pack_table(Sorted).
+	pack_table(Sorted, [sort_by(SortBy)]),
+	html_receive(rating_scripts).
 
-%%	pack_table(+Packs)// is det.
+%%	pack_table(+Packs, +Options)// is det.
 %
 %	Show a table of packs.
 
-pack_table(Packs) -->
+pack_table(Packs, Options) -->
+	{ option(sort_by(SortBy), Options, -)
+	},
 	html_requires(css('pack.css')),
 	html(table(class(packlist),
 		   [ tr([ \pack_header(name,  SortBy,
@@ -439,8 +442,7 @@ pack_table(Packs) -->
 				       'Title', [])
 			])
 		   | \pack_rows(Packs)
-		   ])),
-	html_receive(rating_scripts).
+		   ])).
 
 
 pack_rows([]) --> [].
@@ -457,6 +459,8 @@ pack_row(Pack) -->
 		  td(\pack_title(Pack))
 		])).
 
+pack_header(Name, -, Title, Subtitle) --> !,
+	html(th(id(Name), [Title, \subtitle(Subtitle)])).
 pack_header(Name, SortBy, Title, Subtitle) -->
 	{ Name \== SortBy,
 	  sortable(Name), !,
