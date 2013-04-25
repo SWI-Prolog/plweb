@@ -267,12 +267,14 @@ update_description(UUID, Description) :- !,
 
 view_profile(Request) :-
 	http_parameters(Request,
-			[ user(UUID, [])
+			[ user(UUID, [ optional(true) ])
 			]),
 	(   openid_logged_in(OpenID),
 	    site_user_property(UUID, openid(OpenID))
 	->  Options = [view(private), edit_link(true)]
-	;   Options = [view(public)]
+	;   nonvar(UUID)
+	->  Options = [view(public)]
+	;   existence_error(http_parameter, user)
 	),
 	site_user_property(UUID, name(Name)),
 	reply_html_page(
