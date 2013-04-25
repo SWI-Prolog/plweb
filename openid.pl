@@ -47,6 +47,7 @@
 :- use_module(library(uuid)).
 
 :- use_module(review).
+:- use_module(pack).
 
 /** <module> Handle users of the SWI-Prolog website
 */
@@ -237,7 +238,14 @@ public_profile(Request) :-
 	    ]).
 
 public_profile(UUID) -->
+	user_packs(UUID),
 	profile_reviews(UUID).
+
+user_packs(UUID) -->
+	{ setof(Pack, current_pack([author(UUID)], Pack), Packs),
+	  sort_packs(rating, Packs, Sorted)
+	},
+	pack_table(Sorted).
 
 
 		 /*******************************

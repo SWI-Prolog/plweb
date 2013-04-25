@@ -32,7 +32,11 @@
 	    pack_version_hashes/2,	% +Pack, -VersionHashesPairs
 	    pack_version_urls/2,	% +Pack, -VersionUrlPairs
 	    hash_git_url/2,		% +Hash, -URL
-	    pack_url_hash/2		% +URL, -SHA1
+	    pack_url_hash/2,		% +URL, -SHA1
+
+	    current_pack/2,		% +Filter, -Pack
+	    sort_packs/3,		% +By, +Packs, -Sorted
+	    pack_table//1		% +Packs
 	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
@@ -47,6 +51,7 @@
 
 :- use_module(pack_info).
 :- use_module(review).
+:- use_module(openid).
 
 :- http_handler(root(pack/query),	 pack_query,	    []).
 :- http_handler(root(pack/list),	 pack_list,	    []).
@@ -371,6 +376,7 @@ pack(Pack) :-
 pack_list(Request) :-
 	http_parameters(Request,
 			[ p(Pack, [optional(true)]),
+			  author(Author), [optional([true])],
 			  sort(Sort, [ oneof([name,downloads,rating]),
 				       optional(true),
 				       default(name)
@@ -378,12 +384,21 @@ pack_list(Request) :-
 			]),
 	reply_html_page(wiki,
 			title('SWI-Prolog packages'),
-			[ \pack_listing(Pack, Sort)
+			[ \pack_listing(Pack, Author, Sort)
 			]).
 
-pack_listing(All, SortBy) -->
-	{ var(All), !,
-	  (   setof(Pack, current_pack(Pack), Packs)
+pack_listing(Pack, _Author, _Sort) -->
+	{ ground(Pack) }, !,
+	html([ h1(class(wiki), 'Package "~w"'-[Pack]),
+	       \html_requires(css('pack.css')),
+	       \pack_info(Pack)
+	     ]).
+pack_listing(_Pack, Author, SortBy) -->
+	{ (   nonvar(Author)
+	  ->  Filter = [author(Author)]
+	  ;   Filter = []
+	  ),
+	  (   setof(Pack, current_pack(Filter, Pack), Packs)
 	  ->  true
 	  ;   Packs = []
 	  ),
@@ -400,30 +415,32 @@ pack_listing(All, SortBy) -->
 		 ]),
 	       p([ 'Clicking the package shows details and allows you to ',
 		   'rate and comment the pack.'
-		 ]),
-	       \html_requires(css('pack.css')),
-	       table(class(packlist),
-		     [ tr([ \pack_header(name,  SortBy,
-					 'Pack', []),
-			    \pack_header(version, SortBy,
-					 'Version', '(#older)'),
-			    \pack_header(downloads, SortBy,
-					 'Downloads', '(#latest)'),
-			    \pack_header(rating, SortBy,
-					 'Rating', ['(#votes/', br([]),
-						    '#comments)']),
-			    \pack_header(title, SortBy,
-					 'Title', [])
-			  ])
-		     | \pack_rows(Sorted)
-		     ]),
-	       \html_receive(rating_scripts)
-	     ]).
-pack_listing(Pack, _) -->
-	html([ h1(class(wiki), 'Package "~w"'-[Pack]),
-	       \html_requires(css('pack.css')),
-	       \pack_info(Pack)
-	     ]).
+		 ])
+	     ]),
+	pack_table(Sorted).
+
+%%	pack_table(+Packs)// is det.
+%
+%	Show a table of packs.
+
+pack_table(Packs) -->
+	html_requires(css('pack.css')),
+	html(table(class(packlist),
+		   [ tr([ \pack_header(name,  SortBy,
+				       'Pack', []),
+			  \pack_header(version, SortBy,
+				       'Version', '(#older)'),
+			  \pack_header(downloads, SortBy,
+				       'Downloads', '(#latest)'),
+			  \pack_header(rating, SortBy,
+				       'Rating', ['(#votes/', br([]),
+						  '#comments)']),
+			  \pack_header(title, SortBy,
+				       'Title', [])
+			])
+		   | \pack_rows(Packs)
+		   ])),
+	html_receive(rating_scripts).
 
 
 pack_rows([]) --> [].
@@ -506,15 +523,38 @@ pack_title(Pack) -->
 	     votes:integer,			% Vote count
 	     comments:integer).			% Comment count
 
-current_pack(pack(Pack, SHA1,
+%%	current_pack(+Filter:list, -Pack) is nondet.
+%
+%	True when Pack is a pack that satisfies Filter. Filter is a list
+%	of filter expressions. Currently defined filters are:
+%
+%	  * author(+Author)
+%	  Pack is claimed by this author.
+
+current_pack(Filters,
+	     pack(Pack, SHA1,
 		  Version, OlderVersionCount,
 		  Downloads, DLLatest,
 		  Rating, Votes, CommentCount)) :-
-	sha1_pack(_,Pack),
+	setof(Pack, H^sha1_pack(H,Pack), Packs),
+	member(Pack, Packs),
 	pack_latest_version(Pack, SHA1, Version, OlderVersionCount),
+	maplist(pack_filter(SHA1), Filters),
 	pack_downloads(Pack, SHA1, Downloads, DLLatest),
 	pack_rating_votes(Pack, Rating, Votes),
 	pack_comment_count(Pack, CommentCount).
+
+pack_filter(SHA1, author(Author)) :-
+	sha1_info(SHA1, Info),
+	member(author(Name, Contact), Info),
+	author_match(Author, Name, Contact).
+
+author_match(Author, Author, _).
+author_match(Author, _, Author).
+author_match(UUID, Name, Contact) :-
+	site_user_property(UUID, name(Name)),
+	site_user_property(UUID, email(Contact)).
+
 
 %%	sort_packs(+Field, +Packs, -Sorted)
 
