@@ -436,6 +436,17 @@ http_openid:openid_hook(logged_in(OpenId)) :-
 	).
 
 
+%%	yadis:xrds_specified_location(+Server, -XRDSLocation)
+%
+%	Fake that Google has Yadis discovery
+
+:- multifile
+	yadis:xrds_specified_location/2.
+
+yadis:xrds_specified_location('http://google.com/',
+			      'https://www.google.com/accounts/o8/id').
+
+
 in_header_state :-
 	current_output(CGI),
 	cgi_property(CGI, state(header)), !.
