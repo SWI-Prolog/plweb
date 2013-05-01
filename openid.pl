@@ -438,13 +438,22 @@ http_openid:openid_hook(logged_in(OpenId)) :-
 
 %%	yadis:xrds_specified_location(+Server, -XRDSLocation)
 %
-%	Fake that Google has Yadis discovery
+%	Hacks to deal with broken Yadis support.
+%
+%	  - Google does not support Yadis discovery, but does have an
+%	    XRSD document, so we fake its location.
+%	  - stackexchange.com serves an _OP Identifier Element_ instead
+%	    of an _Claimed Identifier Element_ when doing Yadis
+%	    discovery on the real OpenID.
 
 :- multifile
 	yadis:xrds_specified_location/2.
 
 yadis:xrds_specified_location('http://google.com/',
 			      'https://www.google.com/accounts/o8/id').
+yadis:xrds_specified_location(StackOverFlow, -) :-
+	sub_atom(StackOverFlow, 0, _, A, 'https://openid.stackexchange.com/'),
+	A > 0.
 
 
 in_header_state :-
