@@ -83,6 +83,7 @@
 :- http_handler(root(user/submit_profile),  submit_profile, []).
 :- http_handler(root(user/logout),	    logout,         []).
 :- http_handler(root(user/view_profile),    view_profile,   []).
+:- http_handler(root(user/verify),          verify_user,    []).
 
 
 		 /*******************************
@@ -472,11 +473,13 @@ plweb_login_page(Request) :-
 	http_parameters(Request,
 			[ 'openid.return_to'(ReturnTo, [])
 			]),
+	http_link_to_id(verify_user, [], Action),
 	reply_html_page(wiki,
 			[ title('SWI-Prolog login')
 			],
 			[ \openid_login_form(ReturnTo,
-					     [ show_stay(true)
+					     [ show_stay(true),
+					       action(Action)
 					     ]),
 			  \explain
 			]).
@@ -494,6 +497,19 @@ explain -->
 		       ])
 		   ])
 	     ]).
+
+
+%%	verify_user(+Request)
+%
+%	HTTP handler for SWI-Prolog  site   login.  Calls openid_verify,
+%	asking for additional attribute exchange.
+
+verify_user(Request) :-
+	openid_verify([ ax([ nickname(_),
+			     email(_, [required]),
+			     fullname(_)
+			   ])
+		      ], Request).
 
 
 		 /*******************************
