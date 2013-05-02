@@ -188,9 +188,22 @@ create_profile(OpenID, Return) -->
 user_init_property(User, P, Default) :-
 	(   site_user_property(User, P)
 	->  true
+	;   http_session_data(ax(AX)),
+	    ax(P, AX)
+	->  true
 	;   arg(1, P, Default)
 	).
 
+ax(email(Email), AX) :-
+	memberchk(email(Email), AX).
+ax(name(Name), AX) :-
+	memberchk(fullname(Name), AX), !.
+ax(name(Name), AX) :-
+	memberchk(firstname(First), AX),
+	memberchk(lastname(Last), AX), !,
+	atomic_list_concat([First, Last], ' ', Name).
+ax(name(Name), AX) :-
+	memberchk(nickname(Name), AX), !.
 
 expain_create_profile -->
 	html(div(class('smallprint'),
@@ -505,9 +518,11 @@ explain -->
 %	asking for additional attribute exchange.
 
 verify_user(Request) :-
-	openid_verify([ ax([ nickname(_),
-			     email(_, [required]),
-			     fullname(_)
+	openid_verify([ ax([ email(_, [required]),
+			     nickname(_),
+			     fullname(_),
+			     firstname(_),
+			     lastname(_)
 			   ])
 		      ], Request).
 
