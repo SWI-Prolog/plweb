@@ -54,7 +54,8 @@ user:body(wiki, Body) --> !,
 		    \doc_links([], [search_options(false)]),
 		    div(class(content), Body),
 		    div(class(footer), \server_address)
-		  ])).
+		  ])),
+	html_receive(script).
 user:body(plain, Body) --> !,
 	html(body(class(wiki), Body)).
 user:body(_, Body) -->
@@ -65,7 +66,8 @@ user:body(_, Body) -->
 		    \current_user,
 		    div(class(content), Body),
 		    div(class(footer), \server_address)
-		  ])).
+		  ])),
+	html_receive(script).
 
 favicon(Spec) -->
 	{ http_absolute_location(Spec, URL, [])

@@ -267,8 +267,7 @@ show_reviews(Pack) -->
 		   'create a new review'
 		 ])
 	     ]),
-	list_reviews(Sorted, []),
-	html_receive(rating_scripts).
+	list_reviews(Sorted, []).
 
 showing_reviews(Count) -->
 	{ Count >= 2 },
@@ -330,8 +329,7 @@ show_review(Pack, UUID) -->
 			  li([a(href(ListPack), 'View'), ' pack ', Pack])
 			])
 		   ])
-	     ]),
-	html_receive(rating_scripts).
+	     ]).
 
 
 %%	show_pack(Pack, +Options)// is det.
@@ -430,7 +428,7 @@ show_rating_value(Pack, Value, Options) -->
 	       type(small),
 	       disabled(true),
 	       class(rated),
-	       post(rating_scripts),
+	       post(script),
 	       data_average(Value)
 	     | Options
 	     ]).
@@ -490,6 +488,5 @@ profile_reviews(UUID) -->
 	       p([ \showing_reviews(Count)
 		 ])
 	     ]),
-	list_reviews(Sorted, [show_pack(true)]),
-	html_receive(rating_scripts).
+	list_reviews(Sorted, [show_pack(true)]).
 

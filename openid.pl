@@ -304,8 +304,7 @@ view_profile(UUID, Options) -->
 	private_profile(UUID, Options),
 	user_description(UUID, Options),
 	user_packs(UUID),
-	profile_reviews(UUID),
-	html_receive(rating_scripts).
+	profile_reviews(UUID).
 
 %%	private_profile(+UUID, +Options)// is det.
 %
