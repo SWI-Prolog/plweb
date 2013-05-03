@@ -476,7 +476,7 @@ in_header_state :-
 	current_output(CGI),
 	cgi_property(CGI, state(header)), !.
 
-:- http_handler(openid(login),  plweb_login_page, []).
+:- http_handler(openid(login),  plweb_login_page, [id(swipl_login)]).
 
 %%	plweb_login_page(+Request)
 %
@@ -489,8 +489,7 @@ plweb_login_page(Request) :-
 			[ 'openid.return_to'(ReturnTo, [])
 			]),
 	http_link_to_id(verify_user, [], Action),
-	http_absolute_location(icons('social_google_box.png'), GoogleIMG, []),
-	http_absolute_location(icons('social_yahoo_box_lilac.png'), YahooIMG, []),
+	quick_buttons(Buttons),
 	reply_html_page(wiki,
 			[ title('SWI-Prolog login')
 			],
@@ -498,31 +497,67 @@ plweb_login_page(Request) :-
 			       ReturnTo,
 			       [ show_stay(true),
 				 action(Action),
-				 buttons([ img([ src(GoogleIMG),
-						 href('http://google.com'),
-						 alt('Sign in with Google')
-					       ]),
-					   img([ src(YahooIMG),
-						 href('http://yahoo.com'),
-						 alt('Sign in with Yahoo')
-					       ])
-					 ])
+				 buttons(Buttons)
 			       ]),
 			  \explain
 			]).
 
 explain -->
 	html([ div(class(smallprint),
-		   [ p([ 'Unfortunately, we have to take some measures to avoid ',
-			 'abuse of this service.  We demand login using ',
-			 a(href('http://openid.net/'), 'OpenID'), '. ',
-			 'Currently, we accept any OpenID provider.'
+		   [ p([ 'Actions such as rating, commenting and tagging ',
+			 'requires you to be signed in. ',
+			 'We use ', a(href('http://openid.net/'), 'OpenID'), '. ',
+			 'Currently, we accept any OpenID provider. ',
+			 'Tested with ', \openid_ok
 		       ]),
 		     p([ 'After logging in for the first time, we will ask for ',
 			 'some additional information.  All information is ',
 			 'optional.'
 		       ])
 		   ])
+	     ]).
+
+
+%%	quick_buttons(-Buttons) is det.
+%
+%	Create a list of img(Attributes) terms for quick login.
+
+quick_buttons(Buttons) :-
+	findall(Img, quick_button(Img), Buttons).
+
+quick_button(img([ src(Icon),
+		   href(Provider),
+		   alt(Name),
+		   title('Sign in with '+Name)
+		 ])) :-
+	openid_provider(2, Provider, Name, ImgName),
+	http_absolute_location(icons(ImgName), Icon, []).
+
+openid_provider(2, 'http://google.com', 'Google', 'social_google_box.png').
+openid_provider(2, 'http://yahoo.com',  'Yahoo', 'social_yahoo_box_lilac.png').
+openid_provider(1, 'https://openid.stackexchange.com/%user%', 'StackExchange', -).
+openid_provider(1, 'http://%user%.myopenid.com', 'MyOpenID', -).
+
+openid_ok -->
+	{ Term = openid_provider(_Version, _URL, _Name, _Icon),
+	  findall(Term, Term, Terms)
+	},
+	openid_ok(Terms).
+
+openid_ok([]) --> [].
+openid_ok([H|T]) -->
+	openid_ok1(H),
+	(   {T == []}
+	->  []
+	;   html(', '),
+	    openid_ok(T)
+	).
+
+openid_ok1(openid_provider(2, URL, Name, _Icon)) --> !,
+	html(a(href(URL), Name)).
+openid_ok1(openid_provider(1, URL, Name, _Icon)) --> !,
+	html([ Name, ' using the url ',
+	       span(class('openid-url-pattern'), URL)
 	     ]).
 
 
@@ -570,7 +605,7 @@ logout(_Request) :-
 %%	current_user//
 
 current_user -->
-	{ openid_logged_in(OpenID),
+	{ openid_logged_in(OpenID), !,
 	  (   site_user_property(User, openid(OpenID)),
 	      site_user_property(User, name(Name)),
 	      Name \== ''
@@ -585,6 +620,15 @@ current_user -->
 		   ' (', a([href(Logout)], 'logout'), ')'
 		 ])).
 current_user -->
+	{ http_current_request(Request),
+	  memberchk(request_uri(Here), Request), !,
+	  http_link_to_id(swipl_login,
+			  [ 'openid.return_to'(Here)
+			  ],
+			  Login)
+	},
+	html(div(class('current-user'),
+		 a([class(signin), href(Login)], login))).
+current_user -->
 	[].
-
 
