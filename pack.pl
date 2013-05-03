@@ -32,7 +32,11 @@
 	    pack_version_hashes/2,	% +Pack, -VersionHashesPairs
 	    pack_version_urls/2,	% +Pack, -VersionUrlPairs
 	    hash_git_url/2,		% +Hash, -URL
-	    pack_url_hash/2		% +URL, -SHA1
+	    pack_url_hash/2,		% +URL, -SHA1
+
+	    current_pack/2,		% +Filter, -Pack
+	    sort_packs/3,		% +By, +Packs, -Sorted
+	    pack_table//2		% +Packs, +Options
 	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
@@ -42,7 +46,12 @@
 :- use_module(library(persistency)).
 :- use_module(library(aggregate)).
 :- use_module(library(memfile)).
+:- use_module(library(record)).
+:- use_module(library(pairs)).
+
 :- use_module(pack_info).
+:- use_module(review).
+:- use_module(openid).
 
 :- http_handler(root(pack/query),	 pack_query,	    []).
 :- http_handler(root(pack/list),	 pack_list,	    []).
@@ -366,18 +375,34 @@ pack(Pack) :-
 
 pack_list(Request) :-
 	http_parameters(Request,
-			[ p(Pack, [optional(true)])
+			[ p(Pack, [optional(true)]),
+			  author(Author, [optional(true)]),
+			  sort(Sort, [ oneof([name,downloads,rating]),
+				       optional(true),
+				       default(name)
+				     ])
 			]),
 	reply_html_page(wiki,
 			title('SWI-Prolog packages'),
-			[ \pack_listing(Pack)
+			[ \pack_listing(Pack, Author, Sort)
 			]).
 
-
-pack_listing(All) -->
-	{ var(All), !,
-	  findall(Pack, sha1_pack(_,Pack), Packs),
-	  sort(Packs, Sorted)
+pack_listing(Pack, _Author, _Sort) -->
+	{ ground(Pack) }, !,
+	html([ h1(class(wiki), 'Package "~w"'-[Pack]),
+	       \html_requires(css('pack.css')),
+	       \pack_info(Pack)
+	     ]).
+pack_listing(_Pack, Author, SortBy) -->
+	{ (   nonvar(Author)
+	  ->  Filter = [author(Author)]
+	  ;   Filter = []
+	  ),
+	  (   setof(Pack, current_pack(Filter, Pack), Packs)
+	  ->  true
+	  ;   Packs = []
+	  ),
+	  sort_packs(SortBy, Packs, Sorted)
 	},
 	html([ h1(class(wiki), 'Available packages'),
 	       p([ 'Below is a list of known packages.  Please be aware that ',
@@ -388,39 +413,174 @@ pack_listing(All) -->
 		   a(href('http://www.swi-prolog.org/howto/Pack.html'), here),
 		   '.'
 		 ]),
-	       \html_requires(css('pack.css')),
-	       table(class(packlist),
-		     [ tr([ th(id(pack),      'Pack'),
-			    th(id(version),   ['Version', br([]), '(#older)']),
-			    th(id(downloads), ['Downloads', br([]), '(#latest)']),
-			    th(id(title),     'Title')
-			  ])
-		     | \pack_rows(Sorted)
-		     ])
-	     ]).
-pack_listing(Pack) -->
-	html([ h1(class(wiki), 'Package "~w"'-[Pack]),
-	       \html_requires(css('pack.css')),
-	       \pack_info(Pack)
-	     ]).
+	       p([ 'Clicking the package shows details and allows you to ',
+		   'rate and comment the pack.'
+		 ])
+	     ]),
+	pack_table(Sorted, [sort_by(SortBy)]),
+	html_receive(rating_scripts).
+
+%%	pack_table(+Packs, +Options)// is det.
+%
+%	Show a table of packs.
+
+pack_table(Packs, Options) -->
+	{ option(sort_by(SortBy), Options, -)
+	},
+	html_requires(css('pack.css')),
+	html(table(class(packlist),
+		   [ tr([ \pack_header(name,  SortBy,
+				       'Pack', []),
+			  \pack_header(version, SortBy,
+				       'Version', '(#older)'),
+			  \pack_header(downloads, SortBy,
+				       'Downloads', '(#latest)'),
+			  \pack_header(rating, SortBy,
+				       'Rating', ['(#votes/', br([]),
+						  '#comments)']),
+			  \pack_header(title, SortBy,
+				       'Title', [])
+			])
+		   | \pack_rows(Packs)
+		   ])).
 
 
 pack_rows([]) --> [].
 pack_rows([H|T]) --> pack_row(H), pack_rows(T).
 
 pack_row(Pack) -->
-	{ http_link_to_id(pack_list, [p(Pack)], HREF) },
-	html(tr([ td(a(href(HREF),Pack)),
-		  td(\pack_version(Pack, SHA1)),
-		  td(\pack_downloads(Pack, SHA1)),
-		  td(\pack_title(SHA1))
+	{ pack_name(Pack, Name),
+	  http_link_to_id(pack_list, [p(Name)], HREF)
+	},
+	html(tr([ td(a(href(HREF),Name)),
+		  td(\pack_version(Pack)),
+		  td(\pack_downloads(Pack)),
+		  td(\pack_rating(Pack)),
+		  td(\pack_title(Pack))
 		])).
 
-pack_version(Pack, SHA1) -->
-	{ pack_latest_version(Pack, SHA1, Version, Older),
+pack_header(Name, -, Title, Subtitle) --> !,
+	html(th(id(Name), [Title, \subtitle(Subtitle)])).
+pack_header(Name, SortBy, Title, Subtitle) -->
+	{ Name \== SortBy,
+	  sortable(Name), !,
+	  http_link_to_id(pack_list, [sort(Name)], HREF)
+	},
+	html(th(id(Name), [a(href(HREF), Title), \subtitle(Subtitle)])).
+pack_header(Name, Name, Title, Subtitle) -->
+	html(th(id(Name), [i(Title), \subtitle(Subtitle)])).
+pack_header(Name, _, Title, Subtitle) -->
+	html(th(id(Name), [Title, \subtitle(Subtitle)])).
+
+subtitle([]) --> [].
+subtitle(Subtitle) --> html(div(class(sth), Subtitle)).
+
+
+sortable(name).
+sortable(downloads).
+sortable(rating).
+
+pack_version(Pack) -->
+	{ pack_version(Pack, Version),
+	  pack_older_versions(Pack, Older),
 	  prolog_pack:atom_version(Atom, Version)
 	},
-	html('~w (~d)'-[Atom,Older]).
+	(   { Older =\= 0 }
+	->  html([Atom, span(class(annot), '~D'-[Older])])
+	;   html(Atom)
+	).
+
+pack_downloads(Pack) -->
+	{ pack_downloads(Pack, Total),
+	  pack_download_latest(Pack, DownLoadLatest)
+	},
+	(   { Total =:= DownLoadLatest }
+	->  html('~D'-[Total])
+	;   html(['~D'-[Total], span(class(annot), '~D'-[DownLoadLatest])])
+	).
+
+pack_rating(Pack) -->
+	{ pack_rating(Pack, Rating),
+	  pack_votes(Pack, Votes),
+	  pack_comments(Pack, CommentCount),
+	  pack_name(Pack, Name),
+	  http_link_to_id(pack_rating, [], OnRating)
+	},
+	show_pack_rating(Name, Rating, Votes, CommentCount,
+			 [ on_rating(OnRating)
+			 ]).
+
+pack_title(Pack) -->
+	{ pack_hash(Pack, SHA1),
+	  sha1_title(SHA1, Title)
+	},
+	html(Title).
+
+:- record
+	pack(name:atom,				% Name of the pack
+	     hash:atom,				% SHA1 of latest version
+	     version:list(integer),		% Latest Version
+	     older_versions:integer,		% # older versions
+	     downloads:integer,			% Total downloads
+	     download_latest:integer,		% # downloads latest version
+	     rating:number,			% Average rating
+	     votes:integer,			% Vote count
+	     comments:integer).			% Comment count
+
+%%	current_pack(+Filter:list, -Pack) is nondet.
+%
+%	True when Pack is a pack that satisfies Filter. Filter is a list
+%	of filter expressions. Currently defined filters are:
+%
+%	  * author(+Author)
+%	  Pack is claimed by this author.
+
+current_pack(Filters,
+	     pack(Pack, SHA1,
+		  Version, OlderVersionCount,
+		  Downloads, DLLatest,
+		  Rating, Votes, CommentCount)) :-
+	setof(Pack, H^sha1_pack(H,Pack), Packs),
+	member(Pack, Packs),
+	pack_latest_version(Pack, SHA1, Version, OlderVersionCount),
+	maplist(pack_filter(SHA1), Filters),
+	pack_downloads(Pack, SHA1, Downloads, DLLatest),
+	pack_rating_votes(Pack, Rating, Votes),
+	pack_comment_count(Pack, CommentCount).
+
+pack_filter(SHA1, author(Author)) :-
+	sha1_info(SHA1, Info),
+	member(author(Name, Contact), Info),
+	once(author_match(Author, Name, Contact)).
+
+author_match(Author, Author, _).		% Specified author
+author_match(Author, _, Author).		% Specified contact
+author_match(UUID, Name, Contact) :-		% Specified UUID
+	(   site_user_property(UUID, name(Name))
+	;   site_user_property(UUID, email(Contact))
+	;   site_user_property(UUID, home_url(Contact))
+	).
+
+
+%%	sort_packs(+Field, +Packs, -Sorted)
+
+sort_packs(By, Packs, Sorted) :-
+	map_list_to_pairs(pack_data(By), Packs, Keyed),
+	keysort(Keyed, KeySorted),
+	pairs_values(KeySorted, Sorted0),
+	reverse_sort(By, Sorted0, Sorted).
+
+reverse_sort(name, Packs, Packs) :- !.
+reverse_sort(_, Packs, RevPacks) :-
+	reverse(Packs, RevPacks).
+
+
+pack_downloads(Pack, SHA1, Total, DownLoadLatest) :-
+	setof(Hash, sha1_pack(Hash, Pack), Hashes),
+	map_list_to_pairs(sha1_downloads, Hashes, Pairs),
+	memberchk(DownLoadLatest-SHA1, Pairs),
+	pairs_keys(Pairs, Counts),
+	sum_list(Counts, Total).
 
 %%	pack_latest_version(+Pack, -SHA1, -Version, -OlderCount)
 %
@@ -435,19 +595,10 @@ pack_latest_version(Pack, SHA1, Version, Older) :-
 	Older is Count - 1,
 	last(Sorted, Version-SHA1).
 
-pack_downloads(Pack, SHA1) -->
-	{ setof(Hash, sha1_pack(Hash, Pack), Hashes),
-	  map_list_to_pairs(sha1_downloads, Hashes, Pairs),
-	  memberchk(DownLoadLatest-SHA1, Pairs),
-	  pairs_keys(Pairs, Counts),
-	  sum_list(Counts, Total)
-	},
-	html('~D (~D)'-[Total, DownLoadLatest]).
 
-pack_title(SHA1) -->
-	{ sha1_title(SHA1, Title)
-	},
-	html(Title).
+		 /*******************************
+		 *	  DETAILED INFO		*
+		 *******************************/
 
 %%	pack_info(+Pack)//
 %
@@ -462,6 +613,7 @@ pack_info(Pack) -->
 	       'Sorry, I know nothing about a pack named "~w"'-[Pack])).
 pack_info(Pack) -->
 	pack_info_table(Pack),
+	pack_reviews(Pack),
 	pack_file_table(Pack),
 	( pack_readme(Pack) -> [] ; [] ),
 	(   pack_file_hierarchy(Pack)
@@ -481,6 +633,7 @@ pack_info_table(Pack) -->
 	},
 	html(table(class(pack),
 		   [ \property('Title', span(class(title), Title)),
+		     \property('Rating', \show_pack_rating(Pack)),
 		     \property('Latest version', VersionA),
 		     \property('SHA1 sum', \hash(SHA1)),
 		     \info(author(_,_), Info),

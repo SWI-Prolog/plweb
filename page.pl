@@ -36,6 +36,7 @@
 :- use_module(library(http/http_path)).
 :- use_module(library(pldoc/doc_index)).
 :- use_module(wiki).
+:- use_module(openid).
 
 %%	user:body(+Style, +Body)//
 %
@@ -49,20 +50,24 @@ user:body(wiki, Body) --> !,
 		  [ \html_requires(plweb),
 		    \favicon(icons('favicon.ico')),
 		    div(class(sidebar), \sidebar),
+		    \current_user,
 		    \doc_links([], [search_options(false)]),
 		    div(class(content), Body),
 		    div(class(footer), \server_address)
-		  ])).
+		  ])),
+	html_receive(script).
 user:body(plain, Body) --> !,
-	html(body(class([wiki]), Body)).
+	html(body(class(wiki), Body)).
 user:body(_, Body) -->
 	html(body(class('yui-skin-sam'),
 		  [ \html_requires(plweb),
 		    \favicon(icons('favicon.ico')),
 		    div(class(sidebar), \sidebar),
+		    \current_user,
 		    div(class(content), Body),
 		    div(class(footer), \server_address)
-		  ])).
+		  ])),
+	html_receive(script).
 
 favicon(Spec) -->
 	{ http_absolute_location(Spec, URL, [])

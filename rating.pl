@@ -34,42 +34,81 @@
 :- use_module(library(http/http_dispatch), []).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
+:- use_module(library(option)).
 
-:- html_resource(jq('jRating.jquery.min.js'),
+:- html_resource(jq('jRating.jquery.js'),
 		 [ requires([ jquery,
 			      jq('jRating.jquery.css')
 			    ])
 		 ]).
 
 
-/** <module> Deal with user feedback
+/** <module> Provide a star-rating widget
+
+@see http://www.myjqueryplugins.com/jquery-plugin/jrating
 */
 
 rate(Options) -->
-	{ option(data_id(Id), Options, rating),
-	  option(on_rating(OnRating), Options, '/on_rating'),
-	  option(length(Length), Options, 5),
+	{ option(class(Class), Options, jrating),
+	  select_option(data_id(Id), Options, Options1, rating),
+	  (   select_option(data_average(Avg), Options1, Options2)
+	  ->  Extra = ['data-average'(Avg)]
+	  ;   Extra = [],
+	      Options2 = Options
+	  )
+	},
+	html_requires(jq('jRating.jquery.js')),
+	html(div([ class(Class), 'data-id'(Id)| Extra], [])),
+	(   { option(post(Post), Options2) }
+	->  html_post(Post, \script(Options2))
+	;   script(Options2)
+	).
+
+script(Options) -->
+	{ option(length(Length), Options, 5),
 	  option(rate_max(RateMax), Options, 20),
 	  option(step(Step), Options, false),
 	  option(type(Type), Options, big),
+	  option(class(Class), Options, jrating),
+	  option(can_rate_again(CanRateAgain), Options, false),
 	  http_absolute_location(jq('icons/stars.png'), BSP, []),
 	  http_absolute_location(jq('icons/small.png'), SSP, [])
 	},
-	html_requires(jq('jRating.jquery.min.js')),
-	html([ div([ class(jrating), 'data-id'(Id)], []),
-	       script(type('text/javascript'),
-		      \[ '$(document).ready(function(){\n',
-			 '$(".jrating").jRating(\n',
+	html(script(type('text/javascript'),
+		    [ \[ '$(document).ready(function(){\n',
+			 '$(".',Class,'").jRating(\n',
 			 '   { bigStarsPath:"',BSP,'",\n',
 			 '     smallStarsPath:"',SSP,'",\n',
-			 '     phpPath:"',OnRating,'",\n',
 			 '     step:',Step,',\n',
 			 '     type:"',Type,'",\n',
 			 '     length:',Length,',\n',
 			 '     rateMax:',RateMax,',\n',
-			 '   });\n',
+			 '     canRateAgain:',CanRateAgain,',\n'
+		       ],
+		      \set_disabled(Options),
+		      \set_action(Options),
+		      \set_field(Options),
+		      \[ '   });\n',
 			 '});\n'
-		       ])
+		       ]
+		    ])).
 
-	     ]).
+set_disabled(Options) -->
+	{ option(disabled(true), Options) }, !,
+	html(\[ '     isDisabled:true,\n'
+	      ]).
+set_disabled(_) --> [].
 
+set_action(Options) -->
+	{ option(on_rating(OnRating), Options) }, !,
+	html(\[ '     phpPath:"',OnRating,'",\n'
+	      ]).
+set_action(_) --> [].
+
+set_field(Options) -->
+	{ option(set_field(Field), Options) }, !,
+	html(\[ '     onSuccess: function(e,r)\n',
+		'     { $(\'input[name=~w]\').val(r);\n'-[Field],
+		'     }\n'
+	      ]).
+set_field(_) --> [].
