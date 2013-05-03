@@ -46,11 +46,13 @@
 	user:body//2.
 
 user:body(wiki, Body) --> !,
+	user:body(wiki(default), Body).
+user:body(wiki(Arg), Body) --> !,
 	html(body(class(['yui-skin-sam', wiki]),
 		  [ \html_requires(plweb),
 		    \favicon(icons('favicon.ico')),
 		    div(class(sidebar), \sidebar),
-		    \current_user,
+		    \current_user(Arg),
 		    \doc_links([], [search_options(false)]),
 		    div(class(content), Body),
 		    div(class(footer), \server_address)

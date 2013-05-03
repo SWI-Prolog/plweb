@@ -30,6 +30,7 @@
 :- module(plweb_openid,
 	  [ site_user/2,		% +Request, -User
 	    site_user_property/2,	% +User, ?Property
+	    current_user//1,		% +PageStyle
 	    current_user//0
 	  ]).
 :- use_module(library(http/http_dispatch)).
@@ -122,9 +123,13 @@ recaptcha:key(private, Key) :- setting(recaptcha:private_key, Key).
 
 site_user(Request, User) :-
 	openid_user(Request, OpenID, []),
+	ensure_profile(OpenID, User).
+
+ensure_profile(OpenID, User) :-
 	(   site_user_property(User, openid(OpenID))
 	->  true
-	;   option(request_uri(RequestURI), Request),
+	;   http_current_request(Request),
+	    option(request_uri(RequestURI), Request),
 	    http_link_to_id(create_profile, [return(RequestURI)], HREF),
 	    http_redirect(moved_temporary, HREF, Request)
 	).
@@ -141,7 +146,7 @@ create_profile(Request) :-
 			[ return(Return, [])
 			]),
 	reply_html_page(
-	    wiki,
+	    wiki(create_profile),
 	    title('Create user profile for SWI-Prolog'),
 	    \create_profile(OpenID, Return)).
 
@@ -604,9 +609,13 @@ logout(_Request) :-
 %%	current_user//
 
 current_user -->
-	{ openid_logged_in(OpenID), !,
-	  (   site_user_property(User, openid(OpenID)),
-	      site_user_property(User, name(Name)),
+	current_user(default).
+
+current_user(Style) -->
+	{ Style \== create_profile,
+	  openid_logged_in(OpenID), !,
+	  ensure_profile(OpenID, User),
+	  (   site_user_property(User, name(Name)),
 	      Name \== ''
 	  ->  Display = Name
 	  ;   Display = OpenID
@@ -618,8 +627,9 @@ current_user -->
 		 [ a([href(Profile)], Display),
 		   ' (', a([href(Logout)], 'logout'), ')'
 		 ])).
-current_user -->
-	{ http_current_request(Request),
+current_user(Style) -->
+	{ Style \== create_profile,
+	  http_current_request(Request),
 	  memberchk(request_uri(Here), Request), !,
 	  http_link_to_id(swipl_login,
 			  [ 'openid.return_to'(Here)
@@ -628,6 +638,6 @@ current_user -->
 	},
 	html(div(class('current-user'),
 		 a([class(signin), href(Login)], login))).
-current_user -->
+current_user(_Style) -->
 	[].
 
