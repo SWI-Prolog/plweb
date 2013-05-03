@@ -38,6 +38,7 @@
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/http_openid)).
 :- use_module(library(http/http_header)).
+:- use_module(library(http/http_path)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/recaptcha)).
 :- use_module(library(http/http_stream)).
@@ -488,13 +489,25 @@ plweb_login_page(Request) :-
 			[ 'openid.return_to'(ReturnTo, [])
 			]),
 	http_link_to_id(verify_user, [], Action),
+	http_absolute_location(icons('social_google_box.png'), GoogleIMG, []),
+	http_absolute_location(icons('social_yahoo_box_lilac.png'), YahooIMG, []),
 	reply_html_page(wiki,
 			[ title('SWI-Prolog login')
 			],
-			[ \openid_login_form(ReturnTo,
-					     [ show_stay(true),
-					       action(Action)
-					     ]),
+			[ \openid_login_form(
+			       ReturnTo,
+			       [ show_stay(true),
+				 action(Action),
+				 buttons([ img([ src(GoogleIMG),
+						 href('http://google.com'),
+						 alt('Sign in with Google')
+					       ]),
+					   img([ src(YahooIMG),
+						 href('http://yahoo.com'),
+						 alt('Sign in with Yahoo')
+					       ])
+					 ])
+			       ]),
 			  \explain
 			]).
 
