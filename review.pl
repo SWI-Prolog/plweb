@@ -472,13 +472,10 @@ clean_dom(X, X).
 %	Create a =h2= section with all reviews by a given OpenID.
 
 profile_reviews(UUID) -->
-	{ \+ review(_, UUID, _, _, _) }.
-profile_reviews(UUID) -->
 	{ findall(review(Pack, UUID, Time, Rating, Comment),
-		  ( review(Pack, UUID, Time, Rating, Comment),
-		    Comment \== ''
-		  ),
+		  review(Pack, UUID, Time, Rating, Comment),
 		  Reviews),
+	  Reviews \== [], !,
 	  length(Reviews, Count),
 	  sort_reviews(time, Reviews, Sorted),
 	  site_user_property(UUID, name(Name))
@@ -489,4 +486,6 @@ profile_reviews(UUID) -->
 		 ])
 	     ]),
 	list_reviews(Sorted, [show_pack(true)]).
+profile_reviews(_) -->
+	[].
 
