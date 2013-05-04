@@ -260,20 +260,31 @@ submit_profile(Request) :-
 			  return(Return, [])
 			| ReCAPTCHA
 			]),
-	(   recaptcha_verify(Request, ReCAPTCHA)
-	->  retractall_site_user(User, OpenID, _, _, _),
-	    assert_site_user(User, OpenID, Name, Email, Home),
-	    update_description(User, Descr),
-	    http_redirect(moved_temporary, Return, Request)
-	;   reply_html_page(
-		wiki,
-		title('CAPTCHA failed'),
-		[ h1(class(wiki), 'CAPTCHA verification failed'),
-		  p([ 'Please use the back button of your browser and ',
-		      'try again'
-		    ])
-		])
+	(   catch(recaptcha_verify(Request, ReCAPTCHA), E, true)
+	->  (   var(E)
+	    ->  retractall_site_user(User, OpenID, _, _, _),
+		assert_site_user(User, OpenID, Name, Email, Home),
+		update_description(User, Descr),
+		http_redirect(moved_temporary, Return, Request)
+	    ;	E = error(domain_error(recaptcha_response, _), _)
+	    ->	retry_captcha('CAPTCHA required', '')
+	    ;	message_to_string(E, Msg)
+	    ->	retry_captcha('CAPTCHA processing error', Msg)
+	    )
+	;   retry_captcha('CAPTCHA verification failed', '')
 	).
+
+retry_captcha(Why, Warning) :-
+	reply_html_page(
+	    wiki,
+	    title('CAPTCHA failed'),
+	    [ h1(class(wiki), Why),
+	      p(class(error), Warning),
+	      p([ 'Please use the back button of your browser and ',
+		  'try again'
+		])
+	    ]).
+
 
 update_description(UUID, '') :- !,
 	retractall_user_description(UUID, _).
