@@ -29,6 +29,7 @@
 
 :- module(plweb_openid,
 	  [ site_user/2,		% +Request, -User
+	    site_user_logged_in/1,	% -User
 	    site_user_property/2,	% +User, ?Property
 	    current_user//1,		% +PageStyle
 	    current_user//0
@@ -133,6 +134,14 @@ ensure_profile(OpenID, User) :-
 	    http_link_to_id(create_profile, [return(RequestURI)], HREF),
 	    http_redirect(moved_temporary, HREF, Request)
 	).
+
+%%	site_user_logged_in(-User) is semidet.
+%
+%	True when User is logged on.  Does not try to logon the user.
+
+site_user_logged_in(User) :-
+	openid_logged_in(OpenID),
+	site_user_property(User, openid(OpenID)).
 
 
 %%	create_profile(+Request).
