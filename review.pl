@@ -214,7 +214,8 @@ pack_submit_review(Request) :-
 update_review(Pack, UUID, Rating, Comment) -->
 	{ review(Pack, UUID, _Time, Rating, Comment) }, !,
 	html(h4(class(wiki), 'No changes, showing your existing comment')),
-	show_review(Pack, UUID).
+	show_review(Pack, UUID),
+	refresh(Pack).
 update_review(Pack, UUID, Rating, Comment) -->
 	{ review(Pack, UUID, _Time, _Rating, _Comment), !,
 	  retractall_review(Pack, UUID, _, _, _),
@@ -223,13 +224,27 @@ update_review(Pack, UUID, Rating, Comment) -->
 	  assert_review(Pack, UUID, Time, Rating, Comment)
 	},
 	html(h4(class(wiki), 'Updated your comments for pack ~w'-[Pack])),
-	show_review(Pack, UUID).
+	show_review(Pack, UUID),
+	refresh(Pack).
 update_review(Pack, UUID, Rating, Comment) -->
 	{ get_time(Time),
 	  assert_review(Pack, UUID, Time, Rating, Comment)
 	},
 	html(h4(class(wiki), 'Added comment for pack ~w'-[Pack])),
-	show_review(Pack, UUID).
+	show_review(Pack, UUID),
+	refresh(Pack).
+
+refresh(Pack) -->
+       { http_link_to_id(pack_list,   [p(Pack)], ListPack),
+	 Delay = 3
+       },
+       html([ 'Redirecting to pack ', a(href(ListPack), Pack),
+	      ' in ~w seconds'-[Delay]
+	    ]),
+       html_post(head,
+		 meta([ 'http-equiv'(refresh),
+			content(Delay+';'+ListPack)
+		      ])).
 
 
 		 /*******************************
