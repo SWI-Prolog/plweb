@@ -238,8 +238,12 @@ ac_object(token, Prefix, Name-Obj) :-
 	name_object/3.
 
 prefix_index(ByName, ByToken) :-
+	with_mutex(autocomplete,
+		   create_prefix_index(ByName, ByToken)).
+
+create_prefix_index(ByName, ByToken) :-
 	prefix_map(ByName, ByToken), !.
-prefix_index(ByName, ByToken) :-
+create_prefix_index(ByName, ByToken) :-
 	rdf_new_literal_map(ByName),
 	rdf_new_literal_map(ByToken),
 	assertz(prefix_map(ByName, ByToken)),
