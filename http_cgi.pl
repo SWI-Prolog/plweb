@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009-2011, VU University Amsterdam
+    Copyright (C): 2009-2013, VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -32,12 +32,13 @@
 	    http_cgi_handler/2		% +Alias, +Request
 	  ]).
 :- use_module(library(process)).
-:- use_module(library(socket)).
-:- use_module(library(url)).
+:- use_module(library(uri)).
 :- use_module(library(debug)).
 :- use_module(library(lists)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_wrapper)).
 :- use_module(library(http/http_stream)).
+:- use_module(library(http/http_host)).
 
 :- predicate_options(http_run_cgi/3, 2,
 		     [ argv(list),
@@ -47,15 +48,49 @@
 
 /** <module> Run CGI scripts from the SWI-Prolog web-server
 
-Run CGI scripts.  This module provides two interfaces:
+The Prolog HTTP server is primarily designed   to be able to handle HTTP
+requests from a running Prolog process,  which avoids the Prolog startup
+time and, at least as  interesting,  allows   you  to  keep state in the
+Prolog database. It is _not_ designed to   run  as a generic web server.
+There are tools that are much better   for that job. Nevertheless, it is
+useful to host a complete server  in   one  process,  mainly to simplify
+deployment.  For  this  reason,  the  SWI-Prolog  HTTP  server  provides
+libraries     to     serve     static      files     (http_reply_file/3,
+http_reply_from_files/3) and this library, which   allows  executing CGI
+scripts.
 
-	* http_run_cgi/2 can be used to call a CGI script
-	located exernally.  This is typically used for an
-	individual script used to extend the server functionality.
+A sensible alternative setup for  a  mixed   server  is  to use a normal
+server such as Apache  as  main   server,  serving  files,  CGI scripts,
+modules, etc., and use Apache's proxy  facilities to host a subdirectory
+of the server using a Prolog server.   That approach is most likely more
+efficient  for  production  environments,  but    harder  to  setup  for
+development purposes.
 
-	* Setup a path =cgi_bin= for absolute_file_name/3.  If
-	this path is present, calls to /cgi-bin/... are translated into
-	calling the script.
+This module provides two interfaces:
+
+  * http_run_cgi/2 can be used to call a CGI script located exernally.
+  This is typically used for an individual script used to extend the
+  server functionality.  For example, the handler declaration below
+  runs the PHP script =myscript.php= from the location =/myscript/=.
+  Note that this requires the commandline version of PHP to be
+  installed as =php= in the current =PATH=.
+
+    ==
+    :- http_handler(root(myscript),
+		    http_run_cgi(path(php), [argv('myscript.php')]),
+		    []).
+    ==
+
+  * Setup a path =cgi_bin= for absolute_file_name/3. If this path is
+  present, calls to /cgi-bin/... are translated into calling the script.
+  For example, if programs in the directory =cgi-bin= must be accessible
+  as CGI services, add a rule
+
+    ==
+    :- multifile user:file_search_path/2.
+
+    user:file_search_path(cgi_bin, 'cgi-bin').
+    ==
 
 @tbd complete environment translation.  See env/3.
 @tbd testing.  Notably for POST and PUT commands.
@@ -289,23 +324,17 @@ debug_cgi_data(CGI, Out, Debug) :-
 env('SERVER_SOFTWARE', _, Version) :-
 	current_prolog_flag(version_data, swi(Major, Minor, Patch, _)),
 	format(atom(Version), 'SWI-Prolog/~w.~w.~w', [Major, Minor, Patch]).
-env('SERVER_NAME', Request, Server) :-
-	(   memberchk(x_forwarded_host(Server), Request)
-	->  true
-	;   memberchk(host(Server), Request)
-	->  true
-	;   gethostname(Server)
+env(Name, Request, Value) :-
+	http_current_host(Request, Host, Port, [global(true)]),
+	(   Name = 'SERVER_NAME',
+	    Value = Host
+	;   Name = 'SERVER_PORT',
+	    Value = Port
 	).
 env('GATEWAY_INTERFACE', _, 'CGI/1.1').
 env('SERVER_PROTOCOL', Request, Protocol) :-
 	memberchk(http(Major-Minor), Request),
 	format(atom(Protocol), 'HTTP/~w.~w', [Major, Minor]).
-env('SERVER_PORT', Request, Port) :-
-	(   memberchk(port(Port), Request),
-	    \+ memberchk(x_forwarded_host(_), Request)
-	->  true
-	;   Port = 80
-	).
 env('REQUEST_METHOD', Request, Method) :-
 	memberchk(method(LwrCase), Request),
 	upcase_atom(LwrCase, Method).
@@ -313,15 +342,21 @@ env('PATH_INFO', Request, PathInfo) :-
 	memberchk(path_info(PathInfo0), Request),
 	ensure_leading_slash(PathInfo0, PathInfo).
 env('PATH_TRANSLATED', _, _) :- fail.
-env('SCRIPT_NAME', _, _) :- fail.
+env('SCRIPT_NAME', Request, ScriptName) :-
+	memberchk(path(FullPath), Request),
+	memberchk(path_info(PathInfo0), Request),
+	ensure_leading_slash(PathInfo0, PathInfo),
+	atom_concat(ScriptName, PathInfo, FullPath).
 env('SCRIPT_FILENAME', Request, ScriptFilename) :-
 	memberchk(script_file_name(ScriptFilename), Request).
 env('QUERY_STRING', Request, QString) :-
-	memberchk(search(Search), Request),
-	parse_url_search(QList, Search),
-	string_to_list(QString, QList).
+	memberchk(request_uri(Request), Request),
+	uri_components(Request, Components),
+	uri_data(search, Components, QString),
+	atom(QString).
 env('REMOTE_HOST', _, _) :- fail.
-env('REMOTE_ADDR', _, _) :- fail.
+env('REMOTE_ADDR', Request, Peer) :-
+	http_peer(Request, Peer).
 env('AUTH_TYPE', _, _) :- fail.
 env('REMOTE_USER', Request, User) :-
 	memberchk(user(User), Request).
@@ -330,9 +365,64 @@ env('CONTENT_TYPE', Request, ContentType) :-
 	memberchk(content_type(ContentType), Request).
 env('CONTENT_LENGTH', Request, ContentLength) :-
 	memberchk(content_length(ContentLength), Request).
-env('HTTP_ACCEPT', _, _) :- fail.
+env('HTTP_ACCEPT', Request, AcceptAtom) :-
+	memberchk(accept(Accept), Request),
+	accept_to_atom(Accept, AcceptAtom).
 env('HTTP_USER_AGENT', Request, Agent) :-
 	memberchk(user_agent(Agent), Request).
 env(Name, _, Value) :-
 	environment(Name, Value).
 
+%%	accept_to_atom(+Accept, -AcceptAtom) is det.
+%
+%	Translate back from the parsed accept  specification in the HTTP
+%	header to an atom.
+
+:- dynamic
+	accept_cache/3.
+
+accept_to_atom(Accept, AcceptAtom) :-
+	variant_sha1(Accept, Hash),
+	(   accept_cache(Hash, Accept, AcceptAtom)
+	->  true
+	;   phrase(accept(Accept), Parts),
+	    atomic_list_concat(Parts, AcceptAtom),
+	    asserta(accept_cache(Hash, Accept, AcceptAtom))
+	).
+
+accept([H|T]) -->
+	accept_media(H),
+	(   { T == [] }
+	->  []
+	;   [','],
+	    accept(T)
+	).
+
+accept_media(media(Type, _, Q, _)) -->
+	accept_type(Type),
+	accept_quality(Q).
+
+accept_type(M/S) -->
+	accept_type_part(M), [/], accept_type_part(S).
+
+accept_type_part(Var) -->
+	{ var(Var) }, !,
+	[*].
+accept_type_part(Name) -->
+	[Name].
+
+accept_quality(Q) -->
+	{ Q =:= 1.0 }, !.
+accept_quality(Q) -->
+	[ ';q=',Q ].
+
+%%	environment(-Name, -Value) is nondet.
+%
+%	This hook can  be  defined   to  provide  additional environment
+%	variables to the CGI script.  For example:
+%
+%	  ==
+%	  :- multifile http_cgi:environment/2.
+%
+%	  http_cgi:environment('SERVER_ADMIN', 'bob@example.com').
+%	  ==
