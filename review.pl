@@ -214,7 +214,8 @@ pack_submit_review(Request) :-
 update_review(Pack, UUID, Rating, Comment) -->
 	{ review(Pack, UUID, _Time, Rating, Comment) }, !,
 	html(h4(class(wiki), 'No changes, showing your existing comment')),
-	show_review(Pack, UUID).
+	show_review(Pack, UUID),
+	refresh(Pack).
 update_review(Pack, UUID, Rating, Comment) -->
 	{ review(Pack, UUID, _Time, _Rating, _Comment), !,
 	  retractall_review(Pack, UUID, _, _, _),
@@ -223,13 +224,27 @@ update_review(Pack, UUID, Rating, Comment) -->
 	  assert_review(Pack, UUID, Time, Rating, Comment)
 	},
 	html(h4(class(wiki), 'Updated your comments for pack ~w'-[Pack])),
-	show_review(Pack, UUID).
+	show_review(Pack, UUID),
+	refresh(Pack).
 update_review(Pack, UUID, Rating, Comment) -->
 	{ get_time(Time),
 	  assert_review(Pack, UUID, Time, Rating, Comment)
 	},
 	html(h4(class(wiki), 'Added comment for pack ~w'-[Pack])),
-	show_review(Pack, UUID).
+	show_review(Pack, UUID),
+	refresh(Pack).
+
+refresh(Pack) -->
+       { http_link_to_id(pack_list,   [p(Pack)], ListPack),
+	 Delay = 3
+       },
+       html([ 'Redirecting to pack ', a(href(ListPack), Pack),
+	      ' in ~w seconds'-[Delay]
+	    ]),
+       html_post(head,
+		 meta([ 'http-equiv'(refresh),
+			content(Delay+';'+ListPack)
+		      ])).
 
 
 		 /*******************************
@@ -259,15 +274,25 @@ show_reviews(Pack) -->
 		  ),
 		  Reviews),
 	  length(Reviews, Count),
-	  sort_reviews(time, Reviews, Sorted),
-	  http_link_to_id(pack_review, [p(Pack)], HREF)
+	  sort_reviews(time, Reviews, Sorted)
 	},
-	html([ p([ \showing_reviews(Count),
-		   'Click ', a(href(HREF), 'here'), ' to add a rating or ',
-		   'create a new review'
-		 ])
+	html([ div(\review_action(Pack)),
+	       div(class(smallprint), \showing_reviews(Count))
 	     ]),
 	list_reviews(Sorted, []).
+
+review_action(Pack) -->
+	{ site_user_logged_in(User),
+	  review(Pack, User, Time, _Rating, _Comment),
+	  http_link_to_id(pack_review, [p(Pack)], HREF)
+	}, !,
+	html([ a(href(HREF), 'Update'), ' your rating or review from ',
+	       \show_time(Time), '.'
+	     ]).
+review_action(Pack) -->
+	{ http_link_to_id(pack_review, [p(Pack)], HREF)
+	},
+	html([ a(href(HREF), 'Write'), ' a review or add a rating.' ]).
 
 showing_reviews(Count) -->
 	{ Count >= 2 },
@@ -368,10 +393,14 @@ show_reviewer(_UUID) -->
 %%	show_reviewer(+UUID, +Time)
 
 show_reviewer(UUID, Time) -->
-	{ format_time(atom(Date), '%A %d %B %Y, ', Time)
-	},
-	html(Date),
+	show_time(Time),
+	html(', '),
 	show_reviewer(UUID).
+
+show_time(Time) -->
+	{ format_time(atom(Date), '%A %d %B %Y', Time)
+	},
+	html(Date).
 
 show_rating(Pack) -->
 	{ pack_rating_votes(Pack, Rating, Votes),

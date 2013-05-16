@@ -29,6 +29,7 @@
 
 :- module(plweb_openid,
 	  [ site_user/2,		% +Request, -User
+	    site_user_logged_in/1,	% -User
 	    site_user_property/2,	% +User, ?Property
 	    current_user//1,		% +PageStyle
 	    current_user//0
@@ -133,6 +134,14 @@ ensure_profile(OpenID, User) :-
 	    http_link_to_id(create_profile, [return(RequestURI)], HREF),
 	    http_redirect(moved_temporary, HREF, Request)
 	).
+
+%%	site_user_logged_in(-User) is semidet.
+%
+%	True when User is logged on.  Does not try to logon the user.
+
+site_user_logged_in(User) :-
+	openid_logged_in(OpenID),
+	site_user_property(User, openid(OpenID)).
 
 
 %%	create_profile(+Request).
@@ -260,20 +269,31 @@ submit_profile(Request) :-
 			  return(Return, [])
 			| ReCAPTCHA
 			]),
-	(   recaptcha_verify(Request, ReCAPTCHA)
-	->  retractall_site_user(User, OpenID, _, _, _),
-	    assert_site_user(User, OpenID, Name, Email, Home),
-	    update_description(User, Descr),
-	    http_redirect(moved_temporary, Return, Request)
-	;   reply_html_page(
-		wiki,
-		title('CAPTCHA failed'),
-		[ h1(class(wiki), 'CAPTCHA verification failed'),
-		  p([ 'Please use the back button of your browser and ',
-		      'try again'
-		    ])
-		])
+	(   catch(recaptcha_verify(Request, ReCAPTCHA), E, true)
+	->  (   var(E)
+	    ->  retractall_site_user(User, OpenID, _, _, _),
+		assert_site_user(User, OpenID, Name, Email, Home),
+		update_description(User, Descr),
+		http_redirect(moved_temporary, Return, Request)
+	    ;	E = error(domain_error(recaptcha_response, _), _)
+	    ->	retry_captcha('CAPTCHA required', '')
+	    ;	message_to_string(E, Msg)
+	    ->	retry_captcha('CAPTCHA processing error', Msg)
+	    )
+	;   retry_captcha('CAPTCHA verification failed', '')
 	).
+
+retry_captcha(Why, Warning) :-
+	reply_html_page(
+	    wiki,
+	    title('CAPTCHA failed'),
+	    [ h1(class(wiki), Why),
+	      p(class(error), Warning),
+	      p([ 'Please use the back button of your browser and ',
+		  'try again'
+		])
+	    ]).
+
 
 update_description(UUID, '') :- !,
 	retractall_user_description(UUID, _).
