@@ -1,6 +1,0 @@
-#!/bin/bash -f
-
-echo "Content-type: text/plain"
-echo ""
-echo "Hello world"
-
