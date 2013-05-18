@@ -281,18 +281,22 @@ prolog:doc_directory(Dir) :-
 
 %%	manual_file(+Request) is det.
 %
-%	HTTP handler for /man/file.html
+%	HTTP handler for /man/file.{html,gif}
 
 manual_file(Request) :-
 	memberchk(path_info(Relative), Request),
 	atom_concat('doc/Manual', Relative, Man),
-	absolute_file_name(swi(Man),
-			   ManFile,
-			   [ access(read),
-			     file_errors(fail)
-			   ]), !,
-	reply_html_page(title('SWI-Prolog manual'),
-			\man_page(section(_,_,ManFile), [])).
+	(   file_name_extension(_, html, Man)
+	->  absolute_file_name(swi(Man),
+			       ManFile,
+			       [ access(read),
+				 file_errors(fail)
+			       ]), !,
+	    reply_html_page(title('SWI-Prolog manual'),
+			    \man_page(section(_,_,ManFile), []))
+	;   !,
+	    http_reply_file(swi(Man), [], Request)
+	).
 manual_file(Request) :-
 	memberchk(path(Path), Request),
 	existence_error(http_location, Path).
