@@ -1,5 +1,6 @@
 *~
-httpd.log
+*.db
+*.log
 download
 git
 passwd
