@@ -28,11 +28,11 @@
 */
 
 :- module(tagit,
-	  [ tagit//2				% +Tags, +Options
+	  [ tagit//2,				% +Tags, +Options
+	    user_tags//1			% +User
 	  ]).
 :- use_module(library(option)).
 :- use_module(library(debug)).
-:- use_module(library(apply)).
 :- use_module(library(persistency)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
@@ -281,6 +281,47 @@ prolog:doc_object_label_class(tag(Tag), Tag, tag).
 prolog:ac_object_attributes(tag(Tag), [tag=Info]) :-
 	aggregate_all(count, tagged(Tag,_,_,_), Used),
 	format(atom(Info), 'tag x~D', [Used]).
+
+
+		 /*******************************
+		 *	      PROFILE		*
+		 *******************************/
+
+%%	user_tags(+User)
+%
+%	Show all tags created by a given user.
+
+user_tags(User) -->
+	{ findall(Tag-Obj, tagged(Tag, Obj, _Time, User), Pairs),
+	  Pairs \== [],
+	  keysort(Pairs, Sorted),
+	  group_pairs_by_key(Sorted, Keyed),
+	  site_user_property(User, name(Name))
+	},
+	html([ h2(class(wiki), 'Tags by ~w'-[Name]),
+	       ul(class('user-tags'),
+		  \list_tags(Keyed))
+	     ]).
+
+list_tags([]) --> [].
+list_tags([H|T]) --> list_tag(H), list_tags(T).
+
+list_tag(Tag-Objects) -->
+	{ http_link_to_id(show_tag, [tag(Tag)], HREF)
+	},
+	html(li([ a([class(tag),href(HREF)], Tag),
+		  \objects(Objects)
+		])).
+
+objects([]) --> [].
+objects([H|T]) -->
+	object_ref(H, []),
+	(   { T == [] }
+	->  []
+	;   html(', '),
+	    objects(T)
+	).
+
 
 		 /*******************************
 		 *	     TAGIT UI		*
