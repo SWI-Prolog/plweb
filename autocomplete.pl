@@ -31,7 +31,6 @@
 	  [
 	  ]).
 :- use_module(library(http/http_dispatch)).
-:- use_module(library(http/http_path)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_json)).
 :- use_module(library(http/html_head)).
@@ -120,8 +119,6 @@ autocompletions(How, Query, Max, Count, Completions) :-
 	first_n(Max, Completions1, Completions2),
 	maplist(obj_result, Completions2, Completions).
 
-obj_result(_Name-Obj, Label) :- fail, !,
-	obj_name(Obj, Label, _Type).
 obj_result(_Name-Obj, json([ label=Label,
 			     type=Type,
 			     href=Href
