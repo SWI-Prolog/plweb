@@ -36,8 +36,10 @@
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_wrapper)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_json)).
+:- use_module(openid).
 
 :- html_resource(tagit,
 		 [ virtual(true),
@@ -69,12 +71,33 @@
 current_tag(Tag) :-
 	tag(Tag, _, _).
 
+create_tag(Tag, _User) :-
+	tag(Tag, _, _), !.
+create_tag(Tag, User) :-
+	get_time(NowF),
+	Now is round(NowF),
+	assert_tag(Tag, Now, User), !.
+
+
+%%	tagit_user(+Request, -User) is det.
+%
+%	User as seen for tagging. This is either the current user or the
+%	peer.
+
+tagit_user(_Request, User) :-
+	site_user_logged_in(User), !.
+tagit_user(Request, Peer) :-
+	http_peer(Request, Peer).
+
+
 		 /*******************************
 		 *	 PROLOG BINDING		*
 		 *******************************/
 
 :- http_handler(root('complete-tag'), complete_tag, []).
 :- http_handler(root('show-tag'),     show_tag,	    []).
+:- http_handler(root('add-tag'),      add_tag,	    []).
+:- http_handler(root('remove-tag'),   remove_tag,   []).
 
 :- multifile
 	prolog:doc_object_page_footer//2.
@@ -86,29 +109,53 @@ current_tag(Tag) :-
 prolog:doc_object_page_footer(Obj, _Options) -->
 	{ http_link_to_id(complete_tag, [], Complete),
 	  http_link_to_id(show_tag, [], ShowTag),
+	  http_link_to_id(add_tag, [], AddTag),
 	  object_label(Obj, Label),
+	  object_id(Obj, Id),
 	  format(atom(PlaceHolder), 'Tag ~w', [Label])
 	},
 	html(div(class('user-annotations'),
 		 [ \tagit([ autocomplete(Complete),
 			    remove_confirmation(true),
 			    on_click(ShowTag),
-			    placeholder(PlaceHolder)
+			    before_tag_added(AddTag),
+			    placeholder(PlaceHolder),
+			    object_id(Id)
 			  ])
 		 ])).
 
-object_label(_M:Name/Arity, Label) :- !,
-	format(atom(Label), '~w/~w', [Name, Arity]).
-object_label(_M:Name//Arity, Label) :- !,
-	format(atom(Label), '~w//~w', [Name, Arity]).
+%%	object_label(+Object, -Label) is det.
+
+object_label(Name/Arity, Label) :- !,
+	format(atom(Label), 'predicate ~w/~w', [Name, Arity]).
+object_label(Name//Arity, Label) :- !,
+	format(atom(Label), 'non-terminal ~w/~w', [Name, Arity]).
+object_label(M:Name/Arity, Label) :- !,
+	format(atom(Label), 'predicate ~w:~w/~w', [M, Name, Arity]).
+object_label(M:Name//Arity, Label) :- !,
+	format(atom(Label), 'non-terminal ~w:~w//~w', [M, Name, Arity]).
 object_label(f(Name/Arity), Label) :- !,
-	format(atom(Label), '~w/~w', [Name, Arity]).
+	format(atom(Label), 'function ~w/~w', [Name, Arity]).
 object_label(Module:module(_Title), Label) :-
 	module_property(Module, file(File)), !,
 	file_base_name(File, Base),
 	format(atom(Label), 'module ~w', [Base]).
 object_label(Obj, Label) :-
 	term_to_atom(Obj, Label).
+
+%%	object_id(?Object, ?Id)
+%
+%	Manage identifiers for objects.
+
+:- dynamic
+	object_id_cache/2.
+
+object_id(Object, Id) :-
+	object_id_cache(Object, Id), !.
+object_id(Object, Id) :-
+	ground(Object),
+	variant_sha1(Object, Id),
+	assertz(object_id_cache(Object, Id)).
 
 
 %%	complete_tag(+Request)
@@ -134,6 +181,42 @@ tag_holding(Term, Tag) :-
 	(   sub_atom(Tag, _, _, _, Term)
 	->  true
 	).
+
+%%	add_tag(+Request)
+%
+%	Add tag to the given object
+
+add_tag(Request) :-
+	http_parameters(Request,
+			[ tag(Tag, []),
+			  obj(Hash, [])
+			]),
+	object_id(Object, Hash),
+	tagit_user(Request, User),
+	debug(tagit, 'add_tag: ~q: ~q to ~q', [User, Tag, Object]),
+	create_tag(Tag, User),
+	get_time(NowF),
+	Now is round(NowF),
+	assert_tagged(Tag, Object, Now, User),
+	reply_json(true).
+
+%%	remove_tag(+Request)
+%
+%	Remove tag from the given object
+
+remove_tag(Request) :-
+	http_parameters(Request,
+			[ tag(Tag, []),
+			  obj(Hash, [])
+			]),
+	object_id(Object, Hash),
+	tagit_user(Request, User),
+	debug(tagit, 'remove_tag: ~q: ~q to ~q', [User, Tag, Object]),
+	(   retract_tagged(Tag, Object, _, User)
+	->  reply_json(true)
+	;   reply_json(false)
+	).
+
 
 %%	show_tag(+Request)
 %
@@ -166,7 +249,7 @@ tagit(Options) -->
 		      [ \[ '$(document).ready(function() {\n',
 			   '  $("#',Id,'").tagit({\n'
 			 ],
-		      \tagit_options(Options),
+		      \tagit_options(Options, Options),
 			\[ '    dummy:true\n',
 			   '  });\n',
 			   '});\n'
@@ -174,13 +257,44 @@ tagit(Options) -->
 		      ])
 	     ]).
 
-tagit_options([]) --> [].
-tagit_options([H|T]) -->
-	(   tagit_option(H)
+tagit_options([], _) --> [].
+tagit_options([H|T], Options) -->
+	(   tagit_option(H, Options)
 	->  html(\[',\n'])
 	;   []
 	),
-	tagit_options(T).
+	tagit_options(T, Options).
+
+tagit_option(before_tag_added(URL), Options) --> !,
+	{ option(object_id(Id), Options, -) },
+	html(\['    beforeTagAdded: function(event, ui) {\n',
+	       '      if ( !ui.duringInitialization ) {\n',
+	       '        $.ajax({\n',
+	       '          dataType: "json",\n',
+	       '	  url:"~w",\n'-[URL],
+	       '          data: {\n',
+	       '                  tag:ui.tagLabel,\n',
+	       '                  obj:"~w"\n'-[Id],
+	       '                }\n',
+	       '        });\n',
+	       '      }\n',
+	       '    }'
+	      ]).
+tagit_option(before_tag_removed(URL), Options) --> !,
+	{ option(object_id(Id), Options, -) },
+	html(\['    beforeTagRemoved: function(event, ui) {\n',
+	       '      $.ajax({\n',
+	       '        dataType: "json",\n',
+	       '	url:"~w",\n'-[URL],
+	       '        data: {\n',
+	       '                tag:ui.tagLabel,\n',
+	       '                obj:"~w"\n'-[Id],
+	       '              }\n',
+	       '      });\n',
+	       '    }'
+	      ]).
+tagit_option(Option, _) -->
+	tagit_option(Option).
 
 tagit_option(autocomplete(URL)) -->
 	html(\['    autocomplete: {\n',
