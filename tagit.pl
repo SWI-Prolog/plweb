@@ -28,7 +28,7 @@
 */
 
 :- module(tagit,
-	  [ tagit//1
+	  [ tagit//2				% +Tags, +Options
 	  ]).
 :- use_module(library(option)).
 :- use_module(library(debug)).
@@ -112,10 +112,12 @@ prolog:doc_object_page_footer(Obj, _Options) -->
 	  http_link_to_id(add_tag, [], AddTag),
 	  object_label(Obj, Label),
 	  object_id(Obj, Id),
-	  format(atom(PlaceHolder), 'Tag ~w', [Label])
+	  format(atom(PlaceHolder), 'Tag ~w', [Label]),
+	  object_tags(Obj, Tags)
 	},
 	html(div(class('user-annotations'),
-		 [ \tagit([ autocomplete(Complete),
+		 [ \tagit(Tags,
+			  [ autocomplete(Complete),
 			    remove_confirmation(true),
 			    on_click(ShowTag),
 			    before_tag_added(AddTag),
@@ -142,6 +144,10 @@ object_label(Module:module(_Title), Label) :-
 	format(atom(Label), 'module ~w', [Base]).
 object_label(Obj, Label) :-
 	term_to_atom(Obj, Label).
+
+object_tags(Object, Tags) :-
+	findall(Tag, tagged(Tag, Object, _Time, _User), Tags0),
+	sort(Tags0, Tags).
 
 %%	object_id(?Object, ?Id)
 %
@@ -236,21 +242,22 @@ show_tag(Request) :-
 		 *	     TAGIT UI		*
 		 *******************************/
 
-%%	tagit(+Options)// is det.
+%%	tagit(+Tags, +Options)// is det.
 %
 %	HTML rule to include a tagit object
 
-tagit(Options) -->
-	{ option(id(Id), Options, tags)
+tagit(Tags, Options) -->
+	{ option(id(Id), Options, tags),
+	  atomic_list_concat(Tags, ',', Data)
 	},
 	html_requires(tagit),
-	html([ input([id(Id)]),
+	html([ input([id(Id), value(Data)]),
 	       script([type('text/javascript')],
 		      [ \[ '$(document).ready(function() {\n',
 			   '  $("#',Id,'").tagit({\n'
 			 ],
 		      \tagit_options(Options, Options),
-			\[ '    dummy:true\n',
+			\[ '    singleField:true\n',
 			   '  });\n',
 			   '});\n'
 			 ]
