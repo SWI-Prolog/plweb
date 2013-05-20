@@ -27,7 +27,7 @@
     the GNU General Public License.
 */
 
-:- module(autocomplete_predicates,
+:- module(plweb_autocomplete,
 	  [
 	  ]).
 :- use_module(library(http/http_dispatch)).
@@ -42,7 +42,10 @@
 :- use_module(library(apply)).
 
 :- multifile
-	prolog:doc_search_field//1.
+	prolog:doc_search_field//1,
+	prolog:ac_object/3,			% +How, +Search, -Name-Object
+	prolog:doc_object_href/2,		% +Object, -HREF
+	prolog:doc_object_label_class/3.	% +Object, -Label, -Class
 
 :- http_handler(root(autocomplete/ac_predicate), ac_predicate,
 		[spawn(complete)]).
@@ -75,12 +78,15 @@ prolog:doc_search_field(Options) -->
 			   '      return false;\n',
 			   '    }\n',
 			   '  })\n',
-			   '  .data("ui-autocomplete")._renderItem = function(ul,item) {\n',
+			   '  .data("ui-autocomplete")._renderItem = \c
+					  function(ul,item) {\n',
 			   '    var label = String(item.label).replace(\n',
 			   '		new RegExp(this.term),\n',
 			   '		"<span class=\\"acmatch\\">$&</span>");\n',
 			   '    return $("<li>")\n',
-			   '      .append("<a>"+label+"</a>")\n',
+			   '      .append("<a class=\\""+item.class+"\\">"+\c
+					  label+\c
+					  "</a>")\n',
 			   '      .appendTo(ul)\n',
 			   '  };\n',
 			   '});\n'
@@ -102,30 +108,38 @@ ac_predicate(Request) :-
 	reply_json(Completions).
 
 autocompletions(Query, Max, Count, Completions)  :-
-	autocompletions(name, Query, Max, BNC, ByName),
+	autocompletions_by(name, Query, BNC, ByName),
 	(   BNC > Max
-	->  Completions = ByName,
+	->  first_results(Max, ByName, Completions),
 	    Count = BNC
-	;   TMax is Max-BNC,
-	    autocompletions(token, Query, TMax, BTC, ByToken),
-	    append(ByName, ByToken, Completions),
-	    Count is BNC+BTC
+	;   autocompletions_by(token, Query, BTC, ByToken),
+	    ord_subtract(ByToken, ByName, NewByToken),
+	    append(ByName, NewByToken, All),
+	    Count is min(Max, BNC+BTC),
+	    first_results(Max, All, Completions)
 	).
 
-autocompletions(How, Query, Max, Count, Completions) :-
+autocompletions_by(How, Query, Count, Completions) :-
 	findall(C, ac_object(How, Query, C), Completions0),
-	sort(Completions0, Completions1),
-	length(Completions1, Count),
-	first_n(Max, Completions1, Completions2),
-	maplist(obj_result, Completions2, Completions).
+	sort(Completions0, Completions),
+	length(Completions, Count).
+
+first_results(Max, Completions, Results) :-
+	first_n(Max, Completions, FirstN),
+	maplist(obj_result, FirstN, Results).
 
 obj_result(_Name-Obj, json([ label=Label,
-			     type=Type,
+			     class=Type,
 			     href=Href
 			   ])) :-
 	obj_name(Obj, Label, Type),
-	object_href(Obj, Href).
+	(   prolog:doc_object_href(Obj, Href)
+	->  true
+	;   object_href(Obj, Href)
+	).
 
+obj_name(Object, Label, Class) :-
+	prolog:doc_object_label_class(Object, Label, Class), !.
 obj_name(c(Function), Name, cfunc) :- !,
 	atom_concat(Function, '()', Name).
 obj_name(f(Func/Arity), Name, function) :- !,
@@ -158,6 +172,8 @@ ac_object(token, Prefix, Name-Obj) :-
 	rdf_find_literal_map(ByToken, [Token], Names),
 	member(Name, Names),
 	name_object(Name, Obj, _Category).
+ac_object(MatchHow, Term, Match) :-
+	prolog:ac_object(MatchHow, Term, Match).
 
 
 :- dynamic
