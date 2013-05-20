@@ -254,14 +254,20 @@ show_tag(Request) :-
 :- multifile
 	prolog:ac_object/3,
 	prolog:doc_object_href/2,		% +Object, -HREF
-	prolog:doc_object_label_class/3.
+	prolog:doc_object_label_class/3,
+	prolog:ac_object_attributes/2.
 
 %%	prolog:ac_object(+MatchHow, +Term, -Match) is nondet.
 %
 %	Provide additional autocompletion matches on tags,
 %
 
-prolog:ac_object(_How, Term, Tag-tag(Tag)) :-
+prolog:ac_object(name, Term, Tag-tag(Tag)) :-
+	current_tag(Tag),
+	(   sub_atom(Tag, 0, _, _, Term)
+	->  true
+	).
+prolog:ac_object(token, Term, Tag-tag(Tag)) :-
 	current_tag(Tag),
 	(   sub_atom(Tag, _, _, _, Term)
 	->  true
@@ -270,10 +276,11 @@ prolog:ac_object(_How, Term, Tag-tag(Tag)) :-
 prolog:doc_object_href(tag(Tag), HREF) :-
 	http_link_to_id(show_tag, [tag(Tag)], HREF).
 
-prolog:doc_object_label_class(tag(Tag), Label, tag) :-
-	aggregate_all(count, tagged(Tag,_,_,_), Used),
-	format(atom(Label), '~w (tag x ~D)', [Tag, Used]).
+prolog:doc_object_label_class(tag(Tag), Tag, tag).
 
+prolog:ac_object_attributes(tag(Tag), [tag=Info]) :-
+	aggregate_all(count, tagged(Tag,_,_,_), Used),
+	format(atom(Info), 'tag x~D', [Used]).
 
 		 /*******************************
 		 *	     TAGIT UI		*

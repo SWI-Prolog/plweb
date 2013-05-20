@@ -45,7 +45,8 @@
 	prolog:doc_search_field//1,
 	prolog:ac_object/3,			% +How, +Search, -Name-Object
 	prolog:doc_object_href/2,		% +Object, -HREF
-	prolog:doc_object_label_class/3.	% +Object, -Label, -Class
+	prolog:doc_object_label_class/3,	% +Object, -Label, -Class
+	prolog:ac_object_attributes/2.		% +Object, -Attributes
 
 :- http_handler(root(autocomplete/ac_predicate), ac_predicate,
 		[spawn(complete)]).
@@ -83,9 +84,10 @@ prolog:doc_search_field(Options) -->
 			   '    var label = String(item.label).replace(\n',
 			   '		new RegExp(this.term),\n',
 			   '		"<span class=\\"acmatch\\">$&</span>");\n',
+			   '    var tag = item.tag ? " <i>["+item.tag+"]</i>" : "";\n',
 			   '    return $("<li>")\n',
 			   '      .append("<a class=\\""+item.class+"\\">"+\c
-					  label+\c
+					  label+tag+\c
 					  "</a>")\n',
 			   '      .appendTo(ul)\n',
 			   '  };\n',
@@ -131,21 +133,45 @@ first_results(Max, Completions, Results) :-
 obj_result(_Name-Obj, json([ label=Label,
 			     class=Type,
 			     href=Href
+			   | Extra
 			   ])) :-
 	obj_name(Obj, Label, Type),
 	(   prolog:doc_object_href(Obj, Href)
 	->  true
 	;   object_href(Obj, Href)
-	).
+	),
+	obj_tag(Obj, Extra).
+
+obj_tag(Object, Extra) :-
+	prolog:ac_object_attributes(Object, Extra), !.
+obj_tag(Name/Arity, Extra) :-
+	current_predicate(system:Name/Arity),
+	functor(Head, Name, Arity),
+	predicate_property(system:Head, iso), !,
+	Extra = [tag=iso].
+obj_tag(f(_Func/_Arity), [tag=function]) :- !.
+obj_tag(_, []).
+
+
+%%	obj_name(+Object, -Label, -Class) is det.
+%
+%	Provide the (autocomplete) label for Object   and its class. The
+%	class may be used to style the hit in www/css/plweb.css.
 
 obj_name(Object, Label, Class) :-
 	prolog:doc_object_label_class(Object, Label, Class), !.
 obj_name(c(Function), Name, cfunc) :- !,
 	atom_concat(Function, '()', Name).
 obj_name(f(Func/Arity), Name, function) :- !,
-	format(atom(Name), '~w/~w (function)', [Func, Arity]).
-obj_name((_:Term), Name, pred) :- !,
+	format(atom(Name), '~w/~w', [Func, Arity]).
+obj_name(_:Term, Name, pred) :- !,
 	format(atom(Name), '~w', [Term]).
+obj_name(Name/Arity, Label, Class) :-
+	current_predicate(system:Name/Arity),
+	functor(Head, Name, Arity),
+	predicate_property(system:Head, iso), !,
+	format(atom(Label), '~w/~w', [Name, Arity]),
+	Class = iso.
 obj_name(Term, Name, pred) :-
 	format(atom(Name), '~w', [Term]).
 
