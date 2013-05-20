@@ -113,6 +113,7 @@ prolog:doc_object_page_footer(Obj, _Options) -->
 	{ http_link_to_id(complete_tag, [], Complete),
 	  http_link_to_id(show_tag, [], ShowTag),
 	  http_link_to_id(add_tag, [], AddTag),
+	  http_link_to_id(remove_tag, [], RemoveTag),
 	  object_label(Obj, Label),
 	  object_id(Obj, Id),
 	  format(atom(PlaceHolder), 'Tag ~w', [Label]),
@@ -124,6 +125,7 @@ prolog:doc_object_page_footer(Obj, _Options) -->
 			    remove_confirmation(true),
 			    on_click(ShowTag),
 			    before_tag_added(AddTag),
+			    before_tag_removed(RemoveTag),
 			    placeholder(PlaceHolder),
 			    object_id(Id)
 			  ])
