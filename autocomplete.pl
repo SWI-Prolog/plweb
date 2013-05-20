@@ -169,9 +169,9 @@ obj_name(_:Term, Name, pred) :- !,
 obj_name(Name/Arity, Label, Class) :-
 	current_predicate(system:Name/Arity),
 	functor(Head, Name, Arity),
-	predicate_property(system:Head, iso), !,
+	predicate_property(system:Head, built_in), !,
 	format(atom(Label), '~w/~w', [Name, Arity]),
-	Class = iso.
+	Class = builtin.
 obj_name(Term, Name, pred) :-
 	format(atom(Name), '~w', [Term]).
 
