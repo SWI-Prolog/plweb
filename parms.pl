@@ -127,6 +127,16 @@ user:url_path(serql,	 'http://www.openrdf.org').
 		   requires([ jq('jquery.js')
 			    ])
 		 ]).
+:- html_resource(js('jquery/ui/minified/jquery-ui.min.js'),
+		 [ requires([ jq('jquery.js')
+			    ])
+		 ]).
+:- html_resource(jquery_ui,
+		 [ virtual(true),
+		   requires([ js('jquery/ui/minified/jquery-ui.min.js'),
+			      js('jquery/themes/base/jquery-ui.css')
+			    ])
+		 ]).
 
 
 		 /*******************************

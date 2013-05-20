@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009, VU University Amsterdam
+    Copyright (C): 2009-2013, VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -41,8 +41,6 @@
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(apply)).
-:- use_module(library(occurs)).
-:- use_module(yui_resources).
 
 :- multifile
 	prolog:doc_search_field//1.
@@ -52,127 +50,57 @@
 
 max_results_displayed(100).
 
-:- predicate_options(autocomplete//2, 2,
-		     [ width(atom),
-		       name(atom),
-		       value(atom),
-		       query_delay(number),
-		       auto_highlight(boolean),
-		       max_results_displayed(nonneg)
-		     ]).
-
 %%	prolog:doc_search_field(+Options) is det.
 %
 %	Emit the manual-search field.
 
 prolog:doc_search_field(Options) -->
-	{ select_option(size(W), Options, Options1),
-	  atomic_concat(W, ex, Wem),
-	  max_results_displayed(Max)
+	{ option(id(Id), Options),
+	  http_link_to_id(ac_predicate, [], URL)
 	},
-	autocomplete(ac_predicate,
-		     [ query_delay(0.3),
-		       auto_highlight(false),
-		       max_results_displayed(Max),
-		       width(Wem)
-		     | Options1
-		     ]).
-
-%%	autocomplete(+HandlerID, +Options)// is det.
-%
-%	Insert a YUI autocomplete widget that obtains its alternatives
-%	from HandlerID.  The following Options are supported:
-%
-%	    * width(+Width)
-%	    Specify the width of the box.  Width must satisfy the CSS
-%	    length syntax.
-%
-%	    * query_delay(+Seconds)
-%	    Wait until no more keys are typed for Seconds before sending
-%	    the query to the server.
-
-autocomplete(Handler, Options) -->
-	{ http_location_by_id(Handler, Path),
-	  atom_concat(Handler, '_complete', CompleteID),
-	  atom_concat(Handler, '_input', InputID),
-	  atom_concat(Handler, '_container', ContainerID),
-	  select_option(width(Width), Options, Options1, '25em'),
-	  select_option(name(Name), Options1, Options2, predicate),
-	  select_option(value(Value), Options2, Options3, '')
-	},
-	html([ \html_requires(yui('autocomplete/autocomplete.js')),
-	       \html_requires(yui('autocomplete/assets/skins/sam/autocomplete.css')),
-	       div([ id(CompleteID),
-		     style('width:'+Width+'; \c
-		            padding-bottom:0em; \c
-			    display:inline-block; \c
-			    vertical-align:top')
-		   ],
-		   [ input([ id(InputID),
-			     name(Name),
-			     value(Value),
-			     type(text)
-			   ]),
-		     div(id(ContainerID), [])
-		   ]),
-	       \autocomplete_script(Path, InputID, ContainerID, Options3)
+	html_requires(jquery_ui),
+	html([ input(Options, []),
+	       script(type('text/javascript'),
+		      [ \[ '$(function() {\n',
+			   '  $("#',Id,'").autocomplete({\n',
+			   '    minLength: 1,\n',
+			   '    delay: 0.3,\n',
+			   '    source: "',URL,'",\n',
+			   '    focus: function(event,ui) {\n',
+			   '      $("#',Id,'").val(ui.item.label);\n',
+			   '      return false;\n',
+			   '    },\n',
+			   '    select: function(event,ui) {\n',
+			   '      $("#',Id,'").val(ui.item.label);\n',
+			   '      window.location.href = ui.item.href;\n',
+			   '      return false;\n',
+			   '    }\n',
+			   '  })\n',
+			   '  .data("ui-autocomplete")._renderItem = function(ul,item) {\n',
+			   '    var label = String(item.label).replace(\n',
+			   '		new RegExp(this.term),\n',
+			   '		"<span class=\\"acmatch\\">$&</span>");\n',
+			   '    return $("<li>")\n',
+			   '      .append("<a>"+label+"</a>")\n',
+			   '      .appendTo(ul)\n',
+			   '  };\n',
+			   '});\n'
+			 ]
+		      ])
 	     ]).
 
-autocomplete_script(HandlerID, Input, Container, Options) -->
-	{ http_absolute_location(HandlerID, Path, [])
-	},
-	html(script(type('text/javascript'), \[
-'{ \n',
-'  var oDS = new YAHOO.util.XHRDataSource("~w");\n'-[Path],
-'  oDS.responseType = YAHOO.util.XHRDataSource.TYPE_JSON;\n',
-'  oDS.responseSchema = { resultsList:"results",
-			  fields:["label","type","href"]
-			};\n',
-'  oDS.maxCacheEntries = 5;\n',
-'  var oAC = new YAHOO.widget.AutoComplete("~w", "~w", oDS);\n'-[Input, Container],
-'  oAC.resultTypeList = false;\n',
-'  oAC.formatResult = function(oResultData, sQuery, sResultMatch) {
-     var into = "<span class=\\"acmatch\\">"+sQuery+"<\\/span>";
-     var sLabel = oResultData.label.replace(sQuery, into);
-     return sLabel;
-   };\n',
-'  oAC.itemSelectEvent.subscribe(function(sType, aArgs) {
-     var oData = aArgs[2];
-     window.location.href = oData.href;
-   });\n',
-\ac_options(Options),
-'}\n'
-					     ])).
-ac_options([]) -->
-	[].
-ac_options([H|T]) -->
-	ac_option(H),
-	ac_options(T).
-
-ac_option(query_delay(Time)) --> !,
-	html([ '  oAC.queryDelay = ~w;\n'-[Time] ]).
-ac_option(auto_highlight(Bool)) --> !,
-	html([ '  oAC.autoHighlight = ~w;\n'-[Bool] ]).
-ac_option(max_results_displayed(Max)) -->
-	html([ '  oAC.maxResultsDisplayed = ~w;\n'-[Max] ]).
-ac_option(O) -->
-	{ domain_error(yui_autocomplete_option, O) }.
 
 %%	ac_predicate(+Request)
 %
 %	HTTP handler to reply autocompletion
 
 ac_predicate(Request) :-
-	max_results_displayed(DefMax),
 	http_parameters(Request,
-			[ query(Query, []),
-			  maxResultsDisplayed(Max, [integer, default(DefMax)])
+			[ term(Query, [])
 			]),
-	autocompletions(Query, Max, Count, Completions),
-	reply_json(json([ query = json([ count=Count
-				       ]),
-			  results = Completions
-			])).
+	max_results_displayed(Max),
+	autocompletions(Query, Max, _Count, Completions),
+	reply_json(Completions).
 
 autocompletions(Query, Max, Count, Completions)  :-
 	autocompletions(name, Query, Max, BNC, ByName),
@@ -192,6 +120,8 @@ autocompletions(How, Query, Max, Count, Completions) :-
 	first_n(Max, Completions1, Completions2),
 	maplist(obj_result, Completions2, Completions).
 
+obj_result(_Name-Obj, Label) :- fail, !,
+	obj_name(Obj, Label, _Type).
 obj_result(_Name-Obj, json([ label=Label,
 			     type=Type,
 			     href=Href

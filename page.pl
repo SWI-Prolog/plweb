@@ -48,7 +48,7 @@
 user:body(wiki, Body) --> !,
 	user:body(wiki(default), Body).
 user:body(wiki(Arg), Body) --> !,
-	html(body(class(['yui-skin-sam', wiki]),
+	html(body(class(wiki),
 		  [ \html_requires(plweb),
 		    \favicon(icons('favicon.ico')),
 		    div(class(sidebar), \sidebar),
@@ -61,7 +61,7 @@ user:body(wiki(Arg), Body) --> !,
 user:body(plain, Body) --> !,
 	html(body(class(wiki), Body)).
 user:body(_, Body) -->
-	html(body(class('yui-skin-sam'),
+	html(body(class(pldoc),
 		  [ \html_requires(plweb),
 		    \favicon(icons('favicon.ico')),
 		    div(class(sidebar), \sidebar),
