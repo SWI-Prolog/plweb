@@ -32,6 +32,7 @@
 	  ]).
 :- use_module(library(option)).
 :- use_module(library(debug)).
+:- use_module(library(apply)).
 :- use_module(library(persistency)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
@@ -39,6 +40,8 @@
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_json)).
+:- use_module(library(pldoc/doc_search)).
+:- use_module(library(pldoc/doc_html)).
 :- use_module(openid).
 
 :- html_resource(tagit,
@@ -232,9 +235,13 @@ show_tag(Request) :-
 	http_parameters(Request,
 			[ tag(Tag, [])
 			]),
-	reply_html_page(pldoc,
+	findall(Obj, tagged(Tag, Obj, _, _), Objects0),
+	sort(Objects0, Objects),
+	reply_html_page(wiki(tags),
 			title('Pages tagged "~w"'-[Tag]),
-			[ h1('Pages tagged "~w"'-[Tag])
+			[ h1(class(wiki), 'Pages tagged "~w"'-[Tag]),
+			  \doc_resources([]),
+			  \matching_object_table(Objects, [])
 			]).
 
 
