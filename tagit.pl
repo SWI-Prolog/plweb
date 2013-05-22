@@ -36,6 +36,7 @@
 :- use_module(library(persistency)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/js_write)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/http_parameters)).
@@ -361,14 +362,12 @@ tagit_option(before_tag_added(URL), Options) --> !,
 	{ option(object_id(Id), Options, -) },
 	html(\['    beforeTagAdded: function(event, ui) {\n',
 	       '      if ( !ui.duringInitialization ) {\n',
-	       '        $.ajax({\n',
-	       '          dataType: "json",\n',
-	       '	  url:"~w",\n'-[URL],
-	       '          data: {\n',
-	       '                  tag:ui.tagLabel,\n',
-	       '                  obj:"~w"\n'-[Id],
-	       '                }\n',
-	       '        });\n',
+			\js_call('$.ajax'({ dataType: json,
+					    url: URL,
+					    data: { tag: @'ui.tagLabel',
+						    obj: Id
+						  }
+					  })),
 	       '      }\n',
 	       '    }'
 	      ]).
