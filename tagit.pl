@@ -27,11 +27,10 @@
     the GNU General Public License.
 */
 
+
 :- module(tagit,
-	  [ tagit//2,				% +Tags, +Options
-	    user_tags//1			% +User
+	  [ user_tags//1			% +User
 	  ]).
-:- use_module(library(option)).
 :- use_module(library(debug)).
 :- use_module(library(persistency)).
 :- use_module(library(http/html_head)).
@@ -112,25 +111,55 @@ tagit_user(Request, Peer) :-
 
 prolog:doc_object_page_footer(Obj, _Options) -->
 	{ http_link_to_id(complete_tag, [], Complete),
-	  http_link_to_id(show_tag, [], ShowTag),
+	  http_link_to_id(show_tag, [], OnClick),
 	  http_link_to_id(add_tag, [], AddTag),
 	  http_link_to_id(remove_tag, [], RemoveTag),
 	  object_label(Obj, Label),
-	  object_id(Obj, Id),
+	  object_id(Obj, ObjectID),
 	  format(atom(PlaceHolder), 'Tag ~w', [Label]),
-	  object_tags(Obj, Tags)
+	  object_tags(Obj, Tags),
+	  atomic_list_concat(Tags, ',', Data)
 	},
 	html(div(class('user-annotations'),
-		 [ \tagit(Tags,
-			  [ autocomplete(Complete),
-			    remove_confirmation(true),
-			    on_click(ShowTag),
-			    before_tag_added(AddTag),
-			    before_tag_removed(RemoveTag),
-			    placeholder(PlaceHolder),
-			    object_id(Id)
-			  ])
-		 ])).
+		 input([id(tags), value(Data)]))),
+	html_requires(tagit),
+	js_script(<![javascript(Complete, OnClick, PlaceHolder, ObjectID,
+				AddTag, RemoveTag)
+		     [$(document).ready(function() {
+		        $("#tags").tagit({
+			    autocomplete: { delay: 0.3,
+					    minLength: 1,
+					    source: Complete
+					  },
+			    onTagClicked: function(event, ui) {
+			      window.location.href = OnClick+"tag="+
+				encodeURIComponent(ui.tagLabel);
+			    },
+			    beforeTagAdded: function(event, ui) {
+			      if ( !ui.duringInitialization ) {
+				$.ajax({ dataType: "json",
+					 url: AddTag,
+					 data: { tag: ui.tagLabel,
+						 obj: ObjectID
+					       }
+				       });
+			      }
+			    },
+			    beforeTagRemoved: function(event, ui) {
+			      $.ajax({ dataType: "json",
+				       url: RemoveTag,
+				       data: { tag: ui.tagLabel,
+					       obj: ObjectID
+					     }
+				     });
+			    },
+			    removeConfirmation: true,
+			    placeholder: PlaceHolder,
+			    singleField: true
+			  });
+		      });
+		     ]]>).
+
 
 %%	object_label(+Object, -Label) is det.
 
@@ -322,85 +351,3 @@ objects([H|T]) -->
 	;   html(', '),
 	    objects(T)
 	).
-
-
-		 /*******************************
-		 *	     TAGIT UI		*
-		 *******************************/
-
-%%	tagit(+Tags, +Options)// is det.
-%
-%	HTML rule to include a tagit object
-
-tagit(Tags, Options) -->
-	{ option(id(Id), Options, tags),
-	  atomic_list_concat(Tags, ',', Data)
-	},
-	html_requires(tagit),
-	html([ input([id(Id), value(Data)]),
-	       script([type('text/javascript')],
-		      [ \[ '$(document).ready(function() {\n',
-			   '  $("#',Id,'").tagit({\n'
-			 ],
-		      \tagit_options(Options, Options),
-			\[ '    singleField:true\n',
-			   '  });\n',
-			   '});\n'
-			 ]
-		      ])
-	     ]).
-
-tagit_options([], _) --> [].
-tagit_options([H|T], Options) -->
-	(   tagit_option(H, Options)
-	->  html(\[',\n'])
-	;   []
-	),
-	tagit_options(T, Options).
-
-tagit_option(before_tag_added(URL), Options) --> !,
-	{ option(object_id(Id), Options, -) },
-	html(\['    beforeTagAdded: function(event, ui) {\n',
-	       '      if ( !ui.duringInitialization ) {\n',
-			\js_call('$.ajax'({ dataType: json,
-					    url: URL,
-					    data: { tag: @'ui.tagLabel',
-						    obj: Id
-						  }
-					  })),
-	       '      }\n',
-	       '    }'
-	      ]).
-tagit_option(before_tag_removed(URL), Options) --> !,
-	{ option(object_id(Id), Options, -) },
-	html(\['    beforeTagRemoved: function(event, ui) {\n',
-	       '      $.ajax({\n',
-	       '        dataType: "json",\n',
-	       '	url:"~w",\n'-[URL],
-	       '        data: {\n',
-	       '                tag:ui.tagLabel,\n',
-	       '                obj:"~w"\n'-[Id],
-	       '              }\n',
-	       '      });\n',
-	       '    }'
-	      ]).
-tagit_option(Option, _) -->
-	tagit_option(Option).
-
-tagit_option(autocomplete(URL)) -->
-	html(\['    autocomplete: {\n',
-	       '      delay: 0.3,\n',
-	       '      minLength: 1,\n',
-	       '      source:"~w"\n'-[URL],
-	       '    }'
-	      ]).
-tagit_option(remove_confirmation(true)) -->
-	html(\['    removeConfirmation: true']).
-tagit_option(on_click(URL)) -->
-	html(\['    onTagClicked: function(event, ui) {\n',
-	       '      window.location.href = "~w?tag="+\c
-		      encodeURIComponent(ui.tagLabel);\n'-[URL],
-	       '    }'
-	      ]).
-tagit_option(placeholder(Text)) -->
-	html(\['    placeholderText: "~w"'-[Text]]).
