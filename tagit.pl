@@ -121,7 +121,9 @@ prolog:doc_object_page_footer(Obj, _Options) -->
 	  atomic_list_concat(Tags, ',', Data)
 	},
 	html(div(class('user-annotations'),
-		 input([id(tags), value(Data)]))),
+		 [ input([id(tags), value(Data)]),
+		   \why_login
+		 ])),
 	html_requires(tagit),
 	js_script(<![javascript(Complete, OnClick, PlaceHolder, ObjectID,
 				AddTag, RemoveTag)
@@ -132,7 +134,7 @@ prolog:doc_object_page_footer(Obj, _Options) -->
 					    source: Complete
 					  },
 			    onTagClicked: function(event, ui) {
-			      window.location.href = OnClick+"tag="+
+			      window.location.href = OnClick+"?tag="+
 				encodeURIComponent(ui.tagLabel);
 			    },
 			    beforeTagAdded: function(event, ui) {
@@ -154,12 +156,17 @@ prolog:doc_object_page_footer(Obj, _Options) -->
 				     });
 			    },
 			    removeConfirmation: true,
-			    placeholder: PlaceHolder,
+			    placeholderText: PlaceHolder,
 			    singleField: true
 			  });
 		      });
 		     ]]>).
 
+why_login -->
+	{ site_user_logged_in(_) }, !.
+why_login -->
+	html(div(class('login-keeps-profile'),
+		 'Tags are associated to your profile if you are logged in')).
 
 %%	object_label(+Object, -Label) is det.
 
