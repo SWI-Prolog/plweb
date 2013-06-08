@@ -35,6 +35,7 @@
 :- use_module(library(http/http_json)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/js_write)).
 :- use_module(library(pldoc/doc_html)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(lists)).
@@ -62,39 +63,36 @@ prolog:doc_search_field(Options) -->
 	  http_link_to_id(ac_predicate, [], URL)
 	},
 	html_requires(jquery_ui),
-	html([ input(Options, []),
-	       script(type('text/javascript'),
-		      [ \[ '$(function() {\n',
-			   '  $("#',Id,'").autocomplete({\n',
-			   '    minLength: 1,\n',
-			   '    delay: 0.3,\n',
-			   '    source: "',URL,'",\n',
-			   '    focus: function(event,ui) {\n',
-			   '      $("#',Id,'").val(ui.item.label);\n',
-			   '      return false;\n',
-			   '    },\n',
-			   '    select: function(event,ui) {\n',
-			   '      $("#',Id,'").val(ui.item.label);\n',
-			   '      window.location.href = ui.item.href;\n',
-			   '      return false;\n',
-			   '    }\n',
-			   '  })\n',
-			   '  .data("ui-autocomplete")._renderItem = \c
-					  function(ul,item) {\n',
-			   '    var label = String(item.label).replace(\n',
-			   '		new RegExp(this.term),\n',
-			   '		"<span class=\\"acmatch\\">$&</span>");\n',
-			   '    var tag = item.tag ? " <i>["+item.tag+"]</i>" : "";\n',
-			   '    return $("<li>")\n',
-			   '      .append("<a class=\\""+item.class+"\\">"+\c
-					  label+tag+\c
-					  "</a>")\n',
-			   '      .appendTo(ul)\n',
-			   '  };\n',
-			   '});\n'
-			 ]
-		      ])
-	     ]).
+	html(input(Options, [])),
+	js_script(<![javascript(Id, URL)
+		     [
+$(function() {
+  $("#"+Id).autocomplete({
+    minLength: 1,
+    delay: 0.3,
+    source: URL,
+    focus: function(event,ui) {
+      $("#"+Id).val(ui.item.label);
+      return false;
+    },
+    select: function(event,ui) {
+      $("#"+Id).val(ui.item.label);
+      window.location.href = ui.item.href;
+      return false;
+    }
+  })
+  .data("ui-autocomplete")._renderItem = function(ul,item) {
+    var label = String(item.label).replace(
+		new RegExp(this.term),
+		"<span class=\"acmatch\">$&</span>");
+    var tag = item.tag ? " <i>["+item.tag+"]</i>" : "";
+    return $("<li>")
+      .append("<a class=\""+item.class+"\">"+label+tag+"</a>")
+      .appendTo(ul)
+  };
+});
+		     ]]>).
+
 
 
 %%	ac_predicate(+Request)
