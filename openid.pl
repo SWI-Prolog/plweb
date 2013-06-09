@@ -56,6 +56,7 @@
 :- use_module(wiki).
 :- use_module(markitup).
 :- use_module(tagit).
+:- use_module(annotateit).
 
 /** <module> Handle users of the SWI-Prolog website
 */
@@ -330,6 +331,7 @@ view_profile(UUID, Options) -->
 	private_profile(UUID, Options),
 	user_description(UUID, Options),
 	user_tags(UUID),
+	user_annotations(UUID),
 	user_packs(UUID),
 	profile_reviews(UUID).
 
