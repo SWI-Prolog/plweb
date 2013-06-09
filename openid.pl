@@ -32,7 +32,8 @@
 	    site_user_logged_in/1,	% -User
 	    site_user_property/2,	% +User, ?Property
 	    current_user//1,		% +PageStyle
-	    current_user//0
+	    current_user//0,
+	    login_link//1		% +Request
 	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
@@ -649,16 +650,23 @@ current_user(Style) -->
 		   ' (', a([href(Logout)], 'logout'), ')'
 		 ])).
 current_user(Style) -->
-	{ Style \== create_profile,
-	  http_current_request(Request),
-	  memberchk(request_uri(Here), Request), !,
-	  http_link_to_id(swipl_login,
-			  [ 'openid.return_to'(Here)
-			  ],
-			  Login)
+	{ Style \== create_profile, !,
+	  http_current_request(Request)
 	},
 	html(div(class('current-user'),
-		 a([class(signin), href(Login)], login))).
+		 \login_link(Request))).
 current_user(_Style) -->
 	[].
 
+%%	login_link(+Request)//
+%
+%	Create a link to login, which returns to the current page.
+
+login_link(Request) -->
+	{ (   memberchk(request_uri(Here), Request)
+	  ->  Attrs = ['openid.return_to'(Here)]
+	  ;   Attrs = []
+	  ),
+	  http_link_to_id(swipl_login, Attrs, Login)
+	},
+	html(a([class(signin), href(Login)], login)).

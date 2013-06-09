@@ -35,6 +35,7 @@
 :- use_module(library(persistency)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_wrapper)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(pldoc/doc_html), [object_ref/4]).
 :- use_module(wiki).
@@ -101,9 +102,9 @@ show_annotations([H|T], Options) -->
 
 show_annotation(annotation(_Obj, Annot, Time, User), _Options) -->
 	html(div(class(annotation),
-		 [ div(class('annotation-text'),
+		 [ div(class(comment),
 		       \comment(Annot)),
-		   div(class('annotation-meta'),
+		   div(class('commenter'),
 		       [ \date(Time), ', ',
 			 \user(User)
 		       ])
@@ -150,7 +151,12 @@ add_annotation(Obj, _Options) -->
 		    input([type(submit)])
 		  ])).
 add_annotation(_Obj, _Options) -->
-	html(div('Login to add a comment')).
+	{ http_current_request(Request)
+	},
+	html(div(class('comment-login'),
+		 [ \login_link(Request),
+		   ' to add a comment'
+		 ])).
 
 
 %%	add_annotation(+Request)

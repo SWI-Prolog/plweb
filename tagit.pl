@@ -113,11 +113,18 @@ tagit_user(Request, Peer) :-
 %	Called a to create the footer of an object page.
 
 prolog:doc_object_page_footer(Obj, Options) -->
-	tagit_footer(Obj, Options),
-	(   prolog:doc_annotation_footer(Obj, Options)
-	->  []
-	;   []
-	).
+	html(div(class('user-annotations'),
+		 [ \tagit_footer(Obj, Options),
+		   \comment_footer(Obj, Options)
+		 ])).
+
+comment_footer(Obj, Options) -->
+	prolog:doc_annotation_footer(Obj, Options), !.
+comment_footer(_, _) --> [].
+
+%%	tagit_footer(+Obj, +Options)// is det.
+%
+%	Show tagit widget for adding and deleting tags.
 
 tagit_footer(Obj, _Options) -->
 	{ http_link_to_id(complete_tag, [], Complete),
@@ -130,10 +137,9 @@ tagit_footer(Obj, _Options) -->
 	  object_tags(Obj, Tags),
 	  atomic_list_concat(Tags, ',', Data)
 	},
-	html(div(class('user-annotations'),
-		 [ input([id(tags), value(Data)]),
-		   \why_login
-		 ])),
+	html([ input([id(tags), value(Data)]),
+	       \why_login
+	     ]),
 	html_requires(tagit),
 	js_script(<![javascript(Complete, OnClick, PlaceHolder, ObjectID,
 				AddTag, RemoveTag)
