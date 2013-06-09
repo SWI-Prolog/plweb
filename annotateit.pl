@@ -150,7 +150,7 @@ add_annotation(Obj, _Options) -->
 	  )
 	},
 	html([ div(class('comment-action'),
-		   [ \add_open(Current, comment_form),
+		   [ \add_open_link(Current, comment_form),
 		     ' comment for ~w'-[Label]
 		   ]),
 	       form([ action(AddAnnotation),
@@ -159,6 +159,7 @@ add_annotation(Obj, _Options) -->
 		      style('display:none')
 		    ],
 		    [ input([type(hidden), name(object), value(ObjectID)]),
+		      \explain_comment(User),
 		      table([ tr(td(\markitup([ id(comment),
 						markup(pldoc)
 					      | Extra
@@ -178,7 +179,11 @@ add_annotation(_Obj, _Options) -->
 		   ' to add a comment'
 		 ])).
 
-add_open(Current, Id) -->
+%%	add_open_link(+Current, +Id)// is det.
+%
+%	Add a link to actually open the editor.
+
+add_open_link(Current, Id) -->
 	{ (   var(Current)
 	  ->  Label = 'Add'
 	  ;   Label = 'Edit or remove your'
@@ -189,6 +194,16 @@ add_open(Current, Id) -->
 		 onClick('$("#'+Id+'").css("display","block"); return false')
 	       ],
 	       Label)).
+
+explain_comment(_User) -->
+	html(<![html
+		[<div class="explain-comment">
+		 Comments are intended to point to <b>related material</b>,
+		 indicate <b>errors</b> or provide <b>examples</b>.<br>
+		 Comments are written using the PlDoc wiki format.  Preview
+		 may be enabled and disabled with the two rightmost buttons.
+		 </div>
+		]]>).
 
 
 %%	add_annotation(+Request)
