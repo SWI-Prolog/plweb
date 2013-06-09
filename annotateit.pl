@@ -78,8 +78,10 @@
 %	Called a to create the footer of an object page.
 
 prolog:doc_annotation_footer(Obj, Options) -->
-	object_annotations(Obj, Options),
-	add_annotation(Obj, Options).
+	html(div(class(comments),
+		 [ \object_annotations(Obj, Options),
+		   \add_annotation(Obj, Options)
+		 ])).
 
 %%	object_annotations(+Object, +Options)// is det.
 %
@@ -137,19 +139,36 @@ date(Time) -->
 %	Allow adding a new annotation if the user is logged on.
 
 add_annotation(Obj, _Options) -->
-	{ site_user_logged_in(_User), !,
+	{ site_user_logged_in(User), !,
 	  http_link_to_id(add_annotation, [], AddAnnotation),
 	  object_label(Obj, Label),
-	  object_id(Obj, ObjectID)
+	  object_id(Obj, ObjectID),
+	  (   annotation(Obj, Current, _Time, User)
+	  ->  Extra = [value(Current)]
+	  ;   Extra = []
+	  )
 	},
-	html(form([action(AddAnnotation), method('POST')],
-		  [ div('Add comment for ~w'-[Label]),
-		    input([type(hidden), name(object), value(ObjectID)]),
-		    \markitup([ id(comment),
-				rows(5)
-			      ]),
-		    input([type(submit)])
-		  ])).
+	html([ div(class('comment-action'),
+		   [ \add_open(Current, comment_form),
+		     ' comment for ~w'-[Label]
+		   ]),
+	       form([ action(AddAnnotation),
+		      id(comment_form),
+		      method('POST'),
+		      style('display:none')
+		    ],
+		    [ input([type(hidden), name(object), value(ObjectID)]),
+		      table([ tr(td(\markitup([ id(comment),
+						markup(pldoc)
+					      | Extra
+					      ]))),
+			      tr(td(align(right),
+				    input([ type(submit),
+					    value('Save comment')
+					  ])))
+			    ])
+		    ])
+	     ]).
 add_annotation(_Obj, _Options) -->
 	{ http_current_request(Request)
 	},
@@ -157,6 +176,18 @@ add_annotation(_Obj, _Options) -->
 		 [ \login_link(Request),
 		   ' to add a comment'
 		 ])).
+
+add_open(Current, Id) -->
+	{ (   var(Current)
+	  ->  Label = 'Add'
+	  ;   Label = 'Edit or remove your'
+	  )
+	},
+	html(a([ class('edit-comment'),
+		 href(''),
+		 onClick('$("#'+Id+'").css("display","block"); return false')
+	       ],
+	       Label)).
 
 
 %%	add_annotation(+Request)
@@ -173,7 +204,11 @@ add_annotation(Request) :-
 	object_id(Object, ObjectID),
 	get_time(NowF),
 	Now is round(NowF),
-	assert_annotation(Object, Annotation, Now, User),
+	ignore(retract_annotation(Object, _Old, _Time, User)),
+	(   normalize_space(atom(''), Annotation)
+	->  true
+	;   assert_annotation(Object, Annotation, Now, User)
+	),
 	object_href(Object, HREF),
 	http_redirect(moved_temporary, HREF, Request).
 

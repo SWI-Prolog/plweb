@@ -650,8 +650,8 @@ current_user(Style) -->
 		   ' (', a([href(Logout)], 'logout'), ')'
 		 ])).
 current_user(Style) -->
-	{ Style \== create_profile, !,
-	  http_current_request(Request)
+	{ Style \== create_profile,
+	  http_current_request(Request), !
 	},
 	html(div(class('current-user'),
 		 \login_link(Request))).
