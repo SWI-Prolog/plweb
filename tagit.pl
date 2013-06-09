@@ -29,7 +29,9 @@
 
 
 :- module(tagit,
-	  [ user_tags//1			% +User
+	  [ user_tags//1,		% +User
+	    object_label/2,		% +Object, -Label
+	    object_id/2			% +Object, -Id
 	  ]).
 :- use_module(library(debug)).
 :- use_module(library(persistency)).
@@ -103,13 +105,21 @@ tagit_user(Request, Peer) :-
 :- http_handler(root('remove-tag'),   remove_tag,   []).
 
 :- multifile
-	prolog:doc_object_page_footer//2.
+	prolog:doc_object_page_footer//2,
+	prolog:doc_annotation_footer//2.
 
 %%	prolog:doc_object_page_footer(+Object, +Options)//
 %
 %	Called a to create the footer of an object page.
 
-prolog:doc_object_page_footer(Obj, _Options) -->
+prolog:doc_object_page_footer(Obj, Options) -->
+	tagit_footer(Obj, Options),
+	(   prolog:doc_annotation_footer(Obj, Options)
+	->  []
+	;   []
+	).
+
+tagit_footer(Obj, _Options) -->
 	{ http_link_to_id(complete_tag, [], Complete),
 	  http_link_to_id(show_tag, [], OnClick),
 	  http_link_to_id(add_tag, [], AddTag),
