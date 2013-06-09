@@ -346,7 +346,7 @@ prolog:ac_object_attributes(tag(Tag), [tag=Info]) :-
 
 user_tags(User) -->
 	{ findall(Tag-Obj, tagged(Tag, Obj, _Time, User), Pairs),
-	  Pairs \== [],
+	  Pairs \== [], !,
 	  keysort(Pairs, Sorted),
 	  group_pairs_by_key(Sorted, Keyed),
 	  site_user_property(User, name(Name))
@@ -355,6 +355,7 @@ user_tags(User) -->
 	       ul(class('user-tags'),
 		  \list_tags(Keyed))
 	     ]).
+user_tags(_) --> [].
 
 list_tags([]) --> [].
 list_tags([H|T]) --> list_tag(H), list_tags(T).
