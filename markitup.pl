@@ -34,6 +34,7 @@
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/js_write)).
 :- use_module(library(option)).
 :- use_module(markdown).
 :- use_module(wiki).
@@ -83,26 +84,19 @@ markitup(Options) -->
 	  option(name(Name), Options, Id),
 	  option(cols(Cols), Options, 80),
 	  option(rows(Rows), Options, 20),
-	  option(value(Content), Options, [])
+	  option(value(Content), Options, []),
+	  option(preview(Preview), Options, false)
 	},
 	html_requires(Language),
-	html([ textarea([id(Id), name(Name), cols(Cols), rows(Rows)], Content),
-	       script(type('text/javascript'),
-		      [ \[ '$(document).ready(function(){\n',
-			   '$("#',Id,'").markItUp(',Language,'_settings);\n'
-			 ],
-			\preview(Options),
-			\[ '});\n'
-			 ]
-		      ])
-	     ]).
-
-preview(Options) -->
-	{ option(preview(true), Options, false) },
-	html(\['  $(\'a[title="Preview"]\').trigger(\'mouseup\');\n']).
-preview(_) -->
-	[].
-
+	html(textarea([id(Id), name(Name), cols(Cols), rows(Rows)], Content)),
+	js_script(<![javascript(Id,Language,Preview)
+		     [$(document).ready(function() {
+			$("#"+Id).markItUp(eval(Language+"_settings"));
+			if ( eval(Preview) ) {
+			  $('a[title="Preview"]').trigger("mouseup");
+			}
+		      });
+		     ]]>).
 
 
 %%	preview_markdown(+Request)

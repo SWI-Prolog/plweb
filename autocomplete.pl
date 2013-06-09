@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009, VU University Amsterdam
+    Copyright (C): 2009-2013, VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -27,184 +27,149 @@
     the GNU General Public License.
 */
 
-:- module(autocomplete_predicates,
+:- module(plweb_autocomplete,
 	  [
 	  ]).
 :- use_module(library(http/http_dispatch)).
-:- use_module(library(http/http_path)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_json)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/js_write)).
 :- use_module(library(pldoc/doc_html)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(apply)).
-:- use_module(library(occurs)).
-:- use_module(yui_resources).
 
 :- multifile
-	prolog:doc_search_field//1.
+	prolog:doc_search_field//1,
+	prolog:ac_object/3,			% +How, +Search, -Name-Object
+	prolog:doc_object_href/2,		% +Object, -HREF
+	prolog:doc_object_label_class/3,	% +Object, -Label, -Class
+	prolog:ac_object_attributes/2.		% +Object, -Attributes
 
 :- http_handler(root(autocomplete/ac_predicate), ac_predicate,
 		[spawn(complete)]).
 
 max_results_displayed(100).
 
-:- predicate_options(autocomplete//2, 2,
-		     [ width(atom),
-		       name(atom),
-		       value(atom),
-		       query_delay(number),
-		       auto_highlight(boolean),
-		       max_results_displayed(nonneg)
-		     ]).
-
 %%	prolog:doc_search_field(+Options) is det.
 %
 %	Emit the manual-search field.
 
 prolog:doc_search_field(Options) -->
-	{ select_option(size(W), Options, Options1),
-	  atomic_concat(W, ex, Wem),
-	  max_results_displayed(Max)
+	{ option(id(Id), Options),
+	  http_link_to_id(ac_predicate, [], URL)
 	},
-	autocomplete(ac_predicate,
-		     [ query_delay(0.3),
-		       auto_highlight(false),
-		       max_results_displayed(Max),
-		       width(Wem)
-		     | Options1
-		     ]).
+	html_requires(jquery_ui),
+	html(input(Options, [])),
+	js_script(<![javascript(Id, URL)
+		     [
+$(function() {
+  $("#"+Id).autocomplete({
+    minLength: 1,
+    delay: 0.3,
+    source: URL,
+    focus: function(event,ui) {
+      $("#"+Id).val(ui.item.label);
+      return false;
+    },
+    select: function(event,ui) {
+      $("#"+Id).val(ui.item.label);
+      window.location.href = ui.item.href;
+      return false;
+    }
+  })
+  .data("ui-autocomplete")._renderItem = function(ul,item) {
+    var label = String(item.label).replace(
+		new RegExp(this.term),
+		"<span class=\"acmatch\">$&</span>");
+    var tag = item.tag ? " <i>["+item.tag+"]</i>" : "";
+    return $("<li>")
+      .append("<a class=\""+item.class+"\">"+label+tag+"</a>")
+      .appendTo(ul)
+  };
+});
+		     ]]>).
 
-%%	autocomplete(+HandlerID, +Options)// is det.
-%
-%	Insert a YUI autocomplete widget that obtains its alternatives
-%	from HandlerID.  The following Options are supported:
-%
-%	    * width(+Width)
-%	    Specify the width of the box.  Width must satisfy the CSS
-%	    length syntax.
-%
-%	    * query_delay(+Seconds)
-%	    Wait until no more keys are typed for Seconds before sending
-%	    the query to the server.
 
-autocomplete(Handler, Options) -->
-	{ http_location_by_id(Handler, Path),
-	  atom_concat(Handler, '_complete', CompleteID),
-	  atom_concat(Handler, '_input', InputID),
-	  atom_concat(Handler, '_container', ContainerID),
-	  select_option(width(Width), Options, Options1, '25em'),
-	  select_option(name(Name), Options1, Options2, predicate),
-	  select_option(value(Value), Options2, Options3, '')
-	},
-	html([ \html_requires(yui('autocomplete/autocomplete.js')),
-	       \html_requires(yui('autocomplete/assets/skins/sam/autocomplete.css')),
-	       div([ id(CompleteID),
-		     style('width:'+Width+'; \c
-		            padding-bottom:0em; \c
-			    display:inline-block; \c
-			    vertical-align:top')
-		   ],
-		   [ input([ id(InputID),
-			     name(Name),
-			     value(Value),
-			     type(text)
-			   ]),
-		     div(id(ContainerID), [])
-		   ]),
-	       \autocomplete_script(Path, InputID, ContainerID, Options3)
-	     ]).
-
-autocomplete_script(HandlerID, Input, Container, Options) -->
-	{ http_absolute_location(HandlerID, Path, [])
-	},
-	html(script(type('text/javascript'), \[
-'{ \n',
-'  var oDS = new YAHOO.util.XHRDataSource("~w");\n'-[Path],
-'  oDS.responseType = YAHOO.util.XHRDataSource.TYPE_JSON;\n',
-'  oDS.responseSchema = { resultsList:"results",
-			  fields:["label","type","href"]
-			};\n',
-'  oDS.maxCacheEntries = 5;\n',
-'  var oAC = new YAHOO.widget.AutoComplete("~w", "~w", oDS);\n'-[Input, Container],
-'  oAC.resultTypeList = false;\n',
-'  oAC.formatResult = function(oResultData, sQuery, sResultMatch) {
-     var into = "<span class=\\"acmatch\\">"+sQuery+"<\\/span>";
-     var sLabel = oResultData.label.replace(sQuery, into);
-     return sLabel;
-   };\n',
-'  oAC.itemSelectEvent.subscribe(function(sType, aArgs) {
-     var oData = aArgs[2];
-     window.location.href = oData.href;
-   });\n',
-\ac_options(Options),
-'}\n'
-					     ])).
-ac_options([]) -->
-	[].
-ac_options([H|T]) -->
-	ac_option(H),
-	ac_options(T).
-
-ac_option(query_delay(Time)) --> !,
-	html([ '  oAC.queryDelay = ~w;\n'-[Time] ]).
-ac_option(auto_highlight(Bool)) --> !,
-	html([ '  oAC.autoHighlight = ~w;\n'-[Bool] ]).
-ac_option(max_results_displayed(Max)) -->
-	html([ '  oAC.maxResultsDisplayed = ~w;\n'-[Max] ]).
-ac_option(O) -->
-	{ domain_error(yui_autocomplete_option, O) }.
 
 %%	ac_predicate(+Request)
 %
 %	HTTP handler to reply autocompletion
 
 ac_predicate(Request) :-
-	max_results_displayed(DefMax),
 	http_parameters(Request,
-			[ query(Query, []),
-			  maxResultsDisplayed(Max, [integer, default(DefMax)])
+			[ term(Query, [])
 			]),
-	autocompletions(Query, Max, Count, Completions),
-	reply_json(json([ query = json([ count=Count
-				       ]),
-			  results = Completions
-			])).
+	max_results_displayed(Max),
+	autocompletions(Query, Max, _Count, Completions),
+	reply_json(Completions).
 
 autocompletions(Query, Max, Count, Completions)  :-
-	autocompletions(name, Query, Max, BNC, ByName),
+	autocompletions_by(name, Query, BNC, ByName),
 	(   BNC > Max
-	->  Completions = ByName,
+	->  first_results(Max, ByName, Completions),
 	    Count = BNC
-	;   TMax is Max-BNC,
-	    autocompletions(token, Query, TMax, BTC, ByToken),
-	    append(ByName, ByToken, Completions),
-	    Count is BNC+BTC
+	;   autocompletions_by(token, Query, BTC, ByToken),
+	    ord_subtract(ByToken, ByName, NewByToken),
+	    append(ByName, NewByToken, All),
+	    Count is min(Max, BNC+BTC),
+	    first_results(Max, All, Completions)
 	).
 
-autocompletions(How, Query, Max, Count, Completions) :-
+autocompletions_by(How, Query, Count, Completions) :-
 	findall(C, ac_object(How, Query, C), Completions0),
-	sort(Completions0, Completions1),
-	length(Completions1, Count),
-	first_n(Max, Completions1, Completions2),
-	maplist(obj_result, Completions2, Completions).
+	sort(Completions0, Completions),
+	length(Completions, Count).
+
+first_results(Max, Completions, Results) :-
+	first_n(Max, Completions, FirstN),
+	maplist(obj_result, FirstN, Results).
 
 obj_result(_Name-Obj, json([ label=Label,
-			     type=Type,
+			     class=Type,
 			     href=Href
+			   | Extra
 			   ])) :-
 	obj_name(Obj, Label, Type),
-	object_href(Obj, Href).
+	(   prolog:doc_object_href(Obj, Href)
+	->  true
+	;   object_href(Obj, Href)
+	),
+	obj_tag(Obj, Extra).
 
+obj_tag(Object, Extra) :-
+	prolog:ac_object_attributes(Object, Extra), !.
+obj_tag(Name/Arity, Extra) :-
+	current_predicate(system:Name/Arity),
+	functor(Head, Name, Arity),
+	predicate_property(system:Head, iso), !,
+	Extra = [tag=iso].
+obj_tag(f(_Func/_Arity), [tag=function]) :- !.
+obj_tag(_, []).
+
+
+%%	obj_name(+Object, -Label, -Class) is det.
+%
+%	Provide the (autocomplete) label for Object   and its class. The
+%	class may be used to style the hit in www/css/plweb.css.
+
+obj_name(Object, Label, Class) :-
+	prolog:doc_object_label_class(Object, Label, Class), !.
 obj_name(c(Function), Name, cfunc) :- !,
 	atom_concat(Function, '()', Name).
 obj_name(f(Func/Arity), Name, function) :- !,
-	format(atom(Name), '~w/~w (function)', [Func, Arity]).
-obj_name((_:Term), Name, pred) :- !,
+	format(atom(Name), '~w/~w', [Func, Arity]).
+obj_name(_:Term, Name, pred) :- !,
 	format(atom(Name), '~w', [Term]).
+obj_name(Name/Arity, Label, Class) :-
+	current_predicate(system:Name/Arity),
+	functor(Head, Name, Arity),
+	predicate_property(system:Head, built_in), !,
+	format(atom(Label), '~w/~w', [Name, Arity]),
+	Class = builtin.
 obj_name(Term, Name, pred) :-
 	format(atom(Name), '~w', [Term]).
 
@@ -231,6 +196,8 @@ ac_object(token, Prefix, Name-Obj) :-
 	rdf_find_literal_map(ByToken, [Token], Names),
 	member(Name, Names),
 	name_object(Name, Obj, _Category).
+ac_object(MatchHow, Term, Match) :-
+	prolog:ac_object(MatchHow, Term, Match).
 
 
 :- dynamic

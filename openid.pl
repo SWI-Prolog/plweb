@@ -32,7 +32,8 @@
 	    site_user_logged_in/1,	% -User
 	    site_user_property/2,	% +User, ?Property
 	    current_user//1,		% +PageStyle
-	    current_user//0
+	    current_user//0,
+	    login_link//1		% +Request
 	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
@@ -54,6 +55,8 @@
 :- use_module(pack).
 :- use_module(wiki).
 :- use_module(markitup).
+:- use_module(tagit).
+:- use_module(annotateit).
 
 /** <module> Handle users of the SWI-Prolog website
 */
@@ -221,19 +224,18 @@ ax(name(Name), AX) :-
 	memberchk(nickname(Name), AX), !.
 
 expain_create_profile -->
-	html(div(class('smallprint'),
-		 [ p([ 'On this page, we ask you to proof you are human and ',
-		       'create a minimal profile. '  ,
-		       'Your name is displayed along with comments that you create. ',
-		       'Your E-mail and home URL are used to detect authorship of ',
-		       'packs. ',
-		       'Your E-mail and home URL will not be displayed, ',
-		       'not be used for spamming and not be handed to third parties.',
-		       'The editor can be used to add a short description about yourself. ',
-		       'This description is shown on your profile page that collects ',
-		       'your packages and ratings and reviews you performed.'
-		     ])
-		 ])).
+	html(<![html
+		[<div class="smallprint">
+		 On this page, we ask you to proof you are human and
+		 create a minimal profile. Your name is displayed along with comments
+		 that you create.  Your E-mail and home URL are used to detect authorship of
+		 packs. Your E-mail and home URL will not be displayed,
+		 not be used for spamming and not be handed to third parties.
+		 The editor can be used to add a short description about yourself.
+		 This description is shown on your profile page that collects
+		 your packages and ratings and reviews you performed.
+		 </div>
+		]]>).
 
 %%	description(+UUID)//
 %
@@ -328,6 +330,8 @@ view_profile(Request) :-
 view_profile(UUID, Options) -->
 	private_profile(UUID, Options),
 	user_description(UUID, Options),
+	user_tags(UUID),
+	user_annotations(UUID),
 	user_packs(UUID),
 	profile_reviews(UUID).
 
@@ -649,15 +653,22 @@ current_user(Style) -->
 		 ])).
 current_user(Style) -->
 	{ Style \== create_profile,
-	  http_current_request(Request),
-	  memberchk(request_uri(Here), Request), !,
-	  http_link_to_id(swipl_login,
-			  [ 'openid.return_to'(Here)
-			  ],
-			  Login)
+	  http_current_request(Request), !
 	},
 	html(div(class('current-user'),
-		 a([class(signin), href(Login)], login))).
+		 \login_link(Request))).
 current_user(_Style) -->
 	[].
 
+%%	login_link(+Request)//
+%
+%	Create a link to login, which returns to the current page.
+
+login_link(Request) -->
+	{ (   memberchk(request_uri(Here), Request)
+	  ->  Attrs = ['openid.return_to'(Here)]
+	  ;   Attrs = []
+	  ),
+	  http_link_to_id(swipl_login, Attrs, Login)
+	},
+	html(a([class(signin), href(Login)], login)).

@@ -13,7 +13,8 @@
 		stats,
 		pack,
 		register,
-		changelog
+		changelog,
+		tagit
 	      ],
 	      [ silent(true)
 	      ]).
