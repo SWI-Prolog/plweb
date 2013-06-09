@@ -33,6 +33,7 @@
 	  ]).
 :- use_module(library(debug)).
 :- use_module(library(persistency)).
+:- use_module(library(dcg/basics)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_wrapper)).
@@ -217,37 +218,61 @@ add_annotation(Request) :-
 		 *	      PROFILE		*
 		 *******************************/
 
-%%	user_annotations(+User)
+%%	user_annotations(+User)// is det.
 %
 %	Show object that are annotated by user.
 
 user_annotations(User) -->
-	{ findall(Obj-Annot, annotation(Obj, Annot, _Time, User), Pairs),
-	  Pairs \== [],
-	  keysort(Pairs, Sorted),
-	  group_pairs_by_key(Sorted, Keyed),
+	{ findall(Time-comment(Obj,Comment),
+		  annotation(Obj, Comment, Time, User),
+		  Pairs),
+	  Pairs \== [], !,
+	  sort(Pairs, Sorted),
+	  pairs_values(Sorted, Objects),
 	  site_user_property(User, name(Name))
 	},
-	html([ h2(class(wiki), 'Tags by ~w'-[Name]),
+	html([ h2(class(wiki), 'Comments by ~w'-[Name]),
 	       ul(class('user-tags'),
-		  \list_tags(Keyed))
+		  \list_annotated_objects(Objects))
 	     ]).
+user_annotations(_) --> [].
 
-list_tags([]) --> [].
-list_tags([H|T]) --> list_tag(H), list_tags(T).
+list_annotated_objects([]) --> [].
+list_annotated_objects([H|T]) -->
+	list_annotated_object(H),
+	list_annotated_objects(T).
 
-list_tag(Tag-Objects) -->
-	{ http_link_to_id(show_tag, [tag(Tag)], HREF)
+list_annotated_object(comment(Obj, Comment)) -->
+	html(div(class('comment-summary'),
+		 [ \object_ref(Obj, []), ' ',
+		   \comment_summary(Comment)
+		 ])).
+
+comment_summary(Comment) -->
+	{ summary_sentence(Comment, Summary)
 	},
-	html(li([ a([class(tag),href(HREF)], Tag),
-		  \objects(Objects)
-		])).
+	html(span(Summary)).
 
-objects([]) --> [].
-objects([H|T]) -->
-	object_ref(H, []),
-	(   { T == [] }
-	->  []
-	;   html(', '),
-	    objects(T)
-	).
+summary_sentence(Comment, Summary) :-
+	atom_codes(Comment, Codes),
+	phrase(summary(SummaryCodes, 80), Codes, _),
+	atom_codes(Summary, SummaryCodes).
+
+
+summary([C,End], _) -->
+	[C,End],
+	{ \+ code_type(C, period),
+	  code_type(End, period)		% ., !, ?
+	},
+	white, !.
+summary([0' |T0], Max) -->
+	blank, !,
+	blanks,
+	{ Left is Max-1 },
+	summary(T0, Left).
+summary(" ...", 0) --> !.
+summary([H|T0], Max) -->
+	[H], !,
+	{ Left is Max-1 },
+	summary(T0, Left).
+summary([], _) --> [].
