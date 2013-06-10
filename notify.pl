@@ -77,11 +77,11 @@ mail_notifier :-
 	fail.
 
 handle_message(notification(Object, Term)) :- !,
-	notify(Object, Term).
+	do_notify(Object, Term).
 handle_message(Message) :-
 	domain_error(notification, Message).
 
-notify(Object, Term) :-
+do_notify(Object, Term) :-
 	(   watcher(Object, Watcher),
 	    (	site_user_property(Watcher, email(Email)),
 		User = Watcher
@@ -154,7 +154,7 @@ opening(UUID) -->
 	{ site_user_property(UUID, name(Name)) },
 	[ 'Dear ~w,'-[Name], nl, nl ].
 opening(_) -->
-	[ 'Hi'-[Name], nl, nl ].
+	[ 'Hi'-[], nl, nl ].
 
 on_object(Object) -->
 	{ object_label(Object, Label),

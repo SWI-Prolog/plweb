@@ -45,6 +45,7 @@
 :- use_module(library(pldoc/doc_search)).
 :- use_module(library(pldoc/doc_html)).
 :- use_module(openid).
+:- use_module(notify).
 
 :- html_resource(tagit,
 		 [ virtual(true),
@@ -274,6 +275,7 @@ add_tag(Request) :-
 	get_time(NowF),
 	Now is round(NowF),
 	assert_tagged(Tag, Object, Now, User),
+	notify(Object, tagged(Tag)),
 	reply_json(true).
 
 %%	remove_tag(+Request)
@@ -289,7 +291,8 @@ remove_tag(Request) :-
 	tagit_user(Request, User),
 	debug(tagit, 'remove_tag: ~q: ~q to ~q', [User, Tag, Object]),
 	(   retract_tagged(Tag, Object, _, User)
-	->  reply_json(true)
+	->  notify(Object, untagged(Tag)),
+	    reply_json(true)
 	;   reply_json(false)
 	).
 
@@ -387,3 +390,23 @@ objects([H|T]) -->
 	;   html(', '),
 	    objects(T)
 	).
+
+
+		 /*******************************
+		 *	      MESSAGES		*
+		 *******************************/
+
+:- multifile
+	mail_notify:event_subject//1,		% +Event
+	mail_notify:event_message//1.		% +event
+
+mail_notify:event_subject(tagged(Tag)) -->
+	[ 'tagged with ~w'-[Tag] ].
+mail_notify:event_subject(untagged(Tag)) -->
+	[ 'removed tag ~w'-[Tag] ].
+
+
+mail_notify:event_message(tagged(Tag)) -->
+	[ 'tagged with ~w'-[Tag] ].
+mail_notify:event_message(untagged(Tag)) -->
+	[ 'removed tag ~w'-[Tag] ].
