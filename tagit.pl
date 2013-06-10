@@ -113,10 +113,13 @@ tagit_user(Request, Peer) :-
 %	Called a to create the footer of an object page.
 
 prolog:doc_object_page_footer(Obj, Options) -->
+	{ ground(Obj) }, !,
 	html(div(class('user-annotations'),
 		 [ \tagit_footer(Obj, Options),
 		   \comment_footer(Obj, Options)
 		 ])).
+prolog:doc_object_page_footer(_, _) -->
+	[].
 
 comment_footer(Obj, Options) -->
 	prolog:doc_annotation_footer(Obj, Options), !.
