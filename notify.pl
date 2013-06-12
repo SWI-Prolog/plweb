@@ -151,7 +151,7 @@ make_message(UUID, Object, Event) -->
 	closing(Object).
 
 opening(UUID) -->
-	{ site_user_property(UUID, name(Name)) },
+	{ site_user_property(UUID, name(Name)) }, !,
 	[ 'Dear ~w,'-[Name], nl, nl ].
 opening(_) -->
 	[ 'Hi'-[], nl, nl ].
