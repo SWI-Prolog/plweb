@@ -224,18 +224,18 @@ ax(name(Name), AX) :-
 	memberchk(nickname(Name), AX), !.
 
 expain_create_profile -->
-	html(<![html
-		[<div class="smallprint">
-		 On this page, we ask you to proof you are human and
-		 create a minimal profile. Your name is displayed along with comments
-		 that you create.  Your E-mail and home URL are used to detect authorship of
-		 packs. Your E-mail and home URL will not be displayed,
-		 not be used for spamming and not be handed to third parties.
-		 The editor can be used to add a short description about yourself.
-		 This description is shown on your profile page that collects
-		 your packages and ratings and reviews you performed.
-		 </div>
-		]]>).
+	html({|html|
+	       <div class="smallprint">
+	       On this page, we ask you to proof you are human and
+	       create a minimal profile. Your name is displayed along with comments
+	       that you create.  Your E-mail and home URL are used to detect authorship of
+	       packs. Your E-mail and home URL will not be displayed,
+	       not be used for spamming and not be handed to third parties.
+	       The editor can be used to add a short description about yourself.
+	       This description is shown on your profile page that collects
+	       your packages and ratings and reviews you performed.
+	       </div>
+	       |}).
 
 %%	description(+UUID)//
 %

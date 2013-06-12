@@ -145,42 +145,42 @@ tagit_footer(Obj, _Options) -->
 	       \why_login
 	     ]),
 	html_requires(tagit),
-	js_script(<![javascript(Complete, OnClick, PlaceHolder, ObjectID,
-				AddTag, RemoveTag)
-		     [$(document).ready(function() {
-		        $("#tags").tagit({
-			    autocomplete: { delay: 0.3,
-					    minLength: 1,
-					    source: Complete
-					  },
-			    onTagClicked: function(event, ui) {
-			      window.location.href = OnClick+"?tag="+
-				encodeURIComponent(ui.tagLabel);
-			    },
-			    beforeTagAdded: function(event, ui) {
-			      if ( !ui.duringInitialization ) {
-				$.ajax({ dataType: "json",
-					 url: AddTag,
-					 data: { tag: ui.tagLabel,
-						 obj: ObjectID
-					       }
-				       });
-			      }
-			    },
-			    beforeTagRemoved: function(event, ui) {
+	js_script({|javascript(Complete, OnClick, PlaceHolder, ObjectID,
+			       AddTag, RemoveTag)|
+		    $(document).ready(function() {
+		      $("#tags").tagit({
+			  autocomplete: { delay: 0.3,
+					  minLength: 1,
+					  source: Complete
+					},
+			  onTagClicked: function(event, ui) {
+			    window.location.href = OnClick+"?tag="+
+			      encodeURIComponent(ui.tagLabel);
+			  },
+			  beforeTagAdded: function(event, ui) {
+			    if ( !ui.duringInitialization ) {
 			      $.ajax({ dataType: "json",
-				       url: RemoveTag,
+				       url: AddTag,
 				       data: { tag: ui.tagLabel,
 					       obj: ObjectID
 					     }
 				     });
-			    },
-			    removeConfirmation: true,
-			    placeholderText: PlaceHolder,
-			    singleField: true
-			  });
+			    }
+			  },
+			  beforeTagRemoved: function(event, ui) {
+			    $.ajax({ dataType: "json",
+				     url: RemoveTag,
+				     data: { tag: ui.tagLabel,
+					     obj: ObjectID
+					   }
+				   });
+			  },
+			  removeConfirmation: true,
+			  placeholderText: PlaceHolder,
+			  singleField: true
+			});
 		      });
-		     ]]>).
+		  |}).
 
 why_login -->
 	{ site_user_logged_in(_) }, !.

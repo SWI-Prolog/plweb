@@ -196,14 +196,14 @@ add_open_link(Current, Id) -->
 	       Label)).
 
 explain_comment(_User) -->
-	html(<![html
-		[<div class="explain-comment">
-		 Comments are intended to point to <b>related material</b>,
-		 indicate <b>errors</b> or provide <b>examples</b>.<br>
-		 Comments are written using the PlDoc wiki format.  Preview
-		 may be enabled and disabled with the two rightmost buttons.
-		 </div>
-		]]>).
+	html({|html|
+	      <div class="explain-comment">
+	      Comments are intended to point to <b>related material</b>,
+	      indicate <b>errors</b> or provide <b>examples</b>.<br>
+	      Comments are written using the PlDoc wiki format.  Preview
+	      may be enabled and disabled with the two rightmost buttons.
+	      </div>
+	      |}).
 
 
 %%	add_annotation(+Request)

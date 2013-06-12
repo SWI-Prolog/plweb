@@ -64,8 +64,7 @@ prolog:doc_search_field(Options) -->
 	},
 	html_requires(jquery_ui),
 	html(input(Options, [])),
-	js_script(<![javascript(Id, URL)
-		     [
+	js_script({|javascript(Id, URL)|
 $(function() {
   $("#"+Id).autocomplete({
     minLength: 1,
@@ -91,7 +90,7 @@ $(function() {
       .appendTo(ul)
   };
 });
-		     ]]>).
+		   |}).
 
 
 
