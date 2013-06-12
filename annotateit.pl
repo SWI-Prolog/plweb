@@ -43,6 +43,7 @@
 :- use_module(openid).
 :- use_module(tagit).
 :- use_module(markitup).
+:- use_module(notify).
 
 /** <module> Allow (logged on) users to comment on manual objects
 */
@@ -214,19 +215,38 @@ explain_comment(_User) -->
 add_annotation(Request) :-
 	http_parameters(Request,
 			[ object(ObjectID, []),
-			  comment(Annotation, [default('')])
+			  comment(Annotation0, [default('')])
 			]),
 	site_user_logged_in(User),
 	object_id(Object, ObjectID),
 	get_time(NowF),
 	Now is round(NowF),
-	ignore(retract_annotation(Object, _Old, _Time, User)),
-	(   normalize_space(atom(''), Annotation)
+	(   annotation(Object, Old, OldTime, User)
 	->  true
-	;   assert_annotation(Object, Annotation, Now, User)
+	;   Old = ''
+	),
+	(   normalize_space(atom(''), Annotation0)
+	->  Annotation = ''
+	;   Annotation = Annotation0
+	),
+	(   Old == Annotation
+	->  true
+	;   ignore(retract_annotation(Object, _, _, User)),
+	    (   Annotation == ''
+	    ->  true
+	    ;   assert_annotation(Object, Annotation, Now, User)
+	    ),
+	    notify_updated(Old, Annotation, OldTime, Now, Object, User)
 	),
 	object_href(Object, HREF),
 	http_redirect(moved_temporary, HREF, Request).
+
+notify_updated('', New, _, Time, Object, User) :- !,
+	notify(Object, annotation_added(User, Time, New)).
+notify_updated(Old, '', OldTime, Time, Object, User) :- !,
+	notify(Object, annotation_removed(User, OldTime, Time, Old)).
+notify_updated(Old, New, OldTime, Time, Object, User) :-
+	notify(Object, annotation_updated(User, OldTime, Time, Old, New)).
 
 
 		 /*******************************
@@ -291,3 +311,41 @@ summary([H|T0], Max) -->
 	{ Left is Max-1 },
 	summary(T0, Left).
 summary([], _) --> [].
+
+
+		 /*******************************
+		 *	      MESSAGES		*
+		 *******************************/
+
+:- multifile
+	mail_notify:event_subject//1,		% +Event
+	mail_notify:event_message//1.		% +event
+
+mail_notify:event_subject(annotation_added(User, _, _)) -->
+	[ 'Comment by '-[] ],
+	msg_user(User).
+mail_notify:event_subject(annotation_removed(User, _, _, _)) -->
+	[ 'Comment removed by '-[] ],
+	msg_user(User).
+mail_notify:event_subject(annotation_updated(User, _, _, _, _)) -->
+	[ 'Comment updated by '-[] ],
+	msg_user(User).
+
+mail_notify:event_message(annotation_added(User, _, New)) -->
+	[ 'Comment by '-[] ],
+	msg_user(User), [nl],
+	msg_body(New).
+mail_notify:event_message(annotation_removed(User, _OldT, _T, Old)) -->
+	[ 'Comment removed by '-[] ],
+	msg_user(User), [nl],
+	msg_body(Old).
+mail_notify:event_message(annotation_updated(User, _OldT, _T, _Old, New)) -->
+	[ 'Comment updated by '-[] ],
+	msg_user(User), [nl],
+	msg_body(New).
+
+msg_body(Body) -->
+	[ nl,
+	  '~w'-[Body],
+	  nl
+	].

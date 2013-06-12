@@ -28,12 +28,14 @@
 */
 
 :- module(mail_notify,
-	  [ notify/2				% +Object, +Term
+	  [ notify/2,			% +Object, +Term
+	    msg_user//1			% +UUID
 	  ]).
 :- use_module(library(smtp)).
 :- use_module(library(debug)).
 :- use_module(library(error)).
 :- use_module(library(http/http_host)).
+:- use_module(library(http/http_dispatch)).
 :- use_module(library(pldoc/doc_html), [object_href/2]).
 :- use_module(openid).
 :- use_module(tagit, [object_label/2]).
@@ -159,7 +161,7 @@ make_message(UUID, Object, Event) -->
 	->  []
 	;   ['Unknown notication event: ~q'-[Event] ]
 	),
-	closing(Object).
+	closing(UUID, Object).
 
 opening(UUID) -->
 	{ site_user_property(UUID, name(Name)) }, !,
@@ -176,11 +178,15 @@ on_object(Object) -->
 	  'URL: ~w~w'-[Server, HREF], nl, nl
 	].
 
-closing(_Object) -->
+closing(UUID, _Object) -->
+	{ site_user_property(UUID, _) }, !,
 	[ nl, nl,
 	  'You received this message because you have indicated to '-[], nl,
-	  'watch this page on the SWI-Prolog website.'-[], nl
-	].
+	  'watch this page on the SWI-Prolog website.'-[], nl,
+	  'User details: '-[]
+	],
+	msg_user(UUID).
+closing(_, _) --> [].
 
 
 server(Server) :-
@@ -190,6 +196,17 @@ server(Server) :-
 	;   format(atom(Server), 'http://~w:~w', [Host, Port])
 	).
 
+
+%%	msg_user(+UUID)// is det.
+%
+%	Plain-text reference to a user with hyperlink.
+
+msg_user(UUID) -->
+	{ site_user_property(UUID, name(Name)),
+	  http_link_to_id(view_profile, [user(UUID)], HREF),
+	  server(Server)
+	},
+	[ '~w <~w~w>'-[Name, Server, HREF] ].
 
 
 		 /*******************************
