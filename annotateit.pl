@@ -29,10 +29,12 @@
 
 
 :- module(annotateit,
-	  [ user_annotations//1			% +User
+	  [ user_annotations//1,	% +User
+	    user_annotation_count/2	% +User, -Count
 	  ]).
 :- use_module(library(debug)).
 :- use_module(library(persistency)).
+:- use_module(library(aggregate)).
 :- use_module(library(dcg/basics)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
@@ -64,6 +66,9 @@
 	db_attach('annotations.db',
 		  [ sync(close)
 		  ]).
+
+user_annotation_count(User, Count) :-
+	aggregate_all(count, annotation(_,_,_,User), Count).
 
 
 		 /*******************************
@@ -110,7 +115,7 @@ show_annotation(annotation(_Obj, Annot, Time, User), _Options) -->
 		       \comment(Annot)),
 		   div(class('commenter'),
 		       [ \date(Time), ', ',
-			 \user(User)
+			 \user_profile_link(User)
 		       ])
 		 ])).
 
@@ -124,12 +129,6 @@ comment(Text) -->
 clean_dom([p(X)], X) :- !.
 clean_dom(X, X).
 
-
-user(UUID) -->
-	{ site_user_property(UUID, name(Name)),
-	  http_link_to_id(view_profile, [user(UUID)], HREF)
-	}, !,
-	html(a([class(user), href(HREF)], Name)).
 
 date(Time) -->
 	{ format_time(atom(Date), '%A %d %B %Y', Time)

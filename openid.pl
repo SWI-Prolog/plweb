@@ -31,6 +31,7 @@
 	  [ site_user/2,		% +Request, -User
 	    site_user_logged_in/1,	% -User
 	    site_user_property/2,	% +User, ?Property
+	    user_profile_link//1,	% +User
 	    current_user//1,		% +PageStyle
 	    current_user//0,
 	    login_link//1		% +Request
@@ -43,6 +44,7 @@
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/html_head)).
 :- use_module(library(http/recaptcha)).
 :- use_module(library(http/http_stream)).
 :- use_module(library(persistency)).
@@ -90,6 +92,7 @@
 :- http_handler(root(user/logout),	    logout,         []).
 :- http_handler(root(user/view_profile),    view_profile,   []).
 :- http_handler(root(user/verify),          verify_user,    []).
+:- http_handler(root(user/list),            list_users,     []).
 
 
 		 /*******************************
@@ -344,7 +347,10 @@ private_profile(_UUID, Options) -->
 	{ \+ option(view(private), Options) }, !.
 private_profile(UUID, _Options) -->
 	html([ div(class('private-profile'),
-		   [ h2(class(wiki), 'Private profile data'),
+		   [ h2(class(wiki),
+			[ 'Private profile data',
+			  \link_list_users
+			]),
 		     table([ \profile_data(UUID, 'Name',      name),
 			     \profile_data(UUID, 'OpenID',    openid),
 			     \profile_data(UUID, 'E-Mail',    email),
@@ -352,8 +358,16 @@ private_profile(UUID, _Options) -->
 			   ])
 		   ]),
 	       div(class(smallprint),
-		   'This private information is shown only to the owner.')
+		   'The above private information is shown only to the owner.')
 	     ]).
+
+link_list_users -->
+	{ http_link_to_id(list_users, [], HREF)
+	},
+	html(a([ href(HREF),
+		 style('float:right; font-size:60%; font-style:italic; font-weight:normal')
+	       ], 'other users')).
+
 
 create_profile_link(HREF) :-
 	http_current_request(Request),
@@ -426,6 +440,86 @@ user_packs(UUID) -->
 	     ]).
 user_packs(_) -->
 	[].
+
+
+%%	list_users(+Request)
+%
+%	HTTP handler to list known users.
+
+list_users(_Request) :-
+	site_user_logged_in(_User), !,
+	findall(user(Kudos, UUID, Annotations, Tags),
+		site_kudos(UUID, Annotations, Tags, Kudos),
+		Users),
+	sort(Users, ByKudos), reverse(ByKudos, BestFirst),
+	reply_html_page(
+	    reply_html_page(users),
+	    title('SWI-Prolog site users'),
+	    [ \explain_user_listing,
+	      \html_requires(css('stats.css')),
+	      table(class(block),
+		    [ \user_table_header
+		    | \user_rows(BestFirst)
+		    ])
+	    ]).
+list_users(_Request) :-
+	reply_html_page(
+	    reply_html_page(users),
+	    title('Permission denied'),
+	    [ \explain_user_listing_not_logged_on
+	    ]).
+
+site_kudos(UUID, Annotations, Tags, Kudos) :-
+	site_user(UUID, _, _, _, _),
+	user_annotation_count(UUID, Annotations),
+	user_tag_count(UUID, Tags),
+	Kudos is Annotations*10+Tags.
+
+explain_user_listing -->
+	html({|html|
+	      <h1 class="wiki">SWI-Prolog site users</h1>
+
+	      <p>Below is a listing of all registered users with some
+	      basic properties.
+	     |}).
+
+explain_user_listing_not_logged_on -->
+	html({|html|
+	      <h1 class="wiki">Permission denied</h1>
+
+	      <p class="warning">A listing of all registered users is only
+	      available to users who are logged in.
+	     |}).
+
+user_rows([]) --> [].
+user_rows([H|T]) --> user_row(H), user_rows(T).
+
+user_table_header -->
+	html(tr([th('User'),
+		 th('#Comments'),
+		 th('#Tags')
+		])).
+
+user_row(user(_Kudos, UUID, Annotations, Tags)) -->
+	html(tr([td(\user_profile_link(UUID)),
+		 td(Annotations),
+		 td(Tags)
+		])).
+
+
+		 /*******************************
+		 *	     COMPONENTS		*
+		 *******************************/
+
+%%	user_profile_link(+UUID)//
+%
+%	Create a link to the profile of a user.
+
+user_profile_link(UUID) -->
+	{ site_user_property(UUID, name(Name)),
+	  http_link_to_id(view_profile, [user(UUID)], HREF)
+	}, !,
+	html(a([class(user), href(HREF)], Name)).
 
 
 		 /*******************************

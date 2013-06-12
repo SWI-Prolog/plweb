@@ -30,11 +30,13 @@
 
 :- module(tagit,
 	  [ user_tags//1,		% +User
+	    user_tag_count/2,		% +User, -Count
 	    object_label/2,		% +Object, -Label
 	    object_id/2			% +Object, -Id
 	  ]).
 :- use_module(library(debug)).
 :- use_module(library(persistency)).
+:- use_module(library(aggregate)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/js_write)).
@@ -68,6 +70,10 @@
 	tag(tag:atom,
 	    time:integer,			% When was it created
 	    user:atom).
+
+user_tag_count(User, Count) :-
+	aggregate_all(count, tagged(_,_,_,User), Count).
+
 
 :- initialization
 	db_attach('tags.db',
