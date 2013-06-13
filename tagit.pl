@@ -29,7 +29,7 @@
 
 
 :- module(tagit,
-	  [ user_tags//1,		% +User
+	  [ user_tags//2,		% +User, +Options
 	    user_tag_count/2,		% +User, -Count
 	    object_label/2,		% +Object, -Label
 	    object_id/2			% +Object, -Id
@@ -110,6 +110,7 @@ tagit_user(Request, Peer) :-
 :- http_handler(root('show-tag'),     show_tag,	    []).
 :- http_handler(root('add-tag'),      add_tag,	    []).
 :- http_handler(root('remove-tag'),   remove_tag,   []).
+:- http_handler(root('list-tags'),    list_tags,    []).
 
 :- multifile
 	prolog:doc_object_page_footer//2,
@@ -358,25 +359,69 @@ prolog:ac_object_attributes(tag(Tag), [tag=Info]) :-
 
 
 		 /*******************************
-		 *	      PROFILE		*
+		 *	     LIST TAGS		*
 		 *******************************/
 
-%%	user_tags(+User)
+%%	list_tags(+Request)
+%
+%	HTTP handler that lists the defined tags.
+
+list_tags(Request) :-
+	http_parameters(Request,
+			[ sort_by(SortBy, [ oneof([ name,
+						    popularity,
+						    time
+						  ]),
+					    default(name)
+					  ])
+			]),
+	reply_html_page(wiki(tags),
+			title('Overview of tags'),
+			\user_tags(_, [sort_by(SortBy)])).
+
+
+%%	user_tags(?User, +Options)// is det.
 %
 %	Show all tags created by a given user.
 
-user_tags(User) -->
-	{ findall(Tag-Obj, tagged(Tag, Obj, _Time, User), Pairs),
+user_tags(User, Options) -->
+	{ findall(Tag-tag(Obj,Time), tagged(Tag, Obj, Time, User), Pairs),
 	  Pairs \== [], !,
 	  keysort(Pairs, Sorted),
 	  group_pairs_by_key(Sorted, Keyed),
-	  site_user_property(User, name(Name))
+	  option(sort_by(SortBy), Options, name),
+	  sort_tags(Keyed, SortedTags, SortBy)
 	},
-	html([ h2(class(wiki), 'Tags by ~w'-[Name]),
+	html([ \tag_list_header(User, SortBy),
 	       ul(class('user-tags'),
-		  \list_tags(Keyed))
+		  \list_tags(SortedTags))
 	     ]).
-user_tags(_) --> [].
+user_tags(_, _) --> [].
+
+tag_list_header(User, _SortBy) -->
+	{ nonvar(User),
+	  site_user_property(User, name(Name))
+	}, !,
+	html(h2(class(wiki), 'Tags by ~w'-[Name])).
+tag_list_header(_User, SortBy) -->
+	html(h2(class(wiki), 'Tags sorted by ~w'-[SortBy])).
+
+sort_tags(Tags, Tags, name) :- !.
+sort_tags(Tags, Sorted, SortBy) :-
+	map_list_to_pairs(sort_key_tag(SortBy),	Tags, Keyed),
+	keysort(Keyed, KeySorted),
+	pairs_values(KeySorted, Sorted).
+
+sort_key_tag(name,       Tag-_, Tag).
+sort_key_tag(popularity, _-Tagged, Count) :-
+	length(Tagged, Count).
+sort_key_tag(time,	 _-Tagged, Last) :-
+	maplist(arg(2), Tagged, Times),
+	max_list(Times, Last).
+
+%%	list_tags(+Tags)
+%
+%	List tags and what they are linked to.
 
 list_tags([]) --> [].
 list_tags([H|T]) --> list_tag(H), list_tags(T).
@@ -389,8 +434,8 @@ list_tag(Tag-Objects) -->
 		])).
 
 objects([]) --> [].
-objects([H|T]) -->
-	object_ref(H, []),
+objects([tag(Obj,_Time)|T]) -->
+	object_ref(Obj, []),
 	(   { T == [] }
 	->  []
 	;   html(', '),

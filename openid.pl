@@ -333,7 +333,7 @@ view_profile(Request) :-
 view_profile(UUID, Options) -->
 	private_profile(UUID, Options),
 	user_description(UUID, Options),
-	user_tags(UUID),
+	user_tags(UUID, []),
 	user_annotations(UUID),
 	user_packs(UUID),
 	profile_reviews(UUID).
