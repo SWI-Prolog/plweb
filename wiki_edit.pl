@@ -41,6 +41,7 @@
 :- use_module(library(git)).
 :- use_module(git_html).
 :- use_module(markitup).
+:- use_module(notify).
 
 /** <module> Edit PlDoc wiki pages
 
@@ -205,6 +206,7 @@ wiki_save(Request) :-
 	git(GitArgs,
 	    [ directory(Dir)
 	    ]),
+	notify(wiki(Location), wiki_edit(Text)),
 	http_redirect(see_other, Location, Request).
 
 author([_User, Name, EMail], Author) :- !,
@@ -331,3 +333,22 @@ sandbox -->
 			       preview(true)
 			     ]))
 	     ]).
+
+
+		 /*******************************
+		 *	      MESSAGES		*
+		 *******************************/
+
+:- multifile
+	mail_notify:event_subject//1,		% +Event
+	mail_notify:event_message//1.		% +event
+
+mail_notify:event_subject(wiki_edit(_)) -->
+	[ 'Wiki edit'-[] ].
+
+mail_notify:event_message(wiki_edit(Text)) -->
+	[ 'Wiki edit'-[],
+	  nl,
+	  '~w'-[Text],
+	  nl
+	].

@@ -238,6 +238,8 @@ object_label(section(Level, Number, F), Label) :-
 				  _Class, _AbsFile, Title),
 	doc_same_file(F, SF), !,
 	format(atom(Label), 'Section ~w: ~w', [Number, Title]).
+object_label(wiki(Location), Label) :-
+	format(atom(Label), 'Wiki page at "~w"', [Location]).
 object_label(Obj, Label) :-
 	term_to_atom(Obj, Label).
 
