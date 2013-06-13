@@ -37,6 +37,7 @@
 :- use_module(library(debug)).
 :- use_module(library(persistency)).
 :- use_module(library(aggregate)).
+:- use_module(library(dcg/basics)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/js_write)).
@@ -101,6 +102,16 @@ tagit_user(_Request, User) :-
 tagit_user(Request, Peer) :-
 	http_peer(Request, Peer).
 
+peer(Peer) :-
+	atom_codes(Peer, Codes),
+	phrase(ip, Codes).
+
+ip -->
+	integer(_), ".",
+	integer(_), ".",
+	integer(_), ".",
+	integer(_).
+
 
 		 /*******************************
 		 *	 PROLOG BINDING		*
@@ -111,6 +122,7 @@ tagit_user(Request, Peer) :-
 :- http_handler(root('add-tag'),      add_tag,	    []).
 :- http_handler(root('remove-tag'),   remove_tag,   []).
 :- http_handler(root('list-tags'),    list_tags,    []).
+:- http_handler(root('tag-abuse'),    tag_abuse,    []).
 
 :- multifile
 	prolog:doc_object_page_footer//2,
@@ -149,7 +161,7 @@ tagit_footer(Obj, _Options) -->
 	  atomic_list_concat(Tags, ',', Data)
 	},
 	html([ input([id(tags), value(Data)]),
-	       \why_login
+	       div(class('tag-notes'), \tag_notes(ObjectID))
 	     ]),
 	html_requires(tagit),
 	js_script({|javascript(Complete, OnClick, PlaceHolder, ObjectID,
@@ -189,11 +201,21 @@ tagit_footer(Obj, _Options) -->
 		      });
 		  |}).
 
+tag_notes(ObjectID) -->
+	html([ \abuse_link(ObjectID),
+	       \why_login
+	     ]).
+
+abuse_link(ObjectID) -->
+	{ http_link_to_id(tag_abuse, [obj=ObjectID], HREF)
+	},
+	html(a(href(HREF), 'Report abuse')).
+
+
 why_login -->
 	{ site_user_logged_in(_) }, !.
 why_login -->
-	html(div(class('login-keeps-profile'),
-		 'Tags are associated to your profile if you are logged in')).
+	html('Tags are associated to your profile if you are logged in').
 
 %%	object_label(+Object, -Label) is det.
 
@@ -297,12 +319,20 @@ remove_tag(Request) :-
 	object_id(Object, Hash),
 	tagit_user(Request, User),
 	debug(tagit, 'remove_tag: ~q: ~q to ~q', [User, Tag, Object]),
-	(   retract_tagged(Tag, Object, _, User)
-	->  notify(Object, untagged(Tag)),
-	    reply_json(true)
-	;   reply_json(false)
+	tagged(Tag, Object, _, Creator),
+	(   may_remove(User, Creator)
+	->  (   retract_tagged(Tag, Object, _, Creator)
+	    ->  notify(Object, untagged(Tag)),
+		reply_json(true)
+	    ;   reply_json(false)
+	    )
+	;   reply_json(false)			% error?
 	).
 
+may_remove(User, User) :- !.
+may_remove(User, Anonymous) :-
+	peer(Anonymous),
+	\+ peer(User).
 
 %%	show_tag(+Request)
 %
@@ -320,6 +350,29 @@ show_tag(Request) :-
 			  \doc_resources([]),
 			  \matching_object_table(Objects, [])
 			]).
+
+%%	tag_abuse(+Request)
+%
+%	Some user claims that the tag is abused.
+
+tag_abuse(Request) :-
+	http_parameters(Request,
+			[ obj(Hash, [])
+			]),
+	object_id(Object, Hash),
+	Link = \object_ref(Object,[]),
+	tagit_user(Request, _User),
+	notify(Object, tag_abuse),
+	reply_html_page(
+	    wiki(tags),
+	    title('Notification of abuse'),
+	    {|html(Link)|
+	     <h1 class="wiki">Notification of abuse sent</h1>
+	     <p>
+	     Thanks for reporting abuse of tagging on documentation object
+	     <span>Link</span>.
+	     |}).
+
 
 
 		 /*******************************
@@ -455,9 +508,13 @@ mail_notify:event_subject(tagged(Tag)) -->
 	[ 'tagged with ~w'-[Tag] ].
 mail_notify:event_subject(untagged(Tag)) -->
 	[ 'removed tag ~w'-[Tag] ].
+mail_notify:event_subject(tag_abuse) -->
+	[ 'tag abuse'-[] ].
 
 
 mail_notify:event_message(tagged(Tag)) -->
 	[ 'tagged with ~w'-[Tag] ].
 mail_notify:event_message(untagged(Tag)) -->
 	[ 'removed tag ~w'-[Tag] ].
+mail_notify:event_message(tag_abuse) -->
+	[ 'tag abuse'-[] ].
