@@ -97,7 +97,11 @@ server(Options) :-
 			workers(Workers)
 		      ], HTTPOptions),
 	http_server(http_dispatch, HTTPOptions),
-	update_pack_metadata_in_background.
+	update_pack_metadata_in_background,
+	thread_create(index_wiki_pages, _,
+		      [ alias('__index_wiki_pages'),
+			detached(true)
+		      ]).
 
 
 :- multifile
@@ -188,10 +192,7 @@ serve_file(txt, File, Request) :-
 					 ])
 			]),
 	Format == html, !,
-	read_file_to_codes(File, String, []),
-	b_setval(pldoc_file, File),
-	call_cleanup(serve_wiki(String, File, Request),
-		     nb_delete(pldoc_file)).
+	serve_wiki_file(File, Request).
 serve_file(_Ext, File, Request) :-	% serve plain files
 	http_reply_file(File, [unsafe(true)], Request).
 
@@ -212,6 +213,17 @@ ensure_slash(Dir, Dir) :-
 ensure_slash(Dir0, Dir) :-
 	atom_concat(Dir0, /, Dir).
 
+%%	serve_wiki_file(+File, +Request) is det.
+%
+%	Serve a file containing wiki text.
+
+serve_wiki_file(File, Request) :-
+	read_file_to_codes(File, String, []),
+	setup_call_cleanup(
+	    b_setval(pldoc_file, File),
+	    serve_wiki(String, File, Request),
+	    nb_delete(pldoc_file)).
+
 
 %%	serve_wiki(+String, +File, +Request) is det.
 %
@@ -224,17 +236,39 @@ serve_wiki(String, File, Request) :-
 	;   Title = 'SWI-Prolog'
 	),
 	insert_edit_button(DOM0, File, Request, DOM),
-	setup_call_cleanup(b_setval(pldoc_options,
-				    [ prefer(manual)
-				    ]),
-			   serve_wiki_page(Title, DOM),
-			   nb_delete(pldoc_options)).
+	setup_call_cleanup(
+	    b_setval(pldoc_options, [prefer(manual)]),
+	    serve_wiki_page(Request, Title, DOM),
+	    nb_delete(pldoc_options)).
 
-serve_wiki_page(Title, DOM) :-
+serve_wiki_page(Request, Title, DOM) :-
 	reply_html_page(wiki,
 			[ title(Title)
 			],
-			DOM).
+			\wiki_page(Request, DOM)).
+
+wiki_page(Request, DOM) -->
+	html(DOM),
+	user_annotations(Request).
+
+%%	user_annotations(+Request)//
+%
+%	Add  space  for  user  annotations    using  the  pseudo  object
+%	wiki(Location).
+
+:- multifile
+	prolog:doc_object_page_footer//2.
+
+user_annotations(Request) -->
+	{ memberchk(request_uri(Location), Request),
+	  atom_concat(/, WikiPath, Location)
+	}, !,
+	prolog:doc_object_page_footer(wiki(WikiPath), []).
+user_annotations(_) --> [].
+
+%%	insert_edit_button(+DOM0, +File, +Request, -DOM) is det.
+%
+%	Insert a button that allows for editing the wiki page.
 
 insert_edit_button(DOM0, File, Request, DOM) :-
 	(   current_prolog_flag(wiki_edit, false),

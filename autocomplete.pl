@@ -71,7 +71,7 @@ prolog:doc_search_field(Options) -->
 	       div([ id('search-container'),
 		     style('overflow:hidden')
 		   ],
-		   input([ style('width:100%; min-width:25em')
+		   input([ style('width:100%; min-width:20em')
 			 | Options
 			 ]))
 	     ]),
