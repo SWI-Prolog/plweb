@@ -354,7 +354,7 @@ mail_notify:event_subject(wiki_edit(_)) -->
 
 mail_notify:event_message(wiki_edit(Text)) -->
 	[ 'Wiki edit'-[],
-	  nl,
-	  '~w'-[Text],
+	  nl, nl,
+	  '====~n~w~n===='-[Text],
 	  nl
 	].

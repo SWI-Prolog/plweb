@@ -139,7 +139,7 @@ notify(User, Email, Object, EventUser, Term) :-
 		       send_message(Message),
 		       [ subject(Subject),
 			 from('noreply@swi-prolog.org')
-		       ]).
+		       ]), !.
 
 %%	send_message(+Parts, +Output) is det.
 %
