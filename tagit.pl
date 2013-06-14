@@ -37,6 +37,7 @@
 :- use_module(library(debug)).
 :- use_module(library(persistency)).
 :- use_module(library(aggregate)).
+:- use_module(library(error)).
 :- use_module(library(dcg/basics)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
@@ -359,6 +360,7 @@ show_tag(Request) :-
 %	Some user claims that the tag is abused.
 
 tag_abuse(Request) :-
+	site_user_logged_in(_), !,
 	http_parameters(Request,
 			[ obj(Hash, [])
 			]),
@@ -375,6 +377,9 @@ tag_abuse(Request) :-
 	     Thanks for reporting abuse of tagging on documentation object
 	     <span>Link</span>.
 	     |}).
+tag_abuse(Request) :-
+	memberchk(path(Path), Request),
+	permission_error(access, http_location, Path).
 
 
 
