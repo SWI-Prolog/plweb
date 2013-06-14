@@ -148,16 +148,22 @@ ensure_leading_slash(Path, SlashPath) :-
 :- multifile
 	prolog:doc_object_summary/4,
 	prolog:doc_object_link//2,
-	prolog:doc_object_page//2.
+	prolog:doc_object_page//2,
+	prolog:doc_category/3,
+	prolog:doc_file_index_header//2.
 
-prolog:doc_object_summary(wiki(Location), wiki, Location, Summary) :-
+prolog:doc_object_summary(wiki(Location), wiki, wiki, Summary) :-
 	wiki_page_title(Location, Summary).
 
 :- dynamic
-	wiki_page_title_cache/2.
+	wiki_page_title_cache/2,
+	wiki_pages_indexed/1.
 
 wiki_page_title(Location, Title) :-
-	nonvar(Location),
+	wiki_pages_indexed(_), !,
+	wiki_page_title_cache(Location, Title).
+wiki_page_title(Location, Title) :-
+	nonvar(Location), !,
 	(   wiki_page_title_cache(Location, TitleRaw)
 	->  Title = TitleRaw
 	;   location_wiki_file(Location, File),
@@ -172,6 +178,7 @@ wiki_page_title(Location, Title) :-
 	->  assertz(wiki_page_title_cache(Location, TitleRaw)),
 	    Title = TitleRaw
 	).
+
 
 %%	dom_title(+DOM, -Title) is semidet.
 %
@@ -191,11 +198,14 @@ prolog:doc_object_link(wiki(Location), _Options) -->
 	{ wiki_page_title(Location, Title) },
 	html([ '[wiki] ', Title ]).
 
-prolog:prolog:doc_object_page(wiki(Location), _Options) -->
+prolog:doc_object_page(wiki(Location), _Options) -->
 	{ http_current_request(Request),
-	  http_redirect(see_other, Location, Request)
+	  http_redirect(see_other, root(Location), Request)
 	}.
 
+prolog:doc_category(wiki, 60, 'Wiki pages from the website').
+
+prolog:doc_file_index_header(wiki, _) --> [].
 
 %%	index_wiki_pages
 %
@@ -203,7 +213,9 @@ prolog:prolog:doc_object_page(wiki(Location), _Options) -->
 
 index_wiki_pages :-
 	wiki_locations(Locations),
-	maplist(wiki_page_title, Locations, _Titles).
+	maplist(wiki_page_title, Locations, _Titles),
+	get_time(Now),
+	asserta(wiki_pages_indexed(Now)).
 
 
 %%	wiki_locations(-Locations) is det.
