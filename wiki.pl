@@ -39,8 +39,12 @@
 		   ])).
 
 :- use_module(library(pldoc/doc_wiki)).
+:- use_module(library(http/html_write)).
+:- use_module(library(http/http_wrapper)).
+:- use_module(library(http/http_dispatch)).
 :- use_module(library(readutil)).
 :- use_module(library(option)).
+:- use_module(wiki_edit).
 
 :- predicate_options(file//2, 2,
 		     [ absolute_path(atom),
@@ -133,3 +137,47 @@ ensure_leading_slash(Path, SlashPath) :-
 	->  SlashPath = Path
 	;   atom_concat(/, Path, SlashPath)
 	).
+
+		 /*******************************
+		 *     OBJECT INTEGRATION	*
+		 *******************************/
+
+:- multifile
+	prolog:doc_object_summary/4,
+	prolog:doc_object_link//2,
+	prolog:doc_object_page//2.
+
+prolog:doc_object_summary(wiki(Location), wiki, Location, Summary) :-
+	wiki_page_title(Location, Summary).
+
+:- dynamic
+	wiki_page_title_cache/2.
+
+wiki_page_title(Location, Title) :-
+	nonvar(Location),
+	(   wiki_page_title_cache(Location, TitleRaw)
+	->  Title = TitleRaw
+	;   location_wiki_file(Location, File),
+	    wiki_file_to_dom(File, DOM),
+	    dom_title(DOM, TitleRaw)
+	->  assertz(wiki_page_title_cache(Location, TitleRaw)),
+	    Title = TitleRaw
+	).
+
+%%	dom_title(+DOM, -Title) is semidet.
+%
+%	Get the title as an atom from a parsed wiki page.
+%
+%	@tbd	Currently assumes no markup in the title.
+
+dom_title([h1(_, TitleList)|_], Title) :-
+	atomic_list_concat(TitleList, Title).
+
+prolog:doc_object_link(wiki(Location), _Options) -->
+	{ wiki_page_title(Location, Title) },
+	html([ '[wiki] ', Title ]).
+
+prolog:prolog:doc_object_page(wiki(Location), _Options) -->
+	{ http_current_request(Request),
+	  http_redirect(see_other, Location, Request)
+	}.

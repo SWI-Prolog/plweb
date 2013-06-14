@@ -28,7 +28,7 @@
 */
 
 :- module(wiki_edit,
-	  [
+	  [ location_wiki_file/2
 	  ]).
 :- use_module(library(lists)).
 :- use_module(library(debug)).
