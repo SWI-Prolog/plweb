@@ -238,20 +238,20 @@ serve_wiki(String, File, Request) :-
 	insert_edit_button(DOM0, File, Request, DOM),
 	setup_call_cleanup(
 	    b_setval(pldoc_options, [prefer(manual)]),
-	    serve_wiki_page(Request, Title, DOM),
+	    serve_wiki_page(Request, File, Title, DOM),
 	    nb_delete(pldoc_options)).
 
-serve_wiki_page(Request, Title, DOM) :-
+serve_wiki_page(Request, File, Title, DOM) :-
 	reply_html_page(wiki,
 			[ title(Title)
 			],
-			\wiki_page(Request, DOM)).
+			\wiki_page(Request, File, DOM)).
 
-wiki_page(Request, DOM) -->
+wiki_page(Request, File, DOM) -->
 	html(DOM),
-	user_annotations(Request).
+	user_annotations(Request, File).
 
-%%	user_annotations(+Request)//
+%%	user_annotations(+Request, +File)//
 %
 %	Add  space  for  user  annotations    using  the  pseudo  object
 %	wiki(Location).
@@ -259,12 +259,26 @@ wiki_page(Request, DOM) -->
 :- multifile
 	prolog:doc_object_page_footer//2.
 
-user_annotations(Request) -->
+user_annotations(Request, File) -->
 	{ memberchk(request_uri(Location), Request),
-	  atom_concat(/, WikiPath, Location)
+	  atom_concat(/, WikiPath0, Location),
+	  normalize_extension(WikiPath0, File, WikiPath)
 	}, !,
 	prolog:doc_object_page_footer(wiki(WikiPath), []).
-user_annotations(_) --> [].
+user_annotations(_, _) --> [].
+
+normalize_extension(Path, File, Path) :-
+	file_name_extension(_, Ext, File),
+	file_name_extension(_, Ext, Path), !.
+normalize_extension(Path0, File, Path) :-
+	file_name_extension(_, txt, File),
+	file_name_extension(Base, html, Path0), !,
+	file_name_extension(Base, txt, Path).
+normalize_extension(Dir, _, Index) :-
+	sub_atom(Dir, _, _, 0, /), !,
+	atom_concat(Dir, 'index.txt', Index).
+normalize_extension(Path, _, Path).
+
 
 %%	insert_edit_button(+DOM0, +File, +Request, -DOM) is det.
 %
