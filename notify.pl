@@ -67,7 +67,8 @@ similar to print_message/2 using the grammars
 
 notify(Object, Term) :-
 	notification_user(User),
-	catch(thread_send_message(mail_notifier, notification(Object, User, Term)),
+	catch(thread_send_message(mail_notifier,
+				  notification(Object, User, Term)),
 	      error(existence_error(message_queue, _),_),
 	      start_notifier(Object, User, Term)).
 
