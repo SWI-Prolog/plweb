@@ -28,12 +28,17 @@
 */
 
 :- module(mail_notify,
-	  [ notify/2				% +Object, +Term
+	  [ notify/2,			% +Object, +Term
+	    msg_user//1			% +UUID
 	  ]).
 :- use_module(library(smtp)).
+:- use_module(library(debug)).
+:- use_module(library(error)).
+:- use_module(library(http/http_host)).
+:- use_module(library(http/http_dispatch)).
+:- use_module(library(pldoc/doc_html), [object_href/2]).
 :- use_module(openid).
 :- use_module(tagit, [object_label/2]).
-:- use_module(library(pldoc/doc_html), [object_href/2]).
 
 :- multifile
 	event_subject//1,			% +Event
@@ -50,7 +55,7 @@ similar to print_message/2 using the grammars
   - mail_notify:event_message//1
     Define the body of the message
 
-@tbd	Eventually, this may also be used to provide an RSS feed from
+@tbd	Eventually, this should also be used to provide an RSS feed from
 	the side.
 */
 
@@ -61,15 +66,20 @@ similar to print_message/2 using the grammars
 
 notify(Object, Term) :-
 	catch(thread_send_message(mail_notifier, notification(Object, Term)),
-	      error(existence_error(message_queue(_,_),_)),
+	      error(existence_error(message_queue, _),_),
 	      start_notifier(Object, Term)).
 
-
 start_notifier(Object, Term) :-
-	thread_create(mail_notifier, _, [alias(mail_notifier)]),
-	thread_send_message(mail_notifier, notification(Object, Term)).
+	thread_create(mail_notifier, _,
+		      [ alias(mail_notifier),
+			detached(true)
+		      ]),
+	thread_send_message(
+	    mail_notifier,
+	    notification(Object, Term)).
 
 mail_notifier :-
+	set_output(user_output),
 	repeat,
 	thread_get_message(Msg),
 	catch(handle_message(Msg), E,
@@ -77,16 +87,18 @@ mail_notifier :-
 	fail.
 
 handle_message(notification(Object, Term)) :- !,
-	notify(Object, Term).
+	do_notify(Object, Term).
 handle_message(Message) :-
 	domain_error(notification, Message).
 
-notify(Object, Term) :-
+do_notify(Object, Term) :-
 	(   watcher(Object, Watcher),
-	    (	site_user_property(Watcher, email(Email)),
-		User = Watcher
-	    ;	site_user_property(User, email(Watcher)),
-		Email = Watcher
+	    (	site_user_property(Watcher, email(Email))
+	    ->	User = Watcher
+	    ;	site_user_property(User, email(Watcher))
+	    ->	Email = Watcher
+	    ;	Email = Watcher,
+		User = unknown
 	    ),
 	    catch(notify(User, Email, Object, Term),
 		  E,
@@ -100,6 +112,7 @@ notify(User, Email, Object, Term) :-
 	phrase(make_message(User, Object, Term), Message),
 	with_output_to(atom(Subject),
 		       send_message(SubjectList, current_output)),
+	debug(notify, 'Sending mail to ~w about ~w', [Email, Object]),
 	smtp_send_mail(Email,
 		       send_message(Message),
 		       [ subject(Subject),
@@ -148,27 +161,52 @@ make_message(UUID, Object, Event) -->
 	->  []
 	;   ['Unknown notication event: ~q'-[Event] ]
 	),
-	closing(Object).
+	closing(UUID, Object).
 
 opening(UUID) -->
-	{ site_user_property(UUID, name(Name)) },
+	{ site_user_property(UUID, name(Name)) }, !,
 	[ 'Dear ~w,'-[Name], nl, nl ].
 opening(_) -->
-	[ 'Hi'-[Name], nl, nl ].
+	[ 'Hi'-[], nl, nl ].
 
 on_object(Object) -->
 	{ object_label(Object, Label),
-	  object_href(Object, HREF)
+	  object_href(Object, HREF),
+	  server(Server)
 	},
 	[ 'This is a change notification for ~w'-[Label], nl,
-	  'URL: http://www.swi-prolog.org~w'-[HREF], nl, nl
+	  'URL: ~w~w'-[Server, HREF], nl, nl
 	].
 
-closing(_Object) -->
+closing(UUID, _Object) -->
+	{ site_user_property(UUID, _) }, !,
 	[ nl, nl,
 	  'You received this message because you have indicated to '-[], nl,
-	  'watch this page on the SWI-Prolog website.'-[], nl
-	].
+	  'watch this page on the SWI-Prolog website.'-[], nl,
+	  'User details: '-[]
+	],
+	msg_user(UUID).
+closing(_, _) --> [].
+
+
+server(Server) :-
+	http_current_host(_, Host, Port, [global(true)]),
+	(   Port == 80
+	->  format(atom(Server), 'http://~w', [Host])
+	;   format(atom(Server), 'http://~w:~w', [Host, Port])
+	).
+
+
+%%	msg_user(+UUID)// is det.
+%
+%	Plain-text reference to a user with hyperlink.
+
+msg_user(UUID) -->
+	{ site_user_property(UUID, name(Name)),
+	  http_link_to_id(view_profile, [user(UUID)], HREF),
+	  server(Server)
+	},
+	[ '~w <~w~w>'-[Name, Server, HREF] ].
 
 
 		 /*******************************

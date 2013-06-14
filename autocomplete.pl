@@ -63,9 +63,19 @@ prolog:doc_search_field(Options) -->
 	  http_link_to_id(ac_predicate, [], URL)
 	},
 	html_requires(jquery_ui),
-	html(input(Options, [])),
-	js_script(<![javascript(Id, URL)
-		     [
+	html([ input([ id('submit-for'),
+		       type(submit),
+		       value('Search'),
+		       style('float:right')
+		     ]),
+	       div([ id('search-container'),
+		     style('overflow:hidden')
+		   ],
+		   input([ style('width:100%; min-width:25em')
+			 | Options
+			 ]))
+	     ]),
+	js_script({|javascript(Id, URL)||
 $(function() {
   $("#"+Id).autocomplete({
     minLength: 1,
@@ -91,7 +101,7 @@ $(function() {
       .appendTo(ul)
   };
 });
-		     ]]>).
+		   |}).
 
 
 
