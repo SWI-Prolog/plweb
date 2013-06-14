@@ -161,7 +161,7 @@ tagit_footer(Obj, _Options) -->
 	  atomic_list_concat(Tags, ',', Data)
 	},
 	html([ input([id(tags), value(Data)]),
-	       div(class('tag-notes'), \tag_notes(ObjectID))
+	       div(class('tag-notes'), \tag_notes(ObjectID, Tags))
 	     ]),
 	html_requires(tagit),
 	js_script({|javascript(Complete, OnClick, PlaceHolder, ObjectID,
@@ -201,12 +201,13 @@ tagit_footer(Obj, _Options) -->
 		      });
 		  |}).
 
-tag_notes(ObjectID) -->
-	html([ \abuse_link(ObjectID),
+tag_notes(ObjectID, Tags) -->
+	html([ \abuse_link(ObjectID, Tags),
 	       \why_login
 	     ]).
 
-abuse_link(ObjectID) -->
+abuse_link(_, []) --> [].
+abuse_link(ObjectID, _) -->
 	{ http_link_to_id(tag_abuse, [obj=ObjectID], HREF)
 	},
 	html(a(href(HREF), 'Report abuse')).
