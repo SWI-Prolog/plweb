@@ -97,7 +97,11 @@ server(Options) :-
 			workers(Workers)
 		      ], HTTPOptions),
 	http_server(http_dispatch, HTTPOptions),
-	update_pack_metadata_in_background.
+	update_pack_metadata_in_background,
+	thread_create(index_wiki_pages, _,
+		      [ alias('__index_wiki_pages'),
+			detached(true)
+		      ]).
 
 
 :- multifile
