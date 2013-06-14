@@ -256,9 +256,10 @@ wiki_page(Request, DOM) -->
 	prolog:doc_object_page_footer//2.
 
 user_annotations(Request) -->
-	{ memberchk(request_uri(Location), Request)
+	{ memberchk(request_uri(Location), Request),
+	  atom_concat(/, WikiPath, Location)
 	}, !,
-	prolog:doc_object_page_footer(wiki(Location), []).
+	prolog:doc_object_page_footer(wiki(WikiPath), []).
 user_annotations(_) --> [].
 
 %%	insert_edit_button(+DOM0, +File, +Request, -DOM) is det.
