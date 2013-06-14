@@ -31,6 +31,8 @@
 	  [ site_user/2,		% +Request, -User
 	    site_user_logged_in/1,	% -User
 	    site_user_property/2,	% +User, ?Property
+	    grant/2,			% +User, +Token
+	    revoke/2,			% +User, +Token
 	    user_profile_link//1,	% +User
 	    current_user//1,		% +PageStyle
 	    current_user//0,
@@ -52,6 +54,7 @@
 :- use_module(library(debug)).
 :- use_module(library(uuid)).
 :- use_module(library(option)).
+:- use_module(library(error)).
 
 :- use_module(review).
 :- use_module(pack).
@@ -80,7 +83,9 @@
 		       cookie:atom,
 		       peer:atom,
 		       time:integer,
-		       expires:integer).
+		       expires:integer),
+	granted(uuid:atom,
+		token:atom).
 
 :- initialization
 	db_attach('openid.db',
@@ -107,6 +112,38 @@ site_user_property(UUID, email(Email)) :-
 	site_user(UUID, _, _, Email, _).
 site_user_property(UUID, home_url(Home)) :-
 	site_user(UUID, _, _, _, Home).
+site_user_property(UUID, granted(Token)) :-
+	granted(UUID, Token).
+
+
+		 /*******************************
+		 *	      RIGHTS		*
+		 *******************************/
+
+%%	grant(+User, +Token) is det.
+%%	revoke(+User, +Token) is det.
+%
+%	Grant/revoke User (a UUID) the right to access Token.
+
+grant(User, Token) :-
+	ground_user(User),
+	must_be(atom, Token),
+	granted(User, Token), !.
+grant(User, Token) :-
+	assert_granted(User, Token).
+
+revoke(User, Token) :-
+	ground_user(User),
+	must_be(atom, Token),
+	\+ granted(User, Token), !.
+revoke(User, Token) :-
+	retract_granted(User, Token).
+
+ground_user(User) :-
+	must_be(atom, User),
+	site_user(User, _, _, _, _), !.
+ground_user(User) :-
+	existence_error(user, User).
 
 
 		 /*******************************

@@ -42,6 +42,7 @@
 :- use_module(git_html).
 :- use_module(markitup).
 :- use_module(notify).
+:- use_module(openid).
 
 /** <module> Edit PlDoc wiki pages
 
@@ -278,8 +279,13 @@ put_non_cr(Out, Char) :-
 
 %%	authenticate(+Request, -Fields)
 %
-%
+%	Get authentication for editing wiki pages.  This now first tries
+%	the OpenID login.
 
+authenticate(_Request, [UUID,Name]) :-
+	site_user_logged_in(UUID),
+	site_user_property(UUID, granted(wiki)),
+	site_user_property(UUID, name(Name)), !.
 authenticate(Request, Fields) :-
 	(   http_authenticate(basic(passwd), Request, Fields)
 	->  true
