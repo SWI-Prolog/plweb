@@ -30,6 +30,8 @@
 :- module(plweb_wiki,
 	  [ wiki_file_to_dom/2,		% +File, -DOM
 	    wiki_file_codes_to_dom/3,	% +Codes, +File, -DOM
+	    wiki_page_title/2,		% +Location, -Title
+	    index_wiki_pages/0,		%
 	    file//2,			% +File, +Options
 	    include//3			% +Object, +Type, +Options
 	  ]).
@@ -44,6 +46,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(readutil)).
 :- use_module(library(option)).
+:- use_module(library(apply)).
 :- use_module(wiki_edit).
 
 :- predicate_options(file//2, 2,
@@ -158,8 +161,14 @@ wiki_page_title(Location, Title) :-
 	(   wiki_page_title_cache(Location, TitleRaw)
 	->  Title = TitleRaw
 	;   location_wiki_file(Location, File),
-	    wiki_file_to_dom(File, DOM),
+	    catch(wiki_file_to_dom(File, DOM), E,
+		  ( print_message(warning, E),
+		    fail
+		  )),
 	    dom_title(DOM, TitleRaw)
+	->  assertz(wiki_page_title_cache(Location, TitleRaw)),
+	    Title = TitleRaw
+	;   format(atom(TitleRaw), 'Wiki page at "~w"', Location)
 	->  assertz(wiki_page_title_cache(Location, TitleRaw)),
 	    Title = TitleRaw
 	).
@@ -171,7 +180,12 @@ wiki_page_title(Location, Title) :-
 %	@tbd	Currently assumes no markup in the title.
 
 dom_title([h1(_, TitleList)|_], Title) :-
-	atomic_list_concat(TitleList, Title).
+	maplist(to_atom, TitleList, TitleList2),
+	atomic_list_concat(TitleList2, Title).
+
+to_atom(Atomic, Atomic) :- atomic(Atomic).
+to_atom(predref(Name/Arity), Label) :-
+	atomic_list_concat([Name,/,Arity], Label).
 
 prolog:doc_object_link(wiki(Location), _Options) -->
 	{ wiki_page_title(Location, Title) },
@@ -181,3 +195,52 @@ prolog:prolog:doc_object_page(wiki(Location), _Options) -->
 	{ http_current_request(Request),
 	  http_redirect(see_other, Location, Request)
 	}.
+
+
+%%	index_wiki_pages
+%
+%	Create a (title) index of the available wiki pages
+
+index_wiki_pages :-
+	wiki_locations(Locations),
+	maplist(wiki_page_title, Locations, _Titles).
+
+
+%%	wiki_locations(-Locations) is det.
+%
+%	True when Files is a list of all .txt files on the site.
+
+wiki_locations(Files) :-
+	findall(Dir, absolute_file_name(
+			 document_root(.), Dir,
+			 [access(read), file_type(directory)]),
+		RootDirs),
+	maplist(wiki_locations, RootDirs, NestedFiles),
+	append(NestedFiles, Files).
+
+wiki_locations(Dir, Files) :-
+	phrase(wiki_locations(Dir, Dir), Files).
+
+wiki_locations([], _) --> !.
+wiki_locations([H|T], Root) --> !,
+	wiki_locations(H, Root),
+	wiki_locations(T, Root).
+wiki_locations(CurrentDir, Root) -->
+	{ exists_directory(CurrentDir), !,
+	  directory_files(CurrentDir, Members),
+	  exclude(special, Members, Members2),
+	  maplist(directory_file_path(CurrentDir), Members2, MemberPaths)
+	},
+	wiki_locations(MemberPaths, Root).
+wiki_locations(Entry, Root) -->
+	{ file_name_extension(_, Ext, Entry),
+	  wiki_extension(Ext), !,
+	  directory_file_path(Root, Wiki, Entry)
+	},
+	[Wiki].
+wiki_locations(_, _) --> [].
+
+wiki_extension(txt).
+
+special(.).
+special(..).

@@ -50,6 +50,7 @@
 :- use_module(library(pldoc/doc_html)).
 :- use_module(openid).
 :- use_module(notify).
+:- use_module(wiki, [wiki_page_title/2]).
 
 :- html_resource(tagit,
 		 [ virtual(true),
@@ -243,7 +244,8 @@ object_label(section(Level, Number, F), Label) :-
 	doc_same_file(F, SF), !,
 	format(atom(Label), 'Section ~w: ~w', [Number, Title]).
 object_label(wiki(Location), Label) :-
-	format(atom(Label), 'Wiki page at "~w"', [Location]).
+	wiki_page_title(Location, Title),
+	format(atom(Label), 'Wiki page "~w"', [Title]).
 object_label(Obj, Label) :-
 	term_to_atom(Obj, Label).
 
