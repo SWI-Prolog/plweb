@@ -75,7 +75,7 @@ prolog:doc_search_field(Options) -->
 			 | Options
 			 ]))
 	     ]),
-	js_script({|javascript(Id, URL)|
+	js_script({|javascript(Id, URL)||
 $(function() {
   $("#"+Id).autocomplete({
     minLength: 1,

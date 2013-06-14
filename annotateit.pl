@@ -196,7 +196,7 @@ add_open_link(Current, Id) -->
 	       Label)).
 
 explain_comment(_User) -->
-	html({|html|
+	html({|html||
 	      <div class="explain-comment">
 	      Comments are intended to point to <b>related material</b>,
 	      indicate <b>errors</b> or provide <b>examples</b>.<br>

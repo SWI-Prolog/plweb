@@ -227,7 +227,7 @@ ax(name(Name), AX) :-
 	memberchk(nickname(Name), AX), !.
 
 expain_create_profile -->
-	html({|html|
+	html({|html||
 	       <div class="smallprint">
 	       On this page, we ask you to proof you are human and
 	       create a minimal profile. Your name is displayed along with comments
@@ -476,7 +476,7 @@ site_kudos(UUID, Annotations, Tags, Kudos) :-
 	Kudos is Annotations*10+Tags.
 
 explain_user_listing -->
-	html({|html|
+	html({|html||
 	      <h1 class="wiki">SWI-Prolog site users</h1>
 
 	      <p>Below is a listing of all registered users with some
@@ -484,7 +484,7 @@ explain_user_listing -->
 	     |}).
 
 explain_user_listing_not_logged_on -->
-	html({|html|
+	html({|html||
 	      <h1 class="wiki">Permission denied</h1>
 
 	      <p class="warning">A listing of all registered users is only

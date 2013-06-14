@@ -89,7 +89,7 @@ markitup(Options) -->
 	},
 	html_requires(Language),
 	html(textarea([id(Id), name(Name), cols(Cols), rows(Rows)], Content)),
-	js_script({|javascript(Id,Language,Preview)|
+	js_script({|javascript(Id,Language,Preview)||
 		   $(document).ready(function() {
 		      $("#"+Id).markItUp(eval(Language+"_settings"));
 		      if ( eval(Preview) ) {

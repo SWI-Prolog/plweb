@@ -165,7 +165,7 @@ tagit_footer(Obj, _Options) -->
 	     ]),
 	html_requires(tagit),
 	js_script({|javascript(Complete, OnClick, PlaceHolder, ObjectID,
-			       AddTag, RemoveTag)|
+			       AddTag, RemoveTag)||
 		    $(document).ready(function() {
 		      $("#tags").tagit({
 			  autocomplete: { delay: 0.3,
@@ -368,7 +368,7 @@ tag_abuse(Request) :-
 	reply_html_page(
 	    wiki(tags),
 	    title('Notification of abuse'),
-	    {|html(Link)|
+	    {|html(Link)||
 	     <h1 class="wiki">Notification of abuse sent</h1>
 	     <p>
 	     Thanks for reporting abuse of tagging on documentation object
