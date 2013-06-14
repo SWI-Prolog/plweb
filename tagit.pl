@@ -231,6 +231,8 @@ object_label(M:Name//Arity, Label) :- !,
 	format(atom(Label), 'non-terminal ~w:~w//~w', [M, Name, Arity]).
 object_label(f(Name/Arity), Label) :- !,
 	format(atom(Label), 'function ~w/~w', [Name, Arity]).
+object_label(c(Function), Label) :- !,
+	format(atom(Label), 'C API function ~w()', [Function]).
 object_label(Module:module(_Title), Label) :-
 	module_property(Module, file(File)), !,
 	file_base_name(File, Base),
@@ -521,8 +523,8 @@ mail_notify:event_subject(tag_abuse) -->
 
 
 mail_notify:event_message(tagged(Tag)) -->
-	[ 'tagged with ~w'-[Tag] ].
+	[ 'tagged with "~w"'-[Tag] ].
 mail_notify:event_message(untagged(Tag)) -->
-	[ 'removed tag ~w'-[Tag] ].
+	[ 'removed tag "~w"'-[Tag] ].
 mail_notify:event_message(tag_abuse) -->
 	[ 'tag abuse'-[] ].
