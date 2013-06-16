@@ -71,6 +71,7 @@
 		[prefix, priority(10), spawn(wiki)]).
 :- http_handler(root('favicon.ico'), favicon,
 		[priority(10)]).
+:- http_handler(root('apple-touch-icon.png'), touch_icon, []).
 :- http_handler(root(man), manual_file,
 		[prefix, priority(10), spawn(wiki)]).
 
@@ -116,6 +117,13 @@ http_unix_daemon:http_server_hook(Options) :-
 
 favicon(Request) :-
 	http_reply_file(icons('favicon.ico'), [], Request).
+
+%%	touch_icon(+Request)
+%
+%	Serve /apple-touch-icon.png.
+
+touch_icon(Request) :-
+	http_reply_file(icons('apple-touch-icon.png'), [], Request).
 
 
 		 /*******************************

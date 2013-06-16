@@ -50,7 +50,7 @@ user:body(wiki, Body) --> !,
 user:body(wiki(Arg), Body) --> !,
 	html(body(class(wiki),
 		  [ \html_requires(plweb),
-		    \favicon(icons('favicon.ico')),
+		    \shortcut_icons,
 		    div(class(sidebar), \sidebar),
 		    \current_user(Arg),
 		    \doc_links([], [search_options(false)]),
@@ -63,7 +63,7 @@ user:body(plain, Body) --> !,
 user:body(_, Body) -->
 	html(body(class(pldoc),
 		  [ \html_requires(plweb),
-		    \favicon(icons('favicon.ico')),
+		    \shortcut_icons,
 		    div(class(sidebar), \sidebar),
 		    \current_user,
 		    div(class(content), Body),
@@ -71,14 +71,14 @@ user:body(_, Body) -->
 		  ])),
 	html_receive(script).
 
-favicon(Spec) -->
-	{ http_absolute_location(Spec, URL, [])
+shortcut_icons -->
+	{ http_absolute_location(icons('favicon.ico'), FavIcon, []),
+	  http_absolute_location(root('apple-touch-icon.png'), TouchIcon, [])
 	},
 	html_post(head,
-                  link([ rel('shortcut icon'),
-                         href(URL)
-                       ])).
-
+		  [ link([ rel('shortcut icon'), href(FavIcon) ]),
+		    link([ rel('apple-touch-icon'), href(TouchIcon) ])
+		  ]).
 
 %%	sidebar//
 %
