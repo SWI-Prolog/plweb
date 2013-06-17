@@ -404,12 +404,14 @@ tag_abuse(Request) :-
 
 prolog:ac_object(name, Term, Tag-tag(Tag)) :-
 	current_tag(Tag),
-	(   sub_atom(Tag, 0, _, _, Term)
+	(   sub_atom_icasechk(Tag, 0, Term),
+	    tagged(Tag, _, _, _)
 	->  true
 	).
 prolog:ac_object(token, Term, Tag-tag(Tag)) :-
 	current_tag(Tag),
-	(   sub_atom(Tag, _, _, _, Term)
+	(   sub_atom_icasechk(Tag, _, Term),
+	    tagged(Tag, _, _, _)
 	->  true
 	).
 
