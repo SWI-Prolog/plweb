@@ -169,6 +169,17 @@ tagit_footer(Obj, _Options) -->
 	html_requires(tagit),
 	js_script({|javascript(Complete, OnClick, PlaceHolder, ObjectID,
 			       AddTag, RemoveTag)||
+		    function tagInfo(text) {
+		      $("#tag-warnings").text(text);
+		      $("#tag-warnings").removeClass("warning");
+		      $("#tag-warnings").addClass("informational");
+		    }
+		    function tagWarning(text) {
+		      $("#tag-warnings").text(text);
+		      $("#tag-warnings").addClass("warning");
+		      $("#tag-warnings").removeClass("informational");
+		    }
+
 		    $(document).ready(function() {
 		      $("#tags").tagit({
 			  autocomplete: { delay: 0.3,
@@ -182,9 +193,7 @@ tagit_footer(Obj, _Options) -->
 			  beforeTagAdded: function(event, ui) {
 			    if ( !ui.duringInitialization ) {
 			      var result = false;
-			      $("#tag-warnings").text("Submitting ...");
-			      $("#tag-warnings").removeClass("warning");
-			      $("#tag-warnings").addClass("informational");
+			      tagInfo("Submitting ...");
 			      $.ajax({ dataType: "json",
 				       url: AddTag,
 				       data: { tag: ui.tagLabel,
@@ -193,12 +202,10 @@ tagit_footer(Obj, _Options) -->
 				       async: false,
 				       success: function(data) {
 					if ( data.status == true ) {
-					  $("#tag-warnings").text("Added");
+					  tagInfo("Added");
 					  result = true;
 					} else {
-					  $("#tag-warnings").text(data.message);
-					  $("#tag-warnings").removeClass("informational");
-					  $("#tag-warnings").addClass("warning");
+					  tagWarning(data.message);
 					}
 				      }
 				     });
@@ -206,14 +213,25 @@ tagit_footer(Obj, _Options) -->
 			    }
 			  },
 			  beforeTagRemoved: function(event, ui) {
+			    var result = false;
+			    tagInfo("Submitting ...");
 			    $.ajax({ dataType: "json",
 				     url: RemoveTag,
 				     data: { tag: ui.tagLabel,
 					     obj: ObjectID
-					   }
+					   },
+				     sync: false,
+				     success: function(data) {
+					if ( data.status == true ) {
+					  tagInfo("Removed");
+					  result = true;
+					} else {
+					  tagWarning(data.message);
+					}
+				      }
 				   });
+			    return result;
 			  },
-//			  removeConfirmation: true,
 			  placeholderText: PlaceHolder
 			});
 		      });
@@ -379,10 +397,14 @@ remove_tag(Request) :-
 	(   may_remove(User, Creator)
 	->  (   retract_tagged(Tag, Object, _, Creator)
 	    ->  notify(Object, untagged(Tag)),
-		reply_json(true)
-	    ;   reply_json(false)
+		reply_json(json([status = @true]))
+	    ;   reply_json(json([status = @false,
+				 message = 'Internal error'
+				]))
 	    )
-	;   reply_json(false)			% error?
+	;   reply_json([status = @false,
+			message = 'Permission denied'
+		       ])
 	).
 
 may_remove(User, User) :- !.
