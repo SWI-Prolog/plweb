@@ -159,11 +159,12 @@ tagit_footer(Obj, _Options) -->
 	  object_label(Obj, Label),
 	  object_id(Obj, ObjectID),
 	  format(atom(PlaceHolder), 'Tag ~w', [Label]),
-	  object_tags(Obj, Tags),
-	  atomic_list_concat(Tags, ',', Data)
+	  object_tags(Obj, Tags)
 	},
-	html([ input([id(tags), value(Data)]),
-	       div(class('tag-notes'), \tag_notes(ObjectID, Tags))
+	html([ ul(id(tags), \tags_li(Tags)),
+	       div([ div([id('tag-warnings'), style('float:left;')], []),
+		     div(class('tag-notes'), \tag_notes(ObjectID, Tags))
+		   ])
 	     ]),
 	html_requires(tagit),
 	js_script({|javascript(Complete, OnClick, PlaceHolder, ObjectID,
@@ -181,8 +182,9 @@ tagit_footer(Obj, _Options) -->
 			  beforeTagAdded: function(event, ui) {
 			    if ( !ui.duringInitialization ) {
 			      var result = false;
-			      alert("Don't like it");
-			      return false;
+			      $("#tag-warnings").text("Submitting ...");
+			      $("#tag-warnings").removeClass("warning");
+			      $("#tag-warnings").addClass("informational");
 			      $.ajax({ dataType: "json",
 				       url: AddTag,
 				       data: { tag: ui.tagLabel,
@@ -190,12 +192,15 @@ tagit_footer(Obj, _Options) -->
 					     },
 				       async: false,
 				       success: function(data) {
-						  if ( data.status == true ) {
-						    result = true;
-						  } else {
-						    alert(data.message);
-						  }
-						}
+					if ( data.status == true ) {
+					  $("#tag-warnings").text("Added");
+					  result = true;
+					} else {
+					  $("#tag-warnings").text(data.message);
+					  $("#tag-warnings").removeClass("informational");
+					  $("#tag-warnings").addClass("warning");
+					}
+				      }
 				     });
 			      return result;
 			    }
@@ -208,12 +213,14 @@ tagit_footer(Obj, _Options) -->
 					   }
 				   });
 			  },
-			  removeConfirmation: true,
-			  placeholderText: PlaceHolder,
-			  singleField: true
+//			  removeConfirmation: true,
+			  placeholderText: PlaceHolder
 			});
 		      });
 		  |}).
+
+tags_li([]) --> [].
+tags_li([H|T]) --> html(li(H)), tags_li(T).
 
 tag_notes(ObjectID, Tags) -->
 	html([ \abuse_link(ObjectID, Tags),
