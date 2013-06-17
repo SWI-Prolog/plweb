@@ -94,14 +94,14 @@ create_tag(Tag, User) :-
 	assert_tag(Tag, Now, User), !.
 
 
-%%	tagit_user(+Request, -User) is det.
+%%	tagit_user(+Request, -Type, -User) is det.
 %
 %	User as seen for tagging. This is either the current user or the
 %	peer.
 
-tagit_user(_Request, User) :-
+tagit_user(_Request, uuid, User) :-
 	site_user_logged_in(User), !.
-tagit_user(Request, Peer) :-
+tagit_user(Request, ip, Peer) :-
 	http_peer(Request, Peer).
 
 peer(Peer) :-
@@ -180,12 +180,24 @@ tagit_footer(Obj, _Options) -->
 			  },
 			  beforeTagAdded: function(event, ui) {
 			    if ( !ui.duringInitialization ) {
+			      var result = false;
+			      alert("Don't like it");
+			      return false;
 			      $.ajax({ dataType: "json",
 				       url: AddTag,
 				       data: { tag: ui.tagLabel,
 					       obj: ObjectID
-					     }
+					     },
+				       async: false,
+				       success: function(data) {
+						  if ( data.status == true ) {
+						    result = true;
+						  } else {
+						    alert(data.message);
+						  }
+						}
 				     });
+			      return result;
 			    }
 			  },
 			  beforeTagRemoved: function(event, ui) {
@@ -306,14 +318,43 @@ add_tag(Request) :-
 			  obj(Hash, [])
 			]),
 	object_id(Object, Hash),
-	tagit_user(Request, User),
+	tagit_user(Request, UserType, User),
 	debug(tagit, 'add_tag: ~q: ~q to ~q', [User, Tag, Object]),
-	create_tag(Tag, User),
-	get_time(NowF),
-	Now is round(NowF),
-	assert_tagged(Tag, Object, Now, User),
-	notify(Object, tagged(Tag)),
-	reply_json(true).
+	add_tag_validate(Tag, Object, UserType, Message),
+	(   var(Message)
+	->  create_tag(Tag, User),
+	    get_time(NowF),
+	    Now is round(NowF),
+	    assert_tagged(Tag, Object, Now, User),
+	    notify(Object, tagged(Tag)),
+	    reply_json(json([ status = @true
+			    ]))
+	;   reply_json(json([ status = @false,
+			      message = Message
+			    ]))
+	).
+
+add_tag_validate(Tag, _Object, _UserType, Message) :-
+	tag_not_ok(Tag, Message), !.
+add_tag_validate(Tag, _Object, UserType, Message) :-
+	\+ tag(Tag, _, _),
+	tag_create_not_ok(Tag, UserType, Message), !.
+add_tag_validate(_, _, _, _).
+
+tag_not_ok(Tag, Message) :-
+	sub_atom(Tag, _, 1, _, Char),
+	\+ tag_char_ok(Char), !,
+	format(atom(Message), 'Illegal character: ~w', [Char]).
+
+tag_char_ok(Char) :- char_type(Char, alnum).
+tag_char_ok('_').
+tag_char_ok('-').
+tag_char_ok('+').
+tag_char_ok('(').
+tag_char_ok(')').
+
+tag_create_not_ok(_, ip, 'Not logged-in users can only use existing tags').
+
 
 %%	remove_tag(+Request)
 %
@@ -325,7 +366,7 @@ remove_tag(Request) :-
 			  obj(Hash, [])
 			]),
 	object_id(Object, Hash),
-	tagit_user(Request, User),
+	tagit_user(Request, _, User),
 	debug(tagit, 'remove_tag: ~q: ~q to ~q', [User, Tag, Object]),
 	tagged(Tag, Object, _, Creator),
 	(   may_remove(User, Creator)
@@ -370,7 +411,7 @@ tag_abuse(Request) :-
 			]),
 	object_id(Object, Hash),
 	Link = \object_ref(Object,[]),
-	tagit_user(Request, _User),
+	tagit_user(Request, uuid, _User),
 	notify(Object, tag_abuse),
 	reply_html_page(
 	    wiki(tags),
