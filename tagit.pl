@@ -94,14 +94,14 @@ create_tag(Tag, User) :-
 	assert_tag(Tag, Now, User), !.
 
 
-%%	tagit_user(+Request, -User) is det.
+%%	tagit_user(+Request, -Type, -User) is det.
 %
 %	User as seen for tagging. This is either the current user or the
 %	peer.
 
-tagit_user(_Request, User) :-
+tagit_user(_Request, uuid, User) :-
 	site_user_logged_in(User), !.
-tagit_user(Request, Peer) :-
+tagit_user(Request, ip, Peer) :-
 	http_peer(Request, Peer).
 
 peer(Peer) :-
@@ -159,15 +159,28 @@ tagit_footer(Obj, _Options) -->
 	  object_label(Obj, Label),
 	  object_id(Obj, ObjectID),
 	  format(atom(PlaceHolder), 'Tag ~w', [Label]),
-	  object_tags(Obj, Tags),
-	  atomic_list_concat(Tags, ',', Data)
+	  object_tags(Obj, Tags)
 	},
-	html([ input([id(tags), value(Data)]),
-	       div(class('tag-notes'), \tag_notes(ObjectID, Tags))
+	html([ ul(id(tags), \tags_li(Tags)),
+	       div(style('overflow:auto'),
+		   [ div([id('tag-warnings'), style('float:left;')], []),
+		     div(class('tag-notes'), \tag_notes(ObjectID, Tags))
+		   ])
 	     ]),
 	html_requires(tagit),
 	js_script({|javascript(Complete, OnClick, PlaceHolder, ObjectID,
 			       AddTag, RemoveTag)||
+		    function tagInfo(text) {
+		      $("#tag-warnings").text(text);
+		      $("#tag-warnings").removeClass("warning");
+		      $("#tag-warnings").addClass("informational");
+		    }
+		    function tagWarning(text) {
+		      $("#tag-warnings").text(text);
+		      $("#tag-warnings").addClass("warning");
+		      $("#tag-warnings").removeClass("informational");
+		    }
+
 		    $(document).ready(function() {
 		      $("#tags").tagit({
 			  autocomplete: { delay: 0.3,
@@ -180,28 +193,56 @@ tagit_footer(Obj, _Options) -->
 			  },
 			  beforeTagAdded: function(event, ui) {
 			    if ( !ui.duringInitialization ) {
+			      var result = false;
+			      tagInfo("Submitting ...");
 			      $.ajax({ dataType: "json",
 				       url: AddTag,
 				       data: { tag: ui.tagLabel,
 					       obj: ObjectID
-					     }
+					     },
+				       async: false,
+				       success: function(data) {
+					if ( data.status == true ) {
+					  tagInfo("Added: "+ui.tagLabel);
+					  result = true;
+					} else {
+					  tagWarning(data.message);
+					}
+				      }
 				     });
+			      return result;
 			    }
 			  },
 			  beforeTagRemoved: function(event, ui) {
+			    var result = false;
+			    if ( !ui.tagLabel ) {
+			      return false;
+			    }
+			    tagInfo("Submitting ...");
 			    $.ajax({ dataType: "json",
 				     url: RemoveTag,
 				     data: { tag: ui.tagLabel,
 					     obj: ObjectID
-					   }
+					   },
+				     async: false,
+				     success: function(data) {
+					if ( data.status == true ) {
+					  tagInfo("Removed: "+ui.tagLabel);
+					  result = true;
+					} else {
+					  tagWarning(data.message);
+					}
+				      }
 				   });
+			    return result;
 			  },
-			  removeConfirmation: true,
-			  placeholderText: PlaceHolder,
-			  singleField: true
+			  placeholderText: PlaceHolder
 			});
 		      });
 		  |}).
+
+tags_li([]) --> [].
+tags_li([H|T]) --> html(li(H)), tags_li(T).
 
 tag_notes(ObjectID, Tags) -->
 	html([ \abuse_link(ObjectID, Tags),
@@ -306,14 +347,47 @@ add_tag(Request) :-
 			  obj(Hash, [])
 			]),
 	object_id(Object, Hash),
-	tagit_user(Request, User),
+	tagit_user(Request, UserType, User),
 	debug(tagit, 'add_tag: ~q: ~q to ~q', [User, Tag, Object]),
-	create_tag(Tag, User),
-	get_time(NowF),
-	Now is round(NowF),
-	assert_tagged(Tag, Object, Now, User),
-	notify(Object, tagged(Tag)),
-	reply_json(true).
+	add_tag_validate(Tag, Object, UserType, Message),
+	(   var(Message)
+	->  create_tag(Tag, User),
+	    get_time(NowF),
+	    Now is round(NowF),
+	    assert_tagged(Tag, Object, Now, User),
+	    notify(Object, tagged(Tag)),
+	    reply_json(json([ status = @true
+			    ]))
+	;   reply_json(json([ status = @false,
+			      message = Message
+			    ]))
+	).
+
+add_tag_validate(Tag, _Object, _UserType, Message) :-
+	tag_not_ok(Tag, Message), !.
+add_tag_validate(Tag, Object, _UserType, Message) :-
+	object_label(Object, Label),
+	sub_atom_icasechk(Label, _, Tag), !,
+	Message = 'Rejected: tag is part of object name'.
+add_tag_validate(Tag, _Object, UserType, Message) :-
+	\+ tag(Tag, _, _),
+	tag_create_not_ok(Tag, UserType, Message), !.
+add_tag_validate(_, _, _, _).
+
+tag_not_ok(Tag, Message) :-
+	sub_atom(Tag, _, 1, _, Char),
+	\+ tag_char_ok(Char), !,
+	format(atom(Message), 'Illegal character: ~w', [Char]).
+
+tag_char_ok(Char) :- char_type(Char, alnum).
+tag_char_ok('_').
+tag_char_ok('-').
+tag_char_ok('/').
+tag_char_ok('(').
+tag_char_ok(')').
+
+tag_create_not_ok(_, ip, 'Not logged-in users can only use existing tags').
+
 
 %%	remove_tag(+Request)
 %
@@ -325,22 +399,40 @@ remove_tag(Request) :-
 			  obj(Hash, [])
 			]),
 	object_id(Object, Hash),
-	tagit_user(Request, User),
+	tagit_user(Request, _, User),
 	debug(tagit, 'remove_tag: ~q: ~q to ~q', [User, Tag, Object]),
 	tagged(Tag, Object, _, Creator),
 	(   may_remove(User, Creator)
-	->  (   retract_tagged(Tag, Object, _, Creator)
+	->  (   retract_tagged(Tag, Object, _, Creator),
+	        gc_tag(Tag)
 	    ->  notify(Object, untagged(Tag)),
-		reply_json(true)
-	    ;   reply_json(false)
+		reply_json(json([status = @true]))
+	    ;   reply_json(json([status = @false,
+				 message = 'Unknown error'
+				]))
 	    )
-	;   reply_json(false)			% error?
+	;   reply_json([status = @false,
+			message = 'Permission denied'
+		       ])
 	).
 
 may_remove(User, User) :- !.
 may_remove(User, Anonymous) :-
 	peer(Anonymous),
 	\+ peer(User).
+
+%%	gc_tag(+Tag)
+%
+%	Remove tag if it is no longer in use.
+
+gc_tag(Tag) :-
+	tagged(Tag, _, _, _), !.
+gc_tag(Tag) :-
+	retract_tag(Tag, _, _).
+
+gc_tags :-
+	forall(tag(Tag,_,_),
+	       gc_tag(Tag)).
 
 %%	show_tag(+Request)
 %
@@ -370,7 +462,7 @@ tag_abuse(Request) :-
 			]),
 	object_id(Object, Hash),
 	Link = \object_ref(Object,[]),
-	tagit_user(Request, _User),
+	tagit_user(Request, uuid, _User),
 	notify(Object, tag_abuse),
 	reply_html_page(
 	    wiki(tags),
@@ -404,12 +496,14 @@ tag_abuse(Request) :-
 
 prolog:ac_object(name, Term, Tag-tag(Tag)) :-
 	current_tag(Tag),
-	(   sub_atom(Tag, 0, _, _, Term)
+	(   sub_atom_icasechk(Tag, 0, Term),
+	    tagged(Tag, _, _, _)
 	->  true
 	).
 prolog:ac_object(token, Term, Tag-tag(Tag)) :-
 	current_tag(Tag),
-	(   sub_atom(Tag, _, _, _, Term)
+	(   sub_atom_icasechk(Tag, _, Term),
+	    tagged(Tag, _, _, _)
 	->  true
 	).
 
