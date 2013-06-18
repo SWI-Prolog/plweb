@@ -162,7 +162,8 @@ tagit_footer(Obj, _Options) -->
 	  object_tags(Obj, Tags)
 	},
 	html([ ul(id(tags), \tags_li(Tags)),
-	       div([ div([id('tag-warnings'), style('float:left;')], []),
+	       div(style('overflow:auto'),
+		   [ div([id('tag-warnings'), style('float:left;')], []),
 		     div(class('tag-notes'), \tag_notes(ObjectID, Tags))
 		   ])
 	     ]),
@@ -202,7 +203,7 @@ tagit_footer(Obj, _Options) -->
 				       async: false,
 				       success: function(data) {
 					if ( data.status == true ) {
-					  tagInfo("Added");
+					  tagInfo("Added: "+ui.tagLabel);
 					  result = true;
 					} else {
 					  tagWarning(data.message);
@@ -214,16 +215,19 @@ tagit_footer(Obj, _Options) -->
 			  },
 			  beforeTagRemoved: function(event, ui) {
 			    var result = false;
+			    if ( !ui.tagLabel ) {
+			      return false;
+			    }
 			    tagInfo("Submitting ...");
 			    $.ajax({ dataType: "json",
 				     url: RemoveTag,
 				     data: { tag: ui.tagLabel,
 					     obj: ObjectID
 					   },
-				     sync: false,
+				     async: false,
 				     success: function(data) {
 					if ( data.status == true ) {
-					  tagInfo("Removed");
+					  tagInfo("Removed: "+ui.tagLabel);
 					  result = true;
 					} else {
 					  tagWarning(data.message);
@@ -361,6 +365,10 @@ add_tag(Request) :-
 
 add_tag_validate(Tag, _Object, _UserType, Message) :-
 	tag_not_ok(Tag, Message), !.
+add_tag_validate(Tag, Object, _UserType, Message) :-
+	object_label(Object, Label),
+	sub_atom_icasechk(Label, _, Tag), !,
+	Message = 'Rejected: tag is part of object name'.
 add_tag_validate(Tag, _Object, UserType, Message) :-
 	\+ tag(Tag, _, _),
 	tag_create_not_ok(Tag, UserType, Message), !.
@@ -374,7 +382,7 @@ tag_not_ok(Tag, Message) :-
 tag_char_ok(Char) :- char_type(Char, alnum).
 tag_char_ok('_').
 tag_char_ok('-').
-tag_char_ok('+').
+tag_char_ok('/').
 tag_char_ok('(').
 tag_char_ok(')').
 
@@ -395,11 +403,12 @@ remove_tag(Request) :-
 	debug(tagit, 'remove_tag: ~q: ~q to ~q', [User, Tag, Object]),
 	tagged(Tag, Object, _, Creator),
 	(   may_remove(User, Creator)
-	->  (   retract_tagged(Tag, Object, _, Creator)
+	->  (   retract_tagged(Tag, Object, _, Creator),
+	        gc_tag(Tag)
 	    ->  notify(Object, untagged(Tag)),
 		reply_json(json([status = @true]))
 	    ;   reply_json(json([status = @false,
-				 message = 'Internal error'
+				 message = 'Unknown error'
 				]))
 	    )
 	;   reply_json([status = @false,
@@ -411,6 +420,19 @@ may_remove(User, User) :- !.
 may_remove(User, Anonymous) :-
 	peer(Anonymous),
 	\+ peer(User).
+
+%%	gc_tag(+Tag)
+%
+%	Remove tag if it is no longer in use.
+
+gc_tag(Tag) :-
+	tagged(Tag, _, _, _), !.
+gc_tag(Tag) :-
+	retract_tag(Tag, _, _).
+
+gc_tags :-
+	forall(tag(Tag,_,_),
+	       gc_tag(Tag)).
 
 %%	show_tag(+Request)
 %
