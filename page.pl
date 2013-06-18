@@ -52,10 +52,12 @@ user:body(wiki(Arg), Body) --> !,
 		  [ \html_requires(plweb),
 		    \shortcut_icons,
 		    div(class(sidebar), \sidebar),
-		    \current_user(Arg),
-		    \doc_links([], [search_options(false)]),
-		    div(class(content), Body),
-		    div(class(footer), \server_address)
+		    div(class(righthand),
+			[ \current_user(Arg),
+			  \doc_links([], [search_options(false)]),
+			  div(class(content), Body),
+			  div(class(footer), \server_address)
+			])
 		  ])),
 	html_receive(script).
 user:body(plain, Body) --> !,
@@ -65,9 +67,11 @@ user:body(_, Body) -->
 		  [ \html_requires(plweb),
 		    \shortcut_icons,
 		    div(class(sidebar), \sidebar),
-		    \current_user,
-		    div(class(content), Body),
-		    div(class(footer), \server_address)
+		    div(class(righthand),
+			[ \current_user,
+			  div(class(content), Body),
+			  div(class(footer), \server_address)
+			])
 		  ])),
 	html_receive(script).
 
