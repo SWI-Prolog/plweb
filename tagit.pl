@@ -134,8 +134,13 @@ ip -->
 %
 %	Called a to create the footer of an object page.
 
-prolog:doc_object_page_footer(Obj, Options) -->
-	{ ground(Obj) }, !,
+prolog:doc_object_page_footer(Obj0, Options) -->
+	{ ground(Obj0), !,
+	  (   prolog:doc_canonical_object(Obj0, Obj)
+	  ->  true
+	  ;   Obj = Obj0
+	  )
+	}, !,
 	html(div(class('user-annotations'),
 		 [ \tagit_footer(Obj, Options),
 		   \comment_footer(Obj, Options)
@@ -279,20 +284,15 @@ object_label(Module:module(_Title), Label) :-
 	module_property(Module, file(File)), !,
 	file_base_name(File, Base),
 	format(atom(Label), 'module ~w', [Base]).
-object_label(section(Level, Number, F), Label) :-
-	prolog:doc_object_summary(section(Level, Number, SF),
-				  _Class, _AbsFile, Title),
-	doc_same_file(F, SF), !,
-	format(atom(Label), 'Section ~w: ~w', [Number, Title]).
+object_label(section(ID), Label) :-
+	prolog:doc_object_summary(section(_Level, _No, ID, _File),
+				  _Class, _AbsFile, Title), !,
+	format(atom(Label), 'Section "~w"', [Title]).
 object_label(wiki(Location), Label) :-
 	wiki_page_title(Location, Title),
 	format(atom(Label), 'Wiki page "~w"', [Title]).
 object_label(Obj, Label) :-
 	term_to_atom(Obj, Label).
-
-doc_same_file(F, F) :- !.
-doc_same_file(swi(F), Abs) :-
-	sub_atom(Abs, _, _, 0, F).
 
 object_tags(Object, Tags) :-
 	findall(Tag, tagged(Tag, Object, _Time, _User), Tags0),
