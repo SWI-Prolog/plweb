@@ -349,7 +349,7 @@ manual_file(Request) :-
 				 file_errors(fail)
 			       ]), !,
 	    reply_html_page(title('SWI-Prolog manual'),
-			    \man_page(section(_,_,ManFile), []))
+			    \man_page(section(_,_,_,ManFile), []))
 	;   !,
 	    http_reply_file(swi(Man), [], Request)
 	).
