@@ -250,12 +250,20 @@ tags_li([]) --> [].
 tags_li([H|T]) --> html(li(H)), tags_li(T).
 
 tag_notes(ObjectID, Tags) -->
-	html([ \abuse_link(ObjectID, Tags),
-	       \why_login
+	html([ \docs_need_work_plea,
+	       \why_login,
+	       \abuse_link(ObjectID, Tags)
 	     ]).
+
+sep -->
+	html(span(class(separator), '|')).
+
+docs_need_work_plea -->
+	html(['Tag confusing pages with ', b('docs_need_help')]).
 
 abuse_link(_, []) --> [].
 abuse_link(ObjectID, _) -->
+	sep,
 	{ http_link_to_id(tag_abuse, [obj=ObjectID], HREF)
 	},
 	html(a(href(HREF), 'Report abuse')).
@@ -264,6 +272,7 @@ abuse_link(ObjectID, _) -->
 why_login -->
 	{ site_user_logged_in(_) }, !.
 why_login -->
+	sep,
 	html('Tags are associated to your profile if you are logged in').
 
 %%	object_label(+Object, -Label) is det.
