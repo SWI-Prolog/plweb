@@ -259,7 +259,7 @@ sep -->
 	html(span(class(separator), '|')).
 
 docs_need_work_plea -->
-	html(['Tag confusing pages with ', b('docs_need_help')]).
+	html(['Tag confusing pages with ', b('doc-needs-help')]).
 
 abuse_link(_, []) --> [].
 abuse_link(ObjectID, _) -->
