@@ -266,8 +266,8 @@ user_annotations(User) -->
 	  site_user_property(User, name(Name))
 	},
 	html([ h2(class(wiki), 'Comments by ~w'-[Name]),
-	       ul(class('user-tags'),
-		  \list_annotated_objects(Objects))
+	       table(class('user-comments'),
+		     \list_annotated_objects(Objects))
 	     ]).
 user_annotations(_) --> [].
 
@@ -277,15 +277,14 @@ list_annotated_objects([H|T]) -->
 	list_annotated_objects(T).
 
 list_annotated_object(comment(Obj, Comment)) -->
-	html(div(class('comment-summary'),
-		 [ \object_ref(Obj, []), ' ',
-		   \comment_summary(Comment)
-		 ])).
+	html(tr([ td(\object_ref(Obj, [])),
+		  td(class('comment-summary'), \comment_summary(Comment))
+		])).
 
 comment_summary(Comment) -->
 	{ summary_sentence(Comment, Summary)
 	},
-	html(span(Summary)).
+	html(Summary).
 
 summary_sentence(Comment, Summary) :-
 	atom_codes(Comment, Codes),
