@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2012, VU University Amsterdam
+    Copyright (C): 2013, VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -31,63 +31,53 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
-:- use_module(library(http/http_authenticate)).
+:- use_module(openid).
 :- use_module(library(smtp)).
 
 :- http_handler(root(register),            register,            []).
 :- http_handler(root(submit_registration), submit_registration, []).
 
-register(_Request) :-
+register(Request) :-
+	site_user(Request, User),
 	reply_html_page(title('Register to edit SWI-Prolog wiki pages'),
-			[ h1(class(wiki),
-			     'Register to edit SWI-Prolog wiki pages'),
-			  \reg_body
-			]).
+			\reg_body(User)).
 
-reg_body -->
-	html([ p([ 'This form allows you to request an account for editing ',
-		   'the SWI-Prolog wiki pages.  That is, the pages that have ',
-		   'an edit button at the top-right. ',
-		   'Such pages are stored as PlDoc wiki text.  Editing requires ',
-		   'you to be familiar with PlDoc. '
-		 ]),
-	       h2(class(wiki), 'Registration form'),
-	       \form,
-	       h2(class(wiki), 'Privacy'),
-	       p([ 'The information provided is sent to the site maintainer. ',
-		   'Your password is sent as an MD5 hash. ',
-		   'If you login, the password is exchanged over an unprotected ',
-		   'HTTP connection. Please do use a fair password that is not ',
-		   'used on critical sites.'
-		 ])
-	     ]).
+reg_body(User) -->
+	{ Form = \form(User)
+	},
+	html({|html(Form)||
+	      <h1 class="wiki">Register to edit SWI-Prolog wiki pages</h1>
 
-form -->
+	      <p>This form allows you to request an account for editing
+	      the SWI-Prolog wiki pages.  That is, the pages that have,
+	      an edit button at the top-right. Such pages are stored as
+	      PlDoc wiki text.</p>
+
+	      <h2 class="wiki">Registration form</h2>
+	      <div>Form</div>
+	      |}).
+
+form(UUID) -->
 	{ http_location_by_id(submit_registration, Action),
 	  PlaceHolder = 'Please tell us your plans, so that we can \c
-	  tell you are a genuine human Prolog user'
+	  tell you are a genuine human Prolog user',
+	  site_user_property(UUID, name(Name), 'anonymous'),
+	  site_user_property(UUID, email(Email), 'unknown')
 	},
 	html(form(action(Action),
-		  table([ tr([ th([align(right)], 'Nick name:'),
-			       td(input([name(login),
-					 placeholder('Use this for login')
-					]))
-			     ]),
-			  tr([ th([align(right)], 'Real name:'),
+		  table([ tr([ th([align(right)], 'Name'),
 			       td(input([name(name),
-					 placeholder('Displayed with GIT commit')
+					 placeholder('Name associated to commits'),
+					 disabled(disabled),
+					 value(Name)
 					]))
 			     ]),
-			  tr([ th([align(right)], 'Email:'),
+			  tr([ th([align(right)], 'Email'),
 			       td(input([name(email),
-					 placeholder('Displayed with GIT commit')
+					 placeholder('Displayed with GIT commit'),
+					 disabled(disabled),
+					 value(Email)
 					]))
-			     ]),
-			  tr([ th([align(right)], 'Password:'),
-			       td(input([name(passwd1), type(password)]))
-			     ]),
-			  tr([ th([align(right)], 'Retype:'),
-			       td(input([name(passwd2), type(password)]))
 			     ]),
 			  tr([ th([align(right), valign(top)], 'Comments:'),
 			       td([ class(wiki_text), colspan(2) ],
@@ -107,17 +97,11 @@ form -->
 %	Sent E-mail to submit a registration
 
 submit_registration(Request) :-
+	site_user(Request, UUID),
 	http_parameters(Request,
-			[ login(Login, [length>=3]),
-			  name(Name, [length>=3]),
-			  email(Email, [length>=3]),
-			  passwd1(Pwd1, [length>=6]),
-			  passwd1(Pwd2, [length>=6]),
-			  comment(Comment, [optional(true)])
+			[ comment(Comment, [optional(true)])
 			]),
-	(   check_login(Login)
-	;   check_passwd(Pwd1, Pwd2)
-	;   mail(Login, Name, Email, Pwd1, Comment),
+	(   mail(UUID, Comment),
 	    reply_html_page(title('Mail sent'),
 			    [ h1(class(wiki), 'Mail sent'),
 			      p([ 'A mail has been sent to the site adminstrator. ',
@@ -127,33 +111,25 @@ submit_registration(Request) :-
 			    ])
 	).
 
-check_login(Login) :-
-	http_current_user(passwd, Login, _), !,
-	reply_html_page(title('Existing login'),
-			[ h1(class(wiki), 'Existing login'),
-			  p([ 'Login ~w is already in use. '-[Login]
-			    ])
-			]).
-
-check_passwd(Pwd1, Pwd2) :-
-	Pwd1 \== Pwd2, !,
-	reply_html_page(title('Password mismatch'),
-			[ h1(class(wiki), 'Password mismatch'),
-			  p([ 'The password and retyped passwords are not ',
-			      'identical.'
-			    ])
-			]).
-
-mail(Login, Name, Email, Password, Comment) :-
+mail(UUID, Comment) :-
 	smtp_send_mail('jan@swi-prolog.org',
-		       message(Login, Name, Email, Password, Comment),
+		       message(UUID, Comment),
 		       [ subject('SWI-Prolog wiki edit request'),
 			 from('jan@swi-prolog.org')
 		       ]).
 
-message(Login, Name, Email, Password, Comment, Out) :-
-	append("$1$", _, Hash),
-	crypt(Password, Hash),
+message(UUID, Comment, Out) :-
+	site_user_property(UUID, name(Name), 'anonymous'),
+	site_user_property(UUID, email(EMail), 'unknown'),
 	format(Out, 'New wiki edit request\n\n', []),
-	format(Out, '\t~w:~s:~w:~w~n~n', [Login, Hash, Name, Email]),
-	format(Out, '~w~n', [Comment]).
+	format(Out, '\t  UUID: ~w~n', [UUID]),
+	format(Out, '\t  Name: ~w~n', [Name]),
+	format(Out, '\tE-Mail: ~w~n', [EMail]),
+	format(Out, '~n~w~n', [Comment]).
+
+
+site_user_property(UUID, P, Default) :-
+	(   site_user_property(UUID, P)
+	->  true
+	;   arg(1, P, Default)
+	).

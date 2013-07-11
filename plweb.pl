@@ -52,6 +52,8 @@
 :- use_module(library(occurs)).
 :- use_module(library(pairs)).
 :- use_module(library(option)).
+:- use_module(library(xpath)).
+:- use_module(library(sgml)).
 :- use_module(library(thread_pool)).
 :- use_module(library(http/http_dirindex)).
 
@@ -155,8 +157,9 @@ serve_page(_, Request) :-
 
 find_file(Relative, File) :-
 	file_name_extension(Base, html, Relative),
-	file_name_extension(Base, txt, WikiFile),
-	absolute_file_name(document_root(WikiFile),
+	source_extension(Ext),
+	file_name_extension(Base, Ext, SrcFile),
+	absolute_file_name(document_root(SrcFile),
 			   File,
 			   [ access(read),
 			     file_errors(fail)
@@ -174,6 +177,9 @@ find_file(Relative, File) :-
 			     file_errors(fail),
 			     file_type(directory)
 			   ]).
+
+source_extension(txt).				% wiki text
+source_extension(frg).				% embedded html
 
 
 %%	serve_file(+File, +Request) is det.
@@ -201,6 +207,8 @@ serve_file(txt, File, Request) :-
 			]),
 	Format == html, !,
 	serve_wiki_file(File, Request).
+serve_file(frg, File, Request) :-
+	serve_embedded_html_file(File, Request).
 serve_file(_Ext, File, Request) :-	% serve plain files
 	http_reply_file(File, [unsafe(true)], Request).
 
@@ -279,9 +287,10 @@ normalize_extension(Path, File, Path) :-
 	file_name_extension(_, Ext, File),
 	file_name_extension(_, Ext, Path), !.
 normalize_extension(Path0, File, Path) :-
-	file_name_extension(_, txt, File),
+	source_extension(Ext),
+	file_name_extension(_, Ext, File),
 	file_name_extension(Base, html, Path0), !,
-	file_name_extension(Base, txt, Path).
+	file_name_extension(Base, Ext, Path).
 normalize_extension(Dir, _, Index) :-
 	sub_atom(Dir, _, _, 0, /), !,
 	atom_concat(Dir, 'index.txt', Index).
@@ -356,6 +365,23 @@ manual_file(Request) :-
 manual_file(Request) :-
 	memberchk(path(Path), Request),
 	existence_error(http_location, Path).
+
+
+		 /*******************************
+		 *	  EMBEDDED HTML		*
+		 *******************************/
+
+%%	serve_embedded_html_file(+File, +Request) is det.
+%
+%	Serve a .frg file, which is displayed as an embedded HTML file.
+
+serve_embedded_html_file(File, Request) :-
+	load_html(File, DOM, []),
+	xpath(DOM, //body(self), element(_,_,Body)),
+	xpath(DOM, //head(self), element(_,_,Head)),
+	reply_html_page(wiki,
+			Head,
+			\wiki_page(Request, File, Body)).
 
 
 		 /*******************************
