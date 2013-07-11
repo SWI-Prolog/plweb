@@ -561,8 +561,8 @@ user_tags(User, Options) -->
 	  sort_tags(Keyed, SortedTags, SortBy)
 	},
 	html([ \tag_list_header(User, SortBy),
-	       ul(class('user-tags'),
-		  \list_tags(SortedTags))
+	       table(class('user-tags'),
+		     \list_tags(SortedTags))
 	     ]).
 user_tags(_, _) --> [].
 
@@ -597,8 +597,8 @@ list_tags([H|T]) --> list_tag(H), list_tags(T).
 list_tag(Tag-Objects) -->
 	{ http_link_to_id(show_tag, [tag(Tag)], HREF)
 	},
-	html(li([ a([class(tag),href(HREF)], Tag),
-		  \objects(Objects)
+	html(tr([td(a([class(tag),href(HREF)], Tag)),
+		 td(\objects(Objects))
 		])).
 
 objects([]) --> [].
