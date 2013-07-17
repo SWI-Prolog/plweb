@@ -1,28 +1,26 @@
----++ About the 6.2.x release
+---++ About the 6.4.x release
 
-SWI-Prolog 6.2.4 is based on version 6.3.4 with some addional patches.
-The semantic web (RDF) package is held back at version 2.
+SWI-Prolog 6.4.0 is based on version 6.3.19 with some addional
+patches.
 
----++ Highlights for the 6.x.x release:
+---++ Highlights for the 6.4.x release:
 
-6.2.x
+    * Updated the RDF library to version 3.  Anyone caring about RDF
+      was probably already using the development version for this
+      reason.  Added fast parsers for ntriples, Turtle and TriG
+      formats.
 
-    * Initial version of the `pack' package manager
+    * Introduction of quasi quotation for _smooth_ and _safe_ inclusion
+      of external language snippets
 
-    * Better source file handling, notably wrt. :- include(File).
+    * Upgrade of PlDoc to accept the common markdown constructs.
 
-    * Many fixes to the debugger, improving source handling and
-      the logic that decides on which ports are hidden.
+    * Many enhancements to the development tools, HTTP libraries,
+      clib package. etc.  Better support for Unix daemon processes
+      (syslog, UID/GID management, etc.)
 
-    * Windows version now build using the MinGW compiler project,
-      resulting in 10-20% speedup.  Enhancements to swipl-win.exe
-      console: copy/paste and color support.
+    * A start for locale handling (supporting format/3, notably
+      writing locale specific large integers.
 
-6.0.x
-
-    * Dynamic just-in-time indexing on multiple arguments.
-
-    * Abstracted many of the development APIs, supporting the
-      [[PDT IDE][http://sewiki.iai.uni-bonn.de/research/pdt/start]].
-
-    * Lots of cleanup, bug-fixes, etc.
+    * Lots of stability stuff: fixed crashes, portability patches,
+      build system enhancements, etc.

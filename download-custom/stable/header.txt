@@ -7,3 +7,7 @@ distros [[here][</build/LinuxDistro.txt>]].
 
 [[WIP.png;width="42",align="left"][</ChangeLog?branch=stable>]]
 Examine the [[ChangeLog][</ChangeLog?branch=stable>]].
+
+
+[[WIP.png;width="42",align="left"][</ChangeLog?branch=development>]]
+Examine the [[ChangeLog][</ChangeLog?branch=stable>]].
