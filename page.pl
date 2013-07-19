@@ -35,8 +35,10 @@
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_path)).
 :- use_module(library(pldoc/doc_index)).
+:- use_module(library(http/js_write)).
 :- use_module(wiki).
 :- use_module(openid).
+:- use_module(did_you_know).
 
 %%	user:body(+Style, +Body)//
 %
@@ -45,12 +47,34 @@
 :- multifile
 	user:body//2.
 
+% temp while we get homepage html working
+user:body(homepage, _Body) --> !,
+	{
+	    % Yikes, Jan, how do we find this here?
+	    PageLocation = /
+        },
+	html(body(div(class('outer-container'),
+	          [ \html_requires(plweb),
+		    \html_requires(swipl_css),
+		    \upper_header,
+		    \tag_line_area,
+		    \menubar(fixed_width, PageLocation),
+		    \blurb,
+		    \cta_area,
+		    \enhanced_search_area,
+		    div(id('tail-end'), &(nbsp))
+		  ]))),
+	html_receive(script).
+
+
 user:body(wiki, Body) --> !,
 	user:body(wiki(default), Body).
+% serves index among other things
 user:body(wiki(Arg), Body) --> !,
 	html(body(class(wiki),
 		  [ \html_requires(plweb),
 		    \shortcut_icons,
+		    h1(['Wiki Style ~w'-[Arg]]), % AO
 		    div(class(sidebar), \sidebar),
 		    div(class(righthand),
 			[ \current_user(Arg),
@@ -84,6 +108,214 @@ shortcut_icons -->
 		  [ link([ rel('shortcut icon'), href(FavIcon) ]),
 		    link([ rel('apple-touch-icon'), href(TouchIcon) ])
 		  ]).
+
+%%	upper_header//
+%
+%	Emit the small blue header with Did You Know? and search box
+%
+upper_header -->
+	html(div(id('upper-header'),
+		    div(id('upper-header-contents'), [
+			    span(id('dyknow-container'), [
+				     span(class(lbl), 'Did you know?'),
+				     span(id(dyknow), \did_you_know)
+				 ]),
+			    span(id('search-container'), [
+				     span(class(lbl), 'Search Documentation:'),
+				     form([id('search-form'), action('/pldoc/search')], [
+					      input([name(for), id(for)], []),
+					      input([id('submit-for'), type(submit), value('Search')], []),
+					      input([type(hidden), name(in), value(all)], []),
+					      input([type(hidden), name(match), value(summary)], []),
+					      \searchbox_script(for)
+					  ])])]))).
+
+%%	searchbox_script//
+%
+%	Emits the script tag for the searchbox
+searchbox_script(Tag) -->
+	html(
+	    script(type('text/javascript'), {|javascript(Tag)||
+    $(function() {
+        $("#"+"Tag").autocomplete({
+        minLength: 1,
+        delay: 0.3,
+        source: "/autocomplete/ac_predicate",
+        focus: function(event,ui) {
+          $("#"+"Tag").val(ui.item.label);
+          return false;
+        },
+        select: function(event,ui) {
+          $("#"+"Tag").val(ui.item.label);
+          window.location.href = ui.item.href;
+          return false;
+        }
+        })
+        .data("ui-autocomplete")._renderItem = function(ul,item) {
+        var label = String(item.label).replace(
+            new RegExp(this.term),
+            "<span class=\"acmatch\">$&</span>");
+        var tag = item.tag ? " <i>["+item.tag+"]</i>" : "";
+        return $("<li>")
+          .append("<a class=\""+item.class+"\">"+label+tag+"</a>")
+          .appendTo(ul)
+        };
+        });
+|})).
+
+%%	tag_line_area//
+%
+%	Emit the Owl logo and tagline area (Robust, mature, free. Prolog
+%	for the real world)
+tag_line_area -->
+	html(div(id('tag-line-area'), [
+	    img(src('icons/swipl.png'), []),
+	    span(class(tagline), ['Robust, mature, free. ', b('Prolog for the real world.')])
+	])).
+
+%%	menubar(+Style:atom, +PageLocation:atom)// is semidet
+%
+%	Emits a menubar. Style must be one of full_width or fixed_width,
+%	where full_width extends the yellow band full across the page
+%	and fixed_width limits the yellow band to 960px
+%	PageLocation is the page location for editing
+%
+menubar(fixed_width, PageLocation) -->
+	html(\[
+	    {|html(PageLocation)||
+    <div id='menubar'>
+        <div class='menubar fixed-width'>
+            <ul class='menubar-container'>
+                <li><a href="/">HOME</a></li>
+                <li>DOWNLOAD
+                    <ul class='dropdown one'>
+                        <li><a href="/download.html">SWI-PROLOG</a></li>
+                        <li><a href="/sources.html">SOURCES/BUILDING</a></li>
+                        <li><a href="/addons.html">ADD-ONS</a></li>
+                        <li><a href="/git/">BROWSE GIT</a></li>
+                    </ul>
+                </li>
+                <li>DOCUMENTATION
+                    <ul>
+                        <li><a href="/pldoc/refman/">MANUAL</a></li>
+                        <li><a href="/pldoc/index.html">PACKAGES</a></li>
+                        <li><a href="/FAQ/">FAQ</a></li>
+                        <li><a href="/pldoc/man?section=cmdline">COMMAND LINE</a></li>
+                        <li><a href="/pldoc/package/pldoc.html">PLDOC</a></li>
+                        <li>BLUFFERS<span class='arrow'>&#x25B6;</span>
+                            <ul>
+                                <li><a href="/prologsyntax.html">PROLOG SYNTAX</a></li>
+                                <li><a href="/pldoc/man?section=emacsbluff">pceEMACS</a></li>
+                                <li><a href="/htmlbluffer.html">HTML GENERATION</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="/license.html">LICENSE</a></li>
+                        <li><a href="/Contributors.html">CONTRIBUTORS</a></li>
+                        <li><a href="/Publications.html">PUBLICATIONS</a></li>
+                    </ul>
+                </li>
+                <li>TUTORIALS
+                    <ul>
+                        <li>BEGINNER<span class='arrow'>&#x25B6;</span>
+                            <ul>
+                                <li><a href="/pldoc/man?section=quickstart">GETTING STARTED</a></li>
+                                <li><a href="/swipltuts/mod/index.html">MODULES</a></li>
+                                <li><a href="/pldoc/man?section=debugoverview">DEBUGGER</a></li>
+                                <li><a href="/IDE.html">DEVELOPMENT TOOLS</a></li>
+                            </ul>
+                        </li>
+                        <li>INTERMEDIATE<span class='arrow'>&#x25B6;</span>
+                            <ul>
+                                <li><a href="/howto/http/">WEB SERVICE</a></li>
+                                <li><a href="/swipltuts/html/index.html">WEB APPLICATIONS</a></li>
+                                <li><a href="/swipltuts/pldoc/index.html">PLDOC</a></li>
+                                <li><a href="/dcg/index.html">DCGs</a></li>
+                                <li><a href="/xpce.pdf">XPCE</a></li>
+                                <li><a href="/Graphics.html">GUI OPTIONS</a></li>
+                            </ul>
+                        </li>
+                        <li>ADVANCED<span class='arrow'>&#x25B6;</span>
+                            <ul>
+                                <li><a href="/howto/UseRdfMeta.html">RDF NAMESPACES</a></li>
+                                <li><a href="/build/guidelines.txt">UNIX PACKAGES</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li><!-- tutorials -->
+                <li>COMMUNITY
+                    <ul>
+                        <li><a href="/Support.txt">SUPPORT</a></li>
+                        <li><a href="http://webchat.freenode.net/?channels=##prolog">IRC</a></li>
+                        <li><a href="/Mailinglist.txt">MAIL LIST</a></li>
+                        <li><a href="/bugzilla/">BUG TRACKER</a></li>
+                        <li><a href="/Links.html">EXTERNAL LINKS</a></li>
+                        <li><a href="/Contact.html">CONTACT</a></li>
+                        <li><a href="/loot.html">SWI-PROLOG ITEMS</a></li>
+                    </ul>
+                </li><!-- community -->
+                <li>USERS
+                    <ul>
+                        <li><a href="/web/index.html">SEMANTIC WEB</a></li>
+                        <li><a href="/swipltuts/student/index.html">STUDENTS</a></li>
+                        <li><a href="/Publications.html">RESEARCHERS</a></li>
+                        <li><a href="/commercial.html">COMMERCIAL USERS</a></li>
+                    </ul>
+                </li><!-- users -->
+                <li>WIKI
+                    <ul>
+                        <li><a href="/openid/login?openid.return_to=/user/logout">LOGIN</a></li>
+                        <li><a href="/wiki_edit?location=PageLocation">EDIT THIS PAGE</a></li>
+                        <li><a href="/wiki/sandbox">SANDBOX</a></li>
+                        <li><a href="/wiki/">WIKI HELP</a></li>
+                        <li><a href="/list-tags">ALL TAGS</a></li>
+                    </ul>
+                </li><!-- wiki -->
+            </ul>
+        </div>
+    </div>
+	    |}]).
+
+
+%%	blurb//
+%
+%	Emit the blurb
+blurb -->
+	html(div(id(blurb), div(
+'SWI-Prolog offers a comprehensive free Prolog environment. Since its start in 1987, SWI-Prolog development has been driven by the needs of real world applications. SWI-Prolog is widely used in research and education as well as commercial applications. Join over a million users who have downloaded SWI-Prolog.'
+			    ))).
+
+%%	cta_area//
+%
+%	Emit the CTA - the 3 big buttons on homepage
+cta_area -->
+	html(\[
+{|html(_)||
+    <div id='cta-container'>
+        <div>Download SWI-Prolog</div>
+        <div>Get Started</div>
+        <div>Is SWI-Prolog Right For My Project?</div>
+    </div>
+    <div>&nbsp;</div>
+|}]).
+
+%%	enhanced_search_area//
+%
+%	Emit the large size search area at bottom of home page
+%
+enhanced_search_area -->
+	html(
+	    span(id('enhanced-search-container'), [
+				     span(class(lbl), 'Search Documentation:'),
+				     form([id('search-form'), action('/pldoc/search')], [
+					      input([name(for), id(forenhanced)], []),
+					      input([id('submit-for'), type(submit), value('Search')], []),
+					      input([type(hidden), name(in), value(all)], []),
+					      input([type(hidden), name(match), value(summary)], []),
+					      \searchbox_script(forenhanced)
+					  ])])).
+
+%         ================ Old version resumes =========================
+
 
 %%	sidebar//
 %
