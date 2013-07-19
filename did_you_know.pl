@@ -47,10 +47,7 @@ did_you_know -->
 	       Info = a(href=Link, Saying)
 	    )
 	},
-	html([span(class='cornice dyk', [
-		 span(class='cornice label', ['Did you know?']),
-		 span(class='cornice info', Info)])
-		  ]).
+	html(Info).
 
 
 %%	 dyk_sayings(-Sayings:list) is det
@@ -109,6 +106,5 @@ dyk_sayings([
     ['SWI-Prolog has a ', b('Profiler')]-'/pldoc/doc_for?object=section(2,''4.39'',swi(''/doc/Manual/profile.html''))',
     'SWI-Prolog supports DDE on Windows'-'/pldoc/doc_for?object=section(2,''4.41'',swi(''/doc/Manual/DDE.html''))',
     ['You can create ', b('stand alone exe files'), ' from SWI-Prolog code']-'/pldoc/doc_for?object=section(1,''10'',swi(''/doc/Manual/runtime.html''))',
-
     'SWI-Prolog supports arbitrarily large integers'-none
 	    ]).
