@@ -36,6 +36,7 @@
 :- use_module(library(http/http_path)).
 :- use_module(library(pldoc/doc_index)).
 :- use_module(library(http/js_write)).
+:- use_module(library(http/html_head)).
 :- use_module(wiki).
 :- use_module(openid).
 :- use_module(did_you_know).
@@ -48,9 +49,10 @@
 	user:body//2.
 
 % temp while we get homepage html working
-user:body(homepage, _Body) --> !,
+user:body(_Homepage, _Body) -->
+	!,
 	{
-	    % Yikes, Jan, how do we find this here?
+	    % TBD Yikes, Jan, how do we find this here?
 	    PageLocation = /
         },
 	html(body(div(class('outer-container'),
@@ -66,7 +68,6 @@ user:body(homepage, _Body) --> !,
 		  ]))),
 	html_receive(script).
 
-
 user:body(wiki, Body) --> !,
 	user:body(wiki(default), Body).
 % serves index among other things
@@ -74,7 +75,7 @@ user:body(wiki(Arg), Body) --> !,
 	html(body(class(wiki),
 		  [ \html_requires(plweb),
 		    \shortcut_icons,
-		    h1(['Wiki Style ~w'-[Arg]]), % AO
+		    h1(['Wiki Style ~w'-[Arg]]), % AO DEBUG
 		    div(class(sidebar), \sidebar),
 		    div(class(righthand),
 			[ \current_user(Arg),
@@ -123,6 +124,7 @@ upper_header -->
 			    span(id('search-container'), [
 				     span(class(lbl), 'Search Documentation:'),
 				     form([id('search-form'), action('/pldoc/search')], [
+
 					      input([name(for), id(for)], []),
 					      input([id('submit-for'), type(submit), value('Search')], []),
 					      input([type(hidden), name(in), value(all)], []),
@@ -134,19 +136,20 @@ upper_header -->
 %
 %	Emits the script tag for the searchbox
 searchbox_script(Tag) -->
-	html(
+	html([
+	    \html_requires(jquery_ui),
 	    script(type('text/javascript'), {|javascript(Tag)||
     $(function() {
-        $("#"+"Tag").autocomplete({
+        $("#"+Tag).autocomplete({
         minLength: 1,
         delay: 0.3,
         source: "/autocomplete/ac_predicate",
         focus: function(event,ui) {
-          $("#"+"Tag").val(ui.item.label);
+          $("#"+Tag).val(ui.item.label);
           return false;
         },
         select: function(event,ui) {
-          $("#"+"Tag").val(ui.item.label);
+          $("#"+Tag).val(ui.item.label);
           window.location.href = ui.item.href;
           return false;
         }
@@ -161,7 +164,7 @@ searchbox_script(Tag) -->
           .appendTo(ul)
         };
         });
-|})).
+|})]).
 
 %%	tag_line_area//
 %
@@ -180,9 +183,10 @@ tag_line_area -->
 %	and fixed_width limits the yellow band to 960px
 %	PageLocation is the page location for editing
 %
+:- style_check(-atom).
 menubar(fixed_width, PageLocation) -->
-	html(\[
-	    {|html(PageLocation)||
+	html([\html_requires(jquery),
+	      \html({|html(PageLocation)||
     <div id='menubar'>
         <div class='menubar fixed-width'>
             <ul class='menubar-container'>
@@ -272,8 +276,10 @@ menubar(fixed_width, PageLocation) -->
                 </li><!-- wiki -->
             </ul>
         </div>
-    </div>
-	    |}]).
+    </div>|}),
+	      \html_requires(jq('menu.js'))
+	]).
+:- style_check(+atom).
 
 
 %%	blurb//
@@ -286,33 +292,35 @@ blurb -->
 
 %%	cta_area//
 %
-%	Emit the CTA - the 3 big buttons on homepage
+%	Emit the Call To Action - the 3 big buttons on homepage
 cta_area -->
-	html(\[
-{|html(_)||
+	html({|html(_)||
     <div id='cta-container'>
         <div>Download SWI-Prolog</div>
         <div>Get Started</div>
         <div>Is SWI-Prolog Right For My Project?</div>
     </div>
-    <div>&nbsp;</div>
-|}]).
+    <div>&nbsp;</div>|}).
+
 
 %%	enhanced_search_area//
 %
 %	Emit the large size search area at bottom of home page
 %
 enhanced_search_area -->
-	html(
-	    span(id('enhanced-search-container'), [
-				     span(class(lbl), 'Search Documentation:'),
-				     form([id('search-form'), action('/pldoc/search')], [
-					      input([name(for), id(forenhanced)], []),
-					      input([id('submit-for'), type(submit), value('Search')], []),
-					      input([type(hidden), name(in), value(all)], []),
-					      input([type(hidden), name(match), value(summary)], []),
-					      \searchbox_script(forenhanced)
-					  ])])).
+	html({|html(_)||    <div id='enhanced-search-container'>
+        <div>
+            <span class='lbl'>SEARCH DOCUMENTATION:</span>
+            <form  id="search-form-enhanced" action="/pldoc/search">
+                <input type='text' id="forenhanced">
+                <input type="image" src="/icons/go.png" alt='Search'>
+                <input type="hidden" name="in" value="all">
+                <input type="hidden" name="match" value="summary">
+            </form>
+        </div>
+    </div>|}),
+	searchbox_script(forenhanced).
+
 
 %         ================ Old version resumes =========================
 

@@ -116,6 +116,10 @@ user:url_path(serql,	 'http://www.openrdf.org').
 		 *	      RESOURCES		*
 		 *******************************/
 
+:- html_resource(swipl_css,
+		 [ virtual(true),
+		   requires([ css('swipl.css') ])
+		 ]).
 :- html_resource(plweb,
 		 [ virtual(true),
 		   requires([ pldoc_css,
