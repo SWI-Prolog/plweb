@@ -48,8 +48,7 @@
 :- multifile
 	user:body//2.
 
-% temp while we get homepage html working
-user:body(_Homepage, _Body) -->
+user:body(homepage, Body) -->
 	!,
 	{
 	    % TBD Yikes, Jan, how do we find this here?
@@ -64,6 +63,7 @@ user:body(_Homepage, _Body) -->
 		    \blurb,
 		    \cta_area,
 		    \enhanced_search_area,
+		    Body,
 		    div(id('tail-end'), &(nbsp))
 		  ]))),
 	html_receive(script).
@@ -87,7 +87,7 @@ user:body(wiki(Arg), Body) --> !,
 		  ])),
 	html_receive(script).
 user:body(plain, Body) --> !,
-	html(body(class(wiki), Body)).
+	html(body(class(wiki), [h1(plain), Body])).   % AO h1 is DEBUG
 user:body(_, Body) -->
 	html(body(class(pldoc),
 		  [ \html_requires(plweb),
@@ -95,6 +95,7 @@ user:body(_, Body) -->
 		    div(class(sidebar), \sidebar),
 		    div(class(righthand),
 			[ \current_user,
+			  h1(pldoc),  % AO DEBUG
 			  div(class(content), Body),
 			  div(class(footer), \server_address)
 			])
@@ -185,15 +186,19 @@ tag_line_area -->
 %
 :- style_check(-atom).
 menubar(fixed_width, PageLocation) -->
+	{
+           uri_query_components(Str, [location=PageLocation]),
+           format(atom(PageHREF), '/wiki_edit?~w', [Str])
+        },
 	html([\html_requires(jquery),
-	      \html({|html(PageLocation)||
+	      \html({|html(PageHREF)||
     <div id='menubar'>
         <div class='menubar fixed-width'>
             <ul class='menubar-container'>
                 <li><a href="/">HOME</a></li>
                 <li>DOWNLOAD
                     <ul class='dropdown one'>
-                        <li><a href="/download.html">SWI-PROLOG</a></li>
+                        <li><a href="/Download.html">SWI-PROLOG</a></li>
                         <li><a href="/sources.html">SOURCES/BUILDING</a></li>
                         <li><a href="/addons.html">ADD-ONS</a></li>
                         <li><a href="/git/">BROWSE GIT</a></li>
@@ -268,7 +273,7 @@ menubar(fixed_width, PageLocation) -->
                 <li>WIKI
                     <ul>
                         <li><a href="/openid/login?openid.return_to=/user/logout">LOGIN</a></li>
-                        <li><a href="/wiki_edit?location=PageLocation">EDIT THIS PAGE</a></li>
+                        <li><a href=PageHREF>EDIT THIS PAGE</a></li>
                         <li><a href="/wiki/sandbox">SANDBOX</a></li>
                         <li><a href="/wiki/">WIKI HELP</a></li>
                         <li><a href="/list-tags">ALL TAGS</a></li>

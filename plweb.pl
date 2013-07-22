@@ -154,6 +154,10 @@ serve_page(_, Request) :-
 %	Translate Relative into a File in the document-root tree. If the
 %	given extension is .html, also look for   .txt files that can be
 %	translated into HTML.
+%	.frg files embed the contents of the body in the normal 1 col
+%	layout format.
+%	.hom files embed the contents of the body in the home page
+%	format. Usually the home page fill will have nothing in it
 
 find_file(Relative, File) :-
 	file_name_extension(Base, html, Relative),
@@ -178,6 +182,7 @@ find_file(Relative, File) :-
 			     file_type(directory)
 			   ]).
 
+source_extension(hom).				% homepage embedded html
 source_extension(txt).				% wiki text
 source_extension(frg).				% embedded html
 
@@ -207,6 +212,8 @@ serve_file(txt, File, Request) :-
 			]),
 	Format == html, !,
 	serve_wiki_file(File, Request).
+serve_file(hom, File, Request) :-
+	serve_embedded_hom_file(File, Request).
 serve_file(frg, File, Request) :-
 	serve_embedded_html_file(File, Request).
 serve_file(_Ext, File, Request) :-	% serve plain files
@@ -277,12 +284,20 @@ wiki_page(Request, File, DOM) -->
 	prolog:doc_object_page_footer//2.
 
 user_annotations(Request, File) -->
-	{ memberchk(request_uri(Location), Request),
+	{ \+ locked_wiki_page(Request),
+	  memberchk(request_uri(Location), Request),
 	  atom_concat(/, WikiPath0, Location),
 	  normalize_extension(WikiPath0, File, WikiPath)
 	}, !,
 	prolog:doc_object_page_footer(wiki(WikiPath), []).
 user_annotations(_, _) --> [].
+
+%%	locked_wiki_page(+Request:request) is semidet
+%
+%	succeeds if this page is not editable (that is, locked)
+
+locked_wiki_page(Request) :-
+	memberchk(path_info('index.html'), Request).
 
 normalize_extension(Path, File, Path) :-
 	file_name_extension(_, Ext, File),
@@ -374,16 +389,23 @@ manual_file(Request) :-
 
 %%	serve_embedded_html_file(+File, +Request) is det.
 %
-%	Serve a .frg file, which is displayed as an embedded HTML file.
+%	Serve a .frg file, which is displayed as an embedded HTML file
+%	in the 1 col content format, or a .hom file, which is displayed
+%	as an embedded HTML file in the home page format
 
 serve_embedded_html_file(File, Request) :-
+	serve_embedded_html_file(wiki, File, Request).
+
+serve_embedded_hom_file(File, Request) :-
+	serve_embedded_html_file(homepage, File, Request).
+
+serve_embedded_html_file(Style, File, Request) :-
 	load_html(File, DOM, []),
 	xpath(DOM, //body(self), element(_,_,Body)),
 	xpath(DOM, //head(self), element(_,_,Head)),
-	reply_html_page(wiki,
+	reply_html_page(Style,
 			Head,
 			\wiki_page(Request, File, Body)).
-
 
 		 /*******************************
 		 *     THREAD POOL HANDLING	*
