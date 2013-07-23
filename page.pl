@@ -72,19 +72,24 @@ user:body(wiki, Body) --> !,
 	user:body(wiki(default), Body).
 % serves index among other things
 user:body(wiki(Arg), Body) --> !,
-	html(body(class(wiki),
+	{
+	    % TBD Yikes, Jan, how do we find this here?
+	    PageLocation = /
+        },
+	html(body(div(class('outer-container'),
 		  [ \html_requires(plweb),
+		    \html_requires(swipl_css),
 		    \shortcut_icons,
-		    h1(['Wiki Style ~w'-[Arg]]), % AO DEBUG
-		    div(class(sidebar), \sidebar),
-		    div(class(righthand),
-			[ \current_user(Arg),
-			  \doc_links([], [search_options(false)]),
-			  \page_extra(Arg),
-			  div(class(content), Body),
-			  div(class(footer), \server_address)
-			])
-		  ])),
+		    \upper_header,
+		    \title_area,
+		    \menubar(fixed_width, PageLocation),
+		    \page_extra(Arg),
+		    p('Someday breadcrumb'),
+		    % \doc_links([], [search_options(false)]),
+		    div(id(contents), div(Body)),
+		    div(class('footer newstyle'), [\current_user(Arg), \server_address]),
+		    div(id('tail-end'), &(nbsp))
+		  ]))),
 	html_receive(script).
 user:body(plain, Body) --> !,
 	html(body(class(wiki), [h1(plain), Body])).   % AO h1 is DEBUG
@@ -176,6 +181,22 @@ tag_line_area -->
 	    img(src('icons/swipl.png'), []),
 	    span(class(tagline), ['Robust, mature, free. ', b('Prolog for the real world.')])
 	])).
+
+%%	title_area//
+%
+%	Emit the Owl logo and page title
+%
+%	@tbd receive title via mailman
+%
+title_area -->
+	{
+                    Title = 'Yet To Do'  % TBD recieve this via mailman
+        },
+	html(div(id('header-line-area'), [
+		     img(src('icons/swipl.png'),[]),
+		     span(class('primary-header'), Title)
+		 ])).
+
 
 %%	menubar(+Style:atom, +PageLocation:atom)// is semidet
 %
