@@ -7,42 +7,6 @@ below. See the general [[GIT][</git.html>]] instructions for details.
 % git clone git://www.swi-prolog.org/home/pl/git/pl-devel.git
 ==
 
----++ News
-
-6.3.5 bumbed the semweb (RDF) library to version 3.  In a nutshell
-
-  - Truly concurrent read/write
-  - Prolog logical update view on the RDF database
-  - Transactions changes
-	- Transactions can be executed concurrently
-	- Full atomicy and isolation support
-	- Writes inside a transaction are visible following the
-	  Prolog logical update view
-  - Lock-free reading provides much better multicore scalability.
-
----++ 6.3.x planned enhancements
-
-Below is a list of things on the TODO list.
-
-    * Kernel issues
-
-      * Reduce trail-stack usage. (*partly*).
-      * Reduce local-stack usage for multiple disjunctions in clauses.
-      * Provide generational garbage collection.
-      * Extend indexing with combined arguments and indexing inside
-        compound terms.
-      * Tabling
-      * Further cleanup of the VM instruction API to simplify maintenance
-	and future enhancements
-      * Handle malloc() failures with exceptions rather then a
-	fatal-error.
-
-    * Libraries
-
-      * Move many goodies from
-	[[ClioPatria][http://e-culture.multimedian.nl/software/ClioPatria.shtml]]
-	to the HTTP and semweb libraries.
-
-    * Community and development issues
-
-      * Further enhance the `pack' system and try to get it popular.
+@see [Daily builds for Windows](</download/daily/bin>)
+@see [Ubuntu PPA binary packages](</build/Debian.html>)
+@see [Build instructions](</build/>)
