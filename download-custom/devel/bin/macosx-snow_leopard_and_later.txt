@@ -2,4 +2,6 @@ Mac OS X disk image with *relocatable application bundle*. Needs
 [[xquartz][<xquartz:>]] (X11) installed for running the [[development
 tools][</IDE.html>]]. Currently, version 2.7.4 is required. You can
 check the version by opening an X11 application and then checking
-`about' in the X11 menu.
+`about' in the X11 menu.  The graphical application is _experimental_.
+The bundle also provides the commandline tools in
+=Contents/MacOS=.

@@ -167,6 +167,8 @@ icon_for_file(bin, macos(lion,_),
 	      'lion.png', 'Lion').
 icon_for_file(bin, macos(snow_leopard,_),
 	      'snowleopard.gif', 'Snow Leopard').
+icon_for_file(bin, macos(snow_leopard_and_later,_),
+	      'macapp.png', 'Snow Leopard and later').
 icon_for_file(bin, macos(_,_),
 	      'mac.gif', 'MacOSX version').
 icon_for_file(_, windows(win32),
@@ -255,6 +257,7 @@ html_macos_version(tiger)        --> html('10.4 (Tiger)').
 html_macos_version(leopard)      --> html('10.5 (Leopard)').
 html_macos_version(snow_leopard) --> html('10.6 (Snow Leopard)').
 html_macos_version(lion)	 --> html('10.7 (Lion)').
+html_macos_version(snow_leopard_and_later) --> html('10.6 (Snow Leopard) and later').
 html_macos_version(OS)	         --> html(OS).
 
 %%	platform_notes(+Platform, +Path) is det.
@@ -281,6 +284,8 @@ platform_note_file(windows(win32),   'win32.txt').
 platform_note_file(windows(win64),   'win64.txt').
 platform_note_file(pkg(Pkg),         File) :-
 	file_name_extension(Pkg, txt, File).
+platform_note_file(macos(Version,_), File) :-
+	atomic_list_concat([macosx, -, Version, '.txt'], File).
 platform_note_file(macos(Version,_), File) :-
 	atomic_list_concat([macosx, -, Version, '.txt'], File).
 platform_note_file(macos(_,_),	     'macosx.txt').
@@ -317,6 +322,9 @@ file(bin, macos(OSVersion, CPU), Version) -->
 	;   { macos_def_cpu(OSVersion, CPU) }
 	),
 	".mpkg.zip", !.
+file(bin, macos(snow_leopard_and_later, intel), Version) -->
+	"SWI-Prolog-", long_version(Version),
+	".dmg", !.
 file(bin, windows(WinType), Version) -->
 	win_type(WinType), "pl",
 	short_version(Version),
@@ -431,10 +439,11 @@ type_tag(src, Format,     tag(40, Format)) :- !.
 type_tag(doc, Format,     tag(50, Format)) :- !.
 type_tag(X,   Y,	  tag(60, X-Y)).
 
-mac_tag(lion,	      6).
-mac_tag(snow_leopard, 7).
-mac_tag(leopard,      8).
-mac_tag(tiger,        9).
+mac_tag(snow_leopard_and_later,	5).
+mac_tag(lion,			6).
+mac_tag(snow_leopard,		7).
+mac_tag(leopard,		8).
+mac_tag(tiger,			9).
 
 sort_group_by_version(Tag-Files, Tag-Sorted) :-
 	map_list_to_pairs(tag_version, Files, TFiles),
