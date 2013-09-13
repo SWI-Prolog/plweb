@@ -382,8 +382,12 @@ pack_list(Request) :-
 				       default(name)
 				     ])
 			]),
+        (  ground(Pack)
+        -> format(atom(Title), '"~w" pack for SWI-Prolog', [Pack])
+        ;  Title = 'SWI-Prolog packages'
+        ),
 	reply_html_page(wiki,
-			title('SWI-Prolog packages'),
+			title(Title),
 			[ \pack_listing(Pack, Author, Sort)
 			]).
 
