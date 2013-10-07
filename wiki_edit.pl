@@ -100,7 +100,8 @@ edit_page(Location, File, Author) -->
 	      Title = 'Edit',
 	      file_directory_name(File, Dir)
 	  ;   Content = '',
-	      Title = 'Create'
+	      Title = 'Create',
+	      Dir = _			% shortlog//2 is quiet on var
 	  ),
 	  http_location_by_id(wiki_save, Action)
 	},

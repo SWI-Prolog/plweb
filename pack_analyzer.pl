@@ -119,8 +119,8 @@ file_info(Pack, Members,
 	->  findall(export(Name/Arity, Info),
 		    ( xref_exported(Source, Head),
 		      functor(Head, Name, Arity),
-		      (	  xref_comment(Source, Head, Summary, Comment)
-		      ->  Info = [doc(Summary, Comment)]
+		      (	  xref_comment(Source, Head, Summary, PredComment)
+		      ->  Info = [doc(Summary, PredComment)]
 		      ;	  Info = []
 		      )
 		    ),
@@ -128,8 +128,8 @@ file_info(Pack, Members,
 	;   Module = (-),			% Warning?
 	    Exports = []
 	),
-	(   xref_comment(Source, Title, Comment)
-	->  Documentation = [ doc(Title, Comment) ]
+	(   xref_comment(Source, Title, FileComment)
+	->  Documentation = [ doc(Title, FileComment) ]
 	;   Documentation = []
 	).
 
