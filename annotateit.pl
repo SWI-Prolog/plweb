@@ -303,7 +303,8 @@ summary([0' |T0], Max) -->
 	blanks,
 	{ Left is Max-1 },
 	summary(T0, Left).
-summary(" ...", 0) --> !.
+summary(Elipsis, 0) --> !,
+	{ string_codes(" ...", Elipsis) }.
 summary([H|T0], Max) -->
 	[H], !,
 	{ Left is Max-1 },
