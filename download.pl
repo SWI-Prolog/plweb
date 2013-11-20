@@ -186,7 +186,7 @@ file_description(file(bin, PlatForm, Version, _, Path)) -->
 	{ down_file_href(Path, HREF)
 	},
 	html([ a(href(HREF),
-		 [ 'SWI-Prolog/XPCE ', \version(Version), ' for ',
+		 [ 'SWI-Prolog ', \version(Version), ' for ',
 		   \platform(PlatForm)
 		 ]),
 	       \platform_notes(PlatForm, Path)
