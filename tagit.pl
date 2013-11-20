@@ -379,7 +379,7 @@ add_tag_validate(Tag, Object, _UserType, Message) :-
 	sub_atom_icasechk(Label, _, Tag), !,
 	Message = 'Rejected: tag is part of object name'.
 add_tag_validate(Tag, _Object, UserType, Message) :-
-	\+ tag(Tag, _, _),
+%	\+ tag(Tag, _, _),
 	tag_create_not_ok(Tag, UserType, Message), !.
 add_tag_validate(_, _, _, _).
 
@@ -395,7 +395,8 @@ tag_char_ok('/').
 tag_char_ok('(').
 tag_char_ok(')').
 
-tag_create_not_ok(_, ip, 'Not logged-in users can only use existing tags').
+%tag_create_not_ok(_, ip, 'Not logged-in users can only use existing tags').
+tag_create_not_ok(_, ip, 'Not logged-in users can not add tags').
 
 
 %%	remove_tag(+Request)
