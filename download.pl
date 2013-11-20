@@ -245,9 +245,9 @@ platform(linux(rpm, _)) -->
 platform(macos(Name, CPU)) -->
 	html(['MacOSX ', \html_macos_version(Name), ' on ', b(CPU)]).
 platform(windows(win32)) -->
-	html(['Windows NT/2000/XP/Vista/7']).
+	html(['Windows XP/Vista/7/8']).
 platform(windows(win64)) -->
-	html(['Windows XP/Vista/7 64-bit edition']).
+	html(['Windows XP/Vista/7/8 64-bit edition']).
 
 html_macos_version(tiger)        --> html('10.4 (Tiger)').
 html_macos_version(leopard)      --> html('10.5 (Leopard)').
