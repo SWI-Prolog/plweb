@@ -94,7 +94,6 @@ download_table(Dir, Options) -->
 	list_files(Dir, bin, bin,    'Binaries',         Options),
 	list_files(Dir, src, src,    'Sources',          Options),
 	list_files(Dir, doc, doc,    'Documentation',    Options),
-	list_files(Dir, bin, pkg(_), 'Package binaries', Options),
 	toggle_show(Options).
 
 %%	toggle_show(+Options) is det.
@@ -327,10 +326,6 @@ file(bin, macos(snow_leopard_and_later, intel), Version) -->
 	".dmg", !.
 file(bin, windows(WinType), Version) -->
 	win_type(WinType), "pl",
-	short_version(Version),
-	".exe", !.
-file(pkg(space), windows(WinType), Version) -->
-	win_type(WinType), "swispace",
 	short_version(Version),
 	".exe", !.
 file(bin, linux(rpm, suse), Version) -->
