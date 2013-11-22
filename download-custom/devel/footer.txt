@@ -7,6 +7,43 @@ below. See the general [[GIT][</git.html>]] instructions for details.
 % git clone git://www.swi-prolog.org/home/pl/git/pl-devel.git
 ==
 
+---++ SWI-Prolog Version 7
+
+SWI-Prolog version 7 is a major release that introduces significant
+new concepts to the language.  A full description is in the
+section [SWI-Prolog extensions](/pldoc/man?section=extensions). Below is
+a short summary.
+
+  - Lists are no longer represented as .(H,T).  Instead, the list
+    functor is now '$cons'(H, T).  The empty list is still [], but
+    this is not an atom.  I.e., '[]' == [] fails.
+
+  - By default, double quoted "text" is mapped to an object of type
+    string.  This already raised some discussions.
+
+  - The system introduces `maps' as primary citizens.  Maps are
+    collections of key-value pairs, optionally typed. Maps are
+    supported by read and write.  The syntax is
+
+        ==
+        type{key1:value1, key2:value2, ...}
+	==
+
+    Keys in a map can be addressed using the functional notation
+    Map.Key.  User functions on maps can be accessed as Map.Compound
+    (e.g., Vector.multiply(V2)).
+
+  - Quoted atoms are no longer operators.
+
+  - Unquoted atoms may contain internal dots.  E.g., a.b is an
+    atom.
+
+  - functor() is valid syntax.  It produces a term that is distinct
+    from 'functor'.  The `block' operator '()' to hack this syntax
+    has been deleted.
+
+  - The `block' operators [] and {} remain.
+
 @see [Daily builds for Windows](</download/daily/bin>)
 @see [Ubuntu PPA binary packages](</build/Debian.html>)
 @see [Build instructions](</build/>)
