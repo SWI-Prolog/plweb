@@ -1,8 +1,8 @@
 ---++ About the 6.6.x release
 
 SWI-Prolog 6.6.0 is based on version 6.5.3 with some addional patches.
-The 6.6.x release is the last stable release before SWI-Prolog version
-7. It provides changes that make it easier to write code for version 7
+The 6.6.x release is the last stable release before SWI-Prolog version 7.
+It provides changes that make it easier to write code for version 7
 that also runs on version 6.
 
 Version 6.6 introduces some changes, notably in command line processing:
@@ -16,6 +16,6 @@ Version 6.6 introduces some changes, notably in command line processing:
   - The Prolog flag =argv= only provides arguments that have not
     been processed by Prolog.
 
-  - The init file =.plrc= (=pl.ini= on Windows) is no longer searched
+  - The init file =|.plrc|= (=pl.ini= on Windows) is no longer searched
     for in the working directory for security reasons.
 
