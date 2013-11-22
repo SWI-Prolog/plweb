@@ -75,7 +75,7 @@ download_table(Request) :-
 list_downloads(Dir, Options) :-
 	reply_html_page(title('SWI-Prolog downloads'),
 			[ \wiki(Dir, 'header.txt'),
-			  div(&(nbsp)),
+			  br(clear(all)),
 			  table(class(downloads),
 				\download_table(Dir, Options)),
 			  \wiki(Dir, 'footer.txt')
@@ -94,7 +94,6 @@ download_table(Dir, Options) -->
 	list_files(Dir, bin, bin,    'Binaries',         Options),
 	list_files(Dir, src, src,    'Sources',          Options),
 	list_files(Dir, doc, doc,    'Documentation',    Options),
-	list_files(Dir, bin, pkg(_), 'Package binaries', Options),
 	toggle_show(Options).
 
 %%	toggle_show(+Options) is det.
@@ -128,14 +127,11 @@ toggle_show(_) -->
 
 list_files(Dir, SubDir, Class, Label, Options) -->
 	{ directory_file_path(Dir, SubDir, Directory),
-	  atom_concat(Directory, '/*', Pattern),
-	  expand_file_name(Pattern, Files),
-	  classify_files(Files, Class, Classified),
-	  sort_files(Classified, Sorted, Options),
-	  Sorted \== [], !
+	  download_files(Directory, Class, Files, Options),
+	  Files \== []
 	},
 	html(tr(th(colspan(3), Label))),
-	list_files(Sorted).
+	list_files(Files).
 list_files(_, _, _, _, _) -->
 	[].
 
@@ -190,7 +186,7 @@ file_description(file(bin, PlatForm, Version, _, Path)) -->
 	{ down_file_href(Path, HREF)
 	},
 	html([ a(href(HREF),
-		 [ 'SWI-Prolog/XPCE ', \version(Version), ' for ',
+		 [ 'SWI-Prolog ', \version(Version), ' for ',
 		   \platform(PlatForm)
 		 ]),
 	       \platform_notes(PlatForm, Path)
@@ -249,9 +245,9 @@ platform(linux(rpm, _)) -->
 platform(macos(Name, CPU)) -->
 	html(['MacOSX ', \html_macos_version(Name), ' on ', b(CPU)]).
 platform(windows(win32)) -->
-	html(['Windows NT/2000/XP/Vista/7']).
+	html(['Windows XP/Vista/7/8']).
 platform(windows(win64)) -->
-	html(['Windows XP/Vista/7 64-bit edition']).
+	html(['Windows XP/Vista/7/8 64-bit edition']).
 
 html_macos_version(tiger)        --> html('10.4 (Tiger)').
 html_macos_version(leopard)      --> html('10.5 (Leopard)').
@@ -297,23 +293,57 @@ platform_note_file(pdf,		     'doc-pdf.txt').
 		 *	   CLASSIFY FILES	*
 		 *******************************/
 
-classify_files([], _, []).
-classify_files([H0|T0], Class, [H|T]) :-
-	classify_file(H0, H),
+%%	download_files(+Dir, +Class, -Files, +Options)
+%
+%	Files is a list of  files  that   satisfy  Class  and Options in
+%	Dir/Subdir.
+
+:- dynamic
+	download_cache/6.  % Hash, Dir, Class, Opts, Time, Files
+
+download_files(Dir, Class, Files, Options0) :-
+	include(download_option, Options0, Options),
+	term_hash(ci(Dir,Class,Options), Hash),
+	time_file(Dir, DirTime),
+	(   download_cache(Hash, Dir, Class, Options, Time, Files0),
+	    (	DirTime == Time
+	    ->	true
+	    ;	retractall(download_cache(Hash, Dir, Class, Options, _, _)),
+		fail
+	    )
+	->  true
+	;   download_files_nc(Dir, Class, Files0, Options),
+	    asserta(download_cache(Hash, Dir, Class, Options, DirTime, Files0))
+	),
+	Files = Files0.
+
+download_option(show(_)).
+
+
+download_files_nc(Directory, Class, Sorted, Options) :-
+	atom_concat(Directory, '/*', Pattern),
+	expand_file_name(Pattern, Files),
+	classify_files(Files, Class, Classified, Options),
+	sort_files(Classified, Sorted, Options).
+
+classify_files([], _, [], _).
+classify_files([H0|T0], Class, [H|T], Options) :-
+	classify_file(H0, H, Options),
 	arg(1, H, Classification),
 	subsumes_term(Class, Classification), !,
-	classify_files(T0, Class, T).
-classify_files([_|T0], Class, T) :-
-	classify_files(T0, Class, T).
+	classify_files(T0, Class, T, Options).
+classify_files([_|T0], Class, T, Options) :-
+	classify_files(T0, Class, T, Options).
 
-%%	classify_file(+Path, -Term) is semidet.
+%%	classify_file(+Path, -Term, +Options) is semidet.
 
-classify_file(Path, file(Type, Platform, Version, Name, Path)) :-
+classify_file(Path, file(Type, Platform, Version, Name, Path), Options) :-
 	file_base_name(Path, Name),
 	atom_codes(Name, Codes),
-	phrase(file(Type, Platform, Version), Codes).
+	phrase(file(Type, Platform, Version, Options), Codes).
 
-file(bin, macos(OSVersion, CPU), Version) -->
+file(bin, macos(OSVersion, CPU), Version, Options) -->
+	{ option(show(all), Options) },
 	"swi-prolog-", opt_devel, long_version(Version), "-",
 	macos_version(OSVersion),
 	(   "-",
@@ -322,30 +352,26 @@ file(bin, macos(OSVersion, CPU), Version) -->
 	;   { macos_def_cpu(OSVersion, CPU) }
 	),
 	".mpkg.zip", !.
-file(bin, macos(snow_leopard_and_later, intel), Version) -->
+file(bin, macos(snow_leopard_and_later, intel), Version, _) -->
 	"SWI-Prolog-", long_version(Version),
 	".dmg", !.
-file(bin, windows(WinType), Version) -->
+file(bin, windows(WinType), Version, _) -->
 	win_type(WinType), "pl",
 	short_version(Version),
 	".exe", !.
-file(pkg(space), windows(WinType), Version) -->
-	win_type(WinType), "swispace",
-	short_version(Version),
-	".exe", !.
-file(bin, linux(rpm, suse), Version) -->
+file(bin, linux(rpm, suse), Version, _) -->
 	(   "pl-"
 	;   "swipl-"
 	),
 	long_version(Version), "-", digits(_Build),
 	".i586.rpm", !.
-file(bin, linux(universal), Version) -->
+file(bin, linux(universal), Version, _) -->
 	"swipl-",
 	long_version(Version), "-", "linux",
 	".tar.gz", !.
-file(src, tgz, Version) -->
+file(src, tgz, Version, _) -->
 	"pl-", long_version(Version), ".tar.gz", !.
-file(doc, pdf, Version) -->
+file(doc, pdf, Version, _) -->
 	"SWI-Prolog-", long_version(Version), ".pdf", !.
 
 opt_devel -->

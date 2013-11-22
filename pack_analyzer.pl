@@ -209,10 +209,18 @@ pack_prolog_entry(Entry) :-
 %	Run the cross-referencer on File inside Pack.
 
 xref_pack_file(Pack, File) :-
+	catch(xref_pack_file_2(Pack, File),
+	      E, print_message(error, E)), !.
+xref_pack_file(Pack, File) :-
+	print_message(warning,
+		      error(goal_failed(xref_pack_file(Pack, File)),
+			    _)).
+
+xref_pack_file_2(Pack, File) :-
 	exists_directory(Pack), !,
 	directory_file_path(Pack, File, Path),
 	xref_source(Path, [register_called(all)]).
-xref_pack_file(Pack, File) :-
+xref_pack_file_2(Pack, File) :-
 	absolute_file_name(Pack, AbsPack,
 			   [ access(read)
 			   ]),

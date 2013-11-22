@@ -1,4 +1,7 @@
-#!/home/janw/bin/swipl -q -g true -t main -f
+#!/home/janw/bin/swipl
+
+:- set_prolog_flag(verbose, silent).
+:- initialization main, halt.
 
 :- use_module(stat).
 :- use_module(plstat).
@@ -62,12 +65,10 @@ sums(_,_).
 :- prolog_load_context(directory, Dir),
    working_directory(_, Dir).
 
-main :-
-	catch(run, E, (print_message(error, E), fail)).
+main :- catch(run, E, print_message(error, E)).
 run :-
 	current_prolog_flag(argv, Argv),
-	append(_, [--|Rest], Argv),
-	main_options(Rest, Options, Files),
+	main_options(Argv, Options, Files),
 	option(out(Out), Options, _),
 	(   var(Out)
 	->  Out = '../www/logs/swi-prolog-downloads.jpeg'
