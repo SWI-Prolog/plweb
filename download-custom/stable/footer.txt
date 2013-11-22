@@ -1,26 +1,21 @@
----++ About the 6.4.x release
+---++ About the 6.6.x release
 
-SWI-Prolog 6.4.0 is based on version 6.3.19 with some addional
-patches.
+SWI-Prolog 6.6.0 is based on version 6.5.3 with some addional patches.
+The 6.6.x release is the last stable release before SWI-Prolog version
+7. It provides changes that make it easier to write code for version 7
+that also runs on version 6.
 
----++ Highlights for the 6.4.x release:
+Version 6.6 introduces some changes, notably in command line processing:
 
-    * Updated the RDF library to version 3.  Anyone caring about RDF
-      was probably already using the development version for this
-      reason.  Added fast parsers for ntriples, Turtle and TriG
-      formats.
+  - Processing of =|#!|=, binding a file to an interpreter in Unix no
+    longer tries to be smart about processing options to the
+    interpreter.  The effect of this change depends on the Unix
+    versions: some only pass the first option, others pack all options
+    into one and yet others pass the options after breaking them.
 
-    * Introduction of quasi quotation for _smooth_ and _safe_ inclusion
-      of external language snippets
+  - The Prolog flag =argv= only provides arguments that have not
+    been processed by Prolog.
 
-    * Upgrade of PlDoc to accept the common markdown constructs.
+  - The init file =.plrc= (=pl.ini= on Windows) is no longer searched
+    for in the working directory for security reasons.
 
-    * Many enhancements to the development tools, HTTP libraries,
-      clib package. etc.  Better support for Unix daemon processes
-      (syslog, UID/GID management, etc.)
-
-    * A start for locale handling (supporting format/3, notably
-      writing locale specific large integers.
-
-    * Lots of stability stuff: fixed crashes, portability patches,
-      build system enhancements, etc.
