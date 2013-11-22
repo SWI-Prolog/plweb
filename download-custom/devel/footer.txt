@@ -11,7 +11,7 @@ below. See the general [[GIT][</git.html>]] instructions for details.
 
 SWI-Prolog version 7 is a major release that introduces significant
 new concepts to the language.  A full description is in the
-section [SWI-Prolog extensions](/pldoc/man?section=extensions). Below is
+section [SWI-Prolog extensions](</pldoc/man?section=extensions>). Below is
 a short summary.
 
   - Lists are no longer represented as .(H,T).  Instead, the list
@@ -35,7 +35,7 @@ a short summary.
 
   - Quoted atoms are no longer operators.
 
-  - Unquoted atoms may contain internal dots.  E.g., a.b is an
+  - Unquoted atoms may contain internal dots.  E.g., =a.b= is an
     atom.
 
   - functor() is valid syntax.  It produces a term that is distinct
