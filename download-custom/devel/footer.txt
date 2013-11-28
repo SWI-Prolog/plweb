@@ -21,19 +21,29 @@ a short summary.
   - By default, double quoted "text" is mapped to an object of type
     string.  This already raised some discussions.
 
-  - The system introduces `maps' as primary citizens.  Maps are
-    collections of key-value pairs, optionally typed. Maps are
+  - The system introduces `dicts' as primary citizens.  Dicts are
+    collections of key-value pairs, optionally tagged. Dicts are
     supported by read and write.  The syntax is
 
         ==
-        type{key1:value1, key2:value2, ...}
+        tag{key1:value1, key2:value2, ...}
 	==
 
-    Keys in a map can be addressed using the functional notation
-    Map.Key.  User functions on maps can be accessed as Map.Compound
+    Keys in a dict can be addressed using the functional notation
+    Dict.Key.  User functions on dicts can be accessed as Dict.Compound
     (e.g., Vector.multiply(V2)).
 
-  - Quoted atoms are no longer operators.
+  - Putting quotes around operator names that do not need quoting
+    stops the atom to act as an operator:
+
+       ==
+       ?- A = 'dynamic'/1.
+       A = (dynamic)/1.
+       ?- op(100, xf, 'Kwh').
+       true.
+       ?- A = 100'Kwh'.
+       A = 100 'Kwh'.
+       ==
 
   - Unquoted atoms may contain internal dots.  E.g., =a.b= is an
     atom.
