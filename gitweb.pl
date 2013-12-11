@@ -123,6 +123,8 @@ git_http(Request) :-
 	(   memberchk(method(post), Request)
 	;   memberchk(search(Search), Request),
 	    memberchk(service=_, Search)
+	;   memberchk(user_agent(Agent), Request),
+	    sub_atom(Agent, 0, _, _, git)
 	), !,
 	http_run_cgi(path(git),
 		     [ argv(['http-backend']),
