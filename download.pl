@@ -302,6 +302,7 @@ platform_note_file(pdf,		     'doc-pdf.txt').
 	download_cache/6.  % Hash, Dir, Class, Opts, Time, Files
 
 download_files(Dir, Class, Files, Options0) :-
+	exists_directory(Dir), !,
 	include(download_option, Options0, Options),
 	term_hash(ci(Dir,Class,Options), Hash),
 	time_file(Dir, DirTime),
@@ -316,6 +317,7 @@ download_files(Dir, Class, Files, Options0) :-
 	    asserta(download_cache(Hash, Dir, Class, Options, DirTime, Files0))
 	),
 	Files = Files0.
+download_files(_, _, [], _).
 
 download_option(show(_)).
 
