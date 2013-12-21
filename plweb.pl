@@ -144,7 +144,7 @@ serve_page(Alias, Request) :-
 	serve_file(File, Request).
 serve_page(Alias, Request) :-
 	\+ memberchk(path_info(_), Request), !,
-	serve_page(Alias, [path_info('index.html')|Request]).
+	serve_page(Alias, [path_info('index.html'),style(wiki(home))|Request]).
 serve_page(_, Request) :-
 	memberchk(path(Path), Request),
 	existence_error(http_location, Path).
@@ -258,7 +258,8 @@ serve_wiki(String, File, Request) :-
 	    nb_delete(pldoc_options)).
 
 serve_wiki_page(Request, File, Title, DOM) :-
-	reply_html_page(wiki,
+	option(style(Style), Request, wiki),
+	reply_html_page(Style,
 			[ title(Title)
 			],
 			\wiki_page(Request, File, DOM)).
