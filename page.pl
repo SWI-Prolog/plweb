@@ -55,6 +55,7 @@ user:body(wiki(Arg), Body) --> !,
 		    div(class(righthand),
 			[ \current_user(Arg),
 			  \doc_links([], [search_options(false)]),
+			  \page_extra(Arg),
 			  div(class(content), Body),
 			  div(class(footer), \server_address)
 			])
@@ -149,3 +150,39 @@ prolog_version(Version) :-
 	current_prolog_flag(version_data, swi(Ma,Mi,Pa,_)),
 	format(atom(Version), '~w.~w.~w', [Ma,Mi,Pa]).
 
+page_extra(home) --> !,
+	html({|html||
+<style type="text/css">
+#owl-hdr {
+    text-align: center;
+    margin: auto;
+    width: auto;
+}
+
+#owl-hdr span
+{ vertical-align: middle;
+  font-size: 200%;
+  font-weight: bold;
+  font-style: italic;
+}
+
+#owls {
+    background: url(/icons/3owls.jpeg) no-repeat;
+    height: 100px;
+    width: 256px;
+    display: inline-block;
+}
+
+#owls:hover {
+    background: url(/icons/logtalk.jpeg)  no-repeat;
+}
+</style>
+
+<div id="owl-hdr">
+  <span>Happy</span>
+  <span id="owls"></span>
+  <span>Holidays</span>
+</div>
+	     |}).
+page_extra(_) -->
+	[].
