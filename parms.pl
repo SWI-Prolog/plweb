@@ -122,13 +122,21 @@ user:url_path(serql,	 'http://www.openrdf.org').
 			      css('plweb.css')
 			    ])
 		 ]).
+:- if(html_current_resource(pldoc_jquery)).
+:- html_resource(jquery,
+		 [ virtual(true),
+		   requires([ pldoc_jquery
+			    ])
+		 ]).
+:- else.
 :- html_resource(jquery,
 		 [ virtual(true),
 		   requires([ jq('jquery.js')
 			    ])
 		 ]).
+:- endif.
 :- html_resource(js('jquery/ui/minified/jquery-ui.min.js'),
-		 [ requires([ jq('jquery.js')
+		 [ requires([ jquery
 			    ])
 		 ]).
 :- html_resource(jquery_ui,
