@@ -149,6 +149,10 @@ user:url_path(serql,	 'http://www.openrdf.org').
 			      js('jquery/themes/base/jquery-ui.css')
 			    ])
 		 ]).
+:- html_resource(jq('menu.js'),
+		 [ requires([ jquery
+			    ])
+		 ]).
 
 
 		 /*******************************
