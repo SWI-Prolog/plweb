@@ -47,7 +47,7 @@
 :- use_module(library(http/http_path)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
-:- use_module(library(http/recaptcha)).
+:- catch(use_module(library(http/recaptcha)), _, ignore(pack_install(recaptcha))).
 :- use_module(library(http/http_stream)).
 :- use_module(library(persistency)).
 :- use_module(library(settings)).

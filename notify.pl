@@ -31,7 +31,7 @@
 	  [ notify/2,			% +Object, +Term
 	    msg_user//1			% +UUID
 	  ]).
-:- use_module(library(smtp)).
+:- catch(use_module(library(smtp)), _, ignore(pack_install(smtp))).
 :- use_module(library(debug)).
 :- use_module(library(error)).
 :- use_module(library(http/http_host)).
