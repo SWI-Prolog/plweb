@@ -34,20 +34,38 @@
 
 */
 :- use_module(library(http/html_write)).
+:- use_module(library(random)).
+:- use_module(news).
 
 did_you_know -->
-	{
-	    dyk_sayings(Sayings),
-	    random_member(Saying-Link, Sayings),
-	    (
-	       Link = none
-	    ->
-	       Info = Saying
-	    ;
-	       Info = a(href=Link, Saying)
-	    )
-	},
-	html(Info).
+  {
+    NewsPercentage = 0.5,
+    random(R)
+  },
+  (
+    {R < NewsPercentage}
+  ->
+    random_news
+  ;
+    random_hint
+  ).
+
+random_hint -->
+  {
+    dyk_sayings(Sayings),
+    random_member(Saying-Link, Sayings),
+    (
+       Link = none
+    ->
+       Info = Saying
+    ;
+       Info = a(href=Link, Saying)
+    )
+  },
+  html([
+    span(class(lbl), 'Did you know?'),
+    span(id(dyknow), Info)
+  ]).
 
 
 %%	 dyk_sayings(-Sayings:list) is det

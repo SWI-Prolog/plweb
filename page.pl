@@ -121,22 +121,23 @@ shortcut_icons -->
 %	Emit the small blue header with Did You Know? and search box
 %
 upper_header -->
-	html(div(id('upper-header'),
-		    div(id('upper-header-contents'), [
-			    span(id('dyknow-container'), [
-				     span(class(lbl), 'Did you know?'),
-				     span(id(dyknow), \did_you_know)
-				 ]),
-			    span(id('search-container'), [
-				     span(class(lbl), 'Search Documentation:'),
-				     form([id('search-form'), action('/pldoc/search')], [
-
-					      input([name(for), id(for)], []),
-					      input([id('submit-for'), type(submit), value('Search')], []),
-					      input([type(hidden), name(in), value(all)], []),
-					      input([type(hidden), name(match), value(summary)], []),
-					      \searchbox_script(for)
-					  ])])]))).
+  html(
+    div(id('upper-header'), [
+      div(id('upper-header-contents'),
+        span(id('dyknow-container'), \did_you_know)
+      ),
+      span(id('search-container'), [
+        span(class(lbl), 'Search Documentation:'),
+        form([action('/pldoc/search'),id('search-form')], [
+          input([name(for), id(for)], []),
+          input([id('submit-for'), type(submit), value('Search')], []),
+          input([type(hidden), name(in), value(all)], []),
+          input([type(hidden), name(match), value(summary)], []),
+          \searchbox_script(for)
+        ])
+      ])
+    ])
+  ).
 
 %%	searchbox_script//
 %
