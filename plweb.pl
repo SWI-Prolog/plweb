@@ -56,6 +56,7 @@
 :- use_module(library(sgml)).
 :- use_module(library(thread_pool)).
 :- use_module(library(http/http_dirindex)).
+:- use_module(library(debug)).
 
 :- use_module(parms).
 :- use_module(page).
@@ -104,7 +105,8 @@ server(Options) :-
 	thread_create(index_wiki_pages, _,
 		      [ alias('__index_wiki_pages'),
 			detached(true)
-		      ]).
+		      ]),
+  debug(plweb, 'Server was started at port ~d.', [Port]).
 
 
 :- multifile

@@ -39,3 +39,6 @@
 :- use_module(news).
 :- server.
 
+:- use_module(library(www_browser)).
+:- www_open_url('http://localhost:3040/news').
+

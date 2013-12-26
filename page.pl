@@ -122,21 +122,21 @@ shortcut_icons -->
 %
 upper_header -->
   html(
-    div(id('upper-header'), [
-      div(id('upper-header-contents'),
-        span(id('dyknow-container'), \did_you_know)
-      ),
-      span(id('search-container'), [
-        span(class(lbl), 'Search Documentation:'),
-        form([action('/pldoc/search'),id('search-form')], [
-          input([name(for), id(for)], []),
-          input([id('submit-for'), type(submit), value('Search')], []),
-          input([type(hidden), name(in), value(all)], []),
-          input([type(hidden), name(match), value(summary)], []),
-          \searchbox_script(for)
+    div(id('upper-header'),
+      div(id('upper-header-contents'), [
+        span(id('dyknow-container'), \did_you_know),
+        span(id('search-container'), [
+          span(class(lbl), 'Search Documentation:'),
+          form([action('/pldoc/search'),id('search-form')], [
+            input([name(for), id(for)], []),
+            input([id('submit-for'), type(submit), value('Search')], []),
+            input([type(hidden), name(in), value(all)], []),
+            input([type(hidden), name(match), value(summary)], []),
+            \searchbox_script(for)
+          ])
         ])
       ])
-    ])
+    )
   ).
 
 %%	searchbox_script//
