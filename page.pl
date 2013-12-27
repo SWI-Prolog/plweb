@@ -39,6 +39,7 @@
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(pldoc/doc_html), [object_name//2]).
 :- use_module(wiki).
 :- use_module(openid).
 :- use_module(did_you_know).
@@ -73,7 +74,7 @@ user:body(wiki(Arg), Body) --> !,
 		    \html_requires(swipl_css),
 		    \shortcut_icons,
 		    \upper_header,
-		    \title_area,
+		    \title_area(wiki(Arg)),
 		    \menubar(fixed_width),
 		    p('Someday breadcrumb'),
 		    % \doc_links([], [search_options(false)]),
@@ -93,7 +94,7 @@ user:body(pldoc(Arg), Body) -->
 		    \html_requires(swipl_css),
 		    \shortcut_icons,
 		    \upper_header,
-		    \title_area,
+		    \title_area(pldoc(Arg)),
 		    \menubar(fixed_width),
 		    div(id(contents), div(Body)),
 		    div(class([footer, newstyle]),
@@ -103,6 +104,15 @@ user:body(pldoc(Arg), Body) -->
 		    div(id('tail-end'), &(nbsp))
 		  ]))),
 	html_receive(script).
+
+%%	prolog:doc_page_header(+File, +Options)//
+%
+%	Called to render the PlDoc page header. We kill the header.
+
+:- multifile
+	prolog:doc_page_header//2.
+
+prolog:doc_page_header(_File, _Options) --> [].
 
 shortcut_icons -->
 	{ http_absolute_location(icons('favicon.ico'), FavIcon, []),
@@ -183,20 +193,30 @@ tag_line_area -->
 			])
 		 ])).
 
-%%	title_area//
+%%	title_area(+For)//
 %
 %	Emit the Owl logo and page title
 %
-%	@tbd receive title via mailman
+%	@arg	For provides information about the page displayed.
+%		It is one of:
 %
-title_area -->
-	{
-                    Title = 'Yet To Do'  % TBD recieve this via mailman
-        },
+%		  - pldoc(object(Obj))
+%		  PlDoc displays an object page
+
+title_area(Arg) -->
 	html(div(id('header-line-area'),
 		 [ \swi_logo,
-		   span(class('primary-header'), Title)
+		   span(class('primary-header'),
+			\page_title(Arg))
 		 ])).
+
+page_title(pldoc(object(Obj))) -->
+	object_name(Obj,
+		    [ style(title)
+		    ]), !.
+page_title(Term) -->
+	html('Title for ~q'-[Term]).
+
 
 %%	swi_logo//
 %
