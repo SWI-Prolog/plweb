@@ -342,7 +342,6 @@ login_link -->
   login_link(Request).
 
 %! random_betwixt(+UpperLimit:number, -Random:float) is det.
-% @see random_betwixt/3
 
 random_betwixt(UpperLimit, Random):-
   integer(UpperLimit), !,
@@ -351,37 +350,7 @@ random_betwixt(UpperLimit, Random):-
   float(UpperLimit), !,
   random_betwixt(0.0, UpperLimit, Random).
 
-%! random_betwixt(
-%!   +LowerLimit:number,
-%!   +UpperLimit:number,
-%!   -Random:number
-%! ) is det.
-% Returns a random floating point number between the given lower and
-% upper limits, inclusive.
-%
-% @param LowerLimit A number.
-% @param UpperLimit A number.
-% @param Random In case the lower and upper limits are integers, the
-%	 return value is an integer as well. Otherwise it is a floating
-%	 point number.
-% @tbd Because we take the floor for the random value between two integers,
-%      the chance that =UpperLimit= comes out is very much lower than all
-%      the other values, i.e. =|[LowerLimit, UpperLimit)|=.
-
 random_betwixt(LowerLimit, UpperLimit, Random):-
-  integer(LowerLimit), integer(UpperLimit), !,
-  random_betwixt_(LowerLimit, UpperLimit, Random0),
-  Random is floor(Random0).
-random_betwixt(LowerLimit, _UpperLimit, _Random):-
-  \+ number(LowerLimit), !,
-  type_error(number, LowerLimit).
-random_betwixt(_LowerLimit, UpperLimit, _Random):-
-  \+ number(UpperLimit), !,
-  type_error(number, UpperLimit).
-random_betwixt(LowerLimit, UpperLimit, Random):-
-  random_betwixt_(LowerLimit, UpperLimit, Random).
-
-random_betwixt_(LowerLimit, UpperLimit, Random):-
   Random is LowerLimit + random_float * (UpperLimit - LowerLimit).
 
 random_news -->
