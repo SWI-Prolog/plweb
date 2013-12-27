@@ -37,6 +37,8 @@
 :- use_module(library(pldoc/doc_index)).
 :- use_module(library(http/js_write)).
 :- use_module(library(http/html_head)).
+:- use_module(library(http/http_wrapper)).
+:- use_module(library(http/http_dispatch)).
 :- use_module(wiki).
 :- use_module(openid).
 :- use_module(did_you_know).
@@ -48,18 +50,13 @@
 :- multifile
 	user:body//2.
 
-user:body(homepage, Body) -->
-	!,
-	{
-	    % TBD Yikes, Jan, how do we find this here?
-	    PageLocation = /
-        },
+user:body(homepage, Body) --> !,
 	html(body(div(class('outer-container'),
 	          [ \html_requires(plweb),
 		    \html_requires(swipl_css),
 		    \upper_header,
 		    \tag_line_area,
-		    \menubar(fixed_width, PageLocation),
+		    \menubar(fixed_width),
 		    \blurb,
 		    \cta_area,
 		    \enhanced_search_area,
@@ -72,17 +69,13 @@ user:body(wiki, Body) --> !,
 	user:body(wiki(default), Body).
 % serves index among other things
 user:body(wiki(Arg), Body) --> !,
-	{
-	    % TBD Yikes, Jan, how do we find this here?
-	    PageLocation = /
-        },
 	html(body(div(class('outer-container'),
 		  [ \html_requires(plweb),
 		    \html_requires(swipl_css),
 		    \shortcut_icons,
 		    \upper_header,
 		    \title_area,
-		    \menubar(fixed_width, PageLocation),
+		    \menubar(fixed_width),
 		    \page_extra(Arg),
 		    p('Someday breadcrumb'),
 		    % \doc_links([], [search_options(false)]),
@@ -199,21 +192,20 @@ title_area -->
 		 ])).
 
 
-%%	menubar(+Style:atom, +PageLocation:atom)// is semidet
+%%	menubar(+Style:atom)// is semidet
 %
 %	Emits a menubar. Style must be one of full_width or fixed_width,
-%	where full_width extends the yellow band full across the page
-%	and fixed_width limits the yellow band to 960px
-%	PageLocation is the page location for editing
-%
-:- style_check(-atom).
-menubar(fixed_width, PageLocation) -->
-	{
-           uri_query_components(Str, [location=PageLocation]),
-           format(atom(PageHREF), '/wiki_edit?~w', [Str])
+%	where full_width extends the yellow band   full  across the page
+%	and fixed_width limits the yellow band  to 960px PageLocation is
+%	the page location for editing
+
+menubar(fixed_width) -->
+	{  http_current_request(Request),
+	   memberchk(request_uri(ReqURL0), Request),
+	   http_link_to_id(wiki_edit, [location(ReqURL0)], EditHREF)
         },
 	html([\html_requires(jquery),
-	      \html({|html(PageHREF)||
+	      \html({|html(EditHREF)||
     <div id='menubar'>
         <div class='menubar fixed-width'>
             <ul class='menubar-container'>
@@ -295,7 +287,7 @@ menubar(fixed_width, PageLocation) -->
                 <li>WIKI
                     <ul>
                         <li><a href="/openid/login?openid.return_to=/user/logout">LOGIN</a></li>
-                        <li><a href=PageHREF>EDIT THIS PAGE</a></li>
+                        <li><a href=EditHREF>EDIT THIS PAGE</a></li>
                         <li><a href="/wiki/sandbox">SANDBOX</a></li>
                         <li><a href="/wiki/">WIKI HELP</a></li>
                         <li><a href="/list-tags">ALL TAGS</a></li>
@@ -306,16 +298,23 @@ menubar(fixed_width, PageLocation) -->
     </div>|}),
 	      \html_requires(jq('menu.js'))
 	]).
-:- style_check(+atom).
-
 
 %%	blurb//
 %
 %	Emit the blurb
 blurb -->
-	html(div(id(blurb), div(
-'SWI-Prolog offers a comprehensive free Prolog environment. Since its start in 1987, SWI-Prolog development has been driven by the needs of real world applications. SWI-Prolog is widely used in research and education as well as commercial applications. Join over a million users who have downloaded SWI-Prolog.'
-			    ))).
+	html({|html||
+    <div id="blurb">
+      <div>
+	 SWI-Prolog offers a comprehensive free Prolog environment.
+	 Since its start in 1987, SWI-Prolog development has been driven
+	 by the needs of real world applications. SWI-Prolog is widely
+	 used in research and education as well as commercial applications.
+	 Join over a million users who have downloaded SWI-Prolog.
+      </div>
+    </div>
+	     |}).
+
 
 %%	cta_area//
 %
