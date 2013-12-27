@@ -186,18 +186,13 @@ tag_line_area -->
 %%	title_area//
 %
 %	Emit the Owl logo and page title
-%
-%	@tbd receive title via mailman
-%
 title_area -->
-	{
-                    Title = 'Yet To Do'  % TBD recieve this via mailman
-        },
-	html(div(id('header-line-area'), [
-		     img(src('icons/swipl.png'),[]),
-		     span(class('primary-header'), Title)
-		 ])).
-
+  html(
+    div(id('header-line-area'), [
+      img(src('icons/swipl.png'),[]),
+      span(class('primary-header'), \html_receive(title))
+    ])
+  ).
 
 %%	menubar(+Style:atom, +PageLocation:atom)// is semidet
 %

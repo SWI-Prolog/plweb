@@ -101,19 +101,29 @@ news(Request):-
   atom_concat('/news/', Id, Path),
   once(news(Id, Title1, _, _, _, _, _)), !,
   atomic_list_concat(['News',Title1], ' -- ', Title2),
-  reply_html_page(wiki, title(Title2), \news_item_body(Id)).
+  reply_html_page(
+    wiki,
+    title(Title2),
+    [\news_item_body(Id),\html_post(title,Title2)]
+  ).
 % The list of fresh news items.
 news(_Request):-
   find_news(fresh, Ids),
-  reply_html_page(wiki, title('News'), [h1('News items'),\news_body(Ids)]).
+  Title = 'News',
+  reply_html_page(
+    wiki,
+    title(Title),
+    [\news_body(Ids),\html_post(title,Title)]
+  ).
 
 % The list of fresh and stale (i.e., all) news items.
 news_archive(_Request):-
   find_news(all, Ids),
+  Title = 'News archive',
   reply_html_page(
     wiki,
-    title('News archive'),
-    [h1('Archived news items'),\news_body(Ids)]
+    title(Title),
+    [\news_body(Ids),\html_post(title,Title)]
   ).
 
 news_body(Ids) -->
@@ -229,10 +239,12 @@ add_news(Request):-
   http_redirect(moved_temporary, root(news), Request).
 % Show the fill-in form for a new news item.
 add_news(_Request):-
-  reply_html_page(wiki, \add_news_head, \add_news_body).
-
-add_news_head -->
-  html(title('Add news')).
+  Title = 'Add news',
+  reply_html_page(
+    wiki,
+    title(Title),
+    [\add_news_body,\html_post(title,Title)]
+  ).
 
 add_news_body -->
   {

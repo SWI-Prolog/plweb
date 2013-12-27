@@ -1,4 +1,5 @@
 % Debug file for project `plweb`.
+user:debug_project.
 
 % Print code strings with their code table replacements.
 :- use_module(library(portray_text)).
@@ -39,6 +40,6 @@
 :- use_module(news).
 :- server.
 
-:- use_module(library(www_browser)).
-:- www_open_url('http://localhost:3040/news').
+%:- use_module(library(www_browser)).
+%:- www_open_url('http://localhost:3040/news').
 

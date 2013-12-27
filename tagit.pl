@@ -52,15 +52,35 @@
 :- use_module(notify).
 :- use_module(wiki, [wiki_page_title/2]).
 
-:- html_resource(tagit,
-		 [ virtual(true),
-		   ordered(true),
-		   requires([ jquery_ui,
-			      js('tagit/css/jquery.tagit.css'),
-			      js('tagit/css/tagit.ui-zendesk.css'),
-			      js('tagit/js/tag-it.min.js')
-			    ])
-		 ]).
+:- if(user:debug_project).
+  :- html_resource(js('jquery-debug-2.0.3.js'), []).
+  :- html_resource(tagit_dependency, [
+    requires([
+      js('jquery-debug-2.0.3.js'),
+      js('jquery-ui-debug-1.10.3.js'),
+      js('tag-it-debug-2.0.js')
+    ]),
+    virtual(true)
+  ]).
+:- else.
+  :- html_resource(js('jquery-min-2.0.3.js'), []).
+  :- html_resource(tagit_dependency, [
+    requires([
+      js('jquery-min-2.0.3.js'),
+      js('jquery-ui-min-1.10.3.js'),
+      js('tag-it-min-2.0.js')
+    ]),
+    virtual(true)
+  ]).
+:- endif.
+:- html_resource(tagit, [
+  requires([
+    tagit_dependency,
+    css('jquery.tagit.css'),
+    css('tagit.ui-zendesk.css')
+  ]),
+  virtual(true)
+]).
 
 		 /*******************************
 		 *	       DATA		*
@@ -158,103 +178,108 @@ comment_footer(_, _) --> [].
 %	Show tagit widget for adding and deleting tags.
 
 tagit_footer(Obj, _Options) -->
-	{ http_link_to_id(complete_tag, [], Complete),
-	  http_link_to_id(show_tag, [], OnClick),
-	  http_link_to_id(add_tag, [], AddTag),
-	  http_link_to_id(remove_tag, [], RemoveTag),
-	  object_label(Obj, Label),
-	  object_id(Obj, ObjectID),
-	  format(atom(PlaceHolder), 'Tag ~w', [Label]),
-	  object_tags(Obj, Tags)
-	},
-	html([ ul(id(tags), \tags_li(Tags)),
-	       div(style('overflow:auto'),
-		   [ div([id('tag-warnings'), style('float:left;')], []),
-		     div(class('tag-notes'), \tag_notes(ObjectID, Tags))
-		   ])
-	     ]),
-	html_requires(tagit),
-	js_script({|javascript(Complete, OnClick, PlaceHolder, ObjectID,
-			       AddTag, RemoveTag)||
-		    function tagInfo(text) {
-		      $("#tag-warnings").text(text);
-		      $("#tag-warnings").removeClass("warning");
-		      $("#tag-warnings").addClass("informational");
-		    }
-		    function tagWarning(text) {
-		      $("#tag-warnings").text(text);
-		      $("#tag-warnings").addClass("warning");
-		      $("#tag-warnings").removeClass("informational");
-		    }
-
-		    $(document).ready(function() {
-		      $("#tags").tagit({
-			  autocomplete: { delay: 0.3,
-					  minLength: 1,
-					  source: Complete
-					},
-			  onTagClicked: function(event, ui) {
-			    window.location.href = OnClick+"?tag="+
-			      encodeURIComponent(ui.tagLabel);
-			  },
-			  beforeTagAdded: function(event, ui) {
-			    if ( !ui.duringInitialization ) {
-			      var result = false;
-			      tagInfo("Submitting ...");
-			      $.ajax({ dataType: "json",
-				       url: AddTag,
-				       data: { tag: ui.tagLabel,
-					       obj: ObjectID
-					     },
-				       async: false,
-				       success: function(data) {
-					if ( data.status == true ) {
-					  tagInfo("Added: "+ui.tagLabel);
-					  result = true;
-					} else {
-					  tagWarning(data.message);
-					}
-				      }
-				     });
-			      return result;
-			    }
-			  },
-			  beforeTagRemoved: function(event, ui) {
-			    var result = false;
-			    if ( !ui.tagLabel ) {
-			      return false;
-			    }
-			    tagInfo("Submitting ...");
-			    $.ajax({ dataType: "json",
-				     url: RemoveTag,
-				     data: { tag: ui.tagLabel,
-					     obj: ObjectID
-					   },
-				     async: false,
-				     success: function(data) {
-					if ( data.status == true ) {
-					  tagInfo("Removed: "+ui.tagLabel);
-					  result = true;
-					} else {
-					  tagWarning(data.message);
-					}
-				      }
-				   });
-			    return result;
-			  },
-			  placeholderText: PlaceHolder
-			});
-		      });
-		  |}).
+  {
+    http_link_to_id(complete_tag, [], Complete),
+    http_link_to_id(show_tag, [], OnClick),
+    http_link_to_id(add_tag, [], AddTag),
+    http_link_to_id(remove_tag, [], RemoveTag),
+    object_label(Obj, Label),
+    object_id(Obj, ObjectID),
+    format(atom(PlaceHolder), 'Tag ~w', [Label]),
+    object_tags(Obj, Tags)
+  },
+  html([
+    ul(id=tags, \tags_li(Tags)),
+    div(style='overflow:auto;', [
+      div([id='tag-warnings',style='float:left;'],[]),
+      div(class='tag-notes',\tag_notes(ObjectID, Tags))
+    ]),
+    \html_requires(tagit),
+    \js_script({|javascript(
+      Complete,
+      OnClick,
+      PlaceHolder,
+      ObjectID,
+      AddTag,
+      RemoveTag
+    )||
+      function tagInfo(text) {
+        $("#tag-warnings").text(text);
+        $("#tag-warnings").removeClass("warning");
+        $("#tag-warnings").addClass("informational");
+      }
+      function tagWarning(text) {
+        $("#tag-warnings").text(text);
+        $("#tag-warnings").addClass("warning");
+        $("#tag-warnings").removeClass("informational");
+      }
+      $(document).ready(function() {
+        $("#tags").tagit({
+          autocomplete: {
+            delay: 0.3,
+            minLength: 1,
+            source: Complete
+          },
+          onTagClicked: function(event, ui) {
+            window.location.href = OnClick+"?tag="+encodeURIComponent(ui.tagLabel);
+          },
+          beforeTagAdded: function(event, ui) {
+            if (!ui.duringInitialization) {
+              var result = false;
+              tagInfo("Submitting ...");
+              $.ajax({
+                dataType: "json",
+                url: AddTag,
+                data: {
+                  tag: ui.tagLabel,
+                  obj: ObjectID
+                },
+                async: false,
+                success: function(data) {
+                  if (data.status == true) {
+                    tagInfo("Added: "+ui.tagLabel);
+                    result = true;
+                  } else {
+                    tagWarning(data.message);
+                  }
+                }
+              });
+              return result;
+            }
+          },
+          beforeTagRemoved: function(event, ui) {
+            var result = false;
+            if (!ui.tagLabel) {return false;}
+            tagInfo("Submitting ...");
+            $.ajax({ dataType: "json",
+              url: RemoveTag,
+              data: {
+                tag: ui.tagLabel,
+                obj: ObjectID
+              },
+              async: false,
+              success: function(data) {
+                if (data.status == true) {
+                  tagInfo("Removed: "+ui.tagLabel);
+                  result = true;
+                } else {
+                  tagWarning(data.message);
+                }
+              }
+            });
+            return result;
+          },
+          placeholderText: PlaceHolder
+        });
+      });
+    |})
+  ]).
 
 tags_li([]) --> [].
 tags_li([H|T]) --> html(li(H)), tags_li(T).
 
 tag_notes(ObjectID, Tags) -->
-	html([ \docs_need_work_plea,
-	       \why_login,
-	       \abuse_link(ObjectID, Tags)
-	     ]).
+  html([\docs_need_work_plea,\why_login,\abuse_link(ObjectID, Tags)]).
 
 sep -->
 	html(span(class(separator), '|')).
