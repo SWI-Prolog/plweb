@@ -64,7 +64,6 @@ user:body(homepage, Body) --> !,
 		    div(id('tail-end'), &(nbsp))
 		  ]))),
 	html_receive(script).
-
 user:body(wiki, Body) --> !,
 	user:body(wiki(default), Body).
 % serves index among other things
@@ -76,28 +75,33 @@ user:body(wiki(Arg), Body) --> !,
 		    \upper_header,
 		    \title_area,
 		    \menubar(fixed_width),
-		    \page_extra(Arg),
 		    p('Someday breadcrumb'),
 		    % \doc_links([], [search_options(false)]),
 		    div(id(contents), div(Body)),
-		    div(class('footer newstyle'), [\current_user(Arg), \server_address]),
+		    div(class([footer, newstyle]),
+			[ \current_user(Arg),
+			  \server_address
+			]),
 		    div(id('tail-end'), &(nbsp))
 		  ]))),
 	html_receive(script).
 user:body(plain, Body) --> !,
 	html(body(class(wiki), [h1(plain), Body])).   % AO h1 is DEBUG
-user:body(_, Body) -->
-	html(body(class(pldoc),
+user:body(pldoc(Arg), Body) -->
+	html(body(div(class('outer-container'),
 		  [ \html_requires(plweb),
+		    \html_requires(swipl_css),
 		    \shortcut_icons,
-		    div(class(sidebar), \sidebar),
-		    div(class(righthand),
-			[ \current_user,
-			  h1(pldoc),  % AO DEBUG
-			  div(class(content), Body),
-			  div(class(footer), \server_address)
-			])
-		  ])),
+		    \upper_header,
+		    \title_area,
+		    \menubar(fixed_width),
+		    div(id(contents), div(Body)),
+		    div(class([footer, newstyle]),
+			[ \current_user(Arg),
+			  \server_address
+			]),
+		    div(id('tail-end'), &(nbsp))
+		  ]))),
 	html_receive(script).
 
 shortcut_icons -->
@@ -171,10 +175,13 @@ searchbox_script(Tag) -->
 %	Emit the Owl logo and tagline area (Robust, mature, free. Prolog
 %	for the real world)
 tag_line_area -->
-	html(div(id('tag-line-area'), [
-	    img(src('icons/swipl.png'), []),
-	    span(class(tagline), ['Robust, mature, free. ', b('Prolog for the real world.')])
-	])).
+	html(div(id('tag-line-area'),
+		 [ \swi_logo,
+		   span(class(tagline),
+			[ 'Robust, mature, free. ',
+			  b('Prolog for the real world.')
+			])
+		 ])).
 
 %%	title_area//
 %
@@ -186,10 +193,21 @@ title_area -->
 	{
                     Title = 'Yet To Do'  % TBD recieve this via mailman
         },
-	html(div(id('header-line-area'), [
-		     img(src('icons/swipl.png'),[]),
-		     span(class('primary-header'), Title)
+	html(div(id('header-line-area'),
+		 [ \swi_logo,
+		   span(class('primary-header'), Title)
 		 ])).
+
+%%	swi_logo//
+%
+%	Embed the SWI-Prolog logo.
+
+swi_logo -->
+	{ http_absolute_location(icons('swipl.png'), Logo, []) },
+	html(img([ class(owl),
+		   src(Logo),
+		   alt('SWI-Prolog owl logo')
+		 ], [])).
 
 
 %%	menubar(+Style:atom)// is semidet
@@ -415,40 +433,3 @@ prolog_version(Version) :-
 prolog_version(Version) :-
 	current_prolog_flag(version_data, swi(Ma,Mi,Pa,_)),
 	format(atom(Version), '~w.~w.~w', [Ma,Mi,Pa]).
-
-page_extra(home) --> !,
-	html({|html||
-<style type="text/css">
-#owl-hdr {
-    text-align: center;
-    margin: auto;
-    width: auto;
-}
-
-#owl-hdr span
-{ vertical-align: middle;
-  font-size: 200%;
-  font-weight: bold;
-  font-style: italic;
-}
-
-#owls {
-    background: url(/icons/3owls.jpeg) no-repeat;
-    height: 100px;
-    width: 256px;
-    display: inline-block;
-}
-
-#owls:hover {
-    background: url(/icons/logtalk.jpeg)  no-repeat;
-}
-</style>
-
-<div id="owl-hdr">
-  <span>Happy</span>
-  <span id="owls"></span>
-  <span>Holidays</span>
-</div>
-	     |}).
-page_extra(_) -->
-	[].
