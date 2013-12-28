@@ -194,9 +194,6 @@ tag_line_area -->
 			])
 		 ])).
 
-%%	title_area(+For)//
-%
-%	Emit the Owl logo and page title
 %
 %	@arg	For provides information about the page displayed.
 %		It is one of:

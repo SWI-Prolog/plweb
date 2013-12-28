@@ -101,19 +101,29 @@ news(Request):-
   atom_concat('/news/', Id, Path),
   once(news(Id, Title1, _, _, _, _, _)), !,
   atomic_list_concat(['News',Title1], ' -- ', Title2),
-  reply_html_page(wiki, title(Title2), \news_item_body(Id)).
+  reply_html_page(
+    wiki,
+    title(Title2),
+    [\news_item_body(Id),\html_post(title,Title2)]
+  ).
 % The list of fresh news items.
 news(_Request):-
   find_news(fresh, Ids),
-  reply_html_page(wiki, title('News'), [h1('News items'),\news_body(Ids)]).
+  Title = 'News',
+  reply_html_page(
+    wiki,
+    title(Title),
+    [\news_body(Ids),\html_post(title,Title)]
+  ).
 
 % The list of fresh and stale (i.e., all) news items.
 news_archive(_Request):-
   find_news(all, Ids),
+  Title = 'News archive',
   reply_html_page(
     wiki,
-    title('News archive'),
-    [h1('Archived news items'),\news_body(Ids)]
+    title(Title),
+    [\news_body(Ids),\html_post(title,Title)]
   ).
 
 news_body(Ids) -->
@@ -229,10 +239,12 @@ add_news(Request):-
   http_redirect(moved_temporary, root(news), Request).
 % Show the fill-in form for a new news item.
 add_news(_Request):-
-  reply_html_page(wiki, \add_news_head, \add_news_body).
-
-add_news_head -->
-  html(title('Add news')).
+  Title = 'Add news',
+  reply_html_page(
+    wiki,
+    title(Title),
+    [\add_news_body,\html_post(title,Title)]
+  ).
 
 add_news_body -->
   {
@@ -342,7 +354,6 @@ login_link -->
   login_link(Request).
 
 %! random_betwixt(+UpperLimit:number, -Random:float) is det.
-% @see random_betwixt/3
 
 random_betwixt(UpperLimit, Random):-
   integer(UpperLimit), !,
@@ -351,37 +362,7 @@ random_betwixt(UpperLimit, Random):-
   float(UpperLimit), !,
   random_betwixt(0.0, UpperLimit, Random).
 
-%! random_betwixt(
-%!   +LowerLimit:number,
-%!   +UpperLimit:number,
-%!   -Random:number
-%! ) is det.
-% Returns a random floating point number between the given lower and
-% upper limits, inclusive.
-%
-% @param LowerLimit A number.
-% @param UpperLimit A number.
-% @param Random In case the lower and upper limits are integers, the
-%	 return value is an integer as well. Otherwise it is a floating
-%	 point number.
-% @tbd Because we take the floor for the random value between two integers,
-%      the chance that =UpperLimit= comes out is very much lower than all
-%      the other values, i.e. =|[LowerLimit, UpperLimit)|=.
-
 random_betwixt(LowerLimit, UpperLimit, Random):-
-  integer(LowerLimit), integer(UpperLimit), !,
-  random_betwixt_(LowerLimit, UpperLimit, Random0),
-  Random is floor(Random0).
-random_betwixt(LowerLimit, _UpperLimit, _Random):-
-  \+ number(LowerLimit), !,
-  type_error(number, LowerLimit).
-random_betwixt(_LowerLimit, UpperLimit, _Random):-
-  \+ number(UpperLimit), !,
-  type_error(number, UpperLimit).
-random_betwixt(LowerLimit, UpperLimit, Random):-
-  random_betwixt_(LowerLimit, UpperLimit, Random).
-
-random_betwixt_(LowerLimit, UpperLimit, Random):-
   Random is LowerLimit + random_float * (UpperLimit - LowerLimit).
 
 random_news -->

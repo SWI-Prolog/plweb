@@ -52,15 +52,39 @@
 :- use_module(notify).
 :- use_module(wiki, [wiki_page_title/2]).
 
-:- html_resource(tagit,
-		 [ virtual(true),
-		   ordered(true),
-		   requires([ jquery_ui,
-			      js('tagit/css/jquery.tagit.css'),
-			      js('tagit/css/tagit.ui-zendesk.css'),
-			      js('tagit/js/tag-it.min.js')
-			    ])
-		 ]).
+/* @tbd This conflicts with dependencies in `library(pldoc)`.
+:- if(user:debug_project).
+  :- html_resource(js('jquery-debug-2.0.3.js'), []).
+  :- html_resource(tagit_dependency, [
+    requires([
+      js('jquery-debug-2.0.3.js'),
+      js('jquery-ui-debug-1.10.3.js'),
+      js('tag-it-debug-2.0.js')
+    ]),
+    virtual(true)
+  ]).
+:- else.
+  :- html_resource(js('jquery-min-2.0.3.js'), []).
+  :- html_resource(tagit_dependency, [
+    requires([
+      js('jquery-min-2.0.3.js'),
+      js('jquery-ui-min-1.10.3.js'),
+      js('tag-it-min-2.0.js')
+    ]),
+    virtual(true)
+  ]).
+:- endif.
+*/
+:- html_resource(tagit, [
+  ordered(true),
+  requires([
+    jquery_ui,
+    js('tag-it-min-2.0.js'),
+    css('jquery.tagit.css'),
+    css('tagit.ui-zendesk.css')
+  ]),
+  virtual(true)
+]).
 
 		 /*******************************
 		 *	       DATA		*
@@ -256,10 +280,7 @@ tags_li([]) --> [].
 tags_li([H|T]) --> html(li(H)), tags_li(T).
 
 tag_notes(ObjectID, Tags) -->
-	html([ \docs_need_work_plea,
-	       \why_login,
-	       \abuse_link(ObjectID, Tags)
-	     ]).
+  html([\docs_need_work_plea,\why_login,\abuse_link(ObjectID, Tags)]).
 
 sep -->
 	html(span(class(separator), '|')).
@@ -378,6 +399,8 @@ add_tag(Request) :-
 			    ]))
 	).
 
+% @tbd Remove this later (openid).
+add_tag_validate(_Tag, _Object, _UserType, _Message):- !.
 add_tag_validate(Tag, _Object, _UserType, Message) :-
 	tag_not_ok(Tag, Message), !.
 add_tag_validate(Tag, Object, _UserType, Message) :-

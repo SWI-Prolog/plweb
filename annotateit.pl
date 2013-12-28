@@ -148,7 +148,9 @@ date(Time) -->
 %	Allow adding a new annotation if the user is logged on.
 
 add_annotation(Obj, _Options) -->
-	{ site_user_logged_in(User), !,
+  {
+    % @tbd
+    %site_user_logged_in(User), !,
 	  http_link_to_id(add_annotation, [], AddAnnotation),
 	  object_id(Obj, ObjectID),
 	  (   annotation(Obj, Current, _Time, User)
@@ -176,12 +178,13 @@ add_annotation(Obj, _Options) -->
 		    ])
 	     ]).
 add_annotation(_Obj, _Options) -->
-	{ http_current_request(Request)
-	},
-	html(div(class('comment-login'),
-		 [ \login_link(Request),
-		   ' to add a comment'
-		 ])).
+  {http_current_request(Request)},
+  html(
+    div(class('comment-login'), [
+      \login_link(Request),
+      ' to add a comment'
+    ])
+  ).
 
 %%	add_add_link(+Obj, +User)//
 %
@@ -230,7 +233,9 @@ add_annotation(Request) :-
 			[ object(ObjectID, []),
 			  comment(Annotation0, [default('')])
 			]),
-	site_user_logged_in(User),
+  % @tbd
+	%site_user_logged_in(User),
+  User = 'Wouter Beek',
 	object_id(Object, ObjectID),
 	get_time(NowF),
 	Now is round(NowF),
