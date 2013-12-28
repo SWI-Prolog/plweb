@@ -167,10 +167,15 @@ tagit_footer(Obj, _Options) -->
 	  format(atom(PlaceHolder), 'Tag ~w', [Label]),
 	  object_tags(Obj, Tags)
 	},
-	html([ ul(id(tags), \tags_li(Tags)),
-	       div(style('overflow:auto'),
-		   [ div([id('tag-warnings'), style('float:left;')], []),
-		     div(class('tag-notes'), \tag_notes(ObjectID, Tags))
+	html([ div(class('tag-notes'), \tag_notes(ObjectID, Tags)),
+	       div(class(tags),
+		   [ div(id('tag-area-label'), 'Tags'),
+		     div([ div(id('tag-area-tags'),
+			       ul(id(tags), \tags_li(Tags))),
+			   div(style('overflow:auto'),
+			       [ div([id('tag-warnings'), style('float:left;')], [])
+			       ])
+			 ])
 		   ])
 	     ]),
 	html_requires(tagit),
