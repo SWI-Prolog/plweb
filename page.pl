@@ -240,11 +240,14 @@ swi_logo -->
 
 menubar(fixed_width) -->
 	{  http_current_request(Request),
-	   memberchk(request_uri(ReqURL0), Request),
-	   http_link_to_id(wiki_edit, [location(ReqURL0)], EditHREF)
+	   memberchk(request_uri(ReqURL), Request),
+	   http_link_to_id(wiki_edit,
+			   [location(ReqURL)], EditHREF),
+	   http_link_to_id(plweb_login_page,
+			   [openid.return_to(ReqURL)], LoginURL)
         },
 	html([\html_requires(jquery),
-	      \html({|html(EditHREF)||
+	      \html({|html(LoginURL, EditHREF)||
     <div id='menubar'>
         <div class='menubar fixed-width'>
             <ul class='menubar-container'>
@@ -325,7 +328,7 @@ menubar(fixed_width) -->
                 </li><!-- users -->
                 <li>WIKI
                     <ul>
-                        <li><a href="/openid/login?openid.return_to=/user/logout">LOGIN</a></li>
+                        <li><a href="LoginURL">LOGIN</a></li>
                         <li><a href=EditHREF>EDIT THIS PAGE</a></li>
                         <li><a href="/wiki/sandbox">SANDBOX</a></li>
                         <li><a href="/wiki/">WIKI HELP</a></li>
