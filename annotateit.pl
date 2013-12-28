@@ -110,14 +110,16 @@ show_annotations([H|T], Options) -->
 	show_annotations(T, Options).
 
 show_annotation(annotation(_Obj, Annot, Time, User), _Options) -->
-	html(div(class(annotation),
-		 [ div(class(comment),
-		       \comment(Annot)),
-		   div(class('commenter'),
-		       [ \date(Time), ', ',
-			 \user_profile_link(User)
-		       ])
-		 ])).
+  html(
+    div(class(annotation), [
+      div(class(comment), \comment(Annot)),
+      div(class('commenter'), [
+        \date(Time),
+        ', ',
+        \user_profile_link(User)
+      ])
+    ])
+  ).
 
 comment(Text) -->
 	{ atom_codes(Text, Codes),
@@ -219,7 +221,9 @@ add_annotation(Request) :-
 			[ object(ObjectID, []),
 			  comment(Annotation0, [default('')])
 			]),
-	site_user_logged_in(User),
+  % @tbd
+	%site_user_logged_in(User),
+  User = 'Wouter Beek',
 	object_id(Object, ObjectID),
 	get_time(NowF),
 	Now is round(NowF),

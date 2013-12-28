@@ -52,6 +52,7 @@
 :- use_module(notify).
 :- use_module(wiki, [wiki_page_title/2]).
 
+/* @tbd This conflicts with dependencies in `library(pldoc)`.
 :- if(user:debug_project).
   :- html_resource(js('jquery-debug-2.0.3.js'), []).
   :- html_resource(tagit_dependency, [
@@ -73,9 +74,12 @@
     virtual(true)
   ]).
 :- endif.
+*/
 :- html_resource(tagit, [
+  ordered(true),
   requires([
-    tagit_dependency,
+    jquery_ui,
+    js('tag-it-min-2.0.js'),
     css('jquery.tagit.css'),
     css('tagit.ui-zendesk.css')
   ]),
@@ -398,6 +402,8 @@ add_tag(Request) :-
 			    ]))
 	).
 
+% @tbd Remove this later (openid).
+add_tag_validate(_Tag, _Object, _UserType, _Message):- !.
 add_tag_validate(Tag, _Object, _UserType, Message) :-
 	tag_not_ok(Tag, Message), !.
 add_tag_validate(Tag, Object, _UserType, Message) :-
