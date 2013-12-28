@@ -96,7 +96,8 @@ user:body(pldoc(Arg), Body) -->
 		    \upper_header,
 		    \title_area(pldoc(Arg)),
 		    \menubar(fixed_width),
-		    div(id(contents), div(Body)),
+		    div(class(breadcrumb), []),
+		    div(class([contents, main]), Body),
 		    div(class([footer, newstyle]),
 			[ \current_user(Arg),
 			  \server_address
