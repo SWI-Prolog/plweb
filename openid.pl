@@ -100,12 +100,19 @@
 :- http_handler(root(user/list),            list_users,     []).
 
 
-:- use_module(library(debug)).
-:- debug(openid).
-openid_logged_in2('Wouter Beek'):- !,
-  debug(openid, 'Fake login for Wouter Beek.', []).
+%%	openid_logged_in2(-User)
+%
+%	Fake the OpenID login process by doing e.g.,
+%
+%	  ==
+%	  ?- debug(openid_fake('Wouter Beek')).
+%	  ==
+
+openid_logged_in2(User) :-
+	debug(openid_fake(User), 'Fake login for ~q.', [User]), !.
 openid_logged_in2(OpenID):-
-  openid_logged_in(OpenID).
+	openid_logged_in(OpenID).
+
 
 		 /*******************************
 		 *	    USER ADMIN		*
