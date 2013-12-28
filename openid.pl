@@ -100,6 +100,13 @@
 :- http_handler(root(user/list),            list_users,     []).
 
 
+:- use_module(library(debug)).
+:- debug(openid).
+openid_logged_in2('Wouter Beek'):- !,
+  debug(openid, 'Fake login for Wouter Beek.', []).
+openid_logged_in2(OpenID):-
+  openid_logged_in(OpenID).
+
 		 /*******************************
 		 *	    USER ADMIN		*
 		 *******************************/
@@ -183,7 +190,7 @@ ensure_profile(OpenID, User) :-
 %	True when User is logged on.  Does not try to logon the user.
 
 site_user_logged_in(User) :-
-	openid_logged_in(OpenID),
+	openid_logged_in2(OpenID),
 	site_user_property(User, openid(OpenID)).
 
 
@@ -351,7 +358,7 @@ view_profile(Request) :-
 	http_parameters(Request,
 			[ user(UUID, [ optional(true) ])
 			]),
-	(   openid_logged_in(OpenID),
+	(   openid_logged_in2(OpenID),
 	    site_user_property(UUID, openid(OpenID))
 	->  Options = [view(private), edit_link(true)]
 	;   nonvar(UUID)
@@ -744,7 +751,7 @@ verify_user(Request) :-
 %	Logout the current user and reload the current page.
 
 logout(_Request) :-
-	openid_logged_in(OpenId), !,
+	openid_logged_in2(OpenId), !,
 	openid_logout(OpenId),
 	reply_html_page(
 	    wiki,
@@ -768,7 +775,7 @@ current_user -->
 
 current_user(Style) -->
 	{ Style \== create_profile,
-	  openid_logged_in(OpenID), !,
+	  openid_logged_in2(OpenID), !,
 	  ensure_profile(OpenID, User),
 	  (   site_user_property(User, name(Name)),
 	      Name \== ''
