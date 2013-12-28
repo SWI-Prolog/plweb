@@ -403,8 +403,8 @@ serve_embedded_hom_file(File, Request) :-
 
 serve_embedded_html_file(Style, File, Request) :-
 	load_html(File, DOM, []),
-	xpath(DOM, //body(self), element(_,_,Body)),
-	xpath(DOM, //head(self), element(_,_,Head)),
+	xpath_chk(DOM, //body(self), element(_,_,Body)),
+	xpath_chk(DOM, //head(self), element(_,_,Head)),
 	reply_html_page(Style,
 			Head,
 			\wiki_page(Request, File, Body)).
