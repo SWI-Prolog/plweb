@@ -443,10 +443,10 @@ parent(Base, Parent) :-
 server_address -->
 	{ prolog_version(Version)
 	},
-	html(['Powered by ',
-	      a(href('http://www.swi-prolog.org'), 'SWI-Prolog'), ' ',
-	      Version
-	     ]).
+	html(a([ class(powered),
+		 href('http://www.swi-prolog.org')
+	       ],
+	       ['Powered by SWI-Prolog', ' ', Version])).
 
 prolog_version(Version) :-
 	current_prolog_flag(version_git, Version), !.
