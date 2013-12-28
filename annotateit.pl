@@ -111,13 +111,21 @@ show_annotations([H|T], Options) -->
 
 show_annotation(annotation(_Obj, Annot, Time, User), _Options) -->
 	html(div(class(annotation),
-		 [ div(class(comment),
-		       \comment(Annot)),
-		   div(class('commenter'),
-		       [ \date(Time), ', ',
-			 \user_profile_link(User)
-		       ])
+		 [ div(class('commenter'),
+		       [ \user_profile_link(User),
+			 ' (', \date(Time), ')',
+			 \add_edit_link(User)
+		       ]),
+		   div(class(comment),
+		       \comment(Annot))
 		 ])).
+
+add_edit_link(User) -->
+	{ site_user_logged_in(User) }, !,
+	html(span(class(editlink),
+		  \add_open_link('Edit/delete', comment_form))).
+add_edit_link(_) -->
+	[].
 
 comment(Text) -->
 	{ atom_codes(Text, Codes),
@@ -142,17 +150,13 @@ date(Time) -->
 add_annotation(Obj, _Options) -->
 	{ site_user_logged_in(User), !,
 	  http_link_to_id(add_annotation, [], AddAnnotation),
-	  object_label(Obj, Label),
 	  object_id(Obj, ObjectID),
 	  (   annotation(Obj, Current, _Time, User)
 	  ->  Extra = [value(Current)]
 	  ;   Extra = []
 	  )
 	},
-	html([ div(class('comment-action'),
-		   [ \add_open_link(Current, comment_form),
-		     ' comment for ~w'-[Label]
-		   ]),
+	html([ \add_add_link(Obj, User),
 	       form([ action(AddAnnotation),
 		      id(comment_form),
 		      method('POST'),
@@ -179,16 +183,26 @@ add_annotation(_Obj, _Options) -->
 		   ' to add a comment'
 		 ])).
 
-%%	add_open_link(+Current, +Id)// is det.
+%%	add_add_link(+Obj, +User)//
+%
+%	Add link to add a comment
+
+add_add_link(Obj, User) -->
+	{ annotation(Obj, _Current, _Time, User) }, !.
+add_add_link(Obj, _User) -->
+	{ object_label(Obj, Label) },
+	html([ div(class('comment-action'),
+		   [ \add_open_link('Add', comment_form),
+		     ' comment for ~w'-[Label]
+		   ])
+	     ]).
+
+
+%%	add_open_link(+Label, +Id)// is det.
 %
 %	Add a link to actually open the editor.
 
-add_open_link(Current, Id) -->
-	{ (   var(Current)
-	  ->  Label = 'Add'
-	  ;   Label = 'Edit or remove your'
-	  )
-	},
+add_open_link(Label, Id) -->
 	html(a([ class('edit-comment'),
 		 href(''),
 		 onClick('$("#'+Id+'").css("display","block"); return false')
