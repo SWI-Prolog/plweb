@@ -64,6 +64,18 @@
 :- use_module(annotateit).
 
 /** <module> Handle users of the SWI-Prolog website
+
+This module provide the OpenID interface  for the SWI-Prolog website. If
+you want to run this for local installations, make sure that your server
+is accessible through the public network   and first direct your browser
+to the public network. Logging in using   Google  should work than. Some
+other providers have more strict requirements.
+
+You can fake OpenID login using the debug interface:
+
+    ==
+    ?- debug(openid_fake('WouterBeek')).
+    ==
 */
 
 :- multifile
@@ -197,7 +209,7 @@ ensure_profile(OpenID, User) :-
 %	True when User is logged on.  Does not try to logon the user.
 
 site_user_logged_in(User) :-
-	openid_logged_in2(OpenID),
+	openid_logged_in(OpenID),
 	site_user_property(User, openid(OpenID)).
 
 
@@ -365,7 +377,7 @@ view_profile(Request) :-
 	http_parameters(Request,
 			[ user(UUID, [ optional(true) ])
 			]),
-	(   openid_logged_in2(OpenID),
+	(   openid_logged_in(OpenID),
 	    site_user_property(UUID, openid(OpenID))
 	->  Options = [view(private), edit_link(true)]
 	;   nonvar(UUID)
@@ -611,7 +623,11 @@ http_openid:openid_hook(logout(OpenId)) :-
 	       [CookieName, Path]),
 	fail.
 http_openid:openid_hook(logged_in(OpenId)) :-
-	(   http_in_session(_),
+	(   debugging(openid_fake(User)),
+	    atom(User)
+	->  debug(openid_fake(User), 'Fake login for ~q.', [User]),
+	    OpenId = User
+	;   http_in_session(_),
 	    http_session_data(openid(OpenId))
 	->  true
 	;   http_current_request(Request),
@@ -758,7 +774,7 @@ verify_user(Request) :-
 %	Logout the current user and reload the current page.
 
 logout(_Request) :-
-	openid_logged_in2(OpenId), !,
+	openid_logged_in(OpenId), !,
 	openid_logout(OpenId),
 	reply_html_page(
 	    wiki,
@@ -782,7 +798,7 @@ current_user -->
 
 current_user(Style) -->
 	{ Style \== create_profile,
-	  openid_logged_in2(OpenID), !,
+	  openid_logged_in(OpenID), !,
 	  ensure_profile(OpenID, User),
 	  (   site_user_property(User, name(Name)),
 	      Name \== ''
