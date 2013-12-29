@@ -154,27 +154,34 @@ add_annotation(Obj, _Options) -->
 	  (   annotation(Obj, Current, _Time, User)
 	  ->  Extra = [value(Current)]
 	  ;   Extra = []
-	  )
+	  ),
+	  OnClick = '$("#comment_form").css("display","none");'
 	},
-	html([ \add_add_link(Obj, User),
-	       form([ action(AddAnnotation),
-		      id(comment_form),
-		      method('POST'),
-		      style('display:none')
-		    ],
-		    [ input([type(hidden), name(object), value(ObjectID)]),
-		      \explain_comment(User),
-		      table([ tr(td(\markitup([ id(comment),
-						markup(pldoc)
-					      | Extra
-					      ]))),
-			      tr(td(align(right),
-				    input([ type(submit),
-					    value('Save comment')
-					  ])))
-			    ])
-		    ])
-	     ]).
+	html(div(class('edit-anotations'),
+		 [ \add_add_link(Obj, User),
+		   form([ action(AddAnnotation),
+			  id(comment_form),
+			  method('POST'),
+			  style('display:none')
+			],
+			[ input([type(hidden), name(object), value(ObjectID)]),
+			  \explain_comment(User),
+			  table([ tr(td(\markitup([ id(comment),
+						    markup(pldoc)
+						  | Extra
+						  ]))),
+				  tr(td(align(right),
+					[ input([ type(button),
+						  value('Cancel'),
+						  onClick(OnClick)
+						]),
+					  input([ type(submit),
+						  value('Save comment')
+						])
+					]))
+				])
+			])
+		 ])).
 add_annotation(_Obj, _Options) -->
 	{ http_current_request(Request)	},
 	html(div(class('comment-login'),
