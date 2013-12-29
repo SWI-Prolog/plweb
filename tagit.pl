@@ -169,7 +169,24 @@ prolog:doc_object_page_footer(Obj0, Options) -->
 	html(div(class('user-annotations'),
 		 [ \tagit_footer(Obj, Options),
 		   \comment_footer(Obj, Options)
-		 ])).
+		 ])),
+	js_script({|javascript||
+		   $().ready(function()
+	           { var $navtree = $(".navtree");
+		     var $navcontent = $(".navcontent");
+		     if ( $navtree.length > 0 && $navcontent.length > 0 )
+		     { var $window = $(window).on("resize", function()
+		       { var ch = $navcontent.height();
+			 var nh = $navtree.height();
+			 if ( nh > 400 && nh > ch + 200 )
+			 { if ( ch < 300 ) ch = 300;
+			   $navtree.height(ch);
+			   $navtree.css('overflow-y', 'scroll');
+			 }
+		       }).trigger("resize")
+		     }
+		   });
+		  |}).
 prolog:doc_object_page_footer(_, _) -->
 	[].
 
