@@ -220,8 +220,10 @@ explain_comment(_User) -->
 	      <div class="explain-comment">
 	      Comments are intended to point to <b>related material</b>,
 	      indicate <b>errors</b> or provide <b>examples</b>.<br>
-	      Comments are written using the PlDoc wiki format.  Preview
-	      may be enabled and disabled with the two rightmost buttons.
+	      Comments are written using the PlDoc wiki format.<br>
+	      Preview may be enabled and disabled with the two rightmost
+	      buttons.<br>
+	      Empty the editor's content to <b>delete</b> a commment.
 	      </div>
 	      |}).
 
