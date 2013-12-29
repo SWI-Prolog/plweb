@@ -176,13 +176,11 @@ add_annotation(Obj, _Options) -->
 		    ])
 	     ]).
 add_annotation(_Obj, _Options) -->
-  {http_current_request(Request)},
-  html(
-    div(class('comment-login'), [
-      \login_link(Request),
-      ' to add a comment'
-    ])
-  ).
+	{ http_current_request(Request)	},
+	html(div(class('comment-login'),
+		 [ \login_link(Request), ' to add a comment'
+		 ])).
+
 
 %%	add_add_link(+Obj, +User)//
 %
