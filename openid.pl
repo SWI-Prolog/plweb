@@ -673,13 +673,17 @@ in_header_state :-
 %	customizating the -very basic- login page.
 
 plweb_login_page(Request) :-
+	memberchk(host(localhost), Request), !,
+	openid_current_url(Request, URL),
+	throw(http_reply(see_other(URL))).
+plweb_login_page(Request) :-
 	http_open_session(_, []),
 	http_parameters(Request,
 			[ 'openid.return_to'(ReturnTo, [])
 			]),
 	http_link_to_id(verify_user, [], Action),
 	quick_buttons(Buttons),
-	reply_html_page(wiki,
+	reply_html_page(user(login),
 			[ title('SWI-Prolog login')
 			],
 			[ \openid_login_form(
@@ -777,17 +781,15 @@ logout(_Request) :-
 	openid_logged_in(OpenId), !,
 	openid_logout(OpenId),
 	reply_html_page(
-	    wiki,
+	    user(logout),
 	    title('Logged out'),
-	    [ h1(class(wiki), 'Logout'),
-	      p('Thanks for using www.swi-prolog.org')
+	    [ p('Thanks for using www.swi-prolog.org')
 	    ]).
 logout(_Request) :-
 	reply_html_page(
-	    wiki,
+	    user(logout),
 	    title('Not logged in'),
-	    [ h1(class(wiki), 'Logout'),
-	      p(class(warning), 'You were not logged in')
+	    [ p(class(warning), 'You are not logged in')
 	    ]).
 
 

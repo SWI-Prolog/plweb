@@ -45,7 +45,8 @@
 :- use_module(did_you_know).
 
 :- html_meta
-	outer_container(html, ?, ?).
+	outer_container(html, ?, ?),
+	outer_container(html, +, ?, ?).
 
 %%	user:body(+Style, +Body)//
 %
@@ -62,6 +63,12 @@ user:body(homepage, Body) --> !,
 			  \enhanced_search_area,
 			  Body
 			]).
+user:body(user(Action), Body) --> !,
+	outer_container([ \title_area(user(Action)),
+			  \menubar(fixed_width),
+			  div(class(breadcrumb), []),
+			  div([id(contents), class([contents, user])], Body)
+			], false).
 user:body(wiki(Path, Title), Body) --> !,
 	outer_container([ \title_area(title(Title)),
 			  \menubar(fixed_width),
@@ -77,10 +84,15 @@ user:body(pldoc(Arg), Body) --> !,
 			]).
 user:body(plain, Body) --> !,
 	html(body(class(plain), Body)).
+user:body(default, Body) --> !,
+	html(body(class(plain), Body)).
 user:body(Style, _Body) -->
 	html(div('Unknown page style ~q'-[Style])).
 
 outer_container(Content) -->
+	outer_container(Content, true).
+
+outer_container(Content, ShowUser) -->
 	html(body(div(class('outer-container'),
 		  [ \html_requires(plweb),
 		    \html_requires(swipl_css),
@@ -88,12 +100,15 @@ outer_container(Content) -->
 		    \upper_header,
 		    Content,
 		    div(class([footer, newstyle]),
-			[ \current_user,
+			[ \show_user(ShowUser),
 			  \server_address
 			]),
 		    div(id('tail-end'), &(nbsp))
 		  ]))),
 	html_receive(script).
+
+show_user(false) --> !.
+show_user(_) --> current_user.
 
 
 %%	prolog:doc_page_header(+File, +Options)//
@@ -225,6 +240,10 @@ page_title(pldoc(object(Obj))) -->
 		    ]), !.
 page_title(title(Title)) --> !,
 	html(Title).
+page_title(user(login)) --> !,
+	html('Login to www.swi-prolog.org').
+page_title(user(logout)) --> !,
+	html('Logged out from www.swi-prolog.org').
 page_title(Term) -->
 	html('Title for ~q'-[Term]).
 
