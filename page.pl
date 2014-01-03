@@ -194,7 +194,7 @@ upper_header -->
 plweb_search(Request) :-
 	http_parameters(Request,
 			[ for(For,
-			      [ optional(true),
+			      [ default(''),
 				description('String to search for')
 			      ])
 			]),
@@ -273,6 +273,8 @@ title_area(Arg) -->
 			\page_title(Arg))
 		 ])).
 
+page_title(pldoc(search(''))) --> !,
+	html('How to use the search box').
 page_title(pldoc(search(For))) --> !,
 	html(['Search results for ', span(class(for), ['"', For, '"'])]).
 page_title(pldoc(object(Obj))) -->
