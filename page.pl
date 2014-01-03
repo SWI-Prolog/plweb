@@ -44,66 +44,57 @@
 :- use_module(openid).
 :- use_module(did_you_know).
 
+:- html_meta
+	outer_container(html, ?, ?).
+
 %%	user:body(+Style, +Body)//
 %
-%	Redefine body behaviour
+%	Provide the page skin.
 
 :- multifile
 	user:body//2.
 
 user:body(homepage, Body) --> !,
-	html(body(div(class('outer-container'),
-	          [ \html_requires(plweb),
-		    \html_requires(swipl_css),
-		    \upper_header,
-		    \tag_line_area,
-		    \menubar(fixed_width),
-		    \blurb,
-		    \cta_area,
-		    \enhanced_search_area,
-		    Body,
-		    div(id('tail-end'), &(nbsp))
-		  ]))),
-	html_receive(script).
+	outer_container([ \tag_line_area,
+			  \menubar(fixed_width),
+			  \blurb,
+			  \cta_area,
+			  \enhanced_search_area,
+			  Body
+			]).
 user:body(wiki(Path, Title), Body) --> !,
-	html(body(div(class('outer-container'),
-		  [ \html_requires(plweb),
-		    \html_requires(swipl_css),
-		    \shortcut_icons,
-		    \upper_header,
-		    \title_area(title(Title)),
-		    \menubar(fixed_width),
-		    div(class(breadcrumb), []),
-		    div([id(contents), class([contents, wiki])], Body),
-		    \wiki_user_annotations(Path),
-		    div(class([footer, newstyle]),
-			[ \current_user(Path),
-			  \server_address
-			]),
-		    div(id('tail-end'), &(nbsp))
-		  ]))),
-	html_receive(script).
-user:body(plain, Body) --> !,
-	html(body(class(wiki), [h1(plain), Body])).   % AO h1 is DEBUG
+	outer_container([ \title_area(title(Title)),
+			  \menubar(fixed_width),
+			  div(class(breadcrumb), []),
+			  div([id(contents), class([contents, wiki])], Body),
+			  \wiki_user_annotations(Path)
+			]).
 user:body(pldoc(Arg), Body) --> !,
-	html(body(div(class('outer-container'),
-		  [ \html_requires(plweb),
-		    \html_requires(swipl_css),
-		    \shortcut_icons,
-		    \upper_header,
-		    \title_area(pldoc(Arg)),
-		    \menubar(fixed_width),
-		    div(class(breadcrumb), []),
-		    div([id(contents), class([contents, pldoc])], Body),
-		    div(class([footer, newstyle]),
-			[ \current_user(Arg),
-			  \server_address
-			]),
-		    div(id('tail-end'), &(nbsp))
-		  ]))),
-	html_receive(script).
+	outer_container([ \title_area(pldoc(Arg)),
+			  \menubar(fixed_width),
+			  div(class(breadcrumb), []),
+			  div([id(contents), class([contents, pldoc])], Body)
+			]).
+user:body(plain, Body) --> !,
+	html(body(class(plain), Body)).
 user:body(Style, _Body) -->
 	html(div('Unknown page style ~q'-[Style])).
+
+outer_container(Content) -->
+	html(body(div(class('outer-container'),
+		  [ \html_requires(plweb),
+		    \html_requires(swipl_css),
+		    \shortcut_icons,
+		    \upper_header,
+		    Content,
+		    div(class([footer, newstyle]),
+			[ \current_user,
+			  \server_address
+			]),
+		    div(id('tail-end'), &(nbsp))
+		  ]))),
+	html_receive(script).
+
 
 %%	prolog:doc_page_header(+File, +Options)//
 %
