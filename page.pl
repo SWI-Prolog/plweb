@@ -65,22 +65,19 @@ user:body(homepage, Body) --> !,
 		    div(id('tail-end'), &(nbsp))
 		  ]))),
 	html_receive(script).
-user:body(wiki, Body) --> !,
-	user:body(wiki(default), Body).
-% serves index among other things
-user:body(wiki(Arg), Body) --> !,
+user:body(wiki(Path, Title), Body) --> !,
 	html(body(div(class('outer-container'),
 		  [ \html_requires(plweb),
 		    \html_requires(swipl_css),
 		    \shortcut_icons,
 		    \upper_header,
-		    \title_area(wiki(Arg)),
+		    \title_area(title(Title)),
 		    \menubar(fixed_width),
-		    p('Someday breadcrumb'),
-		    % \doc_links([], [search_options(false)]),
-		    div(id(contents), div(Body)),
+		    div(class(breadcrumb), []),
+		    div([id(contents), class([contents, wiki])], Body),
+		    \wiki_user_annotations(Path),
 		    div(class([footer, newstyle]),
-			[ \current_user(Arg),
+			[ \current_user(Path),
 			  \server_address
 			]),
 		    div(id('tail-end'), &(nbsp))
@@ -88,7 +85,7 @@ user:body(wiki(Arg), Body) --> !,
 	html_receive(script).
 user:body(plain, Body) --> !,
 	html(body(class(wiki), [h1(plain), Body])).   % AO h1 is DEBUG
-user:body(pldoc(Arg), Body) -->
+user:body(pldoc(Arg), Body) --> !,
 	html(body(div(class('outer-container'),
 		  [ \html_requires(plweb),
 		    \html_requires(swipl_css),
@@ -97,7 +94,7 @@ user:body(pldoc(Arg), Body) -->
 		    \title_area(pldoc(Arg)),
 		    \menubar(fixed_width),
 		    div(class(breadcrumb), []),
-		    div(class([contents, main]), Body),
+		    div([id(contents), class([contents, pldoc])], Body),
 		    div(class([footer, newstyle]),
 			[ \current_user(Arg),
 			  \server_address
@@ -105,6 +102,8 @@ user:body(pldoc(Arg), Body) -->
 		    div(id('tail-end'), &(nbsp))
 		  ]))),
 	html_receive(script).
+user:body(Style, _Body) -->
+	html(div('Unknown page style ~q'-[Style])).
 
 %%	prolog:doc_page_header(+File, +Options)//
 %
@@ -123,6 +122,27 @@ shortcut_icons -->
 		  [ link([ rel('shortcut icon'), href(FavIcon) ]),
 		    link([ rel('apple-touch-icon'), href(TouchIcon) ])
 		  ]).
+
+%%	wiki_user_annotations(+WikiPath)//
+%
+%	Add  space  for  user  annotations    using  the  pseudo  object
+%	wiki(Location).
+
+:- multifile
+	prolog:doc_object_page_footer//2.
+
+wiki_user_annotations(WikiPath) -->
+	{ \+ locked_wiki_page(WikiPath)
+	}, !,
+	prolog:doc_object_page_footer(wiki(WikiPath), []).
+wiki_user_annotations(_) --> [].
+
+%%	locked_wiki_page(+WikiPath) is semidet
+%
+%	True if this page is not editable (that is, locked)
+
+locked_wiki_page(_WikiPath) :-
+	fail.
 
 %%	upper_header//
 %
@@ -212,6 +232,8 @@ page_title(pldoc(object(Obj))) -->
 	object_name(Obj,
 		    [ style(title)
 		    ]), !.
+page_title(title(Title)) --> !,
+	html(Title).
 page_title(Term) -->
 	html('Title for ~q'-[Term]).
 

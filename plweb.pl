@@ -256,50 +256,29 @@ serve_wiki_file(File, Request) :-
 
 serve_wiki(String, File, Request) :-
 	wiki_codes_to_dom(String, [], DOM0),
-	(   sub_term(h1(_, Title), DOM0)
-	->  true
-	;   Title = 'SWI-Prolog'
-	),
-	insert_edit_button(DOM0, File, Request, DOM),
+	extract_title(DOM0, Title, DOM),
 	setup_call_cleanup(
 	    b_setval(pldoc_options, [prefer(manual)]),
 	    serve_wiki_page(Request, File, Title, DOM),
 	    nb_delete(pldoc_options)).
 
 serve_wiki_page(Request, File, Title, DOM) :-
-	option(style(Style), Request, wiki),
-	reply_html_page(Style,
-			[ title(Title)
-			],
-			\wiki_page(Request, File, DOM)).
+	wiki_path(Request, File, WikiPath),
+	reply_html_page(
+	    wiki(WikiPath, Title),
+	    [ title(Title)
+	    ],
+	    div(class(wiki), DOM)).
 
-wiki_page(Request, File, DOM) -->
-	html(DOM),
-	user_annotations(Request, File).
 
-%%	user_annotations(+Request, +File)//
+%%	wiki_path(+Request, +File, -WikiPath) is det.
 %
-%	Add  space  for  user  annotations    using  the  pseudo  object
-%	wiki(Location).
+%	WikiPath is the canonical path to describe the wiki page File.
 
-:- multifile
-	prolog:doc_object_page_footer//2.
-
-user_annotations(Request, File) -->
-	{ \+ locked_wiki_page(Request),
-	  memberchk(request_uri(Location), Request),
-	  atom_concat(/, WikiPath0, Location),
-	  normalize_extension(WikiPath0, File, WikiPath)
-	}, !,
-	prolog:doc_object_page_footer(wiki(WikiPath), []).
-user_annotations(_, _) --> [].
-
-%%	locked_wiki_page(+Request:request) is semidet
-%
-%	succeeds if this page is not editable (that is, locked)
-
-locked_wiki_page(Request) :-
-	memberchk(path_info('index.html'), Request).
+wiki_path(Request, File, WikiPath) :-
+	memberchk(request_uri(Location), Request),
+	atom_concat(/, WikiPath0, Location),
+	normalize_extension(WikiPath0, File, WikiPath).
 
 normalize_extension(Path, File, Path) :-
 	file_name_extension(_, Ext, File),
@@ -315,37 +294,19 @@ normalize_extension(Dir, _, Index) :-
 normalize_extension(Path, _, Path).
 
 
-%%	insert_edit_button(+DOM0, +File, +Request, -DOM) is det.
+%%	extract_title(+DOM0, -Title, -DOM) is det.
 %
-%	Insert a button that allows for editing the wiki page.
+%	Extract the title from a wiki page.  The title is considered
+%	to be the first h<N> element.
 
-insert_edit_button(DOM0, File, Request, DOM) :-
-	(   current_prolog_flag(wiki_edit, false),
-	    catch(http:authenticate(pldoc(edit), Request, _), _, fail)
-	->  insert_edit_button(DOM0, \edit_button(File, [edit(true)]), DOM)
-	;   memberchk(request_uri(Location), Request),
-	    insert_edit_button(DOM0, \wiki_edit_button(Location), DOM)
-	), !.
-insert_edit_button(DOM, _, _, DOM).
+extract_title([H|T], Title, T) :-
+	title(H, Title), !.
+extract_title(DOM, 'SWI-Prolog', DOM).
 
-insert_edit_button([h1(Attrs,Title)|DOM], Action,
-		   [h1(Attrs,[ span(style('float:right'),
-				    Action)
-			     | Title
-			     ])|DOM]) :- !.
-insert_edit_button(DOM, Action,
-		   [ h1(class(wiki),
-			[ span(style('float:right'),
-			       Action)
-			])
-		   | DOM
-		   ]).
-
-:- public wiki_edit_button//1.
-:- multifile wiki_edit:edit_button//1.
-
-wiki_edit_button(Location) -->
-	wiki_edit:edit_button(Location), !.
+title(h1(_Attrs, Title), Title).
+title(h2(_Attrs, Title), Title).
+title(h3(_Attrs, Title), Title).
+title(h4(_Attrs, Title), Title).
 
 %%	prolog:doc_directory(+Dir) is semidet.
 %
@@ -401,13 +362,12 @@ serve_embedded_html_file(File, Request) :-
 serve_embedded_hom_file(File, Request) :-
 	serve_embedded_html_file(homepage, File, Request).
 
-serve_embedded_html_file(Style, File, Request) :-
+serve_embedded_html_file(Style, File, _Request) :-
 	load_html(File, DOM, []),
 	xpath_chk(DOM, //body(self), element(_,_,Body)),
 	xpath_chk(DOM, //head(self), element(_,_,Head)),
-	reply_html_page(Style,
-			Head,
-			\wiki_page(Request, File, Body)).
+	reply_html_page(Style, Head, Body).
+
 
 		 /*******************************
 		 *     THREAD POOL HANDLING	*
