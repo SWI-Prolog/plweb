@@ -244,6 +244,8 @@ page_title(user(login)) --> !,
 	html('Login to www.swi-prolog.org').
 page_title(user(logout)) --> !,
 	html('Logged out from www.swi-prolog.org').
+page_title(user(create_profile)) --> !,
+	html('Create user profile').
 page_title(Term) -->
 	html('Title for ~q'-[Term]).
 

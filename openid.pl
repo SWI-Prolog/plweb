@@ -224,7 +224,7 @@ create_profile(Request) :-
 			[ return(Return, [])
 			]),
 	reply_html_page(
-	    wiki(create_profile),
+	    user(create_profile),
 	    title('Create user profile for SWI-Prolog'),
 	    \create_profile(OpenID, Return)).
 
