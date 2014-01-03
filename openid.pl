@@ -112,20 +112,6 @@ You can fake OpenID login using the debug interface:
 :- http_handler(root(user/list),            list_users,     []).
 
 
-%%	openid_logged_in2(-User)
-%
-%	Fake the OpenID login process by doing e.g.,
-%
-%	  ==
-%	  ?- debug(openid_fake('Wouter Beek')).
-%	  ==
-
-openid_logged_in2(User) :-
-	debug(openid_fake(User), 'Fake login for ~q.', [User]), !.
-openid_logged_in2(OpenID):-
-	openid_logged_in(OpenID).
-
-
 		 /*******************************
 		 *	    USER ADMIN		*
 		 *******************************/
@@ -673,8 +659,11 @@ in_header_state :-
 %	customizating the -very basic- login page.
 
 plweb_login_page(Request) :-
-	memberchk(host(localhost), Request), !,
-	openid_current_url(Request, URL),
+	memberchk(host(localhost), Request),
+	\+ ( debugging(openid_fake(User)),
+	     atom(User)
+	   ),
+	openid_current_url(Request, URL), !,
 	throw(http_reply(see_other(URL))).
 plweb_login_page(Request) :-
 	http_open_session(_, []),
