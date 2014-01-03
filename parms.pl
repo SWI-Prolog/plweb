@@ -126,13 +126,7 @@ user:url_path(serql,	 'http://www.openrdf.org').
 			      css('plweb.css')
 			    ])
 		 ]).
-:- if(html_current_resource(pldoc_jquery)).
-:- html_resource(jquery,
-		 [ virtual(true),
-		   requires([ pldoc_jquery
-			    ])
-		 ]).
-:- else.
+:- if(\+html_current_resource(jquery)).
 :- html_resource(jquery,
 		 [ virtual(true),
 		   requires([ jq('jquery.js')
