@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009, VU University Amsterdam
+    Copyright (C): 2009-2013, VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -35,10 +35,12 @@
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_path)).
 :- use_module(library(pldoc/doc_index)).
+:- use_module(library(pldoc/doc_search)).
 :- use_module(library(http/js_write)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_parameters)).
 :- use_module(library(pldoc/doc_html), [object_name//2]).
 :- use_module(wiki).
 :- use_module(openid).
@@ -47,6 +49,8 @@
 :- html_meta
 	outer_container(html, ?, ?),
 	outer_container(html, +, ?, ?).
+
+:- http_handler(root(search), plweb_search, []).
 
 %%	user:body(+Style, +Body)//
 %
@@ -76,8 +80,15 @@ user:body(wiki(Path, Title), Body) --> !,
 			  div([id(contents), class([contents, wiki])], Body),
 			  \wiki_user_annotations(Path)
 			]).
-user:body(pldoc(Arg), Body) --> !,
-	outer_container([ \title_area(pldoc(Arg)),
+user:body(pldoc(search(For)), Body) --> !,
+	outer_container([ \title_area(pldoc(search(For))),
+			  \menubar(fixed_width),
+			  div(class(breadcrumb), []),
+			  div([id(contents), class([contents, search])],
+			      div(class(search), Body))
+			]).
+user:body(pldoc(Obj), Body) --> !,
+	outer_container([ \title_area(pldoc(Obj)),
 			  \menubar(fixed_width),
 			  div(class(breadcrumb), []),
 			  div([id(contents), class([contents, pldoc])], Body)
@@ -153,29 +164,56 @@ locked_wiki_page(_WikiPath) :-
 %%	upper_header//
 %
 %	Emit the small blue header with Did You Know? and search box
-%
-upper_header -->
-  html(
-    div(id('upper-header'),
-      div(id('upper-header-contents'), [
-        span(id('dyknow-container'), \did_you_know),
-        span(id('search-container'), [
-          span(class(lbl), 'Search Documentation:'),
-          form([action('/pldoc/search'),id('search-form')], [
-            input([name(for), id(for)], []),
-            input([id('submit-for'), type(submit), value('Search')], []),
-            input([type(hidden), name(in), value(all)], []),
-            input([type(hidden), name(match), value(summary)], []),
-            \searchbox_script(for)
-          ])
-        ])
-      ])
-    )
-  ).
 
-%%	searchbox_script//
+upper_header -->
+	{ http_link_to_id(plweb_search, [], Action) },
+	html(div(id('upper-header'),
+		 div(id('upper-header-contents'),
+		     [ span(id('dyknow-container'), \did_you_know),
+		       span(id('search-container'),
+			    [ span(class(lbl), 'Search Documentation:'),
+			      form([action(Action),id('search-form')],
+				   [ input([ name(for),
+					     id(for)
+					   ], []),
+				     input([ id('submit-for'),
+					     type(submit),
+					     value('Search')
+					   ], []),
+				     \searchbox_script(for)
+				   ])
+			    ])
+		     ])
+		)
+	    ).
+
+%%	plweb_search(+Request)
+%
+%	HTTP Handler to search the Prolog website.
+
+plweb_search(Request) :-
+	http_parameters(Request,
+			[ for(For,
+			      [ optional(true),
+				description('String to search for')
+			      ])
+			]),
+	format(string(Title), 'Prolog search -- ~w', [For]),
+	reply_html_page(pldoc(search(For)),
+			title(Title),
+			\search_reply(For,
+				      [ resultFormat(summary),
+					search_in(noapp),
+					search_match(summary),
+					header(false),
+					edit(false)
+				      ])).
+
+
+%%	searchbox_script(+Tag)//
 %
 %	Emits the script tag for the searchbox
+
 searchbox_script(Tag) -->
 	html([
 	    \html_requires(jquery_ui),
@@ -211,6 +249,7 @@ searchbox_script(Tag) -->
 %
 %	Emit the Owl logo and tagline area (Robust, mature, free. Prolog
 %	for the real world)
+
 tag_line_area -->
 	html(div(id('tag-line-area'),
 		 [ \swi_logo,
@@ -234,6 +273,8 @@ title_area(Arg) -->
 			\page_title(Arg))
 		 ])).
 
+page_title(pldoc(search(For))) --> !,
+	html(['Search results for ', span(class(for), ['"', For, '"'])]).
 page_title(pldoc(object(Obj))) -->
 	object_name(Obj,
 		    [ style(title)
