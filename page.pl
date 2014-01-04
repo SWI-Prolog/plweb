@@ -450,17 +450,17 @@ cta_area -->
 %	Emit the large size search area at bottom of home page
 %
 enhanced_search_area -->
-	html({|html(_)||    <div id='enhanced-search-container'>
-        <div>
-            <span class='lbl'>SEARCH DOCUMENTATION:</span>
-            <form  id="search-form-enhanced" action="/pldoc/search">
-                <input type='text' id="forenhanced">
-                <input type="image" src="/icons/go.png" alt='Search'>
-                <input type="hidden" name="in" value="all">
-                <input type="hidden" name="match" value="summary">
-            </form>
-        </div>
-    </div>|}),
+	{ http_link_to_id(plweb_search, [], Action) },
+	html({|html(Action)||
+	      <div id='enhanced-search-container'>
+	        <div>
+	          <span class='lbl'>SEARCH DOCUMENTATION:</span>
+	          <form  id="search-form-enhanced" action="Action">
+	            <input type='text' id="forenhanced">
+	            <input type="image" src="/icons/go.png" alt='Search'>
+	          </form>
+	        </div>
+	      </div>|}),
 	searchbox_script(forenhanced).
 
 
