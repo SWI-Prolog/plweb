@@ -343,7 +343,7 @@ menubar(fixed_width) -->
                         <li><a href="/pldoc/package/pldoc.html">PLDOC</a></li>
                         <li>BLUFFERS<span class='arrow'>&#x25B6;</span>
                             <ul>
-                                <li><a href="/prologsyntax.html">PROLOG SYNTAX</a></li>
+                                <li><a href="/pldoc/man?section=syntax">PROLOG SYNTAX</a></li>
                                 <li><a href="/pldoc/man?section=emacsbluff">pceEMACS</a></li>
                                 <li><a href="/htmlbluffer.html">HTML GENERATION</a></li>
                             </ul>
