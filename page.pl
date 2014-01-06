@@ -81,6 +81,13 @@ user:body(news(Which), Body) --> !,
 			  div(class(breadcrumb), []),
 			  div([id(contents), class([contents,  news])], Body)
 			]).
+user:body(wiki(Special), Body) --> !,
+	outer_container(_,
+			[ \title_area(wiki(Special)),
+			  \menubar(fixed_width),
+			  div(class(breadcrumb), []),
+			  div([id(contents), class([contents, wiki])], Body)
+			]).
 user:body(wiki(Path, Title), Body) --> !,
 	outer_container(wiki(Path),
 			[ \title_area(title(Title)),
@@ -94,6 +101,13 @@ user:body(pack(Action), Body) --> !,
 			  \menubar(fixed_width),
 			  div(class(breadcrumb), []),
 			  div([id(contents), class([contents, wiki])], Body)
+			]).
+user:body(tags(Action), Body) --> !,
+	outer_container(_,
+			[ \title_area(tags(Action)),
+			  \menubar(fixed_width),
+			  div(class(breadcrumb), []),
+			  div([id(contents), class([contents, tags])], Body)
 			]).
 user:body(pldoc(search(For)), Body) --> !,
 	outer_container(_,
@@ -288,6 +302,10 @@ page_title(news(Id)) -->
 	html(Title).
 page_title(pack(list)) -->
 	html('Packs (add-ons) for SWI-Prolog').
+page_title(wiki(sandbox)) -->
+	html('PlDoc wiki sandbox').
+page_title(tags(list)) -->
+	html('Tags').
 page_title(Term) -->
 	html('Title for ~q'-[Term]).
 
