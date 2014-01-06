@@ -337,7 +337,7 @@ menubar(fixed_width) -->
                 <li>DOCUMENTATION
                     <ul>
                         <li><a href="/pldoc/refman/">MANUAL</a></li>
-                        <li><a href="/pldoc/index.html">PACKAGES</a></li>
+                        <li><a href="/pldoc/package/">PACKAGES</a></li>
                         <li><a href="/FAQ/">FAQ</a></li>
                         <li><a href="/pldoc/man?section=cmdline">COMMAND LINE</a></li>
                         <li><a href="/pldoc/package/pldoc.html">PLDOC</a></li>
