@@ -55,6 +55,7 @@
 %%	download_table(+Request)
 %
 %	Provide a table with possible download targets.
+%	test edit
 
 download_table(Request) :-
 	http_parameters(Request,
