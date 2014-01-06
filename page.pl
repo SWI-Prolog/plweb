@@ -88,6 +88,13 @@ user:body(wiki(Path, Title), Body) --> !,
 			  div(class(breadcrumb), []),
 			  div([id(contents), class([contents, wiki])], Body)
 			]).
+user:body(pack(Action), Body) --> !,
+	outer_container(_,
+			[ \title_area(pack(Action)),
+			  \menubar(fixed_width),
+			  div(class(breadcrumb), []),
+			  div([id(contents), class([contents, wiki])], Body)
+			]).
 user:body(pldoc(search(For)), Body) --> !,
 	outer_container(_,
 			[ \title_area(pldoc(search(For))),
@@ -279,6 +286,8 @@ page_title(news(all)) --> !,
 page_title(news(Id)) -->
 	{ post(Id, title, Title) },
 	html(Title).
+page_title(pack(list)) -->
+	html('Packs (add-ons) for SWI-Prolog').
 page_title(Term) -->
 	html('Title for ~q'-[Term]).
 
@@ -319,8 +328,8 @@ menubar(fixed_width) -->
                 <li>DOWNLOAD
                     <ul class='dropdown one'>
                         <li><a href="/Download.html">SWI-PROLOG</a></li>
-                        <li><a href="/sources.html">SOURCES/BUILDING</a></li>
-                        <li><a href="/addons.html">ADD-ONS</a></li>
+                        <li><a href="/build/">SOURCES/BUILDING</a></li>
+                        <li><a href="/pack/list">ADD-ONS</a></li>
                         <li><a href="/git/">BROWSE GIT</a></li>
                     </ul>
                 </li>
