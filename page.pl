@@ -402,6 +402,7 @@ menubar(fixed_width) -->
                     <ul>
                         <li><a href="/Support.txt">SUPPORT</a></li>
                         <li><a href="http://webchat.freenode.net/?channels=##prolog">IRC</a></li>
+                        <li><a href="/news">NEWS</a></li>
                         <li><a href="/Mailinglist.txt">MAIL LIST</a></li>
                         <li><a href="/bugzilla/">BUG TRACKER</a></li>
                         <li><a href="/Links.html">EXTERNAL LINKS</a></li>
@@ -415,6 +416,7 @@ menubar(fixed_width) -->
                         <li><a href="/swipltuts/student/index.html">STUDENTS</a></li>
                         <li><a href="/Publications.html">RESEARCHERS</a></li>
                         <li><a href="/commercial.html">COMMERCIAL USERS</a></li>
+                        <li><a href="/dogfood.html">DOG FOOD</a></li>
                     </ul>
                 </li><!-- users -->
                 <li>WIKI
