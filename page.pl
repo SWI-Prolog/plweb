@@ -41,6 +41,7 @@
 :- use_module(library(http/http_parameters)).
 :- use_module(library(pldoc/doc_html), [object_name//2]).
 :- use_module(wiki).
+:- use_module(post).
 :- use_module(openid).
 :- use_module(did_you_know).
 
@@ -58,7 +59,8 @@
 	user:body//2.
 
 user:body(homepage, Body) --> !,
-	outer_container(_, [ \tag_line_area,
+	outer_container(_,
+			[ \tag_line_area,
 			  \menubar(fixed_width),
 			  \blurb,
 			  \cta_area,
@@ -66,27 +68,37 @@ user:body(homepage, Body) --> !,
 			  Body
 			]).
 user:body(user(Action), Body) --> !,
-	outer_container(_, [ \title_area(user(Action)),
+	outer_container(_,
+			[ \title_area(user(Action)),
 			  \menubar(fixed_width),
 			  div(class(breadcrumb), []),
 			  div([id(contents), class([contents, user])], Body)
 			], false).
-user:body(wiki(Path, Title), Body) --> !,
-	outer_container(_, [ \title_area(title(Title)),
+user:body(news(Which), Body) --> !,
+	outer_container(_,
+			[ \title_area(news(Which)),
 			  \menubar(fixed_width),
 			  div(class(breadcrumb), []),
-			  div([id(contents), class([contents, wiki])], Body),
-			  \wiki_user_annotations(Path)
+			  div([id(contents), class([contents,  news])], Body)
+			]).
+user:body(wiki(Path, Title), Body) --> !,
+	outer_container(wiki(Path),
+			[ \title_area(title(Title)),
+			  \menubar(fixed_width),
+			  div(class(breadcrumb), []),
+			  div([id(contents), class([contents, wiki])], Body)
 			]).
 user:body(pldoc(search(For)), Body) --> !,
-	outer_container(_, [ \title_area(pldoc(search(For))),
+	outer_container(_,
+			[ \title_area(pldoc(search(For))),
 			  \menubar(fixed_width),
 			  div(class(breadcrumb), []),
 			  div([id(contents), class([contents, search])],
 			      div(class(search), Body))
 			]).
 user:body(pldoc(Obj), Body) --> !,
-	outer_container(Obj, [ \title_area(pldoc(Obj)),
+	outer_container(Obj,
+			[ \title_area(pldoc(Obj)),
 			  \menubar(fixed_width),
 			  div(class(breadcrumb), []),
 			  div([id(contents), class([contents, pldoc])], Body)
@@ -98,26 +110,20 @@ user:body(default, Body) --> !,
 user:body(Style, _Body) -->
 	html(div('Unknown page style ~q'-[Style])).
 
-outer_container(Arg, Content) -->
-	outer_container(Arg, Content, true).
+outer_container(Obj, Content) -->
+	outer_container(Obj, Content, true).
 
-outer_container(Arg, Content, _ShowUser) -->
+outer_container(Obj, Content, ShowUser) -->
 	html(body(div(class('outer-container'),
 		  [ \html_requires(plweb),
 		    \html_requires(swipl_css),
 		    \shortcut_icons,
 		    \upper_header,
 		    Content,
-		    div(class([footer, newstyle]), \footer(Arg)),
-			%[ \show_user(ShowUser),
-			%  \server_information
-			%]),
+		    div(class([footer, newstyle]), \footer(Obj, ShowUser)),
 		    div(id('tail-end'), &(nbsp))
 		  ]))),
 	html_receive(script).
-
-show_user(false) --> !.
-show_user(_) --> current_user.
 
 
 %%	prolog:doc_page_header(+File, +Options)//
@@ -287,6 +293,13 @@ page_title(user(logout)) --> !,
 	html('Logged out from www.swi-prolog.org').
 page_title(user(create_profile)) --> !,
 	html('Create user profile').
+page_title(news(fresh)) --> !,
+	html('News').
+page_title(news(all)) --> !,
+	html('News archive').
+page_title(news(Id)) -->
+	{ post(Id, title, Title) },
+	html(Title).
 page_title(Term) -->
 	html('Title for ~q'-[Term]).
 

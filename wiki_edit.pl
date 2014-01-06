@@ -36,7 +36,6 @@
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
-:- use_module(library(http/http_authenticate)).
 :- use_module(library(http/http_path)).
 :- use_module(library(git)).
 :- use_module(git_html).
@@ -283,15 +282,9 @@ put_non_cr(Out, Char) :-
 %	Get authentication for editing wiki pages.  This now first tries
 %	the OpenID login.
 
-authenticate(_Request, [UUID,Name]) :-
-	site_user_logged_in(UUID),
-	site_user_property(UUID, granted(wiki)),
-	site_user_property(UUID, name(Name)), !.
 authenticate(Request, Fields) :-
-	(   http_authenticate(basic(passwd), Request, Fields)
-	->  true
-	;   throw(http_reply(authorise(basic, 'SWI-Prolog wiki editor')))
-	).
+	authenticate(Request, wiki, Fields).
+
 
 %%	allowed_file(+File) is det.
 %

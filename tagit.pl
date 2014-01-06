@@ -30,7 +30,8 @@
 
 :- module(tagit,
 	  [ user_tags//2,		% +User, +Options
-	    user_tag_count/2		% +User, -Count
+	    user_tag_count/2,		% +User, -Count
+	    tagit_footer//2		% +Object, +Options
 	  ]).
 :- use_module(generics).
 :- use_module(library(debug)).
@@ -128,49 +129,6 @@ ip -->
 :- http_handler(root('remove-tag'),   remove_tag,   []).
 :- http_handler(root('list-tags'),    list_tags,    []).
 :- http_handler(root('tag-abuse'),    tag_abuse,    []).
-
-:- multifile
-	prolog:doc_object_page_footer//2,
-	prolog:doc_annotation_footer//2.
-/*
-%%	prolog:doc_object_page_footer(+Object, +Options)//
-%
-%	Called a to create the footer of an object page.
-
-prolog:doc_object_page_footer(Obj0, Options) -->
-	{ ground(Obj0), !,
-	  (   prolog:doc_canonical_object(Obj0, Obj)
-	  ->  true
-	  ;   Obj = Obj0
-	  )
-	}, !,
-	html(div(class('user-annotations'),
-		 [ \tagit_footer(Obj, Options),
-		   \comment_footer(Obj, Options)
-		 ])),
-	js_script({|javascript||
-		   $().ready(function()
-	           { var $navtree = $(".navtree");
-		     var $navcontent = $(".navcontent");
-		     if ( $navtree.length > 0 && $navcontent.length > 0 )
-		     { var $window = $(window).on("resize", function()
-		       { var ch = $navcontent.height();
-			 var nh = $navtree.height();
-			 if ( nh > 400 && nh > ch + 200 )
-			 { if ( ch < 300 ) ch = 300;
-			   $navtree.height(ch);
-			   $navtree.css('overflow-y', 'scroll');
-			 }
-		       }).trigger("resize")
-		     }
-		   });
-		  |}).
-prolog:doc_object_page_footer(_, _) -->
-	[].
-*/
-comment_footer(Obj, Options) -->
-	prolog:doc_annotation_footer(Obj, Options), !.
-comment_footer(_, _) --> [].
 
 %%	tagit_footer(+Obj, +Options)// is det.
 %

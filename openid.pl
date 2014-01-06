@@ -33,6 +33,7 @@
 	    site_user_property/2,	% +User, ?Property
 	    grant/2,			% +User, +Token
 	    revoke/2,			% +User, +Token
+	    authenticate/3,		% +Request, +Token, -Fields
 	    user_profile_link//1,	% +User
 	    current_user//1,		% +PageStyle
 	    current_user//0,
@@ -47,7 +48,8 @@
 :- use_module(library(http/http_path)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
-:- catch(use_module(library(http/recaptcha)), _, ignore(pack_install(recaptcha))).
+:- use_module(library(http/http_authenticate)).
+:- use_module(library(http/recaptcha)).
 :- use_module(library(http/http_stream)).
 :- use_module(library(persistency)).
 :- use_module(library(settings)).
@@ -156,6 +158,23 @@ ground_user(User) :-
 	site_user(User, _, _, _, _), !.
 ground_user(User) :-
 	existence_error(user, User).
+
+
+%%	authenticate(+Request, +Token, -Fields)
+%
+%	Get authentication for editing wiki pages.  This now first tries
+%	the OpenID login.
+
+authenticate(_Request, Token, [UUID,Name]) :-
+	site_user_logged_in(UUID),
+	site_user_property(UUID, granted(Token)),
+	site_user_property(UUID, name(Name)), !.
+authenticate(Request, Token, Fields) :-
+	(   http_authenticate(basic(passwd), Request, Fields)
+	->  true
+	;   format(atom(Msg), 'SWI-Prolog ~w authoring', [Token]),
+		   throw(http_reply(authorise(basic, Msg)))
+	).
 
 
 		 /*******************************

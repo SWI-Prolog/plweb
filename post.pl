@@ -5,6 +5,7 @@
                   % :CheckId
                   % -Ids:list(atom)
     fresh/1, % ?Id:atom
+    all/1,% ?Id:atom
     post/3, % ?Post:or([atom,compound])
             % ?Name:atom
             % ?Value
@@ -119,8 +120,6 @@ request_to_id(Request, Id):-
   memberchk(path(Path), Request),
   atom_concat('/post/', Id, Path).
 
-
-
 % RESTFUL PREDICATES %
 
 rest_process(Request):-
@@ -129,7 +128,10 @@ rest_process(Request):-
   rest_process(Method, Request, Id).
 
 rest_process(Method, Request, Id):-
-  (site_user_logged_in(User), ! ; User = 'not-logged-in'),
+  (   site_user_logged_in(User)
+  ->  true
+  ;   User = anonymous
+  ),
   rest_process(Method, Request, Id, User).
 
 % DELETE
@@ -142,16 +144,16 @@ rest_process(delete, Request, _, _):-
   http_response(Request, 401).
 
 % GET
-rest_process(get, _, Id, _):- !,
-  post(Id, Post),
+rest_process(get, _, Id, _):-
+  post(Id, Post), !,
   prolog_to_json(Post, JSON),
   reply_json(JSON).
 rest_process(get, Request, _, _):-
   http_response(Request, 404).
 
 % POST
-rest_process(post, Request, _, _):- !,
-  http_read_json(Request, JSON),
+rest_process(post, Request, _, _):-
+  http_read_json(Request, JSON), !,
   assert_post(JSON),
   % @tbd If a resource has been created on the origin server, the response
   % SHOULD be 201 (Created) and contain an entity which describes the
@@ -617,6 +619,12 @@ fresh(Id):-
   Age < FreshnessLifetime.
 fresh(_).
 
+%! all(+Id:atom) is det.
+%
+%  News filter, retuning all objects
+
+all(_).
+
 %! relevance(+Id:atom, -Relevance:between(0.0,1.0)) is det.
 % - If `Importance` is higher, then the dropoff of `Relevance` is flatter.
 % - `Relevance` is 0.0 if `FreshnessLifetime =< Age`.
@@ -674,14 +682,14 @@ write_post_js(Kind, About) -->
       function http_post(url, updatePosted, form, method) {
         var down = parseInt(form.siblings("header").find(".post-vote-down").children("img").attr("title"));
         if (isNaN(down)) {down = 0;}
-        
+
         var up = parseInt(form.siblings("header").find(".post-vote-up").children("img").attr("title"));
         if (isNaN(up)) {up = 0;}
-        
+
         var title1, title2;
         title1 = form.find(".title").val();
         if (title1 === undefined) { title2 = null; } else { title2 = title1; }
-        
+
         var posted;
         if (updatePosted) {
           posted = Math.round(Date.now()/1000);
@@ -691,7 +699,7 @@ write_post_js(Kind, About) -->
           var title = date.attr("title");
           posted = parseInt(title);
         }
-        
+
         $.ajax(
           url,
           {
@@ -804,7 +812,7 @@ write_post_js(Kind, About) -->
             }
           );
         });
-        
+
         // Clicking this decreases the number of votes by one.
         $(".post-vote-down").click(function(e) {
           e.preventDefault();
@@ -819,7 +827,7 @@ write_post_js(Kind, About) -->
             "PUT"
           );
         });
-        
+
         // Clicking this increases the number of votes by one.
         $(".post-vote-up").click(function(e) {
           e.preventDefault();
