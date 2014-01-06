@@ -481,9 +481,10 @@ list_tags(Request) :-
 					    default(name)
 					  ])
 			]),
-	reply_html_page(wiki(tags),
-			title('Overview of tags'),
-			\user_tags(_, [sort_by(SortBy)])).
+	reply_html_page(
+	    tags(list),
+	    title('Overview of tags'),
+	    \user_tags(_, [sort_by(SortBy)])).
 
 
 %%	user_tags(?User, +Options)// is det.
