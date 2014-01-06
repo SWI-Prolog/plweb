@@ -34,336 +34,77 @@
     @version 2013/12
 */
 
+:- use_module(generics).
 :- use_module(library(aggregate)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/http_client)).
 :- use_module(library(http/http_dispatch)).
-:- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_path)).
-:- use_module(library(http/http_server_files)).
-:- use_module(library(http/http_wrapper)).
-:- use_module(library(pairs)).
-:- use_module(library(persistency)).
-:- use_module(markitup).
-:- use_module(openid).
-:- use_module(wiki).
+:- use_module(library(http/json_convert)).
+:- use_module(post).
+
+:- html_resource(css('news.css'), [requires([css('post.css')])]).
 
 http:location(news, root(news), []).
-:- http_handler(root(add_news), add_news, []).
-:- http_handler(root(news), news, [prefix]).
+:- http_handler(root(news), rest_process, [prefix]).
 :- http_handler(news(archive), news_archive, []).
 
-% Image files can be loaded from the `/img` path.
-http:location(img, root(img), []).
-user:file_search_path(img, document_root(img)).
-:- http_handler(img(.), serve_files_in_directory(img), [prefix]).
 
-%! news(
-%!   ?Id:atom,
-%!   ?Title:atom,
-%!   ?Content:atom,
-%!   ?Importance:between(0.0,1.0),
-%!   ?Posted:nonneg,
-%!   ?FreshnessLifetime:nonneg,
-%!   ?User:atom
-%! ) is nondet.
-% Internal listing of news items.
-%
-% @param Id The atomic identifier of the news item.
-% @param Title The atomic title for the news item.
-% @param Content ...
-% @param Importance The importance of the news item.
-% @param Posted The time at which the news item was posted.
-% @param FreshnessLifetime How long the news items stays news-worthy.
-% @param User The atomic name of the user who posted the news item.
-
-:- persistent(
-  news(
-    id:atom,
-    title:atom,
-    content:atom,
-    importance:between(0.0,1.0),
-    posted:nonneg,
-    freshness_lifetime:nonneg,
-    user:atom
-  )
-).
-
-:- initialization(db_attach('news.db', [sync(close)])).
-
-
-
-% READ NEWS
 
 % A specific news item.
-news(Request):-
-  memberchk(path(Path), Request),
-  atom_concat('/news/', Id, Path),
-  once(news(Id, Title1, _, _, _, _, _)), !,
+rest_process(Request):-
+  memberchk(method(Method), Request),
+  rest_process(Method, Request).
+
+rest_process(get, Request):-
+  request_to_resource(Request, URL), !,
+  http_get(URL, JSON, []),
+  json_to_prolog(JSON, post:Post),
+  post(Post, title, Title1),
+  post(Post, id, Id),
   atomic_list_concat(['News',Title1], ' -- ', Title2),
   reply_html_page(
-    wiki,
+    user(Title2),
     title(Title2),
-    [\news_item_body(Id),\html_post(title,Title2)]
+    [\news_backlink,\post([], null, Id)]
   ).
 % The list of fresh news items.
-news(_Request):-
-  find_news(fresh, Ids),
+rest_process(get, _):- !,
+  find_posts(news, fresh, Ids),
   Title = 'News',
-  reply_html_page(
-    wiki,
-    title(Title),
-    [\news_body(Ids),\html_post(title,Title)]
-  ).
+  reply_html_page(user(news), \news_header(Title), \posts(news, null, Ids)).
+% @tbd http_redirect/3 changes the HTTP method to GET.
+%%%%http_redirect(see_other, URL, Request).
+/*
+http_copy_headers(Request, Headers),
+http_open(URL, _Stream, [method(Method)|Headers]).
+% @tbd The header name is `contentType`, not `content_type`.
+http_copy_headers(Request, [request_header(content_type=ContentType)]):-
+  memberchk(content_type(ContentType), Request).
+*/
+rest_process(Method, Request):-
+  request_to_id(Request, Id),
+  post:rest_process(Method, Request, Id).
+
+news_header(Title) -->
+  html([
+    \html_requires(css('news.css')),
+    title(Title)
+  ]).
 
 % The list of fresh and stale (i.e., all) news items.
 news_archive(_Request):-
-  find_news(all, Ids),
+  find_posts(news, true, Ids),
   Title = 'News archive',
-  reply_html_page(
-    wiki,
-    title(Title),
-    [\news_body(Ids),\html_post(title,Title)]
-  ).
-
-news_body(Ids) -->
-  html([
-    \html_requires(css('news.css')),
-    div(class=content, [
-      hr([]),
-      div(class=posts, \news_items(Ids)),
-      \add_news_link
-    ])
-  ]).
-
-news_items([]) --> [].
-news_items([Id|Ids]) -->
-  news_item(Id),
-  html(hr([])),
-  news_items(Ids).
-
-news_item(Id) -->
-  {
-    once(news(Id, Title, Content, _, Posted, _, User)),
-    http_absolute_uri(news(Id), Link),
-    atom_codes(Content, Codes),
-    wiki_file_codes_to_dom(Codes, /, DOM1),
-    clean_dom(DOM1, DOM2),
-    relevance(Id, Relevance)
-  },
-  html([
-    section(class=post, [
-      header(class='post-header', [
-        \author_image(User),
-        h2(class='post-title', a(href=Link,Title)),
-        p(class='post-meta', [
-          'By ',
-          a(class='post-author', User),
-          ' under ',
-          a([class=['post-category','post-category-news'],href='#'],'News'),
-          ' at ',
-          \dateTime(Posted),
-          ' (relevance:', Relevance, ')'
-        ])
-      ]),
-      div(class='post-description', DOM2)
-    ])
-  ]).
-
-author_image(User) -->
-  {
-    Size = 75,
-    format(atom(UserAlt), 'Picture of user ~w.', [User]),
-    file_name_extension(User, png, UserImage),
-    http_absolute_uri(img(UserImage), UserImageLink)
-  },
-  html(
-    img([alt=UserAlt,class='post-avatar',height=Size,src=UserImageLink,width=Size])
-  ).
-
-news_item_body(Id) -->
-  html([
-    \html_requires(css('news.css')),
-    \news_backlink,
-    \news_item(Id)
-  ]).
+  reply_html_page(user(Title), title(Title), \posts(news, null, Ids)).
 
 news_backlink -->
   {http_absolute_uri(root(news), Link)},
   html(a(href=Link, 'Back to list of news items')).
 
-add_news_link -->
-  {http_link_to_id(add_news, [], AddNews)},
-  html(p(a(href=AddNews, 'Add news'))).
-
-
-
-% WRITE NEWS
-
-% Store a new news story.
-% @tbd Allow users to login using `site_user_logged_in/1`.
-add_news(Request):-
-  http_parameters(Request, [
-    content(Content, [atom,default('')]),
-    freshness_lifetime(FreshnessLifetime, [default(604800),nonneg]),
-    importance(Importance, [between(0.0,1.0),default(0.50)]),
-    title(Title, [atom,default('')])
-  ]),
-
-  % The content and title must be non-empty.
-  \+ is_empty(Content),
-  \+ is_empty(Title),
-
-  % The same news item cannot be posted multiple times
-  % (not even by different people).
-  variant_sha1(Title-Content, Id),
-  \+ news(Id, _, _, _, _, _, _), !,
-
-  User = 'Wouter Beek', % @tbd
-
-  % The time at which the news item was posted.
-  get_time(Posted1),
-  Posted2 is round(Posted1),
-
-  assert_news(
-    Id,
-    Title,
-    Content,
-    Importance,
-    Posted2,
-    FreshnessLifetime,
-    User
-  ),
-
-  % Show the updated list of news items.
-  http_redirect(moved_temporary, root(news), Request).
-% Show the fill-in form for a new news item.
-add_news(_Request):-
-  Title = 'Add news',
-  reply_html_page(
-    wiki,
-    title(Title),
-    [\add_news_body,\html_post(title,Title)]
-  ).
-
-add_news_body -->
-  {
-    %site_user_logged_in(_User), !,
-    http_link_to_id(add_news, [], AddNews)
-  },
-  html(
-    form(
-      [action(AddNews),id(add_news_form),method('POST')],
-      [
-        % Title
-        label([for=title], 'Title: '),
-        input([id=title,name=title,size=70,type=text], []),
-        br([]),
-
-        % Importance
-        label([for=importance], 'Importance: '),
-        select([id=importance,form=add_news_form,name=importance], [
-          option(value=1.00, 'Very high'),
-          option(value=0.75, 'High'),
-          option([selected=selected,value=0.50], 'Normal'),
-          option(value=0.25, 'Low'),
-          option(value=0.00, 'Very low')
-        ]),
-
-        % Freshness lifetime is represented in seconds.
-        % 1 day is appoximately 86.400 seconds.
-        label([for=freshness_lifetime], 'Freshness lifetime: '),
-        select([id=freshness_lifetime,form=add_news_form,name=freshness_lifetime], [
-          option(value=31536000, 'Very long'),                % One year (almost 'sticky')
-          option(value=2678400, 'Long'),                      % One month
-          option([selected=selected,value=604800], 'Normal'), % One week
-          option(value=86400, 'Short'),                       % One day
-          option(value=3600, 'Very short')                    % One hour
-        ]),
-        br([]),
-
-        % Content
-        table([
-          tr(td(\markitup([id(content),markup(pldoc)]))),
-          tr(td(align(right),input([type(submit),value('Save comment')])))
-        ])
-      ]
-    )
-  ).
-add_news_body -->
-  html(
-    div(class('news-login'), [\login_link,' to add a news item.'])
-  ).
-
-
-
-% SUPPORT PREDICATES
-
-%! age(+Id:atom, -Age:nonneg) is det.
-
-age(Id, Age):-
-  news(Id, _, _, _, Posted, _, _),
-  get_time(Now),
-  Age is Now - Posted.
-
-% @tbd Occurs in multiple locations.
-clean_dom([p(X)], X) :- !.
-clean_dom(X, X).
-
-dateTime(TimeStamp) -->
-  {format_time(atom(Atom), '%Y-%m-%dT%H:%M:%S', TimeStamp)},
-  html([Atom]).
-
-%! is_empty(+Content:atom) is semidet.
-
-is_empty(Content):-
-  normalize_space(atom(''), Content).
-
-%! find_news(+Status:oneof([all,fresh]), -Ids:list(atom)) is det.
-
-find_news(Status, Ids):-
-  findall(
-    Posted-Id,
-    (
-      news(Id, _, _, _, Posted, _, _),
-      (Status == fresh -> fresh(Id) ; true)
-    ),
-    Pairs1
-  ),
-  keysort(Pairs1, Pairs2),
-  reverse(Pairs2, Pairs3),
-  pairs_values(Pairs3, Ids).
-
-%! fresh(+Id:atom) is semidet.
-%! fresh(?Id:atom) is nondet
-
-fresh(Id):-
-  news(Id, _, _, _, _, FreshnessLifetime, _),
-  age(Id, Age),
-  Age < FreshnessLifetime.
-
-%! stale(+Id:atom) is semidet.
-%! stale(?Id:atom) is nondet
-
-stale(Id):-
-  \+ fresh(Id).
-
-% @tbd Move to openid module.
-login_link -->
-  {http_current_request(Request)},
-  login_link(Request).
-
-%! random_betwixt(+UpperLimit:number, -Random:float) is det.
-
-random_betwixt(UpperLimit, Random):-
-  integer(UpperLimit), !,
-  random_betwixt(0, UpperLimit, Random).
-random_betwixt(UpperLimit, Random):-
-  float(UpperLimit), !,
-  random_betwixt(0.0, UpperLimit, Random).
-
-random_betwixt(LowerLimit, UpperLimit, Random):-
-  Random is LowerLimit + random_float * (UpperLimit - LowerLimit).
+%! random_news// is semidet.
+% Fails if there is no news.
 
 random_news -->
   {
@@ -381,36 +122,32 @@ random_news -->
   aggregate_all(
     sum(Relevance),
     (
-      news(Id, _, _, _, _, _, _),
+      post(Id, kind, news),
       relevance(Id, Relevance)
     ),
     SummedRelevance
   ),
   random_betwixt(SummedRelevance, R),
-  find_news(fresh, Ids),
+  find_posts(news, fresh, Ids),
   '_random_news'(0.0, R, Ids, Id, Title).
-
 '_random_news'(_V, _R, [Id], Id, Title):- !,
-  once(news(Id, Title, _, _, _, _, _)).
+  post(Id, title, Title).
 '_random_news'(V1, R, [Id|_], Id, Title):-
   relevance(Id, Relevance),
   V2 is V1 + Relevance,
   R =< V2, !,
-  once(news(Id, Title, _, _, _, _, _)).
+  post(Id, title, Title).
 '_random_news'(V1, R, [Id0|Ids], Id, Title):-
   relevance(Id0, Relevance),
   V2 is V1 + Relevance,
   '_random_news'(V2, R, Ids, Id, Title).
 
-%! relevance(+Id:atom, -Relevance:between(0.0,1.0)) is det.
-% - If `Importance` is higher, then the dropoff of `Relevance` is flatter.
-% - `Relevance` is 0.0 if `FreshnessLifetime =< Age`.
-% - `Relevance` is 1.0 if `Age == 0`.
+request_to_id(Request, Id):-
+  memberchk(path(Path), Request),
+  atom_concat('/news/', Id, Path).
 
-relevance(Id, 0.0):-
-  stale(Id), !.
-relevance(Id, Relevance):-
-  once(news(Id, _, _, Importance, _, FreshnessLifetime, _)),
-  age(Id, Age),
-  Relevance is Importance * (1 - Age / FreshnessLifetime).
+request_to_resource(Request, URL):-
+  request_to_id(Request, Id),
+  Id \== '',
+  http_absolute_uri(post(Id), URL).
 

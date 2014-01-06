@@ -339,7 +339,7 @@ submit_profile(Request) :-
 
 retry_captcha(Why, Warning) :-
 	reply_html_page(
-	    wiki,
+	    plain,
 	    title('CAPTCHA failed'),
 	    [ h1(class(wiki), Why),
 	      p(class(error), Warning),
@@ -372,7 +372,7 @@ view_profile(Request) :-
 	),
 	site_user_property(UUID, name(Name)),
 	reply_html_page(
-	    wiki,
+	    user(view_profile),
 	    title('User ~w'-[Name]),
 	    [ \edit_link(UUID, Options),
 	      h1(class(wiki), 'Profile for user ~w'-[Name]),

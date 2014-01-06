@@ -42,6 +42,7 @@
 :- use_module(library(http/http_parameters)).
 :- use_module(library(pldoc/doc_html), [object_ref/4, object_href/2]).
 :- use_module(wiki).
+:- use_module(object_support).
 :- use_module(openid).
 :- use_module(tagit).
 :- use_module(markitup).

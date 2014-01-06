@@ -27,10 +27,8 @@
     the GNU General Public License.
 */
 
-:- module(plweb_page,
-	  [ sidebar//0,
-	    server_address//0
-	  ]).
+:- module(plweb_page, [sidebar//0]).
+:- use_module(footer).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_path)).
@@ -47,8 +45,8 @@
 :- use_module(did_you_know).
 
 :- html_meta
-	outer_container(html, ?, ?),
-	outer_container(html, +, ?, ?).
+	outer_container(+, html, ?, ?),
+	outer_container(+, html, +, ?, ?).
 
 :- http_handler(root(search), plweb_search, []).
 
@@ -60,7 +58,7 @@
 	user:body//2.
 
 user:body(homepage, Body) --> !,
-	outer_container([ \tag_line_area,
+	outer_container(_, [ \tag_line_area,
 			  \menubar(fixed_width),
 			  \blurb,
 			  \cta_area,
@@ -68,27 +66,27 @@ user:body(homepage, Body) --> !,
 			  Body
 			]).
 user:body(user(Action), Body) --> !,
-	outer_container([ \title_area(user(Action)),
+	outer_container(_, [ \title_area(user(Action)),
 			  \menubar(fixed_width),
 			  div(class(breadcrumb), []),
 			  div([id(contents), class([contents, user])], Body)
 			], false).
 user:body(wiki(Path, Title), Body) --> !,
-	outer_container([ \title_area(title(Title)),
+	outer_container(_, [ \title_area(title(Title)),
 			  \menubar(fixed_width),
 			  div(class(breadcrumb), []),
 			  div([id(contents), class([contents, wiki])], Body),
 			  \wiki_user_annotations(Path)
 			]).
 user:body(pldoc(search(For)), Body) --> !,
-	outer_container([ \title_area(pldoc(search(For))),
+	outer_container(_, [ \title_area(pldoc(search(For))),
 			  \menubar(fixed_width),
 			  div(class(breadcrumb), []),
 			  div([id(contents), class([contents, search])],
 			      div(class(search), Body))
 			]).
 user:body(pldoc(Obj), Body) --> !,
-	outer_container([ \title_area(pldoc(Obj)),
+	outer_container(Obj, [ \title_area(pldoc(Obj)),
 			  \menubar(fixed_width),
 			  div(class(breadcrumb), []),
 			  div([id(contents), class([contents, pldoc])], Body)
@@ -100,20 +98,20 @@ user:body(default, Body) --> !,
 user:body(Style, _Body) -->
 	html(div('Unknown page style ~q'-[Style])).
 
-outer_container(Content) -->
-	outer_container(Content, true).
+outer_container(Arg, Content) -->
+	outer_container(Arg, Content, true).
 
-outer_container(Content, ShowUser) -->
+outer_container(Arg, Content, _ShowUser) -->
 	html(body(div(class('outer-container'),
 		  [ \html_requires(plweb),
 		    \html_requires(swipl_css),
 		    \shortcut_icons,
 		    \upper_header,
 		    Content,
-		    div(class([footer, newstyle]),
-			[ \show_user(ShowUser),
-			  \server_address
-			]),
+		    div(class([footer, newstyle]), \footer(Arg)),
+			%[ \show_user(ShowUser),
+			%  \server_information
+			%]),
 		    div(id('tail-end'), &(nbsp))
 		  ]))),
 	html_receive(script).
@@ -337,13 +335,13 @@ menubar(fixed_width) -->
                 <li>DOCUMENTATION
                     <ul>
                         <li><a href="/pldoc/refman/">MANUAL</a></li>
-                        <li><a href="/pldoc/package/">PACKAGES</a></li>
+                        <li><a href="/pldoc/index.html">PACKAGES</a></li>
                         <li><a href="/FAQ/">FAQ</a></li>
                         <li><a href="/pldoc/man?section=cmdline">COMMAND LINE</a></li>
                         <li><a href="/pldoc/package/pldoc.html">PLDOC</a></li>
                         <li>BLUFFERS<span class='arrow'>&#x25B6;</span>
                             <ul>
-                                <li><a href="/pldoc/man?section=syntax">PROLOG SYNTAX</a></li>
+                                <li><a href="/prologsyntax.html">PROLOG SYNTAX</a></li>
                                 <li><a href="/pldoc/man?section=emacsbluff">pceEMACS</a></li>
                                 <li><a href="/htmlbluffer.html">HTML GENERATION</a></li>
                             </ul>
@@ -513,21 +511,3 @@ parent(Base, Parent) :-
 	Dir \== Base,
 	parent(Dir, Parent).
 
-
-%%	server_address//
-%
-%	Emit information about the server
-
-server_address -->
-	{ prolog_version(Version)
-	},
-	html(a([ class(powered),
-		 href('http://www.swi-prolog.org')
-	       ],
-	       ['Powered by SWI-Prolog', ' ', Version])).
-
-prolog_version(Version) :-
-	current_prolog_flag(version_git, Version), !.
-prolog_version(Version) :-
-	current_prolog_flag(version_data, swi(Ma,Mi,Pa,_)),
-	format(atom(Version), '~w.~w.~w', [Ma,Mi,Pa]).

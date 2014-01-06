@@ -1,6 +1,12 @@
 % Debug file for project `plweb`.
 user:debug_project.
 
+%:- initialization(init_plweb).
+%init_plweb:-
+%  source_file(init_plweb, ThisFile),
+%  file_directory_name(ThisFile, ThisDir),
+%  assert(user:file_search_path(plweb, ThisDir)).
+
 % Print code strings with their code table replacements.
 :- use_module(library(portray_text)).
 :- portray_text(true).
@@ -40,6 +46,22 @@ user:debug_project.
 :- use_module(news).
 :- server.
 
-%:- use_module(library(www_browser)).
-%:- www_open_url('http://localhost:3040/news').
+%:- use_module(library(settings)).
+%:- set_setting_default(http:public_host, localhost).
+%:- set_setting_default(http:public_port, setting(http:port)).
+
+:- use_module(library(prolog_pack)).
+:- catch(use_module(library(http/recaptcha)), _, ignore(pack_install(recaptcha))).
+:- use_module(library(settings)).
+:- set_setting_default(
+  recaptcha:public_key,
+  '6LeRb-wSAAAAAAAMSfqiceu8u7QHOsfe4WOBJL44'
+).
+:- set_setting_default(
+  recaptcha:private_key,
+  '6LeRb-wSAAAAAM9IwyUZBtSvbK38kTjUn5xJhpha'
+).
+
+% @tbd Loaded in production.
+:- use_module(annotation).
 

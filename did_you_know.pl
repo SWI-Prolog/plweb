@@ -43,9 +43,8 @@ did_you_know -->
     random(R)
   },
   (
-    {R < NewsPercentage}
-  ->
-    random_news
+    {R < NewsPercentage},
+    random_news, !
   ;
     random_hint
   ).
@@ -107,7 +106,7 @@ dyk_sayings([
     ['SWI-Prolog supports ', b('TIPC')]-'/pldoc/package/tipc.html',
     ['You can read/write ', b('.zip'), ' files']-'/pldoc/package/zlib.html',
     ['SWI-Prolog can talk to Java,C,C++,Python,and C#']-'/contrib/',
-    ['You can control ', b('MIDI'), 'on Mac with SWI-Prolog']-'/contrib/SamerAbdallah/index.html',
+    ['You can control ', b('MIDI'), ' on Mac with SWI-Prolog']-'/contrib/SamerAbdallah/index.html',
     ['SWI-Prolog has ', b('an OpenGL Interface')]-'/contrib/OpenGL.html',
     ['SWI-Prolog is highly ', b('cross platform')]-none,
     'SWI-Prolog has multiple high quality random number generators'-'/contrib/SamerAbdallah/index.html',
