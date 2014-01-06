@@ -311,7 +311,7 @@ hidden(Name, Value) -->
 %	HTTP handler that displays a Wiki sandbox
 
 wiki_sandbox(_Request) :-
-	reply_html_page(wiki,
+	reply_html_page(wiki(sandbox),
 			title('PlDoc wiki sandbox'),
 			[ \sandbox
 			]).
@@ -319,8 +319,7 @@ wiki_sandbox(_Request) :-
 sandbox -->
 	{ http_absolute_location(root('pldoc/package/pldoc.html'), PlDoc, [])
 	},
-	html([ h1('PlDoc wiki sandbox'),
-	       p([ 'This page provides a sandbox for the ',
+	html([ p([ 'This page provides a sandbox for the ',
 		   a(href(PlDoc), 'PlDoc'),
 		   ' wiki format.  The preview window is updated every ',
 		   'time you hit the RETURN or TAB key.'
