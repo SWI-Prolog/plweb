@@ -413,9 +413,9 @@ menubar(fixed_width) -->
                 <li>USERS
                     <ul>
                         <li><a href="/web/index.html">SEMANTIC WEB</a></li>
-                        <li><a href="/swipltuts/student/index.html">STUDENTS</a></li>
-                        <li><a href="/Publications.html">RESEARCHERS</a></li>
-                        <li><a href="/commercial.html">COMMERCIAL USERS</a></li>
+                        <li><a href="/students/index.html">STUDENTS</a></li>
+                        <li><a href="/research/index.html">RESEARCHERS</a></li>
+                        <li><a href="/commercial/index.html">COMMERCIAL USERS</a></li>
                         <li><a href="/dogfood.html">DOG FOOD</a></li>
                     </ul>
                 </li><!-- users -->
