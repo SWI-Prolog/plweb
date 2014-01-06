@@ -144,27 +144,6 @@ shortcut_icons -->
 		    link([ rel('apple-touch-icon'), href(TouchIcon) ])
 		  ]).
 
-%%	wiki_user_annotations(+WikiPath)//
-%
-%	Add  space  for  user  annotations    using  the  pseudo  object
-%	wiki(Location).
-
-:- multifile
-	prolog:doc_object_page_footer//2.
-
-wiki_user_annotations(WikiPath) -->
-	{ \+ locked_wiki_page(WikiPath)
-	}, !,
-	prolog:doc_object_page_footer(wiki(WikiPath), []).
-wiki_user_annotations(_) --> [].
-
-%%	locked_wiki_page(+WikiPath) is semidet
-%
-%	True if this page is not editable (that is, locked)
-
-locked_wiki_page(_WikiPath) :-
-	fail.
-
 %%	upper_header//
 %
 %	Emit the small blue header with Did You Know? and search box
