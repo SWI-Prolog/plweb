@@ -348,15 +348,15 @@ menubar(fixed_width) -->
                 <li>DOCUMENTATION
                     <ul>
                         <li><a href="/pldoc/refman/">MANUAL</a></li>
-                        <li><a href="/pldoc/index.html">PACKAGES</a></li>
+                        <li><a href="/pldoc/package/">PACKAGES</a></li>
                         <li><a href="/FAQ/">FAQ</a></li>
                         <li><a href="/pldoc/man?section=cmdline">COMMAND LINE</a></li>
                         <li><a href="/pldoc/package/pldoc.html">PLDOC</a></li>
                         <li>BLUFFERS<span class='arrow'>&#x25B6;</span>
                             <ul>
-                                <li><a href="/prologsyntax.html">PROLOG SYNTAX</a></li>
+                                <li><a href="/pldoc/man?section=syntax">PROLOG SYNTAX</a></li>
                                 <li><a href="/pldoc/man?section=emacsbluff">pceEMACS</a></li>
-                                <li><a href="/htmlbluffer.html">HTML GENERATION</a></li>
+                                <li><a href="/pldoc/man?section=htmlwrite">HTML GENERATION</a></li>
                             </ul>
                         </li>
                         <li><a href="/license.html">LICENSE</a></li>
