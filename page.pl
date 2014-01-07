@@ -461,9 +461,9 @@ blurb -->
 cta_area -->
 	html({|html(_)||
     <div id='cta-container'>
-        <div>Download SWI-Prolog</div>
-        <div>Get Started</div>
-        <div>Is SWI-Prolog Right For My Project?</div>
+        <div><a href="Download.html">Download SWI-Prolog</a></div>
+        <div><a href="pldoc/man?section=quickstart">Get Started</a></div>
+        <div><a href="pldoc/man?section=swiorother">Is SWI-Prolog Right For My Project?</a></div>
     </div>
     <div>&nbsp;</div>|}).
 
