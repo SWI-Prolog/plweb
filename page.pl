@@ -379,7 +379,7 @@ menubar(fixed_width) -->
                         <li>BEGINNER<span class='arrow'>&#x25B6;</span>
                             <ul>
                                 <li><a href="/pldoc/man?section=quickstart">GETTING STARTED</a></li>
-                                <li><a href="/swipltuts/mod/index.html">MODULES</a></li>
+                                <li><a href="http://michael.richter.name/tutorials/swiplmod">MODULES</a></li>
                                 <li><a href="/pldoc/man?section=debugoverview">DEBUGGER</a></li>
                                 <li><a href="/IDE.html">DEVELOPMENT TOOLS</a></li>
                             </ul>
@@ -397,7 +397,7 @@ menubar(fixed_width) -->
                         <li>ADVANCED<span class='arrow'>&#x25B6;</span>
                             <ul>
                                 <li><a href="/howto/UseRdfMeta.html">RDF NAMESPACES</a></li>
-                                <li><a href="/build/guidelines.txt">UNIX PACKAGES</a></li>
+                                <li><a href="/build/guidelines.txt">LINUX PACKAGES</a></li>
                             </ul>
                         </li>
                     </ul>
