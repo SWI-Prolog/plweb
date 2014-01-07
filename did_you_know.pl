@@ -63,6 +63,7 @@ random_hint -->
   },
   html([
     span(class(lbl), 'Did you know?'),
+    ' ',
     span(id(dyknow), Info)
   ]).
 
