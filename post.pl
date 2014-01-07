@@ -259,13 +259,11 @@ post(O1, About, Id) -->
   (
     {option(standalone(true), O1, true)}
   ->
+    html_requires(css('post.css')),
     (
       {site_user_logged_in(_)}
     ->
-      html([
-        \html_requires(css('post.css')),
-        \write_post_js(Kind, About)
-      ])
+      html(\write_post_js(Kind, About))
     ;
       login_post(Kind)
     )

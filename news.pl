@@ -51,11 +51,11 @@ http:location(news, root(news), []).	% used for write_post_js//2.
 :- http_handler(root(news/archive), news_archive, []).
 
 
-% A specific news item.
 news_process(Request):-
   memberchk(method(Method), Request),
   news_process(Method, Request).
 
+% HTTP GET on a specific news item.
 news_process(get, Request):-
   request_to_resource(Request, URL), !,
   http_get(URL, JSON, []),
@@ -68,20 +68,12 @@ news_process(get, Request):-
     title(Title2),
     [\news_backlink,\post([], null, Id)]
   ).
-% The list of fresh news items.
+% HTTP GET without a specific news item: enumerate all fresh news item.
 news_process(get, _):- !,
   find_posts(news, fresh, Ids),
   Title = 'News',
   reply_html_page(news(fresh), \news_header(Title), \posts(news, null, Ids)).
-% @tbd http_redirect/3 changes the HTTP method to GET.
-%%%%http_redirect(see_other, URL, Request).
-/*
-http_copy_headers(Request, Headers),
-http_open(URL, _Stream, [method(Method)|Headers]).
-% @tbd The header name is `contentType`, not `content_type`.
-http_copy_headers(Request, [request_header(content_type=ContentType)]):-
-  memberchk(content_type(ContentType), Request).
-*/
+% HTTP methods other than GET go via the REST API for generic posts.
 news_process(Method, Request):-
   request_to_id(Request, Id),
   post:rest_process(Method, Request, Id).
