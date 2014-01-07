@@ -293,6 +293,9 @@ page_title(user(logout)) --> !,
 	html('Logged out from www.swi-prolog.org').
 page_title(user(create_profile)) --> !,
 	html('Create user profile').
+page_title(user(view_profile(UUID))) --> !,
+	{ site_user_property(UUID, name(Name)) },
+	html('Profile for user ~w'-[Name]).
 page_title(news(fresh)) --> !,
 	html('News').
 page_title(news(all)) --> !,

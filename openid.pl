@@ -391,10 +391,9 @@ view_profile(Request) :-
 	),
 	site_user_property(UUID, name(Name)),
 	reply_html_page(
-	    user(view_profile),
+	    user(view_profile(UUID)),
 	    title('User ~w'-[Name]),
 	    [ \edit_link(UUID, Options),
-	      h1(class(wiki), 'Profile for user ~w'-[Name]),
 	      \view_profile(UUID, Options)
 	    ]).
 
