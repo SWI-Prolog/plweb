@@ -249,7 +249,7 @@ post(O1, About, Id) -->
 
   html(
     article([class=[post,Kind],id=Id,style=Style], [
-      \post_header(Id),
+      \post_header(O1, Id),
       \post_section(Id),
       \edit_remove_post(Id)
     ])
@@ -295,10 +295,14 @@ post_category(Category) -->
   },
   html(a([class='post-category',href=Link],Category)).
 
-post_header(Id) -->
+%! post_header(+Options:list(nvpair), +Id:atom)// is det.
+% When the post appears in isolation (option =|standalone(true)|=),
+%  the title is not displayed.
+
+post_header(O1, Id) -->
   html(
     header([], [
-      \post_title(Id),
+      \post_title(O1, Id),
       \post_metadata(Id),
       \html_receive(edit_remove(Id)),
       \post_votes(Id)
@@ -331,6 +335,38 @@ post_metadata(news, Id) -->
     ])
   ).
 
+post_section(Id) -->
+  {
+    post(Id, author, Author),
+    post(Id, content, Content),
+    atom_codes(Content, Codes),
+    wiki_file_codes_to_dom(Codes, /, DOM1),
+    clean_dom(DOM1, DOM2)
+  },
+  html(
+    section([], [
+      \author_image(Author),
+      div(class='read-post', DOM2)
+    ])
+  ).
+
+post_time(Id) -->
+  {post(Id, posted, Posted)},
+  html(\dateTime(Posted)).
+
+post_title(O1, _) -->
+  {option(standalone(true), O1, true)}, !,
+  [].
+post_title(_, Id) -->
+  {
+    post(Id, kind, Kind),
+    post(Id, title, Title),
+    nonvar(Title), !,
+    Spec =.. [Kind,Id],
+    http_absolute_location(Spec, Link, [])
+  },
+  html(h2(class='post-title',a(href=Link,Title))).
+
 post_votes(Id) -->
   {
     post(Id, votes_down, Down),
@@ -352,36 +388,6 @@ post_votes(Id) -->
       )
     ])
   ).
-
-post_section(Id) -->
-  {
-    post(Id, author, Author),
-    post(Id, content, Content),
-    atom_codes(Content, Codes),
-    wiki_file_codes_to_dom(Codes, /, DOM1),
-    clean_dom(DOM1, DOM2)
-  },
-  html(
-    section([], [
-      \author_image(Author),
-      div(class='read-post', DOM2)
-    ])
-  ).
-
-post_time(Id) -->
-  {post(Id, posted, Posted)},
-  html(\dateTime(Posted)).
-
-post_title(Id) -->
-  {
-    post(Id, kind, Kind),
-    post(Id, title, Title),
-    nonvar(Title), !,
-    Spec =.. [Kind,Id],
-    http_absolute_location(Spec, Link, [])
-  },
-  html(h2(class='post-title',a(href=Link,Title))).
-post_title(_) --> [].
 
 
 
