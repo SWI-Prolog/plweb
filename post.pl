@@ -331,7 +331,7 @@ post_metadata(news, Id) -->
     span(class='post-meta', [
       'By ',
       \user_profile_link(Author),
-      \post_categories(Id),
+      %\post_categories(Id),
       ' at ',
       \post_time(Id)
     ])
