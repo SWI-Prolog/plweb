@@ -51,13 +51,10 @@ http:location(news, root(news), []).	% used for write_post_js//2.
 :- http_handler(root(news/archive), news_archive, []).
 
 
-news_process(Request):-
-  memberchk(method(Method), Request),
-  news_process(Method, Request).
-
 % HTTP GET on a specific news item.
-news_process(get, Request):-
-  request_to_resource(Request, URL), !,
+news_process(Request):-
+  memberchk(method(get), Request),
+  request_to_resource(Request, news, URL), !,
   http_get(URL, JSON, []),
   json_to_prolog(JSON, post:Post),
   post(Post, title, Title1),
@@ -69,14 +66,15 @@ news_process(get, Request):-
     [\news_backlink,\post([], null, Id)]
   ).
 % HTTP GET without a specific news item: enumerate all fresh news item.
-news_process(get, _):- !,
+news_process(Request):-
+  memberchk(method(get), Request), !,
   find_posts(news, fresh, Ids),
   Title = 'News',
   reply_html_page(news(fresh), \news_header(Title), \posts(news, null, Ids)).
 % HTTP methods other than GET go via the REST API for generic posts.
-news_process(Method, Request):-
-  request_to_id(Request, Id),
-  post:rest_process(Method, Request, Id).
+news_process(Request):-
+  request_to_id(Request, news, Id),
+  post_process(Request, Id).
 
 news_header(Title) -->
   html([
@@ -131,13 +129,4 @@ random_news -->
   relevance(Id0, Relevance),
   V2 is V1 + Relevance,
   '_random_news'(V2, R, Ids, Id, Title).
-
-request_to_id(Request, Id):-
-  memberchk(path(Path), Request),
-  atom_concat('/news/', Id, Path).
-
-request_to_resource(Request, URL):-
-  request_to_id(Request, Id),
-  Id \== '',
-  http_absolute_uri(post(Id), URL).
 

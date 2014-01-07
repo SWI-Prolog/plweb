@@ -17,6 +17,8 @@
               % +Ids:list(atom)
     relevance/2, % +Id:atom
                  % -Relevance:between(0.0,1.0))
+    post_process/2, % +Request:list
+                    % +Id:atom
     sort_posts/2 % +Ids:list(atom)
                  % -SortedIds:list(atom)
   ]
@@ -104,9 +106,11 @@ user:file_search_path(img, document_root(img)).
 :- http_handler(img(.), serve_files_in_directory(img), [prefix]).
 
 http:location(post, root(post), []).
-:- http_handler(post(.), rest_process, [prefix]).
+:- http_handler(post(.), post_process, [prefix]).
 
 
+
+% PERSISTENCY PREDICATES %
 
 assert_post(JSON):-
   json_to_prolog(JSON, Post),
@@ -116,43 +120,41 @@ assert_post(JSON):-
 retract_post(Id):-
   retract_post(Id, _).
 
-request_to_id(Request, Id):-
-  memberchk(path(Path), Request),
-  atom_concat('/post/', Id, Path).
+
 
 % RESTFUL PREDICATES %
 
-rest_process(Request):-
-  memberchk(method(Method), Request),
-  request_to_id(Request, Id),
-  rest_process(Method, Request, Id).
+post_process(Request):-
+  request_to_id(Request, post, Id),
+  post_process(Request, Id).
 
-rest_process(Method, Request, Id):-
+post_process(Request, Id):-
+  memberchk(method(Method), Request),
   (   site_user_logged_in(User)
   ->  true
   ;   User = anonymous
   ),
-  rest_process(Method, Request, Id, User).
+  post_process(Method, Request, Id, User).
 
 % DELETE
-rest_process(delete, Request, Id, User):-
+post_process(delete, Request, Id, User):-
   % Make sure the user is the author.
   post(Id, author, User), !,
   retract_post(Id),
   http_response(Request, 204).
-rest_process(delete, Request, _, _):-
+post_process(delete, Request, _, _):-
   http_response(Request, 401).
 
 % GET
-rest_process(get, _, Id, _):-
+post_process(get, _, Id, _):-
   post(Id, Post), !,
   prolog_to_json(Post, JSON),
   reply_json(JSON).
-rest_process(get, Request, _, _):-
+post_process(get, Request, _, _):-
   http_response(Request, 404).
 
 % POST
-rest_process(post, Request, _, _):-
+post_process(post, Request, _, _):-
   http_read_json(Request, JSON), !,
   assert_post(JSON),
   % @tbd If a resource has been created on the origin server, the response
@@ -160,18 +162,18 @@ rest_process(post, Request, _, _):-
   % status of the request and refers to the new resource, and a Location
   % header (see section 14.30).
   http_response(Request, 201).
-rest_process(post, Request, _, _):-
+post_process(post, Request, _, _):-
   http_response(Request, 400).
 
 % PUT
-rest_process(put, Request, Id, User):-
+post_process(put, Request, Id, User):-
   % Make sure the user is the author.
   post(Id, author, User), !,
   retract_post(Id),
   http_read_json(Request, JSON),
   assert_post(JSON),
   http_response(Request, 204).
-rest_process(put, Request, _, _):-
+post_process(put, Request, _, _):-
   http_response(Request, 401).
 
 

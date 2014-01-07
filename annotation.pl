@@ -15,6 +15,7 @@
 @version 2014/01
 */
 
+:- use_module(generics).
 :- use_module(library(dcg/basics)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
@@ -33,16 +34,13 @@
 :- multifile(prolog:doc_object_page_footer/2).
 
 http:location(annotation, root(annotation), []).
-:- http_handler(root(annotation), rest_process, [prefix]).
+:- http_handler(root(annotation), annotation_process, [prefix]).
 
 
 
-rest_process(Request):-
-  memberchk(method(Method), Request),
-  rest_process(Method, Request).
-
-rest_process(get, Request):-
-  request_to_resource(Request, URL), !,
+annotation_process(Request):-
+  memberchk(method(get), Request),
+  request_to_resource(Request, annotation, URL), !,
   http_get(URL, JSON, []),
   json_to_prolog(JSON, post:Post),
   post(Post, id, Id),
@@ -51,18 +49,9 @@ rest_process(get, Request):-
   object_label(Object, Label),
   atomic_list_concat(['Annotation',Label], '--', Title),
   reply_html_page(wiki(Title), title(Title), \post([], About, Id)).
-rest_process(Method, Request):-
-  request_to_id(Request, Id),
-  post:rest_process(Method, Request, Id).
-
-request_to_id(Request, Id):-
-  memberchk(path(Path), Request),
-  atom_concat('/annotation/', Id, Path).
-
-request_to_resource(Request, URL):-
-  request_to_id(Request, Id),
-  Id \== '',
-  http_absolute_uri(post(Id), URL).
+annotation_process(Request):-
+  request_to_id(Request, annotation, Id),
+  post_process(Request, Id).
 
 annotation(Object1) -->
   {

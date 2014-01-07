@@ -13,6 +13,12 @@
            % -Encrypted:or([atom,list(code),string])
     random_betwixt/2, % +UpperLimit:float
                       % -Random:float
+    request_to_id/3, % +Request:list
+                     % +Kind:oneof([annotation,news,post])
+                     % -Id:atom
+    request_to_resource/3, % +Request:list
+                           % +Kind:oneof([annotation,news,post])
+                           % -URL:atom
     sep//0,
     strip_spaces/2, % +Unstripped:or([atom,list(code)])
                     % +Stripped:or([atom,list(code)])
@@ -41,6 +47,8 @@ Candidates for placement in some library.
 :- use_module(library(apply)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_client)).
+:- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_path)).
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(option)).
 :- use_module(library(pldoc/doc_wiki)).
@@ -119,6 +127,17 @@ random_betwixt(UpperLimit, Random):-
 
 random_betwixt(LowerLimit, UpperLimit, Random):-
   Random is LowerLimit + random_float * (UpperLimit - LowerLimit).
+
+request_to_id(Request, Kind, Id):-
+  memberchk(path(Path), Request),
+  atomic_list_concat(['',Kind,Id], '/', Path).
+
+request_to_resource(Request, Kind, URL):-
+  request_to_id(Request, Kind, Id),
+  Id \== '',
+  http_link_to_id(post_process, path_postfix(Id), Link),
+  http_absolute_uri(Link, URL).
+  %http_absolute_uri(post(Id), URL).
 
 sep -->
   html(span(class(separator), '|')).
