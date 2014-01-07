@@ -117,9 +117,10 @@ user:body(pldoc(search(For)), Body) --> !,
 			  div([id(contents), class([contents, search])],
 			      div(class(search), Body))
 			]).
-user:body(pldoc(Obj), Body) --> !,
+user:body(pldoc(Arg), Body) --> !,
+	{ ignore(Arg = object(Obj)) },
 	outer_container(Obj,
-			[ \title_area(pldoc(Obj)),
+			[ \title_area(pldoc(Arg)),
 			  \menubar(fixed_width),
 			  div(class(breadcrumb), []),
 			  div([id(contents), class([contents, pldoc])], Body)
