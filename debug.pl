@@ -43,15 +43,12 @@ user:debug_project.
 %:- set_test_options([load(normal),run(make(all))]).
 
 :- [load].
-:- use_module(news).
 :- server.
 
 %:- use_module(library(settings)).
 %:- set_setting_default(http:public_host, localhost).
 %:- set_setting_default(http:public_port, setting(http:port)).
 
-:- use_module(library(prolog_pack)).
-:- catch(use_module(library(http/recaptcha)), _, ignore(pack_install(recaptcha))).
 :- use_module(library(settings)).
 :- set_setting_default(
   recaptcha:public_key,
@@ -61,7 +58,4 @@ user:debug_project.
   recaptcha:private_key,
   '6LeRb-wSAAAAAM9IwyUZBtSvbK38kTjUn5xJhpha'
 ).
-
-% @tbd Loaded in production.
-:- use_module(annotation).
 

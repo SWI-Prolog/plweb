@@ -32,7 +32,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(openid).
-:- catch(use_module(library(smtp)), _, ignore(pack_install(smtp))).
+:- use_module(library(smtp)).
 
 :- http_handler(root(register),            register,            []).
 :- http_handler(root(submit_registration), submit_registration, []).
