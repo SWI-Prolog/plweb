@@ -46,8 +46,7 @@
 :- use_module(did_you_know).
 
 :- html_meta
-	outer_container(+, html, ?, ?),
-	outer_container(+, html, +, ?, ?).
+	outer_container(html, +, ?, ?).
 
 :- http_handler(root(search), plweb_search, []).
 
@@ -59,72 +58,24 @@
 	user:body//2.
 
 user:body(homepage, Body) --> !,
-	outer_container(_,
-			[ \tag_line_area,
+	outer_container([ \tag_line_area,
 			  \menubar(fixed_width),
 			  \blurb,
 			  \cta_area,
 			  \enhanced_search_area,
 			  Body
-			]).
-user:body(user(Action), Body) --> !,
-	outer_container(_,
-			[ \title_area(user(Action)),
-			  \menubar(fixed_width),
-			  div(class(breadcrumb), []),
-			  div([id(contents), class([contents, user])], Body)
-			], false).
-user:body(news(Which), Body) --> !,
-	outer_container(_,
-			[ \title_area(news(Which)),
-			  \menubar(fixed_width),
-			  div(class(breadcrumb), []),
-			  div([id(contents), class([contents,  news])], Body)
-			]).
-user:body(wiki(Special), Body) --> !,
-	outer_container(_,
-			[ \title_area(wiki(Special)),
-			  \menubar(fixed_width),
-			  div(class(breadcrumb), []),
-			  div([id(contents), class([contents, wiki])], Body)
-			]).
-user:body(wiki(Path, Title), Body) --> !,
-	outer_container(wiki(Path),
-			[ \title_area(title(Title)),
-			  \menubar(fixed_width),
-			  div(class(breadcrumb), []),
-			  div([id(contents), class([contents, wiki])], Body)
-			]).
-user:body(pack(Action), Body) --> !,
-	outer_container(_,
-			[ \title_area(pack(Action)),
-			  \menubar(fixed_width),
-			  div(class(breadcrumb), []),
-			  div([id(contents), class([contents, wiki])], Body)
-			]).
-user:body(tags(Action), Body) --> !,
-	outer_container(_,
-			[ \title_area(tags(Action)),
-			  \menubar(fixed_width),
-			  div(class(breadcrumb), []),
-			  div([id(contents), class([contents, tags])], Body)
-			]).
-user:body(pldoc(search(For)), Body) --> !,
-	outer_container(_,
-			[ \title_area(pldoc(search(For))),
-			  \menubar(fixed_width),
-			  div(class(breadcrumb), []),
-			  div([id(contents), class([contents, search])],
-			      div(class(search), Body))
-			]).
-user:body(pldoc(Arg), Body) --> !,
-	{ ignore(Arg = object(Obj)) },
-	outer_container(Obj,
-			[ \title_area(pldoc(Arg)),
-			  \menubar(fixed_width),
-			  div(class(breadcrumb), []),
-			  div([id(contents), class([contents, pldoc])], Body)
-			]).
+			], []).
+user:body(Style, Body) -->
+	{ page_style(Style, Options), !,
+	  functor(Style, ContentClass, _)
+	},
+	outer_container(
+	    [ \title_area(Style),
+	      \menubar(fixed_width),
+	      div(class(breadcrumb), []),
+	      div([id(contents), class([contents, ContentClass])], Body)
+	    ],
+	    Options).
 user:body(plain, Body) --> !,
 	html(body(class(plain), Body)).
 user:body(default, Body) --> !,
@@ -132,17 +83,31 @@ user:body(default, Body) --> !,
 user:body(Style, _Body) -->
 	html(div('Unknown page style ~q'-[Style])).
 
-outer_container(Obj, Content) -->
-	outer_container(Obj, Content, true).
+%%	page_style(+Style, -Options) is semidet.
+%
+%	True if Style is an `object page' and Obj is the object.
 
-outer_container(Obj, Content, ShowUser) -->
+page_style(user(_Action),	[show_user(false)]).
+page_style(news(_Which),	[]).
+page_style(wiki(_Special),	[]).
+page_style(wiki(Path, _Title),	[object(wiki(Path))]).
+page_style(pack(_Action),	[]).
+page_style(tags(_Action),	[]).
+page_style(pldoc(object(Obj)),	[object(Obj)]) :- !.
+page_style(pldoc(_),		[]).
+
+%	outer_container(+Content, +Options)//
+%
+%	Display a typical page including headers and footers.
+
+outer_container(Content, Options) -->
 	html(body(div(class('outer-container'),
 		  [ \html_requires(plweb),
 		    \html_requires(swipl_css),
 		    \shortcut_icons,
 		    \upper_header,
 		    Content,
-		    div(class([footer, newstyle]), \footer(Obj, ShowUser)),
+		    div(class([footer, newstyle]), \footer(Options)),
 		    div(id('tail-end'), &(nbsp))
 		  ]))),
 	html_receive(script).

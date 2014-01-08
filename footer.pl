@@ -1,7 +1,7 @@
 :- module(
   footer,
   [
-    footer//2, % +Arg:compound
+    footer//1, % +Options
     server_information//0
   ]
 ).
@@ -24,38 +24,43 @@ Footer for SWI-Prolog Web pages.
 :- html_resource(css('footer.css'), []).
 
 
+'community-content'(Options) -->
+	{ option(object(Object), Options) }, !,
+	html(div(id='community-content',
+		 [ \tagit_footer(Object, []),
+		   \annotation(Object)
+		 ])).
+'community-content'(_) -->
+	[].
 
-'community-content'(Object) -->
-  {var(Object)}, !,
-  [].
-'community-content'(Object) -->
-  html(
-    div(id='community-content', [
-      \tagit_footer(Object, []),
-      \annotation(Object)
-    ])
-  ).
+%%	footer(+Options)// is det.
+%
+%	Emit the footer, which contains   the  community content, server
+%	address and user information. Options:
+%
+%	  * object(Object)
+%	  Display community content area for Object.
+%	  * show_user(+Boolean)
+%	  If =false=, omit the user
 
-footer(Object, ShowUser) -->
-  html([
-    \html_requires(css('footer.css')),
-    div(class=footer, [
-      \'community-content'(Object),
-      \'footer-footer'(ShowUser)
-    ])
-  ]),
-  balance_columns_script.
+footer(Options) -->
+	html_requires(css('footer.css')),
+	html(div(class=footer,
+		 [ \'community-content'(Options),
+		   \'footer-footer'(Options)
+		 ])),
+	balance_columns_script.
 
-'footer-footer'(ShowUser) -->
-  html(
-    div(id=footer, [
-      \show_user(ShowUser),
-      \server_information
-    ])
-  ).
+'footer-footer'(Options) -->
+	html(div(id=footer,
+		 [ \show_user(Options),
+		   \server_information
+		 ])).
 
-show_user(false) --> !.
-show_user(_) --> current_user.
+show_user(Options) -->
+	{ option(show_user(false), Options) }, !.
+show_user(_) -->
+	current_user.
 
 balance_columns_script -->
 	js_script({|javascript||
