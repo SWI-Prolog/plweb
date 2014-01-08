@@ -27,7 +27,7 @@
     the GNU General Public License.
 */
 
-:- module(plweb_page, [sidebar//0]).
+:- module(plweb_page, []).
 :- use_module(footer).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
@@ -303,109 +303,109 @@ swi_logo -->
 %	the page location for editing
 
 menubar(fixed_width) -->
-	{  http_current_request(Request),
-	   memberchk(request_uri(ReqURL), Request),
-	   http_link_to_id(wiki_edit,
-			   [location(ReqURL)], EditHREF),
-	   http_link_to_id(plweb_login_page,
-			   [openid.return_to(ReqURL)], LoginURL)
-        },
-	html([\html_requires(jquery),
-	      \html({|html(LoginURL, EditHREF)||
-    <div id='menubar'>
-        <div class='menubar fixed-width'>
-            <ul class='menubar-container'>
-                <li><a href="/">HOME</a></li>
-                <li>DOWNLOAD
-                    <ul class='dropdown one'>
-                        <li><a href="/Download.html">SWI-PROLOG</a></li>
-                        <li><a href="/build/">SOURCES/BUILDING</a></li>
-                        <li><a href="/pack/list">ADD-ONS</a></li>
-                        <li><a href="/git/">BROWSE GIT</a></li>
-                    </ul>
-                </li>
-                <li>DOCUMENTATION
-                    <ul>
-                        <li><a href="/pldoc/refman/">MANUAL</a></li>
-                        <li><a href="/pldoc/package/">PACKAGES</a></li>
-                        <li><a href="/FAQ/">FAQ</a></li>
-                        <li><a href="/pldoc/man?section=cmdline">COMMAND LINE</a></li>
-                        <li><a href="/pldoc/package/pldoc.html">PLDOC</a></li>
-                        <li>BLUFFERS<span class='arrow'>&#x25B6;</span>
-                            <ul>
-                                <li><a href="/pldoc/man?section=syntax">PROLOG SYNTAX</a></li>
-                                <li><a href="/pldoc/man?section=emacsbluff">pceEMACS</a></li>
-                                <li><a href="/pldoc/man?section=htmlwrite">HTML GENERATION</a></li>
-                            </ul>
-                        </li>
-                        <li><a href="/license.html">LICENSE</a></li>
-                        <li><a href="/Contributors.html">CONTRIBUTORS</a></li>
-                        <li><a href="/Publications.html">PUBLICATIONS</a></li>
-                    </ul>
-                </li>
-                <li>TUTORIALS
-                    <ul>
-                        <li>BEGINNER<span class='arrow'>&#x25B6;</span>
-                            <ul>
-                                <li><a href="/pldoc/man?section=quickstart">GETTING STARTED</a></li>
-                                <li><a href="http://michael.richter.name/tutorials/swiplmod">MODULES</a></li>
-                                <li><a href="/pldoc/man?section=debugoverview">DEBUGGER</a></li>
-                                <li><a href="/IDE.html">DEVELOPMENT TOOLS</a></li>
-                            </ul>
-                        </li>
-                        <li>INTERMEDIATE<span class='arrow'>&#x25B6;</span>
-                            <ul>
-                                <li><a href="/howto/http/">WEB SERVICE</a></li>
-                                <li><a href="http://www.pathwayslms.com/swipltuts/html/index.html">WEB APPLICATIONS</a></li>
-                                <li><a href="/swipltuts/pldoc/index.html">PLDOC</a></li>
-                                <li><a href="http://www.pathwayslms.com/swipltuts/dcg/">DCGs</a></li>
-                                <li><a href="/xpce.pdf">XPCE</a></li>
-                                <li><a href="/Graphics.html">GUI OPTIONS</a></li>
-                            </ul>
-                        </li>
-                        <li>ADVANCED<span class='arrow'>&#x25B6;</span>
-                            <ul>
-                                <li><a href="/howto/UseRdfMeta.html">RDF NAMESPACES</a></li>
-                                <li><a href="/build/guidelines.txt">LINUX PACKAGES</a></li>
-                            </ul>
-                        </li>
-                    </ul>
-                </li><!-- tutorials -->
-                <li>COMMUNITY
-                    <ul>
-                        <li><a href="/Support.txt">SUPPORT</a></li>
-                        <li><a href="http://webchat.freenode.net/?channels=##prolog">IRC</a></li>
-                        <li><a href="/news">NEWS</a></li>
-                        <li><a href="/Mailinglist.txt">MAIL LIST</a></li>
-                        <li><a href="/bugzilla/">BUG TRACKER</a></li>
-                        <li><a href="/Links.html">EXTERNAL LINKS</a></li>
-                        <li><a href="/Contact.html">CONTACT</a></li>
-                        <li><a href="/loot.html">SWI-PROLOG ITEMS</a></li>
-                    </ul>
-                </li><!-- community -->
-                <li>USERS
-                    <ul>
-                        <li><a href="/web/index.html">SEMANTIC WEB</a></li>
-                        <li><a href="/students/index.html">STUDENTS</a></li>
-                        <li><a href="/research/index.html">RESEARCHERS</a></li>
-                        <li><a href="/commercial/index.html">COMMERCIAL USERS</a></li>
-                        <li><a href="/dogfood.html">DOG FOOD</a></li>
-                    </ul>
-                </li><!-- users -->
-                <li>WIKI
-                    <ul>
-                        <li><a href="LoginURL">LOGIN</a></li>
-                        <li><a href=EditHREF>EDIT THIS PAGE</a></li>
-                        <li><a href="/wiki/sandbox">SANDBOX</a></li>
-                        <li><a href="/wiki/">WIKI HELP</a></li>
-                        <li><a href="/list-tags">ALL TAGS</a></li>
-                    </ul>
-                </li><!-- wiki -->
-            </ul>
-        </div>
-    </div>|}),
-	      \html_requires(jq('menu.js'))
-	]).
+	{ menu(Menu) },
+	html_requires(jquery),
+	html_requires(jq('menu.js')),
+	html(div(id(menubar),
+		 div(class([menubar, 'fixed-width']),
+		     ul(class('menubar-container'),
+			\menu(Menu, 1))))).
+
+menu([], _) --> !.
+menu([H|T], Level) --> !, menu(H, Level), menu(T, Level).
+menu(Label = SubMenu, Level) -->
+	{ is_list(SubMenu),
+	  SubLevel is Level+1
+	}, !,
+	html(li([ \submenu_label(Label, Level),
+		  ul(\menu(SubMenu, SubLevel))
+		])).
+menu(Label = Link, _) -->
+	html(li(a(href(Link), Label))).
+
+submenu_label(Label, Level) -->
+	{ Level =< 1,
+	  upcase_atom(Label, LABEL)
+	}, !,
+	html(LABEL).
+submenu_label(Label, _) -->
+	html([Label, span(class(arrow), &('#x25B6'))]).
+
+
+menu([ 'Home'                = '/',
+       'Download' =
+       [ 'SWI-Prolog'	     = '/Download.html',
+	 'Sources/building'  = '/build/',
+	 'Add-ons'           = '/pack/list',
+	 'Browse GIT'	     = '/git/'
+       ],
+       'Documentation' =
+       [ 'Manual'              = '/pldoc/refman/',
+	 'Packages'	       = '/pldoc/package/',
+	 'FAQ'                 = '/FAQ/',
+	 'Command line'        = '/pldoc/man?section=cmdline',
+	 'PlDoc'               = '/pldoc/package/pldoc.html',
+	 'Bluffers' =
+	 [ 'Prolog syntax'     = '/pldoc/man?section=syntax',
+	   'PceEmacs'          = '/pldoc/man?section=emacsbluff',
+	   'HTML generation'   = '/pldoc/man?section=htmlwrite'
+	 ],
+	 'License'             = '/license.html',
+	 'Contributors'        = '/Contributors.html',
+	 'Publications'        = '/Publications.html'
+       ],
+       'Tutorials' =
+       [ 'Beginner' =
+	 [ 'Getting started'   = '/pldoc/man?section=quickstart',
+	   'Modules'           = 'http://michael.richter.name/tutorials/swiplmod',
+	   'Debugger'          = '/pldoc/man?section=debugoverview',
+	   'Development tools' = '/IDE.html'
+	 ],
+	 'Intermediate' =
+	 [ 'Web service'       = '/howto/http/',
+	   'Web applications'  = 'http://www.pathwayslms.com/swipltuts/html/index.html',
+	   'PlDoc'             = '/swipltuts/pldoc/index.html',
+	   'DCGs'              = 'http://www.pathwayslms.com/swipltuts/dcg/"',
+	   'XPCE'              = '/download/xpce/doc/coursenotes/coursenotes.pdf',
+	   'GUI options'       = '/Graphics.html'
+	 ],
+	 'Advanced' =
+	 [ 'RDF namespaces'    = '/howto/UseRdfMeta.html',
+	   'Linux packages'    = '/build/guidelines.txt'
+	 ]
+       ],
+       'Community' =
+       [ 'Support'             = '/Support.txt',
+	 'IRC'                 = 'http://webchat.freenode.net/?channels=##prolog',
+	 'News'                = '/news',
+	 'Mail list'           = '/Mailinglist.txt',
+	 'Bug tracker'	       = '/bugzilla/',
+	 'External links'      = '/Links.html',
+	 'Contact'             = '/contact.html',
+	 'SWI-Prolog items'    = '/loot.html'
+       ],
+       'Users' =
+       [ 'Semantic web'        = '/web/index.html',
+	 'Students'            = '/students/index.html',
+	 'Researchers'         = '/research/index.html',
+	 'Commercial users'    = '/commercial/index.html',
+	 'Dog food'            = '/dogfood.html'
+       ],
+       'Wiki' =
+       [ 'Login'               = LoginURL,
+	 'Edit this page'      = EditHREF,
+	 'Sandbox'             = '/wiki/sandbox',
+	 'Wiki help'           = '/wiki/',
+	 'All tags'            = '/list-tags'
+       ]
+     ]) :-
+	http_current_request(Request),
+	memberchk(request_uri(ReqURL), Request),
+	http_link_to_id(wiki_edit,
+			[location(ReqURL)], EditHREF),
+	http_link_to_id(plweb_login_page,
+			[openid.return_to(ReqURL)], LoginURL).
+
 
 %%	blurb//
 %
@@ -440,7 +440,7 @@ cta_area -->
 %%	enhanced_search_area//
 %
 %	Emit the large size search area at bottom of home page
-%
+
 enhanced_search_area -->
 	{ http_link_to_id(plweb_search, [], Action) },
 	html({|html(Action)||
@@ -454,54 +454,3 @@ enhanced_search_area -->
 	        </div>
 	      </div>|}),
 	searchbox_script(forenhanced).
-
-
-%         ================ Old version resumes =========================
-
-
-%%	sidebar//
-%
-%	Emit the sidebar with logo and menu
-
-sidebar -->
-	html([ div(class(logo),
-		   a(href('http://www.swi-prolog.org'),
-		     img([id(logo),
-			  border(0),
-			  alt('SWI-Prolog logo'),
-			  src('/icons/swipl.png')
-			 ]))),
-	       div(class(menu), \menu)
-	     ]).
-
-%%	menu//
-%
-%	Generate the sidebar menu
-
-menu -->
-	{ menu(DOM) },
-	html(DOM).
-
-menu(DOM) :-
-	nb_current(pldoc_file, OrgFile),
-	menu_file(OrgFile, MenuFile), !,
-	wiki_file_to_dom(MenuFile, DOM).
-menu(DOM) :-
-	absolute_file_name(document_root('menu.txt'),
-			   MenuFile,
-			   [ access(read)
-			   ]),
-	wiki_file_to_dom(MenuFile, DOM).
-menu([]).
-
-menu_file(Base, MenuFile) :-
-	parent(Base, Dir), Dir \== Base,
-	concat_atom([Dir, /, 'menu.txt'], MenuFile),
-	exists_file(MenuFile).
-
-parent(Base, Base).
-parent(Base, Parent) :-
-	file_directory_name(Base, Dir),
-	Dir \== Base,
-	parent(Dir, Parent).
-
