@@ -268,7 +268,7 @@ serve_wiki_page(Request, File, Title, DOM) :-
 	    wiki(WikiPath, Title),
 	    [ title(Title)
 	    ],
-	    div(class(wiki), DOM)).
+	    DOM).
 
 
 %%	wiki_path(+Request, +File, -WikiPath) is det.

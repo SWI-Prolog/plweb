@@ -73,7 +73,9 @@ user:body(Style, Body) -->
 	    [ \title_area(Style),
 	      \menubar(fixed_width),
 	      div(class(breadcrumb), []),
-	      div([id(contents), class([contents, ContentClass])], Body)
+	      div(class(['inner-contents', ContentClass]),
+		  div([id(contents), class([contents, ContentClass])],
+		      Body))
 	    ],
 	    Options).
 user:body(plain, Body) --> !,
@@ -273,6 +275,8 @@ page_title(pack(list)) -->
 	html('Packs (add-ons) for SWI-Prolog').
 page_title(wiki(sandbox)) -->
 	html('PlDoc wiki sandbox').
+page_title(wiki(_Path, Title)) -->
+	html(Title).
 page_title(tags(list)) -->
 	html('Tags').
 page_title(Term) -->
