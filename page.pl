@@ -356,9 +356,9 @@ menubar(fixed_width) -->
                         <li>INTERMEDIATE<span class='arrow'>&#x25B6;</span>
                             <ul>
                                 <li><a href="/howto/http/">WEB SERVICE</a></li>
-                                <li><a href="/swipltuts/html/index.html">WEB APPLICATIONS</a></li>
+                                <li><a href="http://www.pathwayslms.com/swipltuts/html/index.html">WEB APPLICATIONS</a></li>
                                 <li><a href="/swipltuts/pldoc/index.html">PLDOC</a></li>
-                                <li><a href="/dcg/index.html">DCGs</a></li>
+                                <li><a href="http://www.pathwayslms.com/swipltuts/dcg/">DCGs</a></li>
                                 <li><a href="/xpce.pdf">XPCE</a></li>
                                 <li><a href="/Graphics.html">GUI OPTIONS</a></li>
                             </ul>
