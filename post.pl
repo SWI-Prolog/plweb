@@ -356,18 +356,17 @@ post_time(Id) -->
   {post(Id, posted, Posted)},
   html(\dateTime(Posted)).
 
-post_title(O1, _) -->
-  {option(standalone(true), O1, true)}, !,
-  [].
-post_title(_, Id) -->
+post_title(O1, Id) -->
   {
-    post(Id, kind, Kind),
+    option(standalone(false), O1, true),
     post(Id, title, Title),
     nonvar(Title), !,
+    post(Id, kind, Kind),
     Spec =.. [Kind,Id],
     http_absolute_location(Spec, Link, [])
   },
   html(h2(class='post-title',a(href=Link,Title))).
+post_title(_, _) --> [].
 
 post_votes(Id) -->
   {
