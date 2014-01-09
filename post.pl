@@ -513,7 +513,7 @@ edit_post(_) --> [].
 
 edit_post_content(Id) -->
   {post(Id, content, Content)},
-  html(textarea([class=markItUp,cols=80,style='display:none;'], Content)).
+  html(textarea([class=markItUp,cols=120,rows=10,style='display:none;'], Content)).
 
 edit_remove_post(Id) -->
   {
@@ -784,6 +784,7 @@ write_post_js(Kind, About) -->
           article.children("header").css("display","none");
           article.children("section").css("display","none");
           article.children("form").css("display","block");
+          article.find("textarea").css("display","block");
           article.children(".edit-post-links").css("display","block");
         });
 
