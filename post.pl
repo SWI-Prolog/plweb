@@ -306,8 +306,10 @@ post_header(O1, Id) -->
     header([], [
       \post_title(O1, Id),
       \post_metadata(Id),
-      \html_receive(edit_remove(Id)),
-      \post_votes(Id)
+      span(class='post-links-and-votes', [
+        \post_votes(Id),
+        \html_receive(edit_remove(Id))
+      ])
     ])
   ).
 
@@ -376,19 +378,17 @@ post_votes(Id) -->
     format(atom(AltUp), '~d upvotes', [Up]),
     post(Id, votes, Amount)
   },
-  html(
-    span(class='post-vote', [
-      a([class='post-vote-up',href=''],
-        img([alt=AltUp,src='/icons/vote_up.gif',title=Up], [])
-      ),
-      ' ',
-      span(class='post-vote-amount', Amount),
-      ' ',
-      a([class='post-vote-down',href=''],
-        img([alt=AltDown,src='/icons/vote_down.gif',title=Down], [])
-      )
-    ])
-  ).
+  html([
+    a([class='post-vote-up',href=''],
+      img([alt=AltUp,src='/icons/vote_up.gif',title=Up], [])
+    ),
+    ' ',
+    span(class='post-vote-amount', Amount),
+    ' ',
+    a([class='post-vote-down',href=''],
+      img([alt=AltDown,src='/icons/vote_down.gif',title=Down], [])
+    )
+  ]).
 
 
 
@@ -527,13 +527,12 @@ edit_remove_post(Id) -->
 edit_remove_post(_) --> [].
 
 edit_remove_post_link -->
-  html(
-    div(class='post-links', [
-      a([class='edit-post-link',href=''], 'Edit'),
-      '/',
-      a([class='remove-post-link',href=''], 'Delete')
-    ])
-  ).
+  html([
+    ' ',
+    a([class='edit-post-link',href=''], 'Edit'),
+    '/',
+    a([class='remove-post-link',href=''], 'Delete')
+  ]).
 
 save_post_links -->
   html(
