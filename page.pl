@@ -40,6 +40,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(pldoc/doc_html), [object_name//2]).
+:- use_module(library(uri)).
 :- use_module(wiki).
 :- use_module(post).
 :- use_module(openid).
@@ -319,6 +320,17 @@ menu(Label = SubMenu, Level) -->
 	}, !,
 	html(li([ \submenu_label(Label, Level),
 		  ul(\menu(SubMenu, SubLevel))
+		])).
+menu(Label = Link, _) -->
+	{ atom(Link),
+	  uri_is_global(Link), !,
+	  http_absolute_location(icons('ext-link.png'), IMG, [])
+	}, !,
+	html(li([ a(href(Link), Label),
+		  img([ class('ext-link'),
+			src(IMG),
+			alt('External')
+		      ])
 		])).
 menu(Label = Link, _) -->
 	html(li(a(href(Link), Label))).
