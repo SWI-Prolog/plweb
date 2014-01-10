@@ -747,7 +747,7 @@ write_post_js(Kind, About) -->
               "type": "post"
             }),
             "dataType": "json",
-            "success": function() {location.reload(true);},
+            "success": function() {location.reload();},
             "type": method
           }
         );
@@ -827,7 +827,7 @@ write_post_js(Kind, About) -->
             {
               "contentType": "application/json; charset=utf-8",
               "dataType": "json",
-              "success": function() {location.reload(true);},
+              "success": function() {location.reload();},
               "type": "DELETE"
             }
           );
