@@ -112,16 +112,16 @@ http:location(post, root(post), []).
 
 % PERSISTENCY PREDICATES %
 
-assert_post(JSON) :-
-	convert_post(JSON, Post, Id),
+new_post(JSON, Id) :-
+	convert_post(JSON, Post),
+	uuid(Id),
 	assert_post(Id, Post).
 
 retract_post(Id):-
 	retract_post(Id, _).
 
-convert_post(JSON, Post, Id) :-
-	json_to_prolog(JSON, Post),
-	variant_sha1(Post, Id).
+convert_post(JSON, Post) :-
+	json_to_prolog(JSON, Post).
 
 
 %%	post_process(+Request) is det.
@@ -142,10 +142,7 @@ post_process(Request, Id):-
 
 %%	post_process(+Method, +Request, +Id, +User) is det.
 %
-%	@tbd (POST) If a resource has been created on the origin server,
-%	the response SHOULD be 201 (Created) and contain an entity which
-%	describes the status of  the  request   and  refers  to  the new
-%	resource, and a Location header (see section 14.30).
+%	Implement the REST replies.
 
 % DELETE
 post_process(delete, Request, Id, User) :-
@@ -170,23 +167,29 @@ post_process(get, Request, _, _):-
 % POST
 post_process(post, Request, _, _):-
 	catch(( http_read_json(Request, JSON),
-		assert_post(JSON)
+		new_post(JSON, Id)
 	      ),
 	      E,
 	      throw(http_reply(bad_request(E)))),
-	reply_json(@(true), [status(201)]).
+	memberchk(path(Path), Request),
+	atom_concat(Path, Id, NewLocation),
+	format('Location: ~w~n', [NewLocation]),
+	reply_json(json([ created(Id),
+			  href(NewLocation)
+			]),
+		   [status(201)]).
 
 % PUT
 post_process(put, Request, Id, User):-
 	catch(( http_read_json(Request, JSON),
-		convert_post(JSON, NewPost, NewId)
+		convert_post(JSON, NewPost)
 	      ),
 	      E,
 	      throw(http_reply(bad_request(E)))),
 	(   post(Id, author, Author)
 	->  (   Author == User
 	    ->  retract_post(Id),
-		assert_post(NewId, NewPost),
+		assert_post(Id, NewPost),
 		throw(http_reply(no_content))
 	    ;   memberchk(path(Path), Request),
 		throw(http_reply(forbidden(Path)))
