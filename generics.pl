@@ -52,11 +52,6 @@ Candidates for placement in some library.
 :- use_module(library(uri)).
 :- use_module(openid).
 
-:- meta_predicate generics:dcg_phrase(//,?).
-:- meta_predicate generics:dcg_phrase(//,+,-).
-
-
-
 %! add_option(
 %!   +FromOptions:list(nvpair),
 %!   +Name:atom,
@@ -73,25 +68,6 @@ add_option(Os1, N, V, Os2):-
 
 clean_dom([p(X)], X) :- !.
 clean_dom(X, X).
-
-dcg_phrase(DCG, Out2):-
-  var(Out2), !,
-  phrase(DCG, Out1),
-  atom_codes(Out2, Out1).
-dcg_phrase(DCG, In):-
-  atom(In), !,
-  atom_codes(In, Codes),
-  dcg_phrase(DCG, Codes).
-dcg_phrase(DCG, In):-
-  phrase(DCG, In).
-
-dcg_phrase(DCG, In1, Out1):-
-  atom(In1), !,
-  atom_codes(In1, In2),
-  dcg_phrase(DCG, In2, Out2),
-  atom_codes(Out1, Out2).
-dcg_phrase(DCG, In, Out):-
-  phrase(DCG, In, Out).
 
 ensure_number(X, X):-
   number(X), !.
