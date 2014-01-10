@@ -56,7 +56,8 @@
 %	Provide the page skin.
 
 :- multifile
-	user:body//2.
+	user:body//2,
+	plweb:page_title//1.
 
 user:body(homepage, Body) --> !,
 	outer_container([ \tag_line_area,
@@ -246,6 +247,8 @@ title_area(Arg) -->
 			\page_title(Arg))
 		 ])).
 
+page_title(For) -->
+	plweb:page_title(For), !.
 page_title(pldoc(search(''))) --> !,
 	html('How to use the search box').
 page_title(pldoc(search(For))) --> !,
