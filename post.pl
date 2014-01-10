@@ -112,11 +112,6 @@ http:location(post, root(post), []).
 
 % PERSISTENCY PREDICATES %
 
-new_post(JSON, Id) :-
-	convert_post(JSON, Post),
-	uuid(Id),
-	assert_post(Id, Post).
-
 retract_post(Id):-
 	retract_post(Id, _).
 
@@ -124,28 +119,30 @@ convert_post(JSON, Post) :-
 	json_to_prolog(JSON, Post).
 
 
-%%	post_process(+Request) is det.
+%%	post_process(+Request, ?Kind) is det.
 %
 %	HTTP handler that implements a REST interface for postings.
+%
+%	@arg	Kind is the type of post, and is one of =news= or
+%		=annotation=.
 
-post_process(Request):-
-	request_to_id(Request, post, Id),
-	post_process(Request, Id).
-
-post_process(Request, Id):-
+post_process(Request, Kind) :-
+	must_be(oneof([news,annotation]), Kind),
+	request_to_id(Request, Kind, Id),
 	memberchk(method(Method), Request),
 	(   site_user_logged_in(User)
 	->  true
 	;   User = anonymous
 	),
-	post_process(Method, Request, Id, User).
+	post_process(Method, Request, Kind, User, Id).
 
-%%	post_process(+Method, +Request, +Id, +User) is det.
+%%	post_process(+Method, +Request, +Kind, +Id, +User) is det.
 %
 %	Implement the REST replies.
 
 % DELETE
-post_process(delete, Request, Id, User) :-
+post_process(delete, Request, Kind, User, Id) :-
+	post_authorized(Request, User, Kind),
 	post(Id, author, Author), !,
 	(   Author == User
 	->  retract_post(Id),
@@ -153,24 +150,28 @@ post_process(delete, Request, Id, User) :-
 	;   memberchk(path(Path), Request),
 	    throw(http_reply(forbidden(Path)))	% 403
 	).
-post_process(delete, Request, _, _) :-
+post_process(delete, Request, _, _, _) :-
 	http_404([], Request).
 
 % GET
-post_process(get, _, Id, _):-
+post_process(get, _, _, _, Id):-
 	post(Id, Post), !,
 	prolog_to_json(Post, JSON),
 	reply_json(JSON).
-post_process(get, Request, _, _):-
+post_process(get, Request, _, _, _):-
 	http_404([], Request).
 
 % POST
-post_process(post, Request, _, _):-
+post_process(post, Request, Kind, User, _):-
 	catch(( http_read_json(Request, JSON),
-		new_post(JSON, Id)
+		convert_post(JSON, NewPost),
+		post(NewPost, author, User),	% sanity check
+		uuid(Id),
+		assert_post(Id, NewPost)
 	      ),
 	      E,
 	      throw(http_reply(bad_request(E)))),
+	post_authorized(Request, User, Kind),
 	memberchk(path(Path), Request),
 	atom_concat(Path, Id, NewLocation),
 	format('Location: ~w~n', [NewLocation]),
@@ -180,12 +181,14 @@ post_process(post, Request, _, _):-
 		   [status(201)]).
 
 % PUT
-post_process(put, Request, Id, User):-
+post_process(put, Request, Kind, User, Id):-
 	catch(( http_read_json(Request, JSON),
-		convert_post(JSON, NewPost)
+		convert_post(JSON, NewPost),
+		post(NewPost, author, User)	% sanity check
 	      ),
 	      E,
 	      throw(http_reply(bad_request(E)))),
+	post_authorized(Request, User, Kind),
 	(   post(Id, author, Author)
 	->  (   Author == User
 	    ->  retract_post(Id),
@@ -196,6 +199,25 @@ post_process(put, Request, Id, User):-
 	    )
 	;   http_404([], Request)
 	).
+
+
+%%	post_authorized(+Request, +User, +Kind) is det.
+%
+%	@throws	http_reply(forbidden(Path)) if the user is not allowed
+%		to post.
+%	@tbd	If the user is =anonymous=, we should reply 401 instead
+%		of 403, but we want OpenID login
+
+post_authorized(_Request, User, Kind) :-
+	post_granted(User, Kind), !.
+post_authorized(Request, _User, _Kind) :-
+	memberchk(path(Path), Request),
+	throw(http_reply(forbidden(Path))).
+
+post_granted(User, Kind) :-
+	site_user_property(User, granted(Kind)).
+post_granted(User, annotation) :-
+	User \== anonymous.
 
 
 % ACCESSOR PREDICATES %
@@ -436,26 +458,27 @@ switch_orientation(right, left).
 switch_orientation(none,  none).
 
 
-
-% ADD POST %
+%%	add_post(+Kind, +About)//
+%
+%	Emit HTML that allows for adding a new post
 
 add_post(Kind, About) -->
-  {site_user_logged_in(_)}, !,
-  html(
-    div(id='add-post', [
-      \add_post_link,
-      form([id='add-post-content',style='display:none;'], [
-        \add_post_title(Kind),
-        \add_post_importance(Kind),
-        \add_post_freshnesslifetime(Kind),
-        \add_post_content
-      ]),
-      \submit_post_links,
-      \write_post_js(Kind, About)
-    ])
-  ).
+	{ site_user_logged_in(User),
+	  post_granted(User, Kind)
+	}, !,
+	html(div(id='add-post',
+		 [ \add_post_link,
+		   form([id='add-post-content',style='display:none;'],
+			[ \add_post_title(Kind),
+			  \add_post_importance(Kind),
+			  \add_post_freshnesslifetime(Kind),
+			  \add_post_content
+			]),
+		   \submit_post_links,
+		   \write_post_js(Kind, About)
+		 ])).
 add_post(Kind, _) -->
-  login_post(Kind).
+	login_post(Kind).
 
 add_post_content -->
   html(textarea([class=markItUp], [])).
@@ -503,8 +526,8 @@ add_post_title(_) --> [].
 submit_post_links -->
   html(
     div([id='add-post-links',style='display:none;'], [
-      a(id='add-post-submit', 'Add comment'),
-      a(id='add-post-cancel', 'Cancel')
+      a([id='add-post-submit',href=''], 'Add comment'),
+      a([id='add-post-cancel',href=''], 'Cancel')
     ])
   ).
 
@@ -691,7 +714,18 @@ stale(Id):-
 % SCRIPT %
 
 login_post(Kind) -->
-  html(div(class='post-login', [b([],\login_link),' to add a new ',Kind,' post.'])).
+	{ site_user_logged_in(_), !,
+	  http_link_to_id(register, [for(Kind)], HREF)
+	},
+	html({|html(HREF, Kind)||
+	      <div class="post-login">
+	      <a href="HREF">request permission</a> to add a new
+	      <span>Kind</span> post.
+	      </div>
+	     |}).
+login_post(Kind) -->
+	html(div(class='post-login',
+		 [b(\login_link),' to add a new ',Kind,' post.'])).
 
 % We assume the user is logged in once we get here.
 write_post_js(Kind, About) -->
