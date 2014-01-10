@@ -112,70 +112,87 @@ http:location(post, root(post), []).
 
 % PERSISTENCY PREDICATES %
 
-assert_post(JSON):-
-  json_to_prolog(JSON, Post),
-  variant_sha1(Post, Id),
-  assert_post(Id, Post).
+assert_post(JSON) :-
+	convert_post(JSON, Post, Id),
+	assert_post(Id, Post).
 
 retract_post(Id):-
-  retract_post(Id, _).
+	retract_post(Id, _).
+
+convert_post(JSON, Post, Id) :-
+	json_to_prolog(JSON, Post),
+	variant_sha1(Post, Id).
 
 
-
-% RESTFUL PREDICATES %
+%%	post_process(+Request) is det.
+%
+%	HTTP handler that implements a REST interface for postings.
 
 post_process(Request):-
-  request_to_id(Request, post, Id),
-  post_process(Request, Id).
+	request_to_id(Request, post, Id),
+	post_process(Request, Id).
 
 post_process(Request, Id):-
-  memberchk(method(Method), Request),
-  (   site_user_logged_in(User)
-  ->  true
-  ;   User = anonymous
-  ),
-  post_process(Method, Request, Id, User).
+	memberchk(method(Method), Request),
+	(   site_user_logged_in(User)
+	->  true
+	;   User = anonymous
+	),
+	post_process(Method, Request, Id, User).
+
+%%	post_process(+Method, +Request, +Id, +User) is det.
+%
+%	@tbd (POST) If a resource has been created on the origin server,
+%	the response SHOULD be 201 (Created) and contain an entity which
+%	describes the status of  the  request   and  refers  to  the new
+%	resource, and a Location header (see section 14.30).
 
 % DELETE
-post_process(delete, Request, Id, User):-
-  % Make sure the user is the author.
-  post(Id, author, User), !,
-  retract_post(Id),
-  http_response(Request, 204).
-post_process(delete, Request, _, _):-
-  http_response(Request, 401).
+post_process(delete, Request, Id, User) :-
+	post(Id, author, Author), !,
+	(   Author == User
+	->  retract_post(Id),
+	    throw(http_reply(no_content))	% 204
+	;   memberchk(path(Path), Request),
+	    throw(http_reply(forbidden(Path)))	% 403
+	).
+post_process(delete, Request, _, _) :-
+	http_404([], Request).
 
 % GET
 post_process(get, _, Id, _):-
-  post(Id, Post), !,
-  prolog_to_json(Post, JSON),
-  reply_json(JSON).
+	post(Id, Post), !,
+	prolog_to_json(Post, JSON),
+	reply_json(JSON).
 post_process(get, Request, _, _):-
-  http_response(Request, 404).
+	http_404([], Request).
 
 % POST
 post_process(post, Request, _, _):-
-  http_read_json(Request, JSON), !,
-  assert_post(JSON),
-  % @tbd If a resource has been created on the origin server, the response
-  % SHOULD be 201 (Created) and contain an entity which describes the
-  % status of the request and refers to the new resource, and a Location
-  % header (see section 14.30).
-  http_response(Request, 201).
-post_process(post, Request, _, _):-
-  http_response(Request, 400).
+	catch(( http_read_json(Request, JSON),
+		assert_post(JSON)
+	      ),
+	      E,
+	      throw(http_reply(bad_request(E)))),
+	reply_json(@(true), [status(201)]).
 
 % PUT
 post_process(put, Request, Id, User):-
-  % Make sure the user is the author.
-  post(Id, author, User), !,
-  retract_post(Id),
-  http_read_json(Request, JSON),
-  assert_post(JSON),
-  http_response(Request, 204).
-post_process(put, Request, _, _):-
-  http_response(Request, 401).
-
+	catch(( http_read_json(Request, JSON),
+		convert_post(JSON, NewPost, NewId)
+	      ),
+	      E,
+	      throw(http_reply(bad_request(E)))),
+	(   post(Id, author, Author)
+	->  (   Author == User
+	    ->  retract_post(Id),
+		assert_post(NewId, NewPost),
+		throw(http_reply(no_content))
+	    ;   memberchk(path(Path), Request),
+		throw(http_reply(forbidden(Path)))
+	    )
+	;   http_404([], Request)
+	).
 
 
 % ACCESSOR PREDICATES %
