@@ -580,9 +580,8 @@ author_image(User) -->
     % @see Documentation
     %      https://en.gravatar.com/site/implement/hash/
     site_user_property(User, email(Email)),
-    strip_spaces(Email, Temp1),
-    downcase_atom(Temp1, Temp2),
-    md5(Temp2, Hash),
+    downcase_atom(Email, CanonicalEmail),
+    md5(CanonicalEmail, Hash),
 
     % @see Documentation
     %      https://en.gravatar.com/site/implement/images/

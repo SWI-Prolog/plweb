@@ -335,9 +335,9 @@ submit_profile(Request) :-
 	recaptcha_parameters(ReCAPTCHA),
 	http_parameters(Request,
 			[ uuid(User,         []),
-			  name(Name,         [optional(true), default(anonymous)]),
-			  email(Email,       [optional(true), default('')]),
-			  home_url(Home,     [optional(true), default('')]),
+			  name(Name0,        [optional(true), default(anonymous)]),
+			  email(Email0,      [optional(true), default('')]),
+			  home_url(Home0,    [optional(true), default('')]),
 			  description(Descr, [optional(true), default('')]),
 			  return(Return, [])
 			| ReCAPTCHA
@@ -345,6 +345,9 @@ submit_profile(Request) :-
 	(   catch(recaptcha_verify(Request, ReCAPTCHA), E, true)
 	->  (   var(E)
 	    ->  retractall_site_user(User, OpenID, _, _, _),
+		normalize_space(atom(Name),  Name0),
+		normalize_space(atom(Email), Email0),
+		normalize_space(atom(Home),  Home0),
 		assert_site_user(User, OpenID, Name, Email, Home),
 		update_description(User, Descr),
 		http_redirect(moved_temporary, Return, Request)

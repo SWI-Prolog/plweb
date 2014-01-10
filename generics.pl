@@ -18,8 +18,6 @@
                            % +Kind:oneof([annotation,news,post])
                            % -URL:atom
     sep//0,
-    strip_spaces/2, % +Unstripped:or([atom,list(code)])
-                    % +Stripped:or([atom,list(code)])
     true/1, % +Term
     uri_path/2, % +PathComponents:list(term)
                 % -Path:atom
@@ -134,19 +132,6 @@ request_to_resource(Request, Kind, URL):-
 
 sep -->
   html(span(class(separator), '|')).
-
-strip_spaces(Unstripped, Stripped):-
-  dcg_phrase(strip_codes([32]), Unstripped, Stripped).
-
-strip_codes(L) -->
-  [X],
-  {member(X, L)}, !,
-  strip_codes(L).
-strip_codes(L), [X] -->
-  [X],
-  strip_codes(L).
-strip_codes(_) -->
-  [].
 
 true(_).
 
