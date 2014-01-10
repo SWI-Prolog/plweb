@@ -252,25 +252,20 @@ post1(Id, Name, Value):-
 % Generates a post, based on the given compound term.
 %
 % The following options are supported (first parameter of `Post`):
-%   * `orientation(+Orientation:oneof([left,right]))`
+%   * orientation(+Orientation:oneof([left,right]))
 %     Orientation of the post.
 %     This is used in binary conversations
 %      to show the different conversation parties.
-%   * `standalone(+Standalone:boolean)`
+%   * standalone(+Standalone:boolean)
 %     Whether this post is part of multiple posts or not.
 
 post(O1, About, Id) -->
-  % Extract post kind.
-  {post(Id, kind, Kind)},
-
-  % Orientation option.
-  {
-    option(orientation(Orient), O1, left),
-    format(atom(Style), '"float:~a;"', [Orient])
+  { post(Id, kind, Kind),
+    option(orientation(Orient), O1, left)
   },
 
   html(
-    article([class=[post,Kind],id=Id,style=Style], [
+    article([class=[post,Kind],id=Id,style('float:'+Orient+';')], [
       \post_header(O1, Id),
       \post_section(Id),
       \edit_remove_post(Id)
