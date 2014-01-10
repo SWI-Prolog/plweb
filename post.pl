@@ -261,12 +261,16 @@ post1(Id, Name, Value):-
 
 post(O1, About, Id) -->
   { post(Id, kind, Kind),
-    option(orientation(_Orient), O1, left)
+    (	option(orientation(Orient), O1),
+	Orient \== none
+    ->	Extra = [ style('float:'+Orient+';') ]
+    ;	Extra = []
+    )
   },
 
   html(article([ class([post,Kind]),
-		 id(Id)/*,
-		 style('float:'+Orient+';')*/
+		 id(Id)
+	       | Extra
 	       ],
 	       [ \post_header(O1, Id),
 		 \post_section(Id),
@@ -417,7 +421,7 @@ posts(Kind, About, Ids1) -->
   },
   html([
     \html_requires(css('post.css')),
-    div(class=[posts,Class], \posts(Kind, About, left, Ids2)),
+    div(class=[posts,Class], \posts(Kind, About, none, Ids2)),
     \add_post(Kind, About)
   ]).
 
@@ -427,8 +431,9 @@ posts(Kind, About, Orient1, [Id|Ids]) -->
   {switch_orientation(Orient1, Orient2)},
   posts(Kind, About, Orient2, Ids).
 
-switch_orientation(left, right):- !.
-switch_orientation(right, left):- !.
+switch_orientation(left,  right).
+switch_orientation(right, left).
+switch_orientation(none,  none).
 
 
 
