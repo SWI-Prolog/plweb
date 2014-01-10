@@ -261,16 +261,17 @@ post1(Id, Name, Value):-
 
 post(O1, About, Id) -->
   { post(Id, kind, Kind),
-    option(orientation(Orient), O1, left)
+    option(orientation(_Orient), O1, left)
   },
 
-  html(
-    article([class=[post,Kind],id=Id,style('float:'+Orient+';')], [
-      \post_header(O1, Id),
-      \post_section(Id),
-      \edit_remove_post(Id)
-    ])
-  ),
+  html(article([ class([post,Kind]),
+		 id(Id)/*,
+		 style('float:'+Orient+';')*/
+	       ],
+	       [ \post_header(O1, Id),
+		 \post_section(Id),
+		 \edit_remove_post(Id)
+	       ])),
 
   % Standalone option.
   (
