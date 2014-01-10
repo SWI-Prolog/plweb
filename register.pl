@@ -38,26 +38,45 @@
 :- http_handler(root(submit_registration), submit_registration, []).
 
 register(Request) :-
+	http_parameters(Request,
+			[ for(Kind, [ oneof([wiki,news]),
+				      default(wiki)
+				    ])
+			]),
 	site_user(Request, User),
-	reply_html_page(title('Register to edit SWI-Prolog wiki pages'),
-			\reg_body(User)).
+	reg_title(Kind, Title),
+	reply_html_page(
+	    user(form(register(User, Kind))),
+	    title(Title),
+	    \reg_body(User, Kind)).
 
-reg_body(User) -->
-	{ Form = \form(User)
-	},
-	html({|html(Form)||
-	      <h1 class="wiki">Register to edit SWI-Prolog wiki pages</h1>
+reg_title(wiki, 'Register to edit SWI-Prolog wiki pages').
+reg_title(news, 'Register to manage news postings').
 
-	      <p>This form allows you to request an account for editing
-	      the SWI-Prolog wiki pages.  That is, the pages that have,
-	      an edit button at the top-right. Such pages are stored as
-	      PlDoc wiki text.</p>
+reg_body(User, Kind) -->
+	reg_explain(Kind),
+	form(User, Kind).
+
+reg_explain(wiki) -->
+	html({|html||
+	      <p>This form allows you to request permission to edit
+	      the SWI-Prolog wiki pages.  That is, the pages that have
+	      an <b>Edit this page</b> in the <b>WIKI</b> menu.
+	      </p>
 
 	      <h2 class="wiki">Registration form</h2>
-	      <div>Form</div>
+	      |}).
+reg_explain(news) -->
+	html({|html||
+	      <p>This form allows you to request permission to post
+	      news articles using the menu <b>COMMUNITY/News</b>
+	      </p>
+
+	      <h2 class="wiki">Registration form</h2>
 	      |}).
 
-form(UUID) -->
+
+form(UUID, Kind) -->
 	{ http_location_by_id(submit_registration, Action),
 	  PlaceHolder = 'Please tell us your plans, so that we can \c
 	  tell you are a genuine human Prolog user',
@@ -65,31 +84,37 @@ form(UUID) -->
 	  site_user_property(UUID, email(Email), 'unknown')
 	},
 	html(form(action(Action),
-		  table([ tr([ th([align(right)], 'Name'),
-			       td(input([name(name),
-					 placeholder('Name associated to commits'),
-					 disabled(disabled),
-					 value(Name)
-					]))
-			     ]),
-			  tr([ th([align(right)], 'Email'),
-			       td(input([name(email),
-					 placeholder('Displayed with GIT commit'),
-					 disabled(disabled),
-					 value(Email)
-					]))
-			     ]),
-			  tr([ th([align(right), valign(top)], 'Comments:'),
-			       td([ class(wiki_text), colspan(2) ],
-				  textarea([ cols(50),rows(10),name(comment),
-					     placeholder(PlaceHolder)
-					   ],
-					   ''))
-			     ]),
-			  tr([ td([ colspan(2), align(right) ],
-				  input([type(submit)]))
-			     ])
-			]))).
+		  [ input([type(hidden), name(kind), value(Kind)]),
+		    table([ tr([ th([align(right)], 'Name'),
+				 td(input([name(name),
+					   placeholder(
+					       'Name associated to commits'),
+					   disabled(disabled),
+					   value(Name)
+					  ]))
+			       ]),
+			    tr([ th([align(right)], 'Email'),
+				 td(input([name(email),
+					   placeholder(
+					       'Displayed with GIT commit'),
+					   disabled(disabled),
+					   value(Email)
+					  ]))
+			       ]),
+			    tr([ th([align(right), valign(top)], 'Comments:'),
+				 td([ class(wiki_text), colspan(2) ],
+				    textarea([ cols(50),rows(10),name(comment),
+					       placeholder(PlaceHolder)
+					     ],
+					     ''))
+			       ]),
+			    tr([ td([ colspan(2), align(right) ],
+				    input([ type(submit),
+					    value('Sent request')
+					  ]))
+			       ])
+			  ])
+		  ])).
 
 
 %%	submit_registration(+Request) is det.
@@ -99,29 +124,31 @@ form(UUID) -->
 submit_registration(Request) :-
 	site_user(Request, UUID),
 	http_parameters(Request,
-			[ comment(Comment, [optional(true)])
+			[ comment(Comment, [optional(true)]),
+			  kind(Kind, [])
 			]),
-	(   mail(UUID, Comment),
-	    reply_html_page(title('Mail sent'),
-			    [ h1(class(wiki), 'Mail sent'),
-			      p([ 'A mail has been sent to the site adminstrator. ',
-				  'You will be informed when the account has been ',
-				  'created.'
-				])
-			    ])
-	).
+	mail(UUID, Kind, Comment),
+	reply_html_page(
+	    user(mailed(admin, permission(Kind))),
+	    title('Mail sent'),
+	    [ p([ 'A mail has been sent to the site adminstrator. ',
+		  'You will be informed when the account has been ',
+		  'created.'
+		])
+	    ]).
 
-mail(UUID, Comment) :-
+mail(UUID, Kind, Comment) :-
 	smtp_send_mail('jan@swi-prolog.org',
-		       message(UUID, Comment),
-		       [ subject('SWI-Prolog wiki edit request'),
+		       message(UUID, Kind, Comment),
+		       [ subject('SWI-Prolog permission request'),
 			 from('jan@swi-prolog.org')
 		       ]).
 
-message(UUID, Comment, Out) :-
+message(UUID, Kind, Comment, Out) :-
 	site_user_property(UUID, name(Name), 'anonymous'),
 	site_user_property(UUID, email(EMail), 'unknown'),
-	format(Out, 'New wiki edit request\n\n', []),
+	format(Out, 'New site permission request\n\n', []),
+	format(Out, '\t  Kind: ~w~n', [Kind]),
 	format(Out, '\t  UUID: ~w~n', [UUID]),
 	format(Out, '\t  Name: ~w~n', [Name]),
 	format(Out, '\tE-Mail: ~w~n', [EMail]),
@@ -133,3 +160,13 @@ site_user_property(UUID, P, Default) :-
 	->  true
 	;   arg(1, P, Default)
 	).
+
+:- multifile
+	plweb:page_title//1.
+
+
+plweb:page_title(user(form(register(_User, Kind)))) -->
+	{ reg_title(Kind, Title) },
+	html(Title).
+plweb:page_title(user(mailed(To, permission(_Kind)))) -->
+	html('Mail sent to ~w'-[To]).
