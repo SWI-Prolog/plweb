@@ -73,8 +73,7 @@ news_process(Request):-
   reply_html_page(news(fresh), \news_header(Title), \posts(news, null, Ids)).
 % HTTP methods other than GET go via the REST API for generic posts.
 news_process(Request):-
-  request_to_id(Request, news, Id),
-  post_process(Request, Id).
+  post_process(Request, news).
 
 news_header(Title) -->
   html([

@@ -27,7 +27,6 @@
 :- use_module(object_support).
 :- use_module(openid).
 :- use_module(post).
-:- use_module(tagit).
 
 :- html_resource(css('annotation.css'), [requires([css('post.css')])]).
 
@@ -35,7 +34,6 @@
 
 http:location(annotation, root(annotation), []).
 :- http_handler(root(annotation), annotation_process, [prefix]).
-
 
 
 annotation_process(Request):-
@@ -50,8 +48,7 @@ annotation_process(Request):-
   atomic_list_concat(['Annotation',Label], '--', Title),
   reply_html_page(wiki(Title), title(Title), \post([], About, Id)).
 annotation_process(Request):-
-  request_to_id(Request, annotation, Id),
-  post_process(Request, Id).
+  post_process(Request, annotation).
 
 annotation(Object1) -->
   {
