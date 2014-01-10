@@ -5,8 +5,6 @@
                  % -CleanedDOM:list
     ensure_number/2, % +Something:term
                      % -Number:number
-    http_response/2, % +Request:list
-                     % +Status:oneof([200,201])
     is_empty/1, % +Content:atom
     login_link//0,
     md5/2, % +Unencrypted:or([atom,list(code),string])
@@ -103,11 +101,6 @@ ensure_number(X, Y):-
   atom(X), !,
   atom_number(X, Y).
 
-http_response(Request, Status):-
-  memberchk(pool(client(_, _ , _, Out)), Request),
-  phrase('Response'(Status), Codes),
-  with_output_to(Out, maplist(put_code, Codes)).
-
 %! is_empty(+Content:atom) is semidet.
 
 is_empty(Content):-
@@ -196,50 +189,3 @@ wiki_file_codes_to_dom(String, File, DOM):-
     wiki_codes_to_dom(String, [], DOM),
     nb_delete(pldoc_file)
   ).
-
-
-
-% HTTP RESPONSE DCG %
-
-'CR' --> [13].
-
-'CRLF' -->
-  'CR',
-  'LF'.
-
-'HTTP-Version' -->
-  "HTTP/1.1".
-
-'LF' --> [10].
-
-'Reason-Phrase'(200) -->
-  "OK".
-'Reason-Phrase'(201) -->
-  "Created".
-'Reason-Phrase'(204) -->
-  "No Content".
-'Reason-Phrase'(400) -->
-  "Bad Request".
-'Reason-Phrase'(401) -->
-  "Unauthorized".
-'Reason-Phrase'(404) -->
-  "Not Found".
-
-'Response'(Status) -->
-  'Status-Line'(Status),
-  'CRLF'.
-
-'SP' --> [32].
-
-'Status-Code'(Number) -->
-  {number_codes(Number, Codes)},
-  Codes.
-
-'Status-Line'(Status) -->
-  'HTTP-Version',
-  'SP',
-  'Status-Code'(Status),
-  'SP',
-  'Reason-Phrase'(Status),
-  'CRLF'.
-
