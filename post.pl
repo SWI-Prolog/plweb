@@ -73,28 +73,26 @@
 
 :- initialization(db_attach('post.db', [sync(close)])).
 
-:- json_object post(
-  kind:oneof([annotation,news]),
-  title,
-  content:atom,
-  meta:meta/6
-) + [type=post].
-:- json_object meta(
-  author:atom,
-  about,
-  categories:list(atom),
-  importance,
-  time:time/2,
-  votes:votes/2
-) + [type=meta].
-:- json_object votes(
-  down:nonneg,
-  up:nonneg
-) + [type=votes].
-:- json_object time(
-  posted:nonneg,
-  'freshness-lifetime'
-) + [type=time].
+:- json_object
+	post(kind:oneof([annotation,news]),
+	     title,
+	     content:atom,
+	     meta:meta/6) +
+	     [type=post],
+	meta(author:atom,
+	     about,
+	     categories:list(atom),
+	     importance,
+	     time:time/2,
+	     votes:votes/2
+	    ) +
+	    [type=meta],
+	votes(down:nonneg,
+	      up:nonneg) +
+	     [type=votes],
+	time(posted:nonneg,
+	     'freshness-lifetime') +
+	     [type=time].
 
 % /category
 http:location(category, root(category), []).
@@ -106,14 +104,15 @@ user:file_search_path(img, document_root(img)).
 :- http_handler(img(.), serve_files_in_directory(img), [prefix]).
 
 http:location(post, root(post), []).
-:- http_handler(post(.), post_process, [prefix]).
-
-
 
 % PERSISTENCY PREDICATES %
 
 retract_post(Id):-
 	retract_post(Id, _).
+
+%%	convert_post(+JSON, +Author, -Post) is det.
+%
+%	Convert a post object into its Prolog equivalent.
 
 convert_post(JSON, Post) :-
 	json_to_prolog(JSON, Post).
