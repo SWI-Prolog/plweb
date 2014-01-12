@@ -1,28 +1,23 @@
-:- module(
-  post,
-  [
-    find_posts/3, % +Kind:oneof([annotation,news])
-                  % :CheckId
-                  % -Ids:list(atom)
-    fresh/1, % ?Id:atom
-    all/1,% ?Id:atom
-    post/3, % ?Post:or([atom,compound])
-            % ?Name:atom
-            % ?Value
-    post//3, % +Options:list(nvpair)
-             % +About:atom
-             % +Post:compound
-    posts//3, % +Kind:oneof([annotation,news])
-              % +About:atom
-              % +Ids:list(atom)
-    relevance/2, % +Id:atom
-                 % -Relevance:between(0.0,1.0))
-    post_process/2, % +Request:list
-                    % +Id:atom
-    sort_posts/2 % +Ids:list(atom)
-                 % -SortedIds:list(atom)
-  ]
-).
+:- module(post,
+	  [ find_posts/3,		% +Kind:oneof([annotation,news])
+					% :CheckId
+					% -Ids:list(atom)
+	    fresh/1,			% ?Id:atom
+	    all/1,			% ?Id:atom
+	    post/3,			% ?Post:or([atom,compound])
+					% ?Name:atom
+					% ?Value
+	    post//3,			% +Options:list(nvpair)
+					% +About:atom
+					% +Post:compound
+	    posts//3,			% +Kind:oneof([annotation,news])
+					% +About:atom
+					% +Ids:list(atom)
+	    relevance/2,		% +Id:atom
+					% -Relevance:between(0.0,1.0)
+	    post_process/2,		% +Request:list, +Id:atom
+	    sort_posts/2		% +Ids:list(atom), -SortedIds:list(atom)
+	  ]).
 
 /** <module> Posts
 
@@ -31,8 +26,6 @@
      After DELETE: remove that post from DOM.
      After POST: add that post to DOM.
      After PUT: update that post in DOM.
-@tbd Showing the markItUp DOM does not work for the edit post link.
-@version 2013/12-2014/01
 */
 
 :- use_module(generics).
