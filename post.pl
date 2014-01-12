@@ -60,32 +60,74 @@
   ])
 ]).
 
-:- dynamic(category/1).
+:- dynamic
+	category/1.
 
-:- persistent(post(id:atom,post:compound)).
+:- persistent
+	post(id:atom,
+	     post:dict).
 
-:- initialization(db_attach('post.db', [sync(close)])).
+:- initialization
+	db_attach('post.db', [sync(close)]).
 
-:- json_object
-	post(kind:oneof([annotation,news]),
-	     title,
-	     content:atom,
-	     meta:meta/6) +
-	     [type=post],
-	meta(author:atom,
-	     about,
-	     categories:list(atom),
-	     importance,
-	     time:time/2,
-	     votes:votes/2
-	    ) +
-	    [type=meta],
-	votes(down:nonneg,
-	      up:nonneg) +
-	     [type=votes],
-	time(posted:nonneg,
-	     'freshness-lifetime') +
-	     [type=time].
+:- op(100, xf, ?).
+
+post_type(post{kind:oneof([annotation,news]),
+	       title:string,
+	       content:string,
+	       meta:meta{author:atom,
+			 about:any,
+			 categories:list(atom),
+			 importance:between(0.0,1.0),
+			 time:time{posted:integer,
+				   'freshness-lifetime':integer},
+			 votes:votes{up:nonneg,
+				     down:nonneg}}}).
+
+%%	convert_post(+Dict0, -Dict) is det.
+%
+%	@error	May throw type and instantiation errors.
+%	@tbd	Introduce type-testing support in library(error).
+
+convert_post(Post0, Post) :-
+	post_type(Type),
+	convert_dict(Type, Post0, Post).
+
+%%	convert_dict(+Type, +DictIn, -DictOut) is det.
+
+convert_dict(TypeDict, Dict0, Dict) :-
+	is_dict(TypeDict), !,
+	dict_pairs(TypeDict, Tag, TypePairs),
+	dict_values(TypePairs, Dict0, Pairs),
+	dict_pairs(Dict, Tag, Pairs).
+convert_dict(atom, String, Atom) :- !,
+	atom_string(Atom, String).
+convert_dict(oneof(Atoms), String, Atom) :-
+	maplist(atom, Atoms), !,
+	atom_string(Atom, String),
+	must_be(oneof(Atoms), Atom).
+convert_dict(float, Number, Float) :- !,
+	Float is float(Number).
+convert_dict(Type, Value, Value) :-
+	must_be(Type, Value).
+
+dict_values([], _, []).
+dict_values([Name-Type|TP], Dict, [Name-Value|TV]) :-
+	dict_value(Type, Name, Dict, Value),
+	dict_values(TP, Dict, TV).
+
+dict_value(Type?, Name, Dict, Value) :- !,
+	(   get_dict(Name, Dict, Value0)
+	->  (   Value0 == null
+	    ->  Value = Value0
+	    ;   convert_dict(Type, Value0, Value)
+	    )
+	;   Value = null
+	).
+dict_value(Type, Name, Dict, Value) :-
+	get_dict(Name, Dict, Value0),
+	convert_dict(Type, Value0, Value).
+
 
 % /category
 http:location(category, root(category), []).
@@ -107,8 +149,11 @@ retract_post(Id):-
 %
 %	Convert a post object into its Prolog equivalent.
 
-convert_post(JSON, Post) :-
-	json_to_prolog(JSON, Post).
+convert_post(Post0, Author, Post) :-
+	get_time(Now),
+	Post1 = Post0.put(meta.author, Author)
+		     .put(meta.time.posted, Now),
+	convert_post(Post1, Post).
 
 
 %%	post_process(+Request, ?Kind) is det.
@@ -148,39 +193,34 @@ post_process(delete, Request, _, _, _) :-
 % GET
 post_process(get, _, _, _, Id):-
 	post(Id, Post), !,
-	prolog_to_json(Post, JSON),
-	reply_json(JSON).
+	reply_json(Post).
 post_process(get, Request, _, _, _):-
 	http_404([], Request).
 
 % POST
 post_process(post, Request, Kind, User, _):-
-	catch(( http_read_json(Request, JSON),
-		convert_post(JSON, NewPost),
-		post(NewPost, author, User),	% sanity check
+	post_authorized(Request, User, Kind),
+	catch(( http_read_json_dict(Request, Post0),
+		convert_post(Post0, User, NewPost),
 		uuid(Id),
 		assert_post(Id, NewPost)
 	      ),
 	      E,
 	      throw(http_reply(bad_request(E)))),
-	post_authorized(Request, User, Kind),
 	memberchk(path(Path), Request),
 	atom_concat(Path, Id, NewLocation),
 	format('Location: ~w~n', [NewLocation]),
-	reply_json(json([ created(Id),
-			  href(NewLocation)
-			]),
+	reply_json(_{created:Id, href:NewLocation},
 		   [status(201)]).
 
 % PUT
 post_process(put, Request, Kind, User, Id):-
-	catch(( http_read_json(Request, JSON),
-		convert_post(JSON, NewPost),
-		post(NewPost, author, User)	% sanity check
+	post_authorized(Request, User, Kind),
+	catch(( http_read_json_dict(Request, Post0),
+		convert_post(Post0, User, NewPost)
 	      ),
 	      E,
 	      throw(http_reply(bad_request(E)))),
-	post_authorized(Request, User, Kind),
 	(   post(Id, author, Author)
 	->  (   Author == User
 	    ->  retract_post(Id),
@@ -214,50 +254,54 @@ post_granted(User, annotation) :-
 
 % ACCESSOR PREDICATES %
 
-%! post(+Post:or([atom,compound]), +Name:atom, -Value) is semidet.
-%! post(+Post:or([atom,compound]), +Name:atom, -Value) is det.
+%!	post(+Post:dict, +Name:atom, -Value) is semidet.
+%!	post(+Post:dict, -Name:atom, -Value) is nondet.
+%
+%	True if Post have Value for the given attribute.
+%
+%	@arg Post is
 
 post(Post, Name, Value):-
-  maplist(nonvar, [Post,Name]), !,
-  post1(Post, Name, Value),
-  Value \== @(null), !.
+	nonvar(Name), !,
+	post1(Post, Name, Value),
+	Value \== null, !.
 post(Post, Name, Value):-
-  post1(Post, Name, Value).
+	post1(Post, Name, Value).
 
-post1(Post, about, About):-
-  post1(Post, meta, meta(_,About,_,_,_,_)).
-post1(Post, author, Author):-
-  post1(Post, meta, meta(Author,_,_,_,_,_)).
-post1(Post, categories, Categories):-
-  post1(Post, meta, meta(_,_,Categories,_,_,_)).
-post1(post(_,_,Content,_), content, Content).
-post1(Post, 'freshness-lifetime', FreshnessLifetime):-
-  post1(Post, time, time(_,FreshnessLifetime)).
-post1(Post, id, Id):-
-  post(Id, Post).
-post1(Post, importance, Importance):-
-  post1(Post, meta, meta(_,_,_,Importance,_,_)).
-post1(post(Kind,_,_,_), kind, Kind).
-post1(post(_,_,_,Meta), meta, Meta).
-post1(Post, posted, Posted):-
-  post1(Post, time, time(Posted,_)).
-post1(Post, time, Time):-
-  post1(Post, meta, meta(_,_,_,_,Time,_)).
-post1(post(_,Title,_,_), title, Title).
-post1(Id, votes, Votes):-
-  post(Id, votes_down, Down),
-  post(Id, votes_up, Up),
-  Votes is Up - Down.
-post1(Post, votes_down, Down):-
-  post1(Post, votes_pair, votes(Down, _)).
-post1(Post, votes_pair, Votes):-
-  post1(Post, meta, meta(_,_,_,_,_,Votes)).
-post1(Post, votes_up, Up):-
-  post1(Post, votes_pair, votes(_, Up)).
-post1(Id, Name, Value):-
-  post(Id, Post),
-  post1(Post, Name, Value).
-
+post1(Name, Id, Value) :-
+	atom(Id), !,
+	post(Id, Post),
+	post1(Post, Name, Value).
+post1(about, Post, About) :-
+	About = Post.meta.about.
+post1(author, Post, Author) :-
+	Author = Post.meta.author.
+post1(categories, Post, Categories) :-
+	Categories = Post.meta.categories.
+post1(content, Post, Content) :-
+	Content = Post.content.
+post1('freshness-lifetime', Post, FreshnessLifetime ) :-
+	FreshnessLifetime = Post.meta.time.'freshness-lifetime'.
+post1(id, Post, Id) :-
+	post(Id, Post).
+post1(importance, Post, Importance) :-
+	Importance = Post.meta.importance.
+post1(kind, Post, Kind) :-
+	Kind = Post.kind.
+post1(meta, Post, Meta) :-
+	Meta = Post.meta.
+post1(posted, Post, Posted) :-
+	Posted = Post.meta.time.posted.
+post1(time, Post, Time):-
+	Time = Post.meta.time.
+post1(title, Post, Title) :-
+	Title = Post.title.
+post1(votes, Post, Up-Down) :-
+	_{up:Up, down:Down} :< Post.meta.votes.
+post1(votes_down, Post, Down) :-
+	Down = Post.meta.votes.down.
+post1(Post, votes_up, Up) :-
+	Up = Post.meta.votes.up.
 
 
 % SINGLE POST %
