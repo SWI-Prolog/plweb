@@ -151,8 +151,8 @@ retract_post(Id):-
 
 convert_post(Post0, Author, Post) :-
 	get_time(Now),
-	Post1 = Post0.put(meta.author, Author)
-		     .put(meta.time.posted, Now),
+	Post1 = Post0.put(meta/author, Author)
+		     .put(meta/time/posted, Now),
 	convert_post(Post1, Post).
 
 
