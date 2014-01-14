@@ -419,7 +419,7 @@ menu([ 'Home'                = '/',
 	http_link_to_id(wiki_edit,
 			[location(ReqURL)], EditHREF),
 	http_link_to_id(plweb_login_page,
-			[openid.return_to(ReqURL)], LoginURL).
+			['openid.return_to'(ReqURL)], LoginURL).
 
 
 %%	blurb//
