@@ -59,9 +59,6 @@
   ])
 ]).
 
-:- dynamic
-	category/1.
-
 :- persistent
 	post(id:atom,
 	     post:dict).
@@ -77,7 +74,6 @@ post_type(post{kind:oneof([annotation,news]),
 	       meta:meta{id:atom,
 			 author:atom,
 			 object:any?,
-			 categories:list(atom),
 			 importance:between(0.0,1.0),
 			 time:time{created:number,
 				   modified:number?,
@@ -131,11 +127,6 @@ dict_value(Type, Name, Dict, Value) :-
 	convert_dict(Type, Value0, Value).
 
 
-
-% /category
-http:location(category, root(category), []).
-:- http_handler(root(category), category_overview, [prefix]).
-
 % Image files can be loaded from the `/img` path.
 http:location(img, root(img), []).
 user:file_search_path(img, document_root(img)).
@@ -148,17 +139,18 @@ http:location(post, root(post), []).
 retract_post(Id):-
 	retract_post(Id, _).
 
-%%	convert_post(+JSON, +Id, +Author, +TimeProperty, -Post) is det.
+%%	convert_post(+JSON, +Kind, +Id, +Author, +TimeProperty, -Post) is det.
 %
 %	Convert a post object into its Prolog equivalent.
 
-convert_post(Post0, Id, Author, TimeProperty, Post) :-
+convert_post(Post0, Kind, Id, Author, TimeProperty, Post) :-
 	get_time(Now),
 	(   object_id(Object, Post0.meta.get(about))
 	->  Post1 = Post0.put(meta/object, Object)
 	;   Post1 = Post0
 	),
-	Post2 = Post1.put(meta/id, Id)
+	Post2 = Post1.put(kind, Kind)
+	             .put(meta/id, Id)
 		     .put(meta/author, Author)
 		     .put(meta/time/TimeProperty, Now),
 	convert_post(Post2, Post).
@@ -172,8 +164,8 @@ convert_post(Post0, Id, Author, TimeProperty, Post) :-
 %		=annotation=.
 
 post_process(Request, Kind) :-
-	must_be(oneof([news,annotation]), Kind),
 	request_to_id(Request, Kind, Id),
+	must_be(oneof([news,annotation]), Kind),
 	memberchk(method(Method), Request),
 	(   site_user_logged_in(User)
 	->  true
@@ -210,7 +202,7 @@ post_process(post, Request, Kind, User, _):-
 	post_authorized(Request, User, Kind),
 	catch(( http_read_json_dict(Request, Post0),
 		uuid(Id),
-		convert_post(Post0, Id, User, created, NewPost),
+		convert_post(Post0, Kind, Id, User, created, NewPost),
 		assert_post(Id, NewPost)
 	      ),
 	      E,
@@ -224,8 +216,11 @@ post_process(post, Request, Kind, User, _):-
 % PUT
 post_process(put, Request, Kind, User, Id):-
 	post_authorized(Request, User, Kind),
+	post(Id, created, Created),
 	catch(( http_read_json_dict(Request, Post0),
-		convert_post(Post0, Id, User, modified, NewPost)
+		convert_post(Post0.put(meta/time/created, Created),
+			     Kind, Id, User, modified,
+			     NewPost)
 	      ),
 	      E,
 	      throw(http_reply(bad_request(E)))),
@@ -286,8 +281,6 @@ post1(object, Post, About) :-
 	About = Post.meta.object.
 post1(author, Post, Author) :-
 	Author = Post.meta.author.
-post1(categories, Post, Categories) :-
-	Categories = Post.meta.categories.
 post1(content, Post, Content) :-
 	Content = Post.content.
 post1('freshness-lifetime', Post, FreshnessLifetime ) :-
@@ -308,8 +301,10 @@ post1(time, Post, Time):-
 	Time = Post.meta.time.
 post1(title, Post, Title) :-
 	Title = Post.title.
-post1(votes, Post, Up-Down) :-
-	_{up:Up, down:Down} :< Post.meta.votes.
+post1(votes, Post, Votes) :-
+	_{up:Up, down:Down} :< Post.meta.votes,
+	integer(Up), integer(Down),
+	Votes is Up-Down.
 post1(votes_down, Post, Down) :-
 	Down = Post.meta.votes.down.
 post1(votes_up, Post, Up) :-
@@ -359,34 +354,6 @@ post(Id, Options) -->
 	    )
 	;   []
 	).
-
-%%	post_categories(+PostId)//
-%
-%	Render the categories to which PostId belongs.
-
-post_categories(Id) -->
-  {
-    post(Id, categories, Categories),
-    nonvar(Categories)
-  }, !,
-  post_categories1(Categories).
-post_categories(_) --> [].
-
-post_categories1([]) --> !, [].
-post_categories1(L) -->
-  html([' under ',span(class=categories, \post_categories2(L))]).
-
-post_categories2([]) --> !, [].
-post_categories2([H|T]) -->
-  post_category(H),
-  post_categories2(T).
-
-post_category(Category) -->
-  {
-    category_exists(Category),
-    http_absolute_location(category(Category), Link, [])
-  },
-  html(a([class='post-category',href=Link],Category)).
 
 %! post_header(+Options:list(nvpair), +Id:atom)// is det.
 % When the post appears in isolation (option =|standalone(true)|=),
@@ -665,44 +632,33 @@ age(Id, Age):-
 %! author_image(+User:atom)// is det.
 
 author_image(User) -->
-  {
-    site_user_property(User, name(Name)),
-    format(atom(Alt), 'Picture of user ~w.', [Name]),
+	{ site_user_property(User, name(Name)),
+	  format(atom(Alt), 'Picture of user ~w.', [Name]),
+	  user_avatar(User, Avatar),
+	  http_link_to_id(view_profile, [user(User)], Link)
+	},
+	html(a(href(Link),
+	       img([ alt(Alt),
+		     class('post-avatar'),
+		     src(Avatar),
+		     title(Name)
+		   ]))).
 
-    % @see Documentation
-    %      https://en.gravatar.com/site/implement/hash/
-    site_user_property(User, email(Email)),
-    downcase_atom(Email, CanonicalEmail),
-    md5(CanonicalEmail, Hash),
+%%	user_avatar(+User, -AvatarImageLink) is det.
+%
+%	@see https://en.gravatar.com/site/implement/hash/
+%	@see https://en.gravatar.com/site/implement/images/
 
-    % @see Documentation
-    %      https://en.gravatar.com/site/implement/images/
-    % @see Example
-    %      http://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50
-    uri_path([avatar,Hash], Path),
-    uri_components(URL, uri_components(http, 'www.gravatar.com', Path, _, _)),
-
-    % Also provide a link to the user profile.
-    http_link_to_id(view_profile, [user(User)], Link)
-  },
-  html(a(href=Link,img([alt=Alt,class='post-avatar',src=URL,title=Name]))).
-
-category_exists(Category):-
-  category(Category), !.
-category_exists(Category):-
-  assert(category(Category)).
-
-category_overview(Request):-
-  memberchk(path(Path), Request),
-  atom_concat('/category/', Category, Path),
-  once(category(Category)), !,
-  format(atom(Title), 'Category -- ~a', [Category]),
-  reply_html_page(wiki, title(Title), ['Category ',Category,' TODO']).
+user_avatar(User, URL) :-
+	site_user_property(User, email(Email)),
+	downcase_atom(Email, CanonicalEmail),
+	md5(CanonicalEmail, Hash),
+	uri_path([avatar,Hash], Path),
+	uri_components(URL, uri_components(http, 'www.gravatar.com', Path, _, _)).
 
 dateTime(TimeStamp) -->
-  % Alternative format: `%A %d %B %Y`.
-  {format_time(atom(Date), '%Y-%m-%dT%H:%M:%S', TimeStamp)},
-  html(span([class(date),title(TimeStamp)], Date)).
+	{ format_time(atom(Date), '%Y-%m-%dT%H:%M:%S', TimeStamp) },
+	html(span([class(date),title(TimeStamp)], Date)).
 
 %! find_posts(
 %!  +Kind:oneof([annotation,news]),
@@ -789,7 +745,7 @@ write_post_js(Kind, About) -->
 	  http_absolute_uri(Spec, URL)
 	},
 	html_requires(js('markitup/sets/pldoc/set.js')),
-	js_script({|javascript(Kind,URL,About)||
+	js_script({|javascript(URL,About)||
       function http_post(url, updatePosted, form, method) {
         var down = parseInt(form.siblings("header").find(".post-vote-down").children("img").attr("title"));
         if (isNaN(down)) {down = 0;}
@@ -807,10 +763,8 @@ write_post_js(Kind, About) -->
             "contentType": "application/json; charset=utf-8",
             "data": JSON.stringify({
               "content": form.find(".markItUpEditor").val(),
-              "kind": Kind,
               "meta": {
                 "about": About,
-                "categories": [Kind],
                 "importance": parseFloat(form.find(".importance").val()),
                 "time": {
                   "freshness-lifetime": parseInt(form.find(".freshness-lifetime").val(), 10),
