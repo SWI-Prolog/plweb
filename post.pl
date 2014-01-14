@@ -79,8 +79,8 @@ post_type(post{kind:oneof([annotation,news]),
 			 about:any,
 			 categories:list(atom),
 			 importance:between(0.0,1.0),
-			 time:time{posted:integer,
-				   'freshness-lifetime':integer},
+			 time:time{posted:number,
+				   'freshness-lifetime':number?},
 			 votes:votes{up:nonneg,
 				     down:nonneg}}}).
 
@@ -108,6 +108,9 @@ convert_dict(oneof(Atoms), String, Atom) :-
 	must_be(oneof(Atoms), Atom).
 convert_dict(float, Number, Float) :- !,
 	Float is float(Number).
+convert_dict(list(Type), List0, List) :- !,
+	must_be(list, List0),
+	maplist(convert_dict(Type), List0, List).
 convert_dict(Type, Value, Value) :-
 	must_be(Type, Value).
 
@@ -125,8 +128,9 @@ dict_value(Type?, Name, Dict, Value) :- !,
 	;   Value = null
 	).
 dict_value(Type, Name, Dict, Value) :-
-	get_dict(Name, Dict, Value0),
+	get_dict_ex(Name, Dict, Value0),
 	convert_dict(Type, Value0, Value).
+
 
 
 % /category
