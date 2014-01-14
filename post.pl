@@ -69,12 +69,12 @@
 :- op(100, xf, ?).
 
 post_type(post{kind:oneof([annotation,news]),
-	       title:string,
+	       title:string?,
 	       content:string,
 	       meta:meta{id:atom,
 			 author:atom,
 			 object:any?,
-			 importance:between(0.0,1.0),
+			 importance:between(0.0,1.0)?,
 			 time:time{created:number,
 				   modified:number?,
 				   'freshness-lifetime':number?},
