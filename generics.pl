@@ -87,9 +87,9 @@ login_link -->
 md5(Unencrypted, Encrypted):-
   rdf_atom_md5(Unencrypted, 1, Encrypted).
 
-request_to_id(Request, Kind, Id):-
-  memberchk(path(Path), Request),
-  atomic_list_concat(['',Kind,Id], '/', Path).
+request_to_id(Request, Kind, Id) :-
+	memberchk(path(Path), Request),
+	atomic_list_concat(['',Kind,Id], '/', Path).
 
 request_to_resource(Request, Kind, URL):-
   request_to_id(Request, Kind, Id),
