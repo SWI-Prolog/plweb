@@ -7,11 +7,9 @@
 	    post/3,			% ?Post:or([atom,compound])
 					% ?Name:atom
 					% ?Value
-	    post//3,			% +Options:list(nvpair)
-					% +About:atom
-					% +Post:compound
+	    post//2,			% +Post, +Options
 	    posts//3,			% +Kind:oneof([annotation,news])
-					% +About:atom
+					% +Object
 					% +Ids:list(atom)
 	    relevance/2,		% +Id:atom
 					% -Relevance:between(0.0,1.0)
@@ -29,7 +27,7 @@
 */
 
 :- use_module(generics).
-:- use_module(library(crypt)).
+:- use_module(library(error)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
@@ -45,6 +43,7 @@
 :- use_module(library(pldoc/doc_html)).
 :- use_module(library(uri)).
 :- use_module(openid).
+:- use_module(object_support).
 
 :- meta_predicate(find_posts(+,1,-)).
 
@@ -75,11 +74,13 @@
 post_type(post{kind:oneof([annotation,news]),
 	       title:string,
 	       content:string,
-	       meta:meta{author:atom,
-			 about:any,
+	       meta:meta{id:atom,
+			 author:atom,
+			 object:any?,
 			 categories:list(atom),
 			 importance:between(0.0,1.0),
-			 time:time{posted:number,
+			 time:time{created:number,
+				   modified:number?,
 				   'freshness-lifetime':number?},
 			 votes:votes{up:nonneg,
 				     down:nonneg}}}).
@@ -116,17 +117,15 @@ convert_dict(Type, Value, Value) :-
 
 dict_values([], _, []).
 dict_values([Name-Type|TP], Dict, [Name-Value|TV]) :-
-	dict_value(Type, Name, Dict, Value),
+	dict_value(Type, Name, Dict, Value), !,
+	dict_values(TP, Dict, TV).
+dict_values([_|TP], Dict, TV) :-
 	dict_values(TP, Dict, TV).
 
 dict_value(Type?, Name, Dict, Value) :- !,
-	(   get_dict(Name, Dict, Value0)
-	->  (   Value0 == null
-	    ->  Value = Value0
-	    ;   convert_dict(Type, Value0, Value)
-	    )
-	;   Value = null
-	).
+	get_dict(Name, Dict, Value0),
+	Value0 \== null,
+	convert_dict(Type, Value0, Value).
 dict_value(Type, Name, Dict, Value) :-
 	get_dict_ex(Name, Dict, Value0),
 	convert_dict(Type, Value0, Value).
@@ -149,15 +148,20 @@ http:location(post, root(post), []).
 retract_post(Id):-
 	retract_post(Id, _).
 
-%%	convert_post(+JSON, +Author, -Post) is det.
+%%	convert_post(+JSON, +Id, +Author, +TimeProperty, -Post) is det.
 %
 %	Convert a post object into its Prolog equivalent.
 
-convert_post(Post0, Author, Post) :-
+convert_post(Post0, Id, Author, TimeProperty, Post) :-
 	get_time(Now),
-	Post1 = Post0.put(meta/author, Author)
-		     .put(meta/time/posted, Now),
-	convert_post(Post1, Post).
+	(   object_id(Object, Post0.meta.get(about))
+	->  Post1 = Post0.put(meta/object, Object)
+	;   Post1 = Post0
+	),
+	Post2 = Post1.put(meta/id, Id)
+		     .put(meta/author, Author)
+		     .put(meta/time/TimeProperty, Now),
+	convert_post(Post2, Post).
 
 
 %%	post_process(+Request, ?Kind) is det.
@@ -205,8 +209,8 @@ post_process(get, Request, _, _, _):-
 post_process(post, Request, Kind, User, _):-
 	post_authorized(Request, User, Kind),
 	catch(( http_read_json_dict(Request, Post0),
-		convert_post(Post0, User, NewPost),
 		uuid(Id),
+		convert_post(Post0, Id, User, created, NewPost),
 		assert_post(Id, NewPost)
 	      ),
 	      E,
@@ -221,7 +225,7 @@ post_process(post, Request, Kind, User, _):-
 post_process(put, Request, Kind, User, Id):-
 	post_authorized(Request, User, Kind),
 	catch(( http_read_json_dict(Request, Post0),
-		convert_post(Post0, User, NewPost)
+		convert_post(Post0, Id, User, modified, NewPost)
 	      ),
 	      E,
 	      throw(http_reply(bad_request(E)))),
@@ -256,28 +260,30 @@ post_granted(User, annotation) :-
 	User \== anonymous.
 
 
-% ACCESSOR PREDICATES %
-
-%!	post(+Post:dict, +Name:atom, -Value) is semidet.
-%!	post(+Post:dict, -Name:atom, -Value) is nondet.
+%!	post(+Post, +Name:atom, -Value) is semidet.
+%!	post(+Post, ?Name:atom, -Value) is nondet.
+%!	post(-Post, ?Name:atom, -Value) is nondet.
 %
 %	True if Post have Value for the given attribute.
 %
-%	@arg Post is
+%	@arg	If Post is given, it is either the id of a post or a dict
+%		describing the post.  When generated, Post is the (atom)
+%		identifier of the post.
 
-post(Post, Name, Value):-
-	nonvar(Name), !,
-	post1(Post, Name, Value),
-	Value \== null, !.
-post(Post, Name, Value):-
-	post1(Post, Name, Value).
-
-post1(Name, Id, Value) :-
-	atom(Id), !,
+post(PostOrId, Name, Value) :-
+	nonvar(PostOrId), !,
+	(   atom(PostOrId)
+	->  post(PostOrId, Post)
+	;   Post = PostOrId
+	),
+	post1(Name, Post, Value),
+	Value \== null.
+post(Id, Name, Value) :-
 	post(Id, Post),
-	post1(Post, Name, Value).
-post1(about, Post, About) :-
-	About = Post.meta.about.
+	post1(Name, Post, Value).
+
+post1(object, Post, About) :-
+	About = Post.meta.object.
 post1(author, Post, Author) :-
 	Author = Post.meta.author.
 post1(categories, Post, Categories) :-
@@ -287,15 +293,17 @@ post1(content, Post, Content) :-
 post1('freshness-lifetime', Post, FreshnessLifetime ) :-
 	FreshnessLifetime = Post.meta.time.'freshness-lifetime'.
 post1(id, Post, Id) :-
-	post(Id, Post).
+	Id = Post.meta.id.
 post1(importance, Post, Importance) :-
 	Importance = Post.meta.importance.
 post1(kind, Post, Kind) :-
 	Kind = Post.kind.
 post1(meta, Post, Meta) :-
 	Meta = Post.meta.
-post1(posted, Post, Posted) :-
-	Posted = Post.meta.time.posted.
+post1(created, Post, Posted) :-
+	Posted = Post.meta.time.created.
+post1(modified, Post, Posted) :-
+	Posted = Post.meta.time.modified.
 post1(time, Post, Time):-
 	Time = Post.meta.time.
 post1(title, Post, Title) :-
@@ -304,56 +312,57 @@ post1(votes, Post, Up-Down) :-
 	_{up:Up, down:Down} :< Post.meta.votes.
 post1(votes_down, Post, Down) :-
 	Down = Post.meta.votes.down.
-post1(Post, votes_up, Up) :-
+post1(votes_up, Post, Up) :-
 	Up = Post.meta.votes.up.
 
 
 % SINGLE POST %
 
-%! post(+Options:list(nvpair), +About:atom, +Id:atom)// is det.
-% Generates a post, based on the given compound term.
+%!	post(+Id:atom, +Options)// is det.
 %
-% The following options are supported (first parameter of `Post`):
-%   * orientation(+Orientation:oneof([left,right]))
-%     Orientation of the post.
-%     This is used in binary conversations
-%      to show the different conversation parties.
-%   * standalone(+Standalone:boolean)
-%     Whether this post is part of multiple posts or not.
+%	Generate HTML for apost.  Supported Options:
+%
+%	  * orientation(+Orientation:oneof([left,right]))
+%	  Orientation of the post.  This is used in binary conversations
+%         to show the different conversation parties.
+%	  * standalone(+Standalone:boolean)
+%	  Whether this post is part of multiple posts or not.
 
-post(O1, About, Id) -->
-  { post(Id, kind, Kind),
-    (	option(orientation(Orient), O1),
-	Orient \== none
-    ->	Extra = [ style('float:'+Orient+';') ]
-    ;	Extra = []
-    )
-  },
+post(Id, Options) -->
+	{ post(Id, kind, Kind),
+	  (   option(orientation(Orient), Options),
+	      Orient \== none
+	  ->  Extra = [ style('float:'+Orient+';') ]
+	  ;   Extra = []
+	  )
+	},
 
-  html(article([ class([post,Kind]),
-		 id(Id)
-	       | Extra
-	       ],
-	       [ \post_header(O1, Id),
-		 \post_section(Id),
-		 \edit_remove_post(Id)
-	       ])),
+	html(article([ class([post,Kind]),
+		       id(Id)
+		     | Extra
+		     ],
+		     [ \post_header(O1, Id),
+		       \post_section(Id),
+		       \edit_remove_post(Id)
+		     ])),
 
-  % Standalone option.
-  (
-    {option(standalone(true), O1, true)}
-  ->
-    html_requires(css('post.css')),
-    (
-      {site_user_logged_in(_)}
-    ->
-      html(\write_post_js(Kind, About))
-    ;
-      login_post(Kind)
-    )
-  ;
-    []
-  ).
+	(   { option(standalone(true), O1, true) }
+	->  html_requires(css('post.css')),
+	    (   { site_user_logged_in(_) }
+	    ->  {   post(Id, about, Object),
+		    object_id(Object, About)
+		->  true
+		;   About = @(null)
+		},
+	        html(\write_post_js(Kind, About))
+	    ;   login_post(Kind)
+	    )
+	;   []
+	).
+
+%%	post_categories(+PostId)//
+%
+%	Render the categories to which PostId belongs.
 
 post_categories(Id) -->
   {
@@ -437,8 +446,9 @@ post_section(Id) -->
   ).
 
 post_time(Id) -->
-  {post(Id, posted, Posted)},
-  html(\dateTime(Posted)).
+	{ post(Id, created, Posted) }, !,
+	html(\dateTime(Posted)).
+post_time(_) --> [].
 
 post_title(O1, Id) -->
   {
@@ -473,48 +483,55 @@ post_votes(Id) -->
   ]).
 
 
+%%	posts(+Kind, +Object, +Ids:list(atom))//
+%
+%	Generate HTML for a list of posts and add a link to add new
+%	posts.
 
-% MULTIPLE POSTS %
+posts(Kind, Object, Ids1) -->
+	{ atomic_list_concat([Kind,component], '-', Class),
+	  sort_posts(Ids1, votes, Ids2)
+	},
+	html_requires(css('post.css')),
+	html([ div(class=[posts,Class],
+		   \post_list(Ids2, Kind, none)),
+	       \add_post(Kind, Object)
+	     ]).
 
-posts(Kind, About, Ids1) -->
-  {
-    atomic_list_concat([Kind,component], '-', Class),
-    sort_posts(Ids1, votes, Ids2)
-  },
-  html([
-    \html_requires(css('post.css')),
-    div(class=[posts,Class], \posts(Kind, About, none, Ids2)),
-    \add_post(Kind, About)
-  ]).
-
-posts(_Kind, _About, _Orient, []) --> [].
-posts(Kind, About, Orient1, [Id|Ids]) -->
-  post([orientation(Orient1),standalone(false)], About, Id),
-  {switch_orientation(Orient1, Orient2)},
-  posts(Kind, About, Orient2, Ids).
+post_list([], _Kind, _Orient) --> [].
+post_list([Id|Ids], Kind, Orient1) -->
+	post(Id, [orientation(Orient1),standalone(false)]),
+	{switch_orientation(Orient1, Orient2)},
+	post_list(Ids, Kind, Orient2).
 
 switch_orientation(left,  right).
 switch_orientation(right, left).
 switch_orientation(none,  none).
 
 
-%%	add_post(+Kind, +About)//
+%%	add_post(+Kind, +Object)//
 %
 %	Emit HTML that allows for adding a new post
 
-add_post(Kind, About) -->
+add_post(Kind, Object) -->
 	{ site_user_logged_in(User),
-	  post_granted(User, Kind)
+	  post_granted(User, Kind),
+	  (   Object == null
+	  ->  object_id(Object, About)
+	  ;   About = @(null)
+	  )
 	}, !,
 	html(div(id='add-post',
-		 [ \add_post_link,
+		 [ \add_post_link(Kind),
 		   form([id='add-post-content',style='display:none;'],
-			[ \add_post_title(Kind),
-			  \add_post_importance(Kind),
-			  \add_post_freshnesslifetime(Kind),
-			  \add_post_content
-			]),
-		   \submit_post_links,
+			table(with('100%'),
+			      [ tr(td(\add_post_title(Kind))),
+				tr(td([ \add_post_importance(Kind),
+					\add_post_freshnesslifetime(Kind)
+				      ])),
+				tr(td(\add_post_content)),
+				tr(td(\submit_post_links(Kind)))
+			      ])),
 		   \write_post_js(Kind, About)
 		 ])).
 add_post(Kind, _) -->
@@ -552,8 +569,14 @@ add_post_importance(news) --> !,
   ]).
 add_post_importance(_) --> [].
 
-add_post_link -->
-  html(a([id='add-post-link',href=''], 'Add post')).
+add_post_link(Kind) -->
+	html(a([id('add-post-link'),href('')],
+	       \add_post_label(Kind))).
+
+add_post_label(news) -->
+	html('Post new article').
+add_post_label(annotation) -->
+	html('Add comment').
 
 add_post_title(news) --> !,
   html([
@@ -563,13 +586,16 @@ add_post_title(news) --> !,
   ]).
 add_post_title(_) --> [].
 
-submit_post_links -->
-  html(
-    div([id='add-post-links',style='display:none;'], [
-      a([id='add-post-submit',href=''], 'Add comment'),
-      a([id='add-post-cancel',href=''], 'Cancel')
-    ])
-  ).
+submit_post_links(Kind) -->
+	html(div([ id='add-post-links',style='display:none;'],
+		 [ a([id='add-post-submit',href=''], \submit_post_label(Kind)),
+		   a([id='add-post-cancel',href=''], 'Cancel')
+		 ])).
+
+submit_post_label(news) -->
+	html('Submit article').
+submit_post_label(annotation) -->
+	html('Submit comment').
 
 
 
@@ -627,15 +653,14 @@ save_post_links -->
   ).
 
 
-
-% HELPERS %
-
-%! age(+Id:atom, -Age:nonneg) is det.
+%!	age(+Id:atom, -Age) is det.
+%
+%	True when post Id was created Age seconds ago.
 
 age(Id, Age):-
-  post(Id, posted, Posted),
-  get_time(Now),
-  Age is Now - Posted.
+	post(Id, created, Posted),
+	get_time(Now),
+	Age is Now - Posted.
 
 %! author_image(+User:atom)// is det.
 
@@ -686,15 +711,12 @@ dateTime(TimeStamp) -->
 %! ) is det.
 
 find_posts(Kind, CheckId, Ids):-
-  findall(
-    Id,
-    (
-      post(Id, Post),
-      post(Post, kind, Kind),
-      call(CheckId, Id)
-    ),
-    Ids
-  ).
+	findall(Id,
+		( post(Id, Post),
+		  post(Post, kind, Kind),
+		  call(CheckId, Id)
+		),
+		Ids).
 
 %! fresh(+Id:atom) is semidet.
 %! fresh(-Id:atom) is nondet
@@ -706,9 +728,9 @@ fresh(Id):-
   Age < FreshnessLifetime.
 fresh(_).
 
-%! all(+Id:atom) is det.
+%!	all(+Id:atom) is det.
 %
-%  News filter, retuning all objects
+%	News filter, returning all objects
 
 all(_).
 
@@ -717,41 +739,32 @@ all(_).
 % - `Relevance` is 0.0 if `FreshnessLifetime =< Age`.
 % - `Relevance` is 1.0 if `Age == 0`.
 
-relevance(Id, Relevance):-
-  fresh(Id),
-  post(Id, importance, Importance),
-  nonvar(Importance),
-  post(Id, 'freshness-lifetime', FreshnessLifetime),
-  nonvar(FreshnessLifetime), !,
-  age(Id, Age),
-  Relevance is Importance * (1 - Age / FreshnessLifetime).
+relevance(Id, Relevance) :-
+	fresh(Id),
+	post(Id, importance, Importance),
+	nonvar(Importance),
+	post(Id, 'freshness-lifetime', FreshnessLifetime),
+	nonvar(FreshnessLifetime), !,
+	age(Id, Age),
+	Relevance is Importance * (1 - Age / FreshnessLifetime).
 relevance(_, 0.0).
 
 sort_posts(Ids, SortedIds):-
-  sort_posts(Ids, posted, SortedIds).
+	sort_posts(Ids, created, SortedIds).
 
 sort_posts(Ids, Property, SortedIds):-
-  findall(
-    Value-Id,
-    (
-      member(Id, Ids),
-      post(Id, Property, Value)
-    ),
-    Temp1
-  ),
-  keysort(Temp1, Temp2),
-  reverse(Temp2, Temp3),
-  pairs_values(Temp3, SortedIds).
+	map_list_to_pairs(post_property(Property), Ids, Pairs),
+	keysort(Pairs, SortedPairs),
+	reverse(SortedPairs, RevSorted),
+	pairs_values(RevSorted, SortedIds).
 
-%! stale(+Id:atom) is semidet.
-%! stale(?Id:atom) is nondet
+post_property(Property, Id, Value) :-
+	post(Id, Property, Value).
 
-stale(Id):-
-  \+ fresh(Id).
-
-
-
-% SCRIPT %
+%%	login_post(+Kind)//
+%
+%	Suggest to login or request  permission   to  get  access to the
+%	posting facility.
 
 login_post(Kind) -->
 	{ site_user_logged_in(_), !,
@@ -767,16 +780,16 @@ login_post(Kind) -->
 	html(div(class='post-login',
 		 [b(\login_link),' to add a new ',Kind,' post.'])).
 
-% We assume the user is logged in once we get here.
+%%	write_post_js(+Kind, +About)//
+%
+%	Emit JavaScript to manage posts.
+
 write_post_js(Kind, About) -->
-  {
-    site_user_logged_in(Author),
-    Spec =.. [Kind,'.'],
-    http_absolute_uri(Spec, URL)
-  },
-  html([
-    \html_requires(js('markitup/sets/pldoc/set.js')),
-    \js_script({|javascript(Kind,URL,Author,About)||
+	{ Spec =.. [Kind,'.'],
+	  http_absolute_uri(Spec, URL)
+	},
+	html_requires(js('markitup/sets/pldoc/set.js')),
+	js_script({|javascript(Kind,URL,About)||
       function http_post(url, updatePosted, form, method) {
         var down = parseInt(form.siblings("header").find(".post-vote-down").children("img").attr("title"));
         if (isNaN(down)) {down = 0;}
@@ -788,16 +801,6 @@ write_post_js(Kind, About) -->
         title1 = form.find(".title").val();
         if (title1 === undefined) { title2 = null; } else { title2 = title1; }
 
-        var posted;
-        if (updatePosted) {
-          posted = Math.round(Date.now()/1000);
-        } else {
-          var header = form.siblings("header");
-          var date = header.find(".date");
-          var title = date.attr("title");
-          posted = parseInt(title);
-        }
-
         $.ajax(
           url,
           {
@@ -806,13 +809,11 @@ write_post_js(Kind, About) -->
               "content": form.find(".markItUpEditor").val(),
               "kind": Kind,
               "meta": {
-                "author": Author,
                 "about": About,
                 "categories": [Kind],
                 "importance": parseFloat(form.find(".importance").val()),
                 "time": {
                   "freshness-lifetime": parseInt(form.find(".freshness-lifetime").val(), 10),
-                  "posted": posted,
                   "type": "time"
                 },
                 "type": "meta",
@@ -854,7 +855,7 @@ write_post_js(Kind, About) -->
           http_post(
             URL,
             true,
-            $(this).parent().siblings("#add-post-content"),
+            $("#add-post-content"),
             "POST"
           );
         });
@@ -942,6 +943,5 @@ write_post_js(Kind, About) -->
           );
         });
       });
-    |})
-  ]).
+    |}).
 

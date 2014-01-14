@@ -40,15 +40,15 @@ http:location(annotation, root(annotation), []).
 
 annotation_process(Request):-
 	memberchk(method(get), Request),
-	request_to_resource(Request, annotation, URL), !,
-	http_get(URL, JSON, []),
-	json_to_prolog(JSON, post:Post),
+	request_to_id(Request, annotation, Post), !,
 	post(Post, id, Id),
-	post(Post, about, About),
-	object_id(Object, About),
+	post(Post, about, Object),
 	object_label(Object, Label),
 	atomic_list_concat(['Annotation',Label], '--', Title),
-	reply_html_page(wiki(Title), title(Title), \post([], About, Id)).
+	reply_html_page(
+	    wiki(Title),
+	    title(Title),
+	    \post(Id, [])).
 annotation_process(Request):-
 	post_process(Request, annotation).
 
@@ -56,18 +56,18 @@ annotation_process(Request):-
 %
 %	Show annotations for Object.
 
-annotation(Object1) -->
-	{ ground(Object1),
-	  (   prolog:doc_canonical_object(Object1, Object2)
+annotation(Object) -->
+	{ ground(Object), !,
+	  (   prolog:doc_canonical_object(Object, Object2)
 	  ->  true
-	  ;   Object2 = Object1
+	  ;   Object2 = Object
 	  ),
-	  object_id(Object2, About), !,
-	  find_posts(annotation, about_post(About), Ids)
+	  find_posts(annotation, about_post(Object2), Ids)
 	},
 	html([\html_requires(css('annotation.css')),
-	      \posts(annotation, About, Ids)
+	      \posts(annotation, Object2, Ids)
 	     ]).
+annotation(_) --> [].
 
 about_post(About, Id) :-
 	post(Id, about, About).

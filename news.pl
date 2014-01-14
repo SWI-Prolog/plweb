@@ -1,5 +1,3 @@
-:- module(news, [random_news//0]).
-
 /** <module> News on the SWI-Prolog Web site
 
     E-mail:        J.Wielemaker@cs.vu.nl
@@ -34,8 +32,12 @@
     @version 2013/12
 */
 
+:- module(news,
+	  [ random_news//0
+	  ]).
 :- use_module(generics).
 :- use_module(library(aggregate)).
+:- use_module(library(random)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_client)).
@@ -50,82 +52,90 @@ http:location(news, root(news), []).	% used for write_post_js//2.
 :- http_handler(root(news), news_process, [prefix]).
 :- http_handler(root(news/archive), news_archive, []).
 
+%%	news_process(+Request)
+%
+%	HTTP handler for /news/.  Distinguishes three cases:
+%
+%	  1. GET to /news/<Kind>/<Id> to render a single news item.
+%	  2. GET to /news/ to render the _fresh_ news.
+%	  3. POST provides a REST API for managing news.
 
-% HTTP GET on a specific news item.
-news_process(Request):-
-  memberchk(method(get), Request),
-  request_to_resource(Request, news, URL), !,
-  http_get(URL, JSON, []),
-  json_to_prolog(JSON, post:Post),
-  post(Post, title, Title1),
-  post(Post, id, Id),
-  atomic_list_concat(['News',Title1], ' -- ', Title2),
-  reply_html_page(
-    news(Id),
-    title(Title2),
-    [\news_backlink,\post([], null, Id)]
-  ).
-% HTTP GET without a specific news item: enumerate all fresh news item.
-news_process(Request):-
-  memberchk(method(get), Request), !,
-  find_posts(news, fresh, Ids),
-  Title = 'News',
-  reply_html_page(news(fresh), \news_header(Title), \posts(news, null, Ids)).
-% HTTP methods other than GET go via the REST API for generic posts.
-news_process(Request):-
-  post_process(Request, news).
+news_process(Request) :-
+	memberchk(method(get), Request),
+	request_to_resource(Request, news, URL), !,
+	http_get(URL, JSON, []),
+	json_to_prolog(JSON, post:Post),
+	post(Post, title, Title1),
+	post(Post, id, Id),
+	atomic_list_concat(['News',Title1], ' -- ', Title2),
+	reply_html_page(
+	    news(Id),
+	    title(Title2),
+	    [ \news_backlink,
+	      \post(Id, [])
+	    ]).
+news_process(Request) :-
+	memberchk(method(get), Request), !,
+	find_posts(news, fresh, Ids),
+	Title = 'News',
+	reply_html_page(
+	    news(fresh),
+	    title(Title),
+	    [ \html_requires(css('news.css')),
+	      \posts(news, null, Ids)
+	    ]).
+news_process(Request) :-
+	post_process(Request, news).
 
-news_header(Title) -->
-  html([
-    \html_requires(css('news.css')),
-    title(Title)
-  ]).
+%%	news_archive(+Request) is det.
+%
+%	Show all available news.
 
-% The list of fresh and stale (i.e., all) news items.
 news_archive(_Request):-
-  find_posts(news, all, Ids),
-  Title = 'News archive',
-  reply_html_page(news(all), title(Title), \posts(news, null, Ids)).
+	find_posts(news, all, Ids),
+	reply_html_page(news(all),
+			title('News archive'),
+			\posts(news, null, Ids)).
 
 news_backlink -->
-  { http_link_to_id(news_process, [], Link) },
-  html(a(href=Link, 'Back to list of news items')).
+	{ http_link_to_id(news_process, [], Link) },
+	html(a(href=Link, 'Back to list of news items')).
 
-%! random_news// is semidet.
-% Fails if there is no news.
+%!	random_news// is semidet.
+%
+%	Emit a random news item for the Did You Know place of the page.
+%	Fails if there is no news.
 
 random_news -->
-  { '_random_news'(Id, Title),
-    http_link_to_id(news_process, path_postfix(Id), Link)
-  },
-  html([
-    span(class(lbl), 'News: '),
-    span(id(dyknow), a(href=Link, Title))
-  ]).
+	{ random_new_item(Id, Title),
+	  http_link_to_id(news_process, path_postfix(Id), Link)
+	},
+	html([ span(class(lbl), 'News: '),
+	       span(id(dyknow), a(href=Link, Title))
+	     ]).
 
-%! '_random_news'(-Id:atom, -Title:atom) is det.
+%! random_new_item(-Id:atom, -Title:atom) is det.
 
-'_random_news'(Id, Title):-
-  aggregate_all(
-    sum(Relevance),
-    (
-      post(Id, kind, news),
-      relevance(Id, Relevance)
-    ),
-    SummedRelevance
-  ),
-  random_betwixt(SummedRelevance, R),
-  find_posts(news, fresh, Ids),
-  '_random_news'(0.0, R, Ids, Id, Title).
-'_random_news'(_V, _R, [Id], Id, Title):- !,
-  post(Id, title, Title).
-'_random_news'(V1, R, [Id|_], Id, Title):-
-  relevance(Id, Relevance),
-  V2 is V1 + Relevance,
-  R =< V2, !,
-  post(Id, title, Title).
-'_random_news'(V1, R, [Id0|Ids], Id, Title):-
-  relevance(Id0, Relevance),
-  V2 is V1 + Relevance,
-  '_random_news'(V2, R, Ids, Id, Title).
+random_new_item(Id, Title):-
+	aggregate_all(
+	    sum(Relevance),
+	    ( post(Id, kind, news),
+	      relevance(Id, Relevance)
+	    ),
+	    SummedRelevance),
+	random(0.0, SummedRelevance, R),
+	find_posts(news, fresh, Ids),
+	random_new_item(0.0, R, Ids, Id, Title).
+
+random_new_item(_V, _R, [Id], Id, Title):- !,
+	post(Id, title, Title).
+random_new_item(V1, R, [Id|_], Id, Title):-
+	relevance(Id, Relevance),
+	V2 is V1 + Relevance,
+	R =< V2, !,
+	post(Id, title, Title).
+random_new_item(V1, R, [Id0|Ids], Id, Title):-
+	relevance(Id0, Relevance),
+	V2 is V1 + Relevance,
+	random_new_item(V2, R, Ids, Id, Title).
 
