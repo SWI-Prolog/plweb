@@ -9,8 +9,6 @@
     login_link//0,
     md5/2, % +Unencrypted:or([atom,list(code),string])
            % -Encrypted:or([atom,list(code),string])
-    random_betwixt/2, % +UpperLimit:float
-                      % -Random:float
     request_to_id/3, % +Request:list
                      % +Kind:oneof([annotation,news,post])
                      % -Id:atom
@@ -88,12 +86,6 @@ login_link -->
 
 md5(Unencrypted, Encrypted):-
   rdf_atom_md5(Unencrypted, 1, Encrypted).
-
-random_betwixt(UpperLimit, Random):-
-  random_betwixt(0.0, UpperLimit, Random).
-
-random_betwixt(LowerLimit, UpperLimit, Random):-
-  Random is LowerLimit + random_float * (UpperLimit - LowerLimit).
 
 request_to_id(Request, Kind, Id):-
   memberchk(path(Path), Request),
