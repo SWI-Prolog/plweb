@@ -587,60 +587,58 @@ submit_post_label(news) -->
 submit_post_label(annotation) -->
 	html('Submit comment').
 
-
-
-% EDIT/REMOVE POST %
+%%	edit_post(+Id)//
+%
+%	Provide a non-displayed editor for post Id if the author of this
+%	post is logged on.
+%
+%	@tbd	Add current values to the menus.
 
 edit_post(Id) -->
-  {
-    post(Id, author, Author),
-    site_user_logged_in(Author), !,
-    post(Id, kind, Kind)
-  },
-  html([
-    form([class='edit-post-content',style='display:none;'], [
-      % @tbd Set title value.
-      \add_post_title(Kind),
-      % @tbd Set importance value.
-      \add_post_importance(Kind),
-      % @tbd Set freshness lifetime value.
-      \add_post_freshnesslifetime(Kind),
-      \edit_post_content(Id)
-    ]),
-    \save_post_links
-  ]).
+	{ post(Id, author, Author),
+	  site_user_logged_in(Author), !,
+	  post(Id, kind, Kind)
+	},
+	html([ form([class='edit-post-content',style='display:none;'],
+		    [ \add_post_title(Kind),
+		      \add_post_importance(Kind),
+		      \add_post_freshnesslifetime(Kind),
+		      \edit_post_content(Id)
+		    ]),
+	       \save_post_links
+	     ]).
 edit_post(_) --> [].
 
 edit_post_content(Id) -->
-  {post(Id, content, Content)},
-  html(textarea([class=markItUp,cols=120,rows=10,style='display:none;'], Content)).
+	{ post(Id, content, Content)
+	},
+	html(textarea([ class=markItUp,
+			cols=120,
+			rows=10,
+			style='display:none;'
+		      ], Content)).
 
 edit_remove_post(Id) -->
-  {
-    post(Id, author, Author),
-    site_user_logged_in(Author), !
-  },
-  html([
-    \html_post(edit_remove(Id), \edit_remove_post_link),
-    \edit_post(Id)
-  ]).
+	{ post(Id, author, Author),
+	  site_user_logged_in(Author), !
+	},
+	html([ \html_post(edit_remove(Id), \edit_remove_post_link),
+	       \edit_post(Id)
+	     ]).
 edit_remove_post(_) --> [].
 
 edit_remove_post_link -->
-  html([
-    ' ',
-    a([class='edit-post-link',href=''], 'Edit'),
-    '/',
-    a([class='remove-post-link',href=''], 'Delete')
-  ]).
+	html([ ' ',
+	       a([class='edit-post-link',href=''], 'Edit'),
+	       '/',
+	       a([class='remove-post-link',href=''], 'Delete')
+	     ]).
 
 save_post_links -->
-  html(
-    div([class='edit-post-links',style='display:none;'], [
-      a([class='edit-post-submit',href=''], 'Edit comment'),
-      a([class='edit-post-cancel',href=''], 'Cancel')
-    ])
-  ).
+	html(div([class='edit-post-links',style='display:none;'],
+		 [ a([class='edit-post-submit',href=''], 'Edit comment'),
+		   a([class='edit-post-cancel',href=''], 'Cancel')
+		 ])).
 
 
 %!	age(+Id:atom, -Age) is det.
@@ -652,7 +650,7 @@ age(Id, Age):-
 	get_time(Now),
 	Age is Now - Posted.
 
-%! author_image(+User:atom)// is det.
+%!	author_image(+User:atom)// is det.
 
 author_image(User) -->
 	{ site_user_property(User, name(Name)),
@@ -676,18 +674,20 @@ user_avatar(User, URL) :-
 	site_user_property(User, email(Email)),
 	downcase_atom(Email, CanonicalEmail),
 	md5(CanonicalEmail, Hash),
-	uri_path([avatar,Hash], Path),
-	uri_components(URL, uri_components(http, 'www.gravatar.com', Path, _, _)).
+	atom_concat('/avatar/', Hash, Path),
+	uri_data(scheme,    Components, http),
+	uri_data(authority, Components, 'www.gravatar.com'),
+	uri_data(path,      Components, Path),
+	uri_components(URL, Components).
 
 dateTime(TimeStamp) -->
 	{ format_time(atom(Date), '%Y-%m-%dT%H:%M:%S', TimeStamp) },
 	html(span([class(date),title(TimeStamp)], Date)).
 
-%! find_posts(
-%!  +Kind:oneof([annotation,news]),
-%!  :CheckId,
-%!  -Ids:list(atom)
-%! ) is det.
+%!	find_posts(+Kind, :CheckId, -Ids) is det.
+%
+%	True when Ids  is  a  list  of   all  posts  of  Kind  for which
+%	call(CheckId, Id) is true.
 
 find_posts(Kind, CheckId, Ids):-
 	findall(Id,
@@ -697,14 +697,15 @@ find_posts(Kind, CheckId, Ids):-
 		),
 		Ids).
 
-%! fresh(+Id:atom) is semidet.
-%! fresh(-Id:atom) is nondet
+%!	fresh(+Id:atom) is semidet.
+%
+%	True if post Id is considered _fresh_.
 
 fresh(Id):-
-  post(Id, 'freshness-lifetime', FreshnessLifetime),
-  nonvar(FreshnessLifetime), !,
-  age(Id, Age),
-  Age < FreshnessLifetime.
+	post(Id, 'freshness-lifetime', FreshnessLifetime),
+	nonvar(FreshnessLifetime), !,
+	age(Id, Age),
+	Age < FreshnessLifetime.
 fresh(_).
 
 %!	all(+Id:atom) is det.
