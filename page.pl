@@ -61,7 +61,7 @@
 
 user:body(homepage, Body) --> !,
 	outer_container([ \tag_line_area,
-			  \menubar(fixed_width),
+			  \menubar(homepage),
 			  \blurb,
 			  \cta_area,
 			  \enhanced_search_area,
@@ -73,7 +73,7 @@ user:body(Style, Body) -->
 	},
 	outer_container(
 	    [ \title_area(Style),
-	      \menubar(fixed_width),
+	      \menubar(Style),
 	      div(class(breadcrumb), []),
 	      div(class(['inner-contents', ContentClass]),
 		  div([id(contents), class([contents, ContentClass])],
@@ -300,15 +300,12 @@ swi_logo -->
 		 ], [])).
 
 
-%%	menubar(+Style:atom)// is semidet
+%%	menubar(+Style)// is semidet
 %
-%	Emits a menubar. Style must be one of full_width or fixed_width,
-%	where full_width extends the yellow band   full  across the page
-%	and fixed_width limits the yellow band  to 960px PageLocation is
-%	the page location for editing
+%	Emits a menubar. Style is the page style
 
-menubar(fixed_width) -->
-	{ menu(Menu) },
+menubar(Style) -->
+	{ menu(Style, Menu) },
 	html_requires(jquery),
 	html_requires(jq('menu.js')),
 	html(div(id(menubar),
@@ -336,6 +333,9 @@ menu(Label = Link, _) -->
 			alt('External')
 		      ])
 		])).
+menu(_Label = (-), _) --> !,
+	[].
+%	html(li(span(class(inactive), Label))).
 menu(Label = Link, _) -->
 	html(li(a(href(Link), Label))).
 
@@ -348,7 +348,8 @@ submenu_label(Label, _) -->
 	html([Label, span(class(arrow), &('#x25B6'))]).
 
 
-menu([ 'Home'                = '/',
+menu(Style,
+     [ 'Home'                = '/',
        'Download' =
        [ 'SWI-Prolog'	     = '/Download.html',
 	 'Sources/building'  = '/build/',
@@ -408,7 +409,7 @@ menu([ 'Home'                = '/',
 	 'Dog food'            = '/dogfood.html'
        ],
        'Wiki' =
-       [ 'Login'               = LoginURL,
+       [ LoginLabel            = LoginURL,
 	 'Edit this page'      = EditHREF,
 	 'Sandbox'             = '/wiki/sandbox',
 	 'Wiki help'           = '/wiki/',
@@ -417,10 +418,18 @@ menu([ 'Home'                = '/',
      ]) :-
 	http_current_request(Request),
 	memberchk(request_uri(ReqURL), Request),
-	http_link_to_id(wiki_edit,
-			[location(ReqURL)], EditHREF),
-	http_link_to_id(plweb_login_page,
-			['openid.return_to'(ReqURL)], LoginURL).
+	(   functor(Style, wiki, _)
+	->  http_link_to_id(wiki_edit,
+			    [location(ReqURL)], EditHREF)
+	;   EditHREF = (-)
+	),
+	(   site_user_logged_in(_)
+	->  LoginLabel = 'Logout',
+	    http_link_to_id(logout, ['openid.return_to'(ReqURL)], LoginURL)
+	;   LoginLabel = 'Login',
+	    http_link_to_id(plweb_login_page,
+			    ['openid.return_to'(ReqURL)], LoginURL)
+	).
 
 
 %%	blurb//
