@@ -68,8 +68,8 @@ news_process(Request) :-
 	reply_html_page(
 	    news(Post),
 	    title(Title2),
-	    [ \news_backlink,
-	      \post(Post, [])
+	    [ \post(Post, []),
+	      \news_backlink
 	    ]).
 news_process(Request) :-
 	memberchk(method(get), Request), !,
