@@ -833,12 +833,11 @@ current_user(Style) -->
 	  ->  Display = Name
 	  ;   Display = OpenID
 	  ),
-	  http_link_to_id(view_profile, [], Profile),
-	  http_link_to_id(logout, [], Logout)
+	  http_link_to_id(view_profile, [], Profile)
 	},
 	html(div(class('current-user'),
 		 [ a([href(Profile)], Display),
-		   ' (', a([href(Logout)], 'logout'), ')'
+		   ' (', \logout_link, ')'
 		 ])).
 current_user(Style) -->
 	{ Style \== create_profile,
@@ -861,3 +860,11 @@ login_link(Request) -->
 	  http_link_to_id(swipl_login, Attrs, Login)
 	},
 	html(a([class(signin), href(Login)], login)).
+
+%%	logout_link//
+%
+%	Create a link to logout
+
+logout_link -->
+	{ http_link_to_id(logout, [], Logout) },
+	html(a([href(Logout)], 'logout')).
