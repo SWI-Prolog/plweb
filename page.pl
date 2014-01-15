@@ -100,7 +100,7 @@ page_style(tags(_Action),	[]).
 page_style(pldoc(object(Obj)),	[object(Obj)]) :- !.
 page_style(pldoc(_),		[]).
 
-%	outer_container(+Content, +Options)//
+%%	outer_container(+Content, +Options)//
 %
 %	Display a typical page including headers and footers.
 
@@ -111,6 +111,7 @@ outer_container(Content, Options) -->
 		    \shortcut_icons,
 		    \upper_header,
 		    Content,
+		    div([id(dialog),style('display:none;')], []),
 		    div(class([footer, newstyle]), \footer(Options)),
 		    div(id('tail-end'), &(nbsp))
 		  ]))),
