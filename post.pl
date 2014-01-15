@@ -837,6 +837,11 @@ vote(Post, User, Vote) :-
 	->  true
 	;   existence_error(post, Post)
 	),
+	(   post(Post, author, User)
+	->  throw(error(permission_error(vote, post, Post),
+			context(_, 'Author cannot vote')))
+	;   true
+	),
 	(   \+ vote(Post, _, User, _)
 	->  get_time(NowF),
 	    Now is integer(NowF),
