@@ -39,8 +39,8 @@ every pldoc and SWI-Prolog website page.
 :- use_module(news).
 
 did_you_know -->
-	{ maybe(0.5) }, !,
-	random_news.
+	{ maybe(0.5) },
+	random_news, !.
 did_you_know -->
 	random_hint.
 
