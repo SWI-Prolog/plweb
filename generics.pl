@@ -13,8 +13,6 @@
                      % +Kind:oneof([annotation,news,post])
                      % -Id:atom
     true/1, % +Term
-    uri_path/2, % +PathComponents:list(term)
-                % -Path:atom
     uri_query_add/4, % +FromURI:uri
                      % +Name:atom
                      % +Value:atom
@@ -95,10 +93,6 @@ request_to_id(Request, Kind, Id) :-
 	).
 
 true(_).
-
-uri_path(T1, Path):-
-  exclude(var, T1, T2),
-  atomic_list_concat([''|T2], '/', Path).
 
 %! uri_query_add(+FromURI:uri, +Name:atom, +Value:atom, -ToURI:atom) is det.
 % Inserts the given name-value pair as a query component into the given URI.
