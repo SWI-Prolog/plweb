@@ -497,17 +497,18 @@ add_post(Kind, Object) -->
 	  (   Object == null
 	  ->  About = @(null)
 	  ;   object_id(Object, About)
-	  )
+	  ),
+	  Id = ''			% empty id
 	}, !,
 	html(div(id='add-post',
 		 [ \add_post_link(Kind),
 		   form([id='add-post-content',style='display:none;'],
-			table(with('100%'),
-			      [ tr(td(\add_post_title(Kind))),
-				tr(td([ \add_post_importance(Kind),
-					\add_post_freshnesslifetime(Kind)
+			table(width('100%'),
+			      [ tr(td(\add_post_title(Id, Kind))),
+				tr(td([ \add_post_importance(Id, Kind),
+					\add_post_freshnesslifetime(Id, Kind)
 				      ])),
-				tr(td(\add_post_content)),
+				tr(td(\add_post_content(Id))),
 				tr(td(\submit_post_links(Kind)))
 			      ])),
 		   \write_post_js(Kind, About)
@@ -515,37 +516,53 @@ add_post(Kind, Object) -->
 add_post(Kind, _) -->
 	login_post(Kind).
 
-add_post_content -->
-	html(textarea([class(markItUp)], [])).
+add_post_content(Id) -->
+	{   Id \== '', post(Id, content, Content)
+	->  true
+	;   Content = []
+	},
+	html(textarea([class(markItUp)], Content)).
 
 %%	add_post_freshnesslifetime(+Kind)
 %
 %	Add fressness menu if Kind = =news=.  Freshness times are
 %	represented as seconds.
 
-add_post_freshnesslifetime(news) --> !,
+add_post_freshnesslifetime(Id, news) --> !,
+	{   Id \== '', post(Id, 'freshness-lifetime', Default)
+	->  true
+	;   menu(freshness, 'One month', Default)
+	},
 	html([ label([], 'Freshness lifetime: '),
 	       select(class='freshness-lifetime',
-		      \options(freshness)),
+		      \options(freshness, Default)),
 	       br([])
 	     ]).
-add_post_freshnesslifetime(_) --> [].
+add_post_freshnesslifetime(_, _) --> [].
 
-add_post_importance(news) --> !,
+add_post_importance(Id, news) --> !,
+	{   Id \== '', post(Id, importance, Importance)
+	->  true
+	;   menu(importance, 'Normal', Importance)
+	},
 	html([ label([], 'Importance: '),
 	       select(class=importance,
-		      \options(importance))
+		      \options(importance, Importance))
 	     ]).
-add_post_importance(_) --> [].
+add_post_importance(_, _) --> [].
 
-options(Key) -->
+options(Key, Default) -->
 	{ findall(Name-Value, menu(Key, Name, Value), Pairs) },
-	option_list(Pairs).
+	option_list(Pairs, Default).
 
-option_list([]) --> [].
-option_list([Name-Value|T]) -->
-	html(option(value(Value), Name)),
-	option_list(T).
+option_list([], _) --> [].
+option_list([Name-Value|T], Default) -->
+	{   Name == Default
+	->  Extra = [selected(selected)]
+	;   Extra = []
+	},
+	html(option([value(Value)|Extra], Name)),
+	option_list(T, Default).
 
 
 menu(freshness, 'One year',  Secs) :- Secs is 365*24*3600.
@@ -569,12 +586,20 @@ add_post_label(news) -->
 add_post_label(annotation) -->
 	html('Add comment').
 
-add_post_title(news) --> !,
+add_post_title(Id, news) --> !,
+	{   Id \== '', post(Id, title, Title)
+	->  Extra = [value(Title)]
+	;   Extra = []
+	},
 	html([ label([], 'Title: '),
-	       input([class(title),size(70),type(text)], []),
+	       input([ class(title),
+		       size(70),
+		       type(text)
+		     | Extra
+		     ], []),
 	       br([])
 	     ]).
-add_post_title(_) --> [].
+add_post_title(_, _) --> [].
 
 submit_post_links(Kind) -->
 	html(div([ id='add-post-links',style='display:none;'],
@@ -600,23 +625,14 @@ edit_post(Id) -->
 	  post(Id, kind, Kind)
 	},
 	html([ form([class='edit-post-content',style='display:none;'],
-		    [ \add_post_title(Kind),
-		      \add_post_importance(Kind),
-		      \add_post_freshnesslifetime(Kind),
-		      \edit_post_content(Id)
+		    [ \add_post_title(Id, Kind),
+		      \add_post_importance(Id, Kind),
+		      \add_post_freshnesslifetime(Id, Kind),
+		      \add_post_content(Id)
 		    ]),
 	       \save_post_links
 	     ]).
 edit_post(_) --> [].
-
-edit_post_content(Id) -->
-	{ post(Id, content, Content)
-	},
-	html(textarea([ class=markItUp,
-			cols=120,
-			rows=10,
-			style='display:none;'
-		      ], Content)).
 
 edit_delete_post(Id) -->
 	{ post(Id, author, Author),
