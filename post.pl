@@ -364,7 +364,7 @@ post(Id, Options) -->
 		     ],
 		     [ \post_header(Id, Options),
 		       \post_section(Id),
-		       \edit_remove_post(Id)
+		       \edit_delete_post(Id)
 		     ])),
 
 	(   { option(standalone(true), Options, true) }
@@ -392,7 +392,7 @@ post_header(Id, O1) -->
 		      \post_metadata(Id),
 		      span(class='post-links-and-votes',
 			   [ \post_votes(Id),
-			     \html_receive(edit_remove(Id))
+			     \html_receive(edit_delete(Id))
 			   ])
 		    ])).
 
@@ -618,20 +618,20 @@ edit_post_content(Id) -->
 			style='display:none;'
 		      ], Content)).
 
-edit_remove_post(Id) -->
+edit_delete_post(Id) -->
 	{ post(Id, author, Author),
 	  site_user_logged_in(Author), !
 	},
-	html([ \html_post(edit_remove(Id), \edit_remove_post_link),
+	html([ \html_post(edit_delete(Id), \edit_delete_post_link),
 	       \edit_post(Id)
 	     ]).
-edit_remove_post(_) --> [].
+edit_delete_post(_) --> [].
 
-edit_remove_post_link -->
+edit_delete_post_link -->
 	html([ ' ',
 	       a([class='edit-post-link',href=''], 'Edit'),
 	       '/',
-	       a([class='remove-post-link',href=''], 'Delete')
+	       a([class='delete-post-link',href=''], 'Delete')
 	     ]).
 
 save_post_links -->
