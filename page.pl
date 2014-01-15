@@ -397,7 +397,7 @@ menu([ 'Home'                = '/',
 	 'Mail list'           = '/Mailinglist.txt',
 	 'Bug tracker'	       = '/bugzilla/',
 	 'External links'      = '/Links.html',
-	 'Contact'             = '/contact.html',
+	 'Contact'             = '/Contact.html',
 	 'SWI-Prolog items'    = '/loot.html'
        ],
        'Users' =
