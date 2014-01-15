@@ -38,8 +38,6 @@ Candidates for placement in some library.
 */
 
 :- use_module(library(apply)).
-:- use_module(library(http/html_write)).
-:- use_module(library(http/http_client)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/http_wrapper)).
