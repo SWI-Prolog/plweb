@@ -63,7 +63,7 @@
 :- use_module(wiki).
 :- use_module(markitup).
 :- use_module(tagit).
-:- use_module(annotateit).
+:- use_module(annotation).
 
 /** <module> Handle users of the SWI-Prolog website
 

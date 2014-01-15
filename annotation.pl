@@ -15,10 +15,7 @@
 :- use_module(library(dcg/basics)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
-:- use_module(library(http/http_client)).
 :- use_module(library(http/http_dispatch)).
-:- use_module(library(http/http_path)).
-:- use_module(library(http/json_convert)).
 :- use_module(library(pldoc/doc_html), [object_ref//2]).
 :- use_module(object_support).
 :- use_module(openid).
@@ -95,11 +92,10 @@ user_post(User, Id) :-
 
 list_annotated_objects([]) --> [].
 list_annotated_objects([H|T]) -->
-	{ post(H, about, ObjectId),
-	  object_id(Object1, ObjectId),
-	  Object1 = comment(Object2,Comment)
+	{ post(H, object, Object),
+	  post(H, content, Comment)
 	},
-	html([ tr([ td(\object_ref(Object2, [])),
+	html([ tr([ td(\object_ref(Object, [])),
 		    td(class('comment-summary'),
 		       \comment_summary(Comment))
 		  ]),
