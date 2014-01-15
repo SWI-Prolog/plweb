@@ -29,7 +29,6 @@
      After PUT: update that post in DOM.
 */
 
-:- use_module(generics).
 :- use_module(library(error)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
@@ -44,8 +43,11 @@
 :- use_module(library(pldoc/doc_html)).
 :- use_module(library(uri)).
 :- use_module(library(dcg/basics)).
+:- use_module(library(aggregate)).
+
 :- use_module(object_support).
 :- use_module(openid).
+:- use_module(generics).
 
 :- meta_predicate
 	find_posts(+,1,-).
@@ -60,10 +62,16 @@
 
 :- persistent
 	post(id:atom,
-	     post:dict).
+	     post:dict),
+	vote(id:atom,			% post id
+	     value:integer,		% value (up:1, down:-1)
+	     user:atom,			% user who voted
+	     time:integer).		% time of the vote
 
 :- initialization
 	db_attach('post.db', [sync(close)]).
+
+:- http_handler(root(vote), vote, []).
 
 :- op(100, xf, ?).
 
@@ -76,9 +84,7 @@ post_type(post{kind:oneof([annotation,news]),
 			 importance:between(0.0,1.0)?,
 			 time:time{created:number,
 				   modified:number?,
-				   'freshness-lifetime':number?},
-			 votes:votes{up:nonneg,
-				     down:nonneg}}}).
+				   'freshness-lifetime':number?}}}).
 
 %%	convert_post(+Dict0, -Dict) is det.
 %
@@ -328,13 +334,11 @@ post1(time, Post, Time):-
 post1(title, Post, Title) :-
 	Title = Post.get(title).
 post1(votes, Post, Votes) :-
-	_{up:Up, down:Down} :< Post.meta.votes,
-	integer(Up), integer(Down),
-	Votes is Up-Down.
-post1(votes_down, Post, Down) :-
-	Down = Post.meta.votes.down.
+	aggregate_all(sum(Vote), vote(Post.meta.id, Vote), Votes).
 post1(votes_up, Post, Up) :-
-	Up = Post.meta.votes.up.
+	aggregate_all(sum(Vote), vote_up(Post.meta.id, Vote), Up).
+post1(votes_down, Post, Down) :-
+	aggregate_all(sum(Vote), vote_down(Post.meta.id, Vote), Down).
 
 
 % SINGLE POST %
@@ -786,15 +790,81 @@ login_post(Kind) -->
 
 write_post_js(Kind, About) -->
 	{ kind_handler(Kind, HandlerId),
-	  http_link_to_id(HandlerId, path_postfix(''), URL)
+	  http_link_to_id(HandlerId, path_postfix(''), URL),
+	  http_link_to_id(vote, [], VoteURL)
 	},
 	html_requires(js('markitup/sets/pldoc/set.js')),
 	html_requires(js('post.js')),
-	js_script({|javascript(URL,About)||
+	js_script({|javascript(URL,VoteURL,About)||
 		   $(document).ready(function() {
-		      prepare_post(URL, About);
+		      prepare_post(URL, VoteURL, About);
 		   });
 		  |}).
+
+
+		 /*******************************
+		 *	      VOTING		*
+		 *******************************/
+
+%%	vote(+Request)
+%
+%	HTTP POST handler for handling a vote.   The  posted object is a
+%	JSON object containing the post it and vote.
+%
+%	Returns a JSON object holding the current number of votes.
+
+vote(Request) :-
+	site_user_logged_in(User), !,	% any logged in user can vote
+	catch(( memberchk(method(post), Request),
+		http_read_json_dict(Request, Dict),
+		atom_string(Id, Dict.id),
+		vote(Id, User, Dict.vote)
+	      ), E,
+	      throw(http_reply(bad_request(E)))),
+	post(Id, votes, Votes),
+	reply_json(_{votes:Votes}).
+vote(Request) :-
+	memberchk(path(Path), Request),
+	throw(http_reply(forbidden(Path))).
+
+%%	vote(+PostId, +User, +Vote) is det.
+%
+%	Add a vote for PostId.
+
+vote(Post, User, Vote) :-
+	must_be(oneof([-1,1]), Vote),
+	(   post(Post, _)
+	->  true
+	;   existence_error(post, Post)
+	),
+	(   \+ vote(Post, _, User, _)
+	->  get_time(NowF),
+	    Now is integer(NowF),
+	    assert_vote(Post, Vote, User, Now)
+	;   vote(Post, Vote, User, Time0),
+	    get_time(Now),
+	    Now - Time0 < 10		% double click or similar
+	;   throw(error(permission_error(vote, post, Post),
+			context(_, 'Already voted')))
+	).
+
+
+%%	vote(?PostId, ?Vote) is nondet.
+%%	vote_up(?PostId, ?Vote) is nondet.
+%%	vote_down(?PostId, ?Vote) is nondet.
+%
+%	True when PostId has been voted with   Vote. Vote is either 1 or
+%	-1. The predicates vote_up/2 and vote_down/2   only  count up or
+%	down votes.
+
+vote(PostId, Vote) :-
+	vote(PostId, Vote, _By, _Time).
+
+vote_up(Post, Vote) :-
+	vote(Post, Vote), Vote > 0.
+
+vote_down(Post, Vote) :-
+	vote(Post, Vote), Vote < 0.
 
 
 		 /*******************************
