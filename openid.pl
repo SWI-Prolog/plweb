@@ -787,22 +787,36 @@ verify_user(Request) :-
 
 %%	logout(+Request)
 %
-%	Logout the current user and reload the current page.
+%	Logout  the  current  user.  If  openid.return_to  is  provided,
+%	provide a back-link
 
-logout(_Request) :-
+logout(Request) :-
 	openid_logged_in(OpenId), !,
 	openid_logout(OpenId),
 	reply_html_page(
 	    user(logout),
 	    title('Logged out'),
-	    [ p('Thanks for using www.swi-prolog.org')
+	    [ p('Thanks for using www.swi-prolog.org'),
+	      \logout_back_link(Request)
 	    ]).
-logout(_Request) :-
+logout(Request) :-
 	reply_html_page(
 	    user(logout),
 	    title('Not logged in'),
-	    [ p(class(warning), 'You are not logged in')
+	    [ p(class(warning), 'You are not logged in'),
+	      \logout_back_link(Request)
 	    ]).
+
+
+logout_back_link(Request) -->
+	{ http_parameters(Request,
+			  [ 'openid.return_to'(Return, [optional(true)])
+			  ]),
+	  nonvar(Return)
+	}, !,
+	html(p(['Go ', a(href(Return), back), '.'])).
+logout_back_link(_) -->
+	[].
 
 
 %%	current_user//
