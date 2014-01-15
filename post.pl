@@ -14,7 +14,10 @@
 	    relevance/2,		% +Id:atom
 					% -Relevance:between(0.0,1.0)
 	    post_process/2,		% +Request:list, +Id:atom
-	    sort_posts/2		% +Ids:list(atom), -SortedIds:list(atom)
+	    sort_posts/2,		% +Ids:list(atom), -SortedIds:list(atom)
+
+	    user_posts//2,		% +User, +KInd
+	    user_post_count/3		% +User, +Kind, -Count
 	  ]).
 
 /** <module> Posts
@@ -35,29 +38,26 @@
 :- use_module(library(http/http_path)).
 :- use_module(library(http/http_server_files)).
 :- use_module(library(http/js_write)).
-:- use_module(library(http/json_convert)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(pairs)).
 :- use_module(library(persistency)).
 :- use_module(library(pldoc/doc_html)).
 :- use_module(library(uri)).
-:- use_module(openid).
+:- use_module(library(dcg/basics)).
 :- use_module(object_support).
+:- use_module(openid).
 
-:- meta_predicate(find_posts(+,1,-)).
+:- meta_predicate
+	find_posts(+,1,-).
 
-% /css
 :- html_resource(css('post.css'), []).
-
-% /js
-:- html_resource(js('markitup/sets/pldoc/set.js'), [
-  requires([
-    js('markitup/jquery.markitup.js'),
-    js('markitup/skins/markitup/style.css'),
-    js('markitup/sets/pldoc/style.css')
-  ])
-]).
+:- html_resource(js('markitup/sets/pldoc/set.js'),
+		 [ requires([ js('markitup/jquery.markitup.js'),
+			      js('markitup/skins/markitup/style.css'),
+			      js('markitup/sets/pldoc/style.css')
+			    ])
+		 ]).
 
 :- persistent
 	post(id:atom,
@@ -900,3 +900,89 @@ write_post_js(Kind, About) -->
       });
     |}).
 
+
+		 /*******************************
+		 *	  PROFILE SUPPORT	*
+		 *******************************/
+
+%%	user_posts(+User, +Kind)//
+%
+%	Show posts from a specific user of the specified Kind.
+
+user_posts(User, Kind) -->
+	{ find_posts(annotation, user_post(User, Kind), Ids),
+	  Ids \== [], !,
+	  sort_posts(Ids, SortedIds),
+	  site_user_property(User, name(Name))
+	},
+	html([ \html_requires(css('annotation.css')),
+	       h2(class(wiki), \posts_title(Kind, Name)),
+	       table(class('user-comments'),
+		     \list_annotated_objects(SortedIds))
+	     ]).
+user_posts(_, _) -->
+	[].
+
+user_post(User, Kind, Id) :-
+	post(Id, author, User),
+	post(Id, kind, Kind).
+
+posts_title(news, Name) -->
+	html(['News articles by ', Name]).
+posts_title(annotation, Name) -->
+	html(['Comments by ', Name]).
+
+
+list_annotated_objects([]) --> [].
+list_annotated_objects([H|T]) -->
+	{ post(H, object, Object),
+	  post(H, content, Comment)
+	},
+	html([ tr([ td(\object_ref(Object, [])),
+		    td(class('comment-summary'),
+		       \comment_summary(Comment))
+		  ]),
+	       \list_annotated_objects(T)
+	     ]).
+
+%%	comment_summary(+Comment)//
+%
+%	Show the first sentence or max first 80 characters of Comment.
+
+comment_summary(Comment) -->
+	{ summary_sentence(Comment, Summary) },
+	html(Summary).
+
+summary_sentence(Comment, Summary):-
+	atom_codes(Comment, Codes),
+	phrase(summary(SummaryCodes, 80), Codes, _),
+	atom_codes(Summary, SummaryCodes).
+
+summary([C,End], _) -->
+	[C,End],
+	{ \+ code_type(C, period),
+	  code_type(End, period) % ., !, ?
+	},
+	white, !.
+summary([0' |T0], Max) -->
+	blank, !,
+	blanks,
+	{Left is Max-1},
+	summary(T0, Left).
+summary(Elipsis, 0) --> !,
+	{ string_codes(" ...", Elipsis)
+	}.
+summary([H|T0], Max) -->
+	[H], !,
+	{Left is Max-1},
+	summary(T0, Left).
+summary([], _) -->
+	[].
+
+%%	user_post_count(+User, +Kind, -Count) is det.
+%
+%	True when Count is the number of posts of Kind created by User.
+
+user_post_count(User, Kind, Count) :-
+	find_posts(annotation, user_post(User, Kind), Annotations),
+	length(Annotations, Count).

@@ -1,7 +1,34 @@
+/*  Part of SWI-Prolog
+
+    Author:        Jan Wielemaker
+    E-mail:        J.Wielemaker@cs.vu.nl
+    WWW:           http://www.swi-prolog.org
+    Copyright (C): 2014, VU University Amsterdam
+
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 2
+    of the License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    As a special exception, if you link this library with other files,
+    compiled with a Free Software compiler, to produce an executable, this
+    library does not by itself cause the resulting executable to be covered
+    by the GNU General Public License. This exception does not however
+    invalidate any other reasons why the executable file might be covered by
+    the GNU General Public License.
+*/
+
 :- module(annotation,
-	  [ annotation//1,			% +object:compound
-	    user_annotations//1,		% +User:atom
-	    user_annotation_count/2		% +User:atom, -Count:nonneg
+	  [ annotation//1			% +object:compound
 	  ]).
 
 /** <module> Annotation
@@ -12,13 +39,11 @@
 */
 
 :- use_module(generics).
-:- use_module(library(dcg/basics)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(pldoc/doc_html), [object_ref//2]).
 :- use_module(object_support).
-:- use_module(openid).
 :- use_module(post).
 
 :- html_resource(css('annotation.css'), [requires([css('post.css')])]).
@@ -68,80 +93,4 @@ annotation(_) --> [].
 
 object_post(About, Id) :-
 	post(Id, object, About).
-
-%%	user_annotations(+User)//
-%
-%	Show annotations created by a specific user.
-
-user_annotations(User) -->
-	{ find_posts(annotation, user_post(User), Ids),
-	  Ids \== [], !,
-	  sort_posts(Ids, SortedIds),
-	  site_user_property(User, name(Name))
-	},
-	html([ \html_requires(css('annotation.css')),
-	       h2(class(wiki), 'Comments by ~w'-[Name]),
-	       table(class('user-comments'),
-		     \list_annotated_objects(SortedIds))
-	     ]).
-user_annotations(_) -->
-	[].
-
-user_post(User, Id) :-
-	post(Id, author, User).
-
-list_annotated_objects([]) --> [].
-list_annotated_objects([H|T]) -->
-	{ post(H, object, Object),
-	  post(H, content, Comment)
-	},
-	html([ tr([ td(\object_ref(Object, [])),
-		    td(class('comment-summary'),
-		       \comment_summary(Comment))
-		  ]),
-	       \list_annotated_objects(T)
-	     ]).
-
-%%	comment_summary(+Comment)//
-%
-%	Show the first sentence or max first 80 characters of Comment.
-
-comment_summary(Comment) -->
-	{ summary_sentence(Comment, Summary) },
-	html(Summary).
-
-summary_sentence(Comment, Summary):-
-	atom_codes(Comment, Codes),
-	phrase(summary(SummaryCodes, 80), Codes, _),
-	atom_codes(Summary, SummaryCodes).
-
-summary([C,End], _) -->
-	[C,End],
-	{ \+ code_type(C, period),
-	  code_type(End, period) % ., !, ?
-	},
-	white, !.
-summary([0' |T0], Max) -->
-	blank, !,
-	blanks,
-	{Left is Max-1},
-	summary(T0, Left).
-summary(Elipsis, 0) --> !,
-	{ string_codes(" ...", Elipsis)
-	}.
-summary([H|T0], Max) -->
-	[H], !,
-	{Left is Max-1},
-	summary(T0, Left).
-summary([], _) -->
-	[].
-
-%%	user_annotation_count(+User, -Count) is det.
-%
-%	True when Count is the number of object annotations created by
-%	User.
-
-user_annotation_count(User, Count) :-
-	find_posts(annotation, user_post(User), Annotations),
-	length(Annotations, Count).
 

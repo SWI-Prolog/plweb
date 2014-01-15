@@ -63,7 +63,7 @@
 :- use_module(wiki).
 :- use_module(markitup).
 :- use_module(tagit).
-:- use_module(annotation).
+:- use_module(post).
 
 /** <module> Handle users of the SWI-Prolog website
 
@@ -404,7 +404,8 @@ view_profile(UUID, Options) -->
 	private_profile(UUID, Options),
 	user_description(UUID, Options),
 	user_tags(UUID, []),
-	user_annotations(UUID),
+	user_posts(UUID, annotation),
+	user_posts(UUID, news),
 	user_packs(UUID),
 	profile_reviews(UUID).
 
@@ -541,9 +542,10 @@ list_users(_Request) :-
 
 site_kudos(UUID, Annotations, Tags, Kudos) :-
 	site_user(UUID, _, _, _, _),
-	user_annotation_count(UUID, Annotations),
+	user_post_count(UUID, annotation, Annotations),
+	user_post_count(UUID, news, NewsArticles),
 	user_tag_count(UUID, Tags),
-	Kudos is Annotations*10+Tags.
+	Kudos is NewsArticles*20+Annotations*10+Tags.
 
 explain_user_listing -->
 	html({|html||
