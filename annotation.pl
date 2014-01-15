@@ -62,15 +62,15 @@ annotation(Object) -->
 	  ->  true
 	  ;   Object2 = Object
 	  ),
-	  find_posts(annotation, about_post(Object2), Ids)
+	  find_posts(annotation, object_post(Object2), Ids)
 	},
 	html([\html_requires(css('annotation.css')),
 	      \posts(annotation, Object2, Ids)
 	     ]).
 annotation(_) --> [].
 
-about_post(About, Id) :-
-	post(Id, about, About).
+object_post(About, Id) :-
+	post(Id, object, About).
 
 %%	user_annotations(+User)//
 %
