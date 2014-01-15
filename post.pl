@@ -503,8 +503,7 @@ add_post(Kind, Object) -->
 	html(div(id='add-post',
 		 [ \add_post_link(Kind),
 		   form([id='add-post-content',style='display:none;'],
-			table(width('100%'),
-			      [ tr(td(\add_post_title(Id, Kind))),
+			table([ tr(td(\add_post_title(Id, Kind))),
 				tr(td([ \add_post_importance(Id, Kind),
 					\add_post_freshnesslifetime(Id, Kind)
 				      ])),
@@ -612,34 +611,33 @@ submit_post_label(news) -->
 submit_post_label(annotation) -->
 	html('Submit comment').
 
-%%	edit_post(+Id)//
+%%	edit_post_form(+Id)//
 %
 %	Provide a non-displayed editor for post Id if the author of this
 %	post is logged on.
-%
-%	@tbd	Add current values to the menus.
 
-edit_post(Id) -->
+edit_post_form(Id) -->
 	{ post(Id, author, Author),
 	  site_user_logged_in(Author), !,
 	  post(Id, kind, Kind)
 	},
 	html([ form([class='edit-post-content',style='display:none;'],
-		    [ \add_post_title(Id, Kind),
-		      \add_post_importance(Id, Kind),
-		      \add_post_freshnesslifetime(Id, Kind),
-		      \add_post_content(Id)
-		    ]),
-	       \save_post_links
+		    table([ tr(td(\add_post_title(Id, Kind))),
+			    tr(td([ \add_post_importance(Id, Kind),
+				    \add_post_freshnesslifetime(Id, Kind)
+				  ])),
+			    tr(td(\add_post_content(Id))),
+			    tr(td(\save_post_links(Kind)))
+			  ]))
 	     ]).
-edit_post(_) --> [].
+edit_post_form(_) --> [].
 
 edit_delete_post(Id) -->
 	{ post(Id, author, Author),
 	  site_user_logged_in(Author), !
 	},
 	html([ \html_post(edit_delete(Id), \edit_delete_post_link),
-	       \edit_post(Id)
+	       \edit_post_form(Id)
 	     ]).
 edit_delete_post(_) --> [].
 
@@ -650,12 +648,18 @@ edit_delete_post_link -->
 	       a([class='delete-post-link',href=''], 'Delete')
 	     ]).
 
-save_post_links -->
-	html(div([class='edit-post-links',style='display:none;'],
-		 [ a([class='edit-post-submit',href=''], 'Edit comment'),
-		   a([class='edit-post-cancel',href=''], 'Cancel')
+save_post_links(Kind) -->
+	html(div([class='save-post-links',style='display:none;'],
+		 [ a([class='save-post-submit',href=''],
+		     \save_post_title(Kind)),
+		   a([class='save-post-cancel',href=''],
+		     'Cancel')
 		 ])).
 
+save_post_title(news) -->
+	html('Save updated article').
+save_post_title(annotation) -->
+	html('Save updated comment').
 
 %!	age(+Id:atom, -Age) is det.
 %
