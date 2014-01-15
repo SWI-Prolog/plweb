@@ -51,19 +51,18 @@
 :- use_module(notify).
 :- use_module(object_support).
 :- use_module(openid).
-:- use_module(wiki, [wiki_page_title/2]).
 
-:- html_resource(tagit, [
-  ordered(true),
-  requires([
-    jquery_ui,
-    js('tag-it-min-2.0.js'),
-    css('jquery.tagit.css'),
-    css('tagit.ui-zendesk.css')
-  ]),
-  virtual(true)
-]).
+:- html_resource(tagit,
+		 [ ordered(true),
+		   requires([ jquery_ui,
+			      js('tag-it-min-2.0.js'),
+			      css('jquery.tagit.css'),
+			      css('tagit.ui-zendesk.css')
+			    ]),
+		   virtual(true)
+		 ]).
 :- html_resource(css('tags.css'), []).
+
 
 		 /*******************************
 		 *	       DATA		*
@@ -144,14 +143,12 @@ tagit_footer(Obj, _Options) -->
 	  format(atom(PlaceHolder), 'Tag ~w', [Label]),
 	  object_tags(Obj, Tags)
 	},
-	html(
-    div(id='tags-component', [
-      \tag_notes(ObjectID, Tags),
-      div(id='tags-label', 'Tags:'),
-      div(id='tags-bar', ul(id=tags, \tags_li(Tags))),
-      div(id='tags-warnings', [])
-    ])
-  ),
+	html(div(id='tags-component',
+		 [ \tag_notes(ObjectID, Tags),
+		   div(id='tags-label', 'Tags:'),
+		   div(id='tags-bar', ul(id=tags, \tags_li(Tags))),
+		   div(id='tags-warnings', [])
+		 ])),
 	html_requires(css('tags.css')),
 	html_requires(tagit),
 	js_script({|javascript(Complete, OnClick, PlaceHolder, ObjectID,
@@ -231,13 +228,11 @@ tags_li([]) --> [].
 tags_li([H|T]) --> html(li(H)), tags_li(T).
 
 tag_notes(ObjectID, Tags) -->
-  html(
-    div(id='tags-notes', [
-      \docs_need_work_plea,
-      \why_login,
-      \abuse_link(ObjectID, Tags)
-    ])
-  ).
+	html(div(id='tags-notes',
+		 [ \docs_need_work_plea,
+		   \why_login,
+		   \abuse_link(ObjectID, Tags)
+		 ])).
 
 docs_need_work_plea -->
 	html(['Tag confusing pages with ', b('doc-needs-help')]).
@@ -254,6 +249,9 @@ why_login -->
 why_login -->
 	sep,
 	html('Tags are associated to your profile if you are logged in').
+
+sep -->
+	html(span(class(separator), '|')).
 
 object_tags(Object, Tags) :-
 	findall(Tag, tagged(Tag, Object, _Time, _User), Tags0),

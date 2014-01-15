@@ -15,7 +15,6 @@
     request_to_resource/3, % +Request:list
                            % +Kind:oneof([annotation,news,post])
                            % -URL:atom
-    sep//0,
     true/1, % +Term
     uri_path/2, % +PathComponents:list(term)
                 % -Path:atom
@@ -97,9 +96,6 @@ request_to_resource(Request, Kind, URL):-
   http_link_to_id(post_process, path_postfix(Id), Link),
   http_absolute_uri(Link, URL).
   %http_absolute_uri(post(Id), URL).
-
-sep -->
-  html(span(class(separator), '|')).
 
 true(_).
 
