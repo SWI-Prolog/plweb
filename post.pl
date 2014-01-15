@@ -145,7 +145,8 @@ retract_post(Id):-
 
 convert_post(Post0, Kind, Id, Author, TimeProperty, Post) :-
 	get_time(Now),
-	(   object_id(Object, Post0.meta.get(about))
+	(   atom_string(ObjectID, Post0.meta.get(about)),
+	    object_id(Object, ObjectID)
 	->  Post1 = Post0.put(meta/object, Object)
 	;   Post1 = Post0
 	),
@@ -278,7 +279,7 @@ post(Id, Name, Value) :-
 	post1(Name, Post, Value).
 
 post1(object, Post, About) :-
-	About = Post.meta.object.
+	About = Post.meta.get(object).
 post1(author, Post, Author) :-
 	Author = Post.meta.author.
 post1(content, Post, Content) :-
@@ -300,7 +301,7 @@ post1(modified, Post, Posted) :-
 post1(time, Post, Time):-
 	Time = Post.meta.time.
 post1(title, Post, Title) :-
-	Title = Post.title.
+	Title = Post.get(title).
 post1(votes, Post, Votes) :-
 	_{up:Up, down:Down} :< Post.meta.votes,
 	integer(Up), integer(Down),
@@ -484,8 +485,8 @@ add_post(Kind, Object) -->
 	{ site_user_logged_in(User),
 	  post_granted(User, Kind),
 	  (   Object == null
-	  ->  object_id(Object, About)
-	  ;   About = @(null)
+	  ->  About = @(null)
+	  ;   object_id(Object, About)
 	  )
 	}, !,
 	html(div(id='add-post',
