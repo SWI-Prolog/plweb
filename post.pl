@@ -36,7 +36,6 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_json)).
 :- use_module(library(http/http_path)).
-:- use_module(library(http/http_server_files)).
 :- use_module(library(http/js_write)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
@@ -363,12 +362,12 @@ post(Id, Options) -->
 		       id(Id)
 		     | Extra
 		     ],
-		     [ \post_header(O1, Id),
+		     [ \post_header(Id, Options),
 		       \post_section(Id),
 		       \edit_remove_post(Id)
 		     ])),
 
-	(   { option(standalone(true), O1, true) }
+	(   { option(standalone(true), Options, true) }
 	->  html_requires(css('post.css')),
 	    (   { site_user_logged_in(_) }
 	    ->  {   post(Id, about, Object),
@@ -382,62 +381,53 @@ post(Id, Options) -->
 	;   []
 	).
 
-%! post_header(+Options:list(nvpair), +Id:atom)// is det.
-% When the post appears in isolation (option =|standalone(true)|=),
-%  the title is not displayed.
+%!	post_header(+Id, +Options)// is det.
+%
+%	When    the    post     appears      in     isolation    (option
+%	standalone(true)), the title is not displayed.
 
-post_header(O1, Id) -->
-  html(
-    header([], [
-      \post_title(O1, Id),
-      \post_metadata(Id),
-      span(class='post-links-and-votes', [
-        \post_votes(Id),
-        \html_receive(edit_remove(Id))
-      ])
-    ])
-  ).
+post_header(Id, O1) -->
+	html(header([],
+		    [ \post_title(O1, Id),
+		      \post_metadata(Id),
+		      span(class='post-links-and-votes',
+			   [ \post_votes(Id),
+			     \html_receive(edit_remove(Id))
+			   ])
+		    ])).
 
 post_metadata(Id) -->
-  {post(Id, kind, Kind)},
-  post_metadata(Kind, Id).
+	{post(Id, kind, Kind)},
+	post_metadata(Kind, Id).
 
 post_metadata(annotation, Id) -->
-  {post(Id, author, Author)},
-  html(
-    span(class='post-meta', [
-      \user_profile_link(Author),
-      ' said (',
-      \post_time(Id),
-      '):'
-    ])
-  ).
+	{post(Id, author, Author)},
+	html(span(class='post-meta',
+		  [ \user_profile_link(Author),
+		    ' said (',
+		    \post_time(Id),
+		    '):'
+		  ])).
 post_metadata(news, Id) -->
-  {post(Id, author, Author)},
-  html(
-    span(class='post-meta', [
-      'By ',
-      \user_profile_link(Author),
-      %\post_categories(Id),
-      ' at ',
-      \post_time(Id)
-    ])
-  ).
+	{post(Id, author, Author)},
+	html(span(class='post-meta',
+		  [ 'By ',
+		    \user_profile_link(Author),
+		    ' at ',
+		    \post_time(Id)
+		  ])).
 
 post_section(Id) -->
-  {
-    post(Id, author, Author),
-    post(Id, content, Content),
-    atom_codes(Content, Codes),
-    wiki_file_codes_to_dom(Codes, /, DOM1),
-    clean_dom(DOM1, DOM2)
-  },
-  html(
-    section([], [
-      \author_image(Author),
-      div(class='read-post', DOM2)
-    ])
-  ).
+	{ post(Id, author, Author),
+	  post(Id, content, Content),
+	  atom_codes(Content, Codes),
+	  wiki_file_codes_to_dom(Codes, /, DOM1),
+	  clean_dom(DOM1, DOM2)
+	},
+	html(section([],
+		     [ \author_image(Author),
+		       div(class='read-post', DOM2)
+		     ])).
 
 post_time(Id) -->
 	{ post(Id, created, Posted) }, !,
@@ -526,36 +516,49 @@ add_post(Kind, _) -->
 	login_post(Kind).
 
 add_post_content -->
-  html(textarea([class=markItUp], [])).
+	html(textarea([class(markItUp)], [])).
+
+%%	add_post_freshnesslifetime(+Kind)
+%
+%	Add fressness menu if Kind = =news=.  Freshness times are
+%	represented as seconds.
 
 add_post_freshnesslifetime(news) --> !,
-  % Freshness lifetime is represented in seconds.
-  % 1 day is appoximately 86.400 seconds.
-  html([
-    label([], 'Freshness lifetime: '),
-    select(class='freshness-lifetime', [
-      option(value=31536000, 'Very long'),                % One year (almost 'sticky')
-      option(value=2678400, 'Long'),                      % One month
-      option([selected=selected,value=604800], 'Normal'), % One week
-      option(value=86400, 'Short'),                       % One day
-      option(value=3600, 'Very short')                    % One hour
-    ]),
-    br([])
-  ]).
+	html([ label([], 'Freshness lifetime: '),
+	       select(class='freshness-lifetime',
+		      \options(freshness)),
+	       br([])
+	     ]).
 add_post_freshnesslifetime(_) --> [].
 
 add_post_importance(news) --> !,
-  html([
-    label([], 'Importance: '),
-    select(class=importance, [
-      option(value=1.00, 'Very high'),
-      option(value=0.75, 'High'),
-      option([selected=selected,value=0.50], 'Normal'),
-      option(value=0.25, 'Low'),
-      option(value=0.00, 'Very low')
-    ])
-  ]).
+	html([ label([], 'Importance: '),
+	       select(class=importance,
+		      \options(importance))
+	     ]).
 add_post_importance(_) --> [].
+
+options(Key) -->
+	{ findall(Name-Value, menu(Key, Name, Value), Pairs) },
+	option_list(Pairs).
+
+option_list([]) --> [].
+option_list([Name-Value|T]) -->
+	html(option(value(Value), Name)),
+	option_list(T).
+
+
+menu(freshness, 'One year',  Secs) :- Secs is 365*24*3600.
+menu(freshness, 'One month', Secs) :- Secs is 31*24*3600.
+menu(freshness, 'One week',  Secs) :- Secs is 7*24*3600.
+menu(freshness, 'One day',   Secs) :- Secs is 1*24*3600.
+
+menu(importance, 'Very high', 1.00).
+menu(importance, 'High',      0.75).
+menu(importance, 'Normal',    0.50).
+menu(importance, 'Low',	      0.25).
+menu(importance, 'Very low',  0.00).
+
 
 add_post_link(Kind) -->
 	html(a([id('add-post-link'),href('')],
@@ -567,11 +570,10 @@ add_post_label(annotation) -->
 	html('Add comment').
 
 add_post_title(news) --> !,
-  html([
-    label([], 'Title: '),
-    input([class=title,size=70,type=text], []),
-    br([])
-  ]).
+	html([ label([], 'Title: '),
+	       input([class(title),size(70),type(text)], []),
+	       br([])
+	     ]).
 add_post_title(_) --> [].
 
 submit_post_links(Kind) -->
