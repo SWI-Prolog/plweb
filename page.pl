@@ -32,7 +32,6 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_path)).
-:- use_module(library(pldoc/doc_index)).
 :- use_module(library(pldoc/doc_search)).
 :- use_module(library(http/js_write)).
 :- use_module(library(http/html_head)).
@@ -118,14 +117,20 @@ outer_container(Content, Options) -->
 	html_receive(script).
 
 
-%%	prolog:doc_page_header(+File, +Options)//
+%%	prolog:doc_page_header(+File, +Options)// is det.
+%%	prolog:doc_links(+Directory, +Options)// is det.
+%%	prolog:doc_file_title(+Title, +File, +Options)// is det.
 %
-%	Called to render the PlDoc page header. We kill the header.
+%	Called to render the PlDoc page header   and  link menu. We kill
+%	both.
 
 :- multifile
-	prolog:doc_page_header//2.
+	prolog:doc_page_header//2,
+	prolog:doc_links//2.
 
 prolog:doc_page_header(_File, _Options) --> [].
+prolog:doc_links(_Directory, _Options) --> [].
+prolog:doc_file_title(_Title, _File, _Options) --> [].
 
 shortcut_icons -->
 	{ http_absolute_location(icons('favicon.ico'), FavIcon, []),
@@ -234,18 +239,27 @@ tag_line_area -->
 			])
 		 ])).
 
+%%	title_area(+Style)
 %
-%	@arg	For provides information about the page displayed.
-%		It is one of:
-%
-%		  - pldoc(object(Obj))
-%		  PlDoc displays an object page
 
-title_area(Arg) -->
+title_area(pldoc(file(File, Title))) --> !,
+	{ file_base_name(File, Base) },
+	html([ div(id('header-line-area'),
+		   [ \swi_logo,
+		     span(class('primary-header'),
+			  \page_title(title(Title)))
+		   ]),
+	       div([ class('file-buttons')
+		   ],
+		   [ \zoom_button(Base, []),
+		     \source_button(Base, [])
+		   ])
+	     ]).
+title_area(Style) -->
 	html(div(id('header-line-area'),
 		 [ \swi_logo,
 		   span(class('primary-header'),
-			\page_title(Arg))
+			\page_title(Style))
 		 ])).
 
 page_title(For) -->
@@ -258,8 +272,6 @@ page_title(pldoc(object(Obj))) -->
 	object_name(Obj,
 		    [ style(title)
 		    ]), !.
-page_title(pldoc(file(_File, Title))) --> !,
-	html(Title).
 page_title(title(Title)) --> !,
 	html(Title).
 page_title(user(login)) --> !,
