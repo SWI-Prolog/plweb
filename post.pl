@@ -126,15 +126,9 @@ dict_value(Type, Name, Dict, Value) :-
 	get_dict_ex(Name, Dict, Value0),
 	convert_dict(Type, Value0, Value).
 
-
-% Image files can be loaded from the `/img` path.
-http:location(img, root(img), []).
-user:file_search_path(img, document_root(img)).
-:- http_handler(img(.), serve_files_in_directory(img), [prefix]).
-
-http:location(post, root(post), []).
-
-% PERSISTENCY PREDICATES %
+%%	retract_post(+Id)
+%
+%	Remove post Id from the database.
 
 retract_post(Id):-
 	retract_post(Id, _).
@@ -156,6 +150,38 @@ convert_post(Post0, Kind, Id, Author, TimeProperty, Post) :-
 		     .put(meta/time/TimeProperty, Now),
 	convert_post(Post2, Post).
 
+
+%%	post_url(+Id, -HREF) is det.
+%
+%	True when HREF is a link to post Id.
+
+post_url(Id, HREF) :-
+	post(Id, kind, Kind),
+	(   kind_handler(Kind, HandlerId)
+	->  http_link_to_id(HandlerId, path_postfix(Id), HREF)
+	;   domain_error(kind, Kind)
+	).
+
+kind_handler(news,	 news_process).
+kind_handler(annotation, annotation_process).
+
+%%	post_link(+Id)
+%
+%	Generate a link to post Id.
+
+post_link(Id) -->
+	{ post_url(Id, HREF)
+	},
+	html(a(href(HREF), \post_link_text(Id))).
+
+post_link_text(Id) -->
+	{ post(Id, title, Title) },
+	html(Title).
+post_link_text(Id) -->
+	{ post(Id, object, Object),
+	  object_label(Object, Label)
+	},
+	html(Label).
 
 %%	post_process(+Request, ?Kind) is det.
 %
@@ -419,36 +445,30 @@ post_time(Id) -->
 post_time(_) --> [].
 
 post_title(O1, Id) -->
-  {
-    option(standalone(false), O1, true),
-    post(Id, title, Title),
-    nonvar(Title), !,
-    post(Id, kind, Kind),
-    Spec =.. [Kind,Id],
-    http_absolute_location(Spec, Link, [])
-  },
-  html(h2(class='post-title',a(href=Link,Title))).
+	{ option(standalone(false), O1, true),
+	  post(Id, title, Title), !,
+	  post_url(Id, HREF)
+	},
+	html(h2(class('post-title'), a(href(HREF),Title))).
 post_title(_, _) --> [].
 
 post_votes(Id) -->
-  {
-    post(Id, votes_down, Down),
-    format(atom(AltDown), '~d downvotes', [Down]),
-    post(Id, votes_up, Up),
-    format(atom(AltUp), '~d upvotes', [Up]),
-    post(Id, votes, Amount)
-  },
-  html([
-    a([class='post-vote-up',href=''],
-      img([alt=AltUp,src='/icons/vote_up.gif',title=Up], [])
-    ),
-    ' ',
-    span(class='post-vote-amount', Amount),
-    ' ',
-    a([class='post-vote-down',href=''],
-      img([alt=AltDown,src='/icons/vote_down.gif',title=Down], [])
-    )
-  ]).
+	{ post(Id, votes_down, Down),
+	  format(atom(AltDown), '~d downvotes', [Down]),
+	  post(Id, votes_up, Up),
+	  format(atom(AltUp), '~d upvotes', [Up]),
+	  post(Id, votes, Amount),
+	  http_absolute_location(icons('vote_up.gif'), UpIMG, []),
+	  http_absolute_location(icons('vote_down.gif'), DownIMG, [])
+	},
+	html([ a([class='post-vote-up',href=''],
+		 img([alt(AltUp),src(UpIMG),title(Up)], [])),
+	       ' ',
+	       span(class='post-vote-amount', Amount),
+	       ' ',
+	       a([class='post-vote-down',href=''],
+		 img([alt(AltDown),src(DownIMG),title(Down)], []))
+	     ]).
 
 
 %%	posts(+Kind, +Object, +Ids:list(atom))//
@@ -742,8 +762,8 @@ login_post(Kind) -->
 %	Emit JavaScript to manage posts.
 
 write_post_js(Kind, About) -->
-	{ Spec =.. [Kind,'.'],
-	  http_absolute_uri(Spec, URL)
+	{ kind_handler(Kind, HandlerId),
+	  http_link_to_id(HandlerId, [], URL)
 	},
 	html_requires(js('markitup/sets/pldoc/set.js')),
 	js_script({|javascript(URL,About)||
@@ -910,7 +930,7 @@ write_post_js(Kind, About) -->
 %	Show posts from a specific user of the specified Kind.
 
 user_posts(User, Kind) -->
-	{ find_posts(annotation, user_post(User, Kind), Ids),
+	{ find_posts(Kind, user_post(User), Ids),
 	  Ids \== [], !,
 	  sort_posts(Ids, SortedIds),
 	  site_user_property(User, name(Name))
@@ -918,14 +938,13 @@ user_posts(User, Kind) -->
 	html([ \html_requires(css('annotation.css')),
 	       h2(class(wiki), \posts_title(Kind, Name)),
 	       table(class('user-comments'),
-		     \list_annotated_objects(SortedIds))
+		     \list_post_summaries(SortedIds))
 	     ]).
 user_posts(_, _) -->
 	[].
 
-user_post(User, Kind, Id) :-
-	post(Id, author, User),
-	post(Id, kind, Kind).
+user_post(User, Id) :-
+	post(Id, author, User).
 
 posts_title(news, Name) -->
 	html(['News articles by ', Name]).
@@ -933,17 +952,25 @@ posts_title(annotation, Name) -->
 	html(['Comments by ', Name]).
 
 
-list_annotated_objects([]) --> [].
-list_annotated_objects([H|T]) -->
-	{ post(H, object, Object),
+list_post_summaries([]) --> [].
+list_post_summaries([H|T]) -->		% annotation
+	{ post(H, object, Object), !,
 	  post(H, content, Comment)
 	},
-	html([ tr([ td(\object_ref(Object, [])),
-		    td(class('comment-summary'),
-		       \comment_summary(Comment))
-		  ]),
-	       \list_annotated_objects(T)
-	     ]).
+	html(tr([ td(\object_ref(Object, [])),
+		  td(class('comment-summary'),
+		     \comment_summary(Comment))
+		])),
+	list_post_summaries(T).
+list_post_summaries([H|T]) -->		% news article
+	{ post(H, content, Comment)
+	},
+	html(tr([ td(class('comment-summary'),
+		     [ \post_link(H), ' -- ',
+		       \comment_summary(Comment)
+		     ] )
+		])),
+	list_post_summaries(T).
 
 %%	comment_summary(+Comment)//
 %
@@ -984,5 +1011,5 @@ summary([], _) -->
 %	True when Count is the number of posts of Kind created by User.
 
 user_post_count(User, Kind, Count) :-
-	find_posts(annotation, user_post(User, Kind), Annotations),
+	find_posts(Kind, user_post(User), Annotations),
 	length(Annotations, Count).

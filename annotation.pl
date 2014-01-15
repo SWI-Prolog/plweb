@@ -46,11 +46,13 @@
 :- use_module(object_support).
 :- use_module(post).
 
-:- html_resource(css('annotation.css'), [requires([css('post.css')])]).
+:- html_resource(css('annotation.css'),
+		 [ requires([css('post.css')])
+		 ]).
 
-:- multifile(prolog:doc_object_page_footer/2).
+:- multifile
+	prolog:doc_object_page_footer/2.
 
-http:location(annotation, root(annotation), []).
 :- http_handler(root(annotation), annotation_process, [prefix]).
 
 %%	annotation_process(+Request)

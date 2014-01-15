@@ -12,9 +12,6 @@
     request_to_id/3, % +Request:list
                      % +Kind:oneof([annotation,news,post])
                      % -Id:atom
-    request_to_resource/3, % +Request:list
-                           % +Kind:oneof([annotation,news,post])
-                           % -URL:atom
     true/1, % +Term
     uri_path/2, % +PathComponents:list(term)
                 % -Path:atom
@@ -84,16 +81,18 @@ login_link -->
 md5(Unencrypted, Encrypted):-
   rdf_atom_md5(Unencrypted, 1, Encrypted).
 
+%%	request_to_id(+Request, ?Kind, -Id) is semidet.
+%
+%	True when Request is a request to the post service for the given
+%	Kind and Id.  Id is '' when accessing without an id.
+
 request_to_id(Request, Kind, Id) :-
 	memberchk(path(Path), Request),
-	atomic_list_concat(['',Kind,Id], '/', Path).
-
-request_to_resource(Request, Kind, URL):-
-  request_to_id(Request, Kind, Id),
-  Id \== '',
-  http_link_to_id(post_process, path_postfix(Id), Link),
-  http_absolute_uri(Link, URL).
-  %http_absolute_uri(post(Id), URL).
+	(   atomic_list_concat(['',Kind,Id], '/', Path)
+	->  true
+	;   atom_concat(/, Kind, Path)
+	->  Id = ''
+	).
 
 true(_).
 

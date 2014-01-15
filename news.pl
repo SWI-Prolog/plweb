@@ -48,7 +48,6 @@
 
 :- html_resource(css('news.css'), [requires([css('post.css')])]).
 
-http:location(news, root(news), []).	% used for write_post_js//2.
 :- http_handler(root(news), news_process, [prefix]).
 :- http_handler(root(news/archive), news_archive, []).
 
@@ -62,17 +61,15 @@ http:location(news, root(news), []).	% used for write_post_js//2.
 
 news_process(Request) :-
 	memberchk(method(get), Request),
-	request_to_resource(Request, news, URL), !,
-	http_get(URL, JSON, []),
-	json_to_prolog(JSON, post:Post),
+	request_to_id(Request, news, Post),
+	Post \== '', !,
 	post(Post, title, Title1),
-	post(Post, id, Id),
 	atomic_list_concat(['News',Title1], ' -- ', Title2),
 	reply_html_page(
-	    news(Id),
+	    news(Post),
 	    title(Title2),
 	    [ \news_backlink,
-	      \post(Id, [])
+	      \post(Post, [])
 	    ]).
 news_process(Request) :-
 	memberchk(method(get), Request), !,
