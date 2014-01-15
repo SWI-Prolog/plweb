@@ -1,12 +1,7 @@
-:-module(did_you_know, [did_you_know//0]).
-/**  <module>  Interesting snippets about SWI-Prolog
+/*  Part of SWI-Prolog
 
-  This module generates the 'Did You Know blah blah' bit that
-  appears on every pldoc and SWI-Prolog website page.
-
-    E-mail:        J.Wielemaker@cs.vu.nl
+    Author:        Anne Ogborn
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009, VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -28,12 +23,18 @@
     by the GNU General Public License. This exception does not however
     invalidate any other reasons why the executable file might be covered by
     the GNU General Public License.
-
-    @author Anne Ogborn
-    @tbd Let Jessica know about b and color
-
 */
+
+:-module(did_you_know, [did_you_know//0]).
+
+/**  <module>  Interesting snippets about SWI-Prolog
+
+This module generates the 'Did You Know   blah blah' bit that appears on
+every pldoc and SWI-Prolog website page.
+*/
+
 :- use_module(library(http/html_write)).
+:- use_module(library(http/http_dispatch)).
 :- use_module(library(random)).
 :- use_module(news).
 
@@ -48,7 +49,8 @@ random_hint -->
 	  random_between(1, N, Id),
 	  dyk(Id, Saying),
 	  (   Saying = (Text-Link)
-	  ->  Info = a(href=Link, Text)
+	  ->  link(Link, HREF),
+	      Info = a(href(HREF), Text)
 	  ;   Info = Saying
 	  )
 	},
@@ -56,6 +58,15 @@ random_hint -->
 	       ' ',
 	       span(id(dyknow), Info)
 	     ]).
+
+link(section(Id), HREF) :- !,
+	http_link_to_id(pldoc_man, [section=Id], HREF).
+link(package(Name), HREF) :- !,
+	file_name_extension(Name, html, File),
+	http_link_to_id(pldoc_package, path_postfix(File), HREF).
+link(pack(Name), HREF) :- !,
+	http_link_to_id(pack_list, [p(Name)], HREF).
+link(HREF, HREF).
 
 
 %%	dyk(Id, Saying) is nondet
@@ -74,36 +85,36 @@ term_expansion(dyk(Saying), dyk(Id, Saying)) :-
 	).
 
 dyk('SWI-Prolog is 25 years old').
-dyk(['the ', b('Profiler'), ' can speed up your code']-'/pldoc/man?section=profiling-predicates').
+dyk(['the ', b('Profiler'), ' can speed up your code']-section('profiling-predicates')).
 dyk('You can hot-swap code').
-dyk('SWI-Prolog uses logical update view'-'/pldoc/man?section=update').
+dyk('SWI-Prolog uses logical update view'-section('update')).
 dyk('M-/ does autocomplete in pceEmacs').
 dyk('C-c C-c CamelCasesWords in pceEmacs').
 dyk('C-c C-- underscores_words_in_pce_emacs').
 dyk('C-+ and C-- changes font size in pceEmacs').
 dyk('About the nifty drawing program pceDraw').
-dyk('Special quasiquote syntax for html and javascript'-'/pldoc/man?section=quasiquotations').
-dyk('Advice for choosing 32/64 bits'-'/pldoc/man?section=64bits').
-dyk('You can configure your environment'-'/pldoc/man?section=initfile').
-dyk(['SWI-Prolog supports the ', b('Snowball'), ' stemmer']-'/pldoc/man?section=snowball').
+dyk('Special quasiquote syntax for html and javascript'-section('quasiquotations')).
+dyk('Advice for choosing 32/64 bits'-section('64bits')).
+dyk('You can configure your environment'-section('initfile')).
+dyk(['SWI-Prolog supports the ', b('Snowball'), ' stemmer']-section('snowball')).
 dyk('SWI-Prolog has an RDF Semantic Web Server'-'http://cliopatria.swi-prolog.org/home').
-dyk('You can interface C++ to SWI-Prolog'-'/pldoc/package/pl2cpp.html').
-dyk('SWI-Prolog can work with tar archives'-'/pldoc/package/archive.html').
-dyk('This website is written entirely in SWI-Prolog'-'/pldoc/package/http.html').
-dyk(['about the full featured ', b('web framework')]-'/pldoc/package/http.html').
-dyk(['SWI-Prolog can act as an ', b('http client')]-'/pldoc/doc_for?object=section(2,''2'',swi(''/doc/packages/http.html''))').
-dyk('SWI-Prolog supports PDT, the Prolog Development Tools'-'/pldoc/package/pdt.html').
-dyk('You can get Javadoc style documentation automatically'-'/pldoc/package/pldoc.html').
-dyk(['SWI-Prolog has a ', b('unit test framework')]-'/pldoc/package/plunit.html').
-dyk(['SWI-Prolog has a ', b('Natural Language Processing (NLP)'), ' library']-'/pldoc/package/nlp.html').
-dyk(['SWI-Prolog supports ', b('Google Protocol Buffers')]-'/pldoc/package/protobufs.html').
-dyk('SWI-Prolog talks to R'-'/pldoc/package/R.html').
-dyk(['SWI-Prolog has ', b('powerful Semantic Web tools')]-'/pldoc/package/semweb.html').
-dyk(['SWI-Prolog can ', b('parse SGML/XML')]-'/pldoc/package/sgml.html').
-dyk(['SWI-Prolog has extensive ', b('GIS Support')]-'/pldoc/package/space.html').
-dyk(['SWI-Prolog has support for ', b('large, static tables')]-'/pldoc/package/table.html').
-dyk(['SWI-Prolog supports ', b('TIPC')]-'/pldoc/package/tipc.html').
-dyk(['You can read/write ', b('.zip'), ' files']-'/pldoc/package/zlib.html').
+dyk('You can interface C++ to SWI-Prolog'-package('pl2cpp')).
+dyk('SWI-Prolog can work with tar archives'-package('archive')).
+dyk('This website is written entirely in SWI-Prolog'-package('http')).
+dyk(['about the full featured ', b('web framework')]-package('http')).
+dyk(['SWI-Prolog can act as an ', b('http client')]-section('http-clients')).
+dyk('SWI-Prolog supports PDT, the Prolog Development Tools'-package('pdt')).
+dyk('You can get Javadoc style documentation automatically'-package('pldoc')).
+dyk(['SWI-Prolog has a ', b('unit test framework')]-package('plunit')).
+dyk(['SWI-Prolog has a ', b('Natural Language Processing (NLP)'), ' library']-package('nlp')).
+dyk(['SWI-Prolog supports ', b('Google Protocol Buffers')]-package('protobufs')).
+dyk('SWI-Prolog talks to R'-package('R')).
+dyk(['SWI-Prolog has ', b('powerful Semantic Web tools')]-package('semweb')).
+dyk(['SWI-Prolog can ', b('parse SGML/XML')]-package('sgml')).
+dyk(['SWI-Prolog has extensive ', b('GIS Support')]-package('space')).
+dyk(['SWI-Prolog has support for ', b('large, static tables')]-package('table')).
+dyk(['SWI-Prolog supports ', b('TIPC')]-package('tipc')).
+dyk(['You can read/write ', b('.zip'), ' files']-package('zlib')).
 dyk(['SWI-Prolog can talk to Java,C,C++,Python,and C#']-'/contrib/').
 dyk(['You can control ', b('MIDI'), ' on Mac with SWI-Prolog']-'/contrib/SamerAbdallah/index.html').
 dyk(['SWI-Prolog has ', b('an OpenGL Interface')]-'/contrib/OpenGL.html').
@@ -125,14 +136,14 @@ dyk('XPCE supports a sophisticated styled text engine').
 dyk('Your proprietary application can use SWI-Prolog'-'/license.html').
 dyk(['SWI-Prolog has an interface to FANN, a foss ', b('Neural Net'), ' library']-'http://leenissen.dk/fann/wp/').
 dyk('SWI-Prolog has lots of useful Packages'-'/pack/list').
-dyk(['SWI-Prolog can ', b('track open source licenses')]-'/pldoc/doc_for?object=section(2,''E.3'',swi(''/doc/Manual/softlicense.html''))').
-dyk(['SWI-Prolog has a pack to access ', b('Pubmed Data')]-'/pack/list?p=pubmed').
-dyk(['SWI-Prolog has ', b('Multi-Thread support')]-'/man/threads.html').
+dyk(['SWI-Prolog can ', b('track open source licenses')]-section(softlicense)).
+dyk(['SWI-Prolog has a pack to access ', b('Pubmed Data')]-pack(pubmed)).
+dyk(['SWI-Prolog has ', b('Multi-Thread support')]-section(threads)).
 dyk(['SWI-Prolog provides ', b('general DCG primitives')]-'/pldoc/doc/swi/library/dcg/basics.pl').
-dyk('SWI-Prolog can handle Unix signals'-'/pldoc/doc_for?object=section(2,''4.11'',swi(''/doc/Manual/signal.html''))').
-dyk('SWI-Prolog can lazily parse a file'-'/pldoc/doc_for?object=section(2,''A.19'',swi(''/doc/Manual/pio.html''))').
-dyk('You can add menus to the swipl-win.exe console in windows'-'/pldoc/doc_for?object=section(3,''4.33.2'',swi(''/doc/Manual/system.html''))').
-dyk(['SWI-Prolog has a ', b('Profiler')]-'/pldoc/doc_for?object=section(2,''4.39'',swi(''/doc/Manual/profile.html''))').
-dyk('SWI-Prolog supports DDE on Windows'-'/pldoc/doc_for?object=section(2,''4.41'',swi(''/doc/Manual/DDE.html''))').
-dyk(['You can create ', b('stand alone exe files'), ' from SWI-Prolog code']-'/pldoc/doc_for?object=section(1,''10'',swi(''/doc/Manual/runtime.html''))').
+dyk('SWI-Prolog can handle Unix signals'-section(signal)).
+dyk('SWI-Prolog can lazily parse a file'-section(pureinput)).
+dyk('You can add menus to the swipl-win.exe console in windows'-section(plwin)).
+dyk(['SWI-Prolog has a ', b('Profiler')]-section(profile)).
+dyk('SWI-Prolog supports DDE on Windows'-section('DDE')).
+dyk(['You can create ', b('stand alone exe files'), ' from SWI-Prolog code']-section(runtime)).
 dyk('SWI-Prolog supports arbitrarily large integers').
