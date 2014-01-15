@@ -258,6 +258,8 @@ page_title(pldoc(object(Obj))) -->
 	object_name(Obj,
 		    [ style(title)
 		    ]), !.
+page_title(pldoc(file(_File, Title))) --> !,
+	html(Title).
 page_title(title(Title)) --> !,
 	html(Title).
 page_title(user(login)) --> !,
