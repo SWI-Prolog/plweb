@@ -90,14 +90,15 @@ user:body(Style, _Body) -->
 %
 %	True if Style is an `object page' and Obj is the object.
 
-page_style(user(_Action),	[show_user(false)]).
-page_style(news(_Which),	[]).
-page_style(wiki(_Special),	[]).
-page_style(wiki(Path, _Title),	[object(wiki(Path))]).
-page_style(pack(_Action),	[]).
-page_style(tags(_Action),	[]).
-page_style(pldoc(object(Obj)),	[object(Obj)]) :- !.
-page_style(pldoc(_),		[]).
+page_style(user(_Action),	   [show_user(false)]).
+page_style(download(_Dir, _Title), []).
+page_style(news(_Which),	   []).
+page_style(wiki(_Special),	   []).
+page_style(wiki(Path, _Title),	   [object(wiki(Path))]).
+page_style(pack(_Action),	   []).
+page_style(tags(_Action),	   []).
+page_style(pldoc(object(Obj)),	   [object(Obj)]) :- !.
+page_style(pldoc(_),		   []).
 
 %%	outer_container(+Content, +Options)//
 %
@@ -300,6 +301,8 @@ page_title(wiki(_Path, Title)) -->
 	html(Title).
 page_title(tags(list)) -->
 	html('Tags').
+page_title(download(_Dir, Title)) -->
+	html(Title).
 page_title(Term) -->
 	html('Title for ~q'-[Term]).
 

@@ -74,19 +74,34 @@ download_table(Request) :-
 %%	list_downloads(+Directory)
 
 list_downloads(Dir, Options) :-
-	reply_html_page(title('SWI-Prolog downloads'),
-			[ \wiki(Dir, 'header.txt'),
-			  br(clear(all)),
-			  table(class(downloads),
-				\download_table(Dir, Options)),
-			  \wiki(Dir, 'footer.txt')
-			]).
+	(   wiki_file_to_dom(Dir, 'header.txt', Header0)
+	->  (   Header0 = [h1(_, Title)|Header]
+	    ->	true
+	    ;	Header = Header0
+	    )
+	;   Header = []
+	),
+	(   var(Title)
+	->  Title = 'SWI-Prolog downloads'
+	;   true
+	),
+	reply_html_page(
+	    download(Dir, Title),
+	    title('SWI-Prolog downloads'),
+	    [ \html(Header),
+	      br(clear(all)),
+	      table(class(downloads),
+		    \download_table(Dir, Options)),
+	      \wiki(Dir, 'footer.txt')
+	    ]).
+
+wiki_file_to_dom(Dir, File, DOM) :-
+	directory_file_path(Dir, File, WikiFile),
+	access_file(WikiFile, read), !,
+	wiki_file_to_dom(WikiFile, DOM).
 
 wiki(Dir, File) -->
-	{ directory_file_path(Dir, File, WikiFile),
-	  access_file(WikiFile, read), !,
-	  wiki_file_to_dom(WikiFile, DOM)
-	},
+	{ wiki_file_to_dom(Dir, File, DOM) }, !,
 	html(DOM).
 wiki(_, _) -->
 	[].
