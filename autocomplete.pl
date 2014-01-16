@@ -57,7 +57,9 @@ max_results_displayed(100).
 %%	prolog:doc_search_field(+Options) is det.
 %
 %	Emit the manual-search field.
-
+%
+%     Is this called?  AO - 7/21/2013
+%
 prolog:doc_search_field(Options) -->
 	{ option(id(Id), Options),
 	  http_link_to_id(ac_predicate, [], URL)

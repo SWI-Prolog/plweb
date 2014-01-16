@@ -36,7 +36,6 @@
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
-:- use_module(library(http/http_authenticate)).
 :- use_module(library(http/http_path)).
 :- use_module(library(git)).
 :- use_module(git_html).
@@ -283,15 +282,9 @@ put_non_cr(Out, Char) :-
 %	Get authentication for editing wiki pages.  This now first tries
 %	the OpenID login.
 
-authenticate(_Request, [UUID,Name]) :-
-	site_user_logged_in(UUID),
-	site_user_property(UUID, granted(wiki)),
-	site_user_property(UUID, name(Name)), !.
 authenticate(Request, Fields) :-
-	(   http_authenticate(basic(passwd), Request, Fields)
-	->  true
-	;   throw(http_reply(authorise(basic, 'SWI-Prolog wiki editor')))
-	).
+	authenticate(Request, wiki, Fields).
+
 
 %%	allowed_file(+File) is det.
 %
@@ -318,7 +311,7 @@ hidden(Name, Value) -->
 %	HTTP handler that displays a Wiki sandbox
 
 wiki_sandbox(_Request) :-
-	reply_html_page(wiki,
+	reply_html_page(wiki(sandbox),
 			title('PlDoc wiki sandbox'),
 			[ \sandbox
 			]).
@@ -326,8 +319,7 @@ wiki_sandbox(_Request) :-
 sandbox -->
 	{ http_absolute_location(root('pldoc/package/pldoc.html'), PlDoc, [])
 	},
-	html([ h1('PlDoc wiki sandbox'),
-	       p([ 'This page provides a sandbox for the ',
+	html([ p([ 'This page provides a sandbox for the ',
 		   a(href(PlDoc), 'PlDoc'),
 		   ' wiki format.  The preview window is updated every ',
 		   'time you hit the RETURN or TAB key.'

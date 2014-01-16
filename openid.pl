@@ -33,6 +33,7 @@
 	    site_user_property/2,	% +User, ?Property
 	    grant/2,			% +User, +Token
 	    revoke/2,			% +User, +Token
+	    authenticate/3,		% +Request, +Token, -Fields
 	    user_profile_link//1,	% +User
 	    current_user//1,		% +PageStyle
 	    current_user//0,
@@ -47,6 +48,7 @@
 :- use_module(library(http/http_path)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
+:- use_module(library(http/http_authenticate)).
 :- use_module(library(http/recaptcha)).
 :- use_module(library(http/http_stream)).
 :- use_module(library(persistency)).
@@ -61,9 +63,21 @@
 :- use_module(wiki).
 :- use_module(markitup).
 :- use_module(tagit).
-:- use_module(annotateit).
+:- use_module(post).
 
 /** <module> Handle users of the SWI-Prolog website
+
+This module provide the OpenID interface  for the SWI-Prolog website. If
+you want to run this for local installations, make sure that your server
+is accessible through the public network   and first direct your browser
+to the public network. Logging in using   Google  should work than. Some
+other providers have more strict requirements.
+
+You can fake OpenID login using the debug interface:
+
+    ==
+    ?- debug(openid_fake('WouterBeek')).
+    ==
 */
 
 :- multifile
@@ -146,6 +160,23 @@ ground_user(User) :-
 	existence_error(user, User).
 
 
+%%	authenticate(+Request, +Token, -Fields)
+%
+%	Get authentication for editing wiki pages.  This now first tries
+%	the OpenID login.
+
+authenticate(_Request, Token, [UUID,Name]) :-
+	site_user_logged_in(UUID),
+	site_user_property(UUID, granted(Token)),
+	site_user_property(UUID, name(Name)), !.
+authenticate(Request, Token, Fields) :-
+	(   http_authenticate(basic(passwd), Request, Fields)
+	->  true
+	;   format(atom(Msg), 'SWI-Prolog ~w authoring', [Token]),
+		   throw(http_reply(authorise(basic, Msg)))
+	).
+
+
 		 /*******************************
 		 *	 USER INTERACTION	*
 		 *******************************/
@@ -198,7 +229,7 @@ create_profile(Request) :-
 			[ return(Return, [])
 			]),
 	reply_html_page(
-	    wiki(create_profile),
+	    user(create_profile),
 	    title('Create user profile for SWI-Prolog'),
 	    \create_profile(OpenID, Return)).
 
@@ -304,9 +335,9 @@ submit_profile(Request) :-
 	recaptcha_parameters(ReCAPTCHA),
 	http_parameters(Request,
 			[ uuid(User,         []),
-			  name(Name,         [optional(true), default(anonymous)]),
-			  email(Email,       [optional(true), default('')]),
-			  home_url(Home,     [optional(true), default('')]),
+			  name(Name0,        [optional(true), default(anonymous)]),
+			  email(Email0,      [optional(true), default('')]),
+			  home_url(Home0,    [optional(true), default('')]),
 			  description(Descr, [optional(true), default('')]),
 			  return(Return, [])
 			| ReCAPTCHA
@@ -314,6 +345,9 @@ submit_profile(Request) :-
 	(   catch(recaptcha_verify(Request, ReCAPTCHA), E, true)
 	->  (   var(E)
 	    ->  retractall_site_user(User, OpenID, _, _, _),
+		normalize_space(atom(Name),  Name0),
+		normalize_space(atom(Email), Email0),
+		normalize_space(atom(Home),  Home0),
 		assert_site_user(User, OpenID, Name, Email, Home),
 		update_description(User, Descr),
 		http_redirect(moved_temporary, Return, Request)
@@ -327,7 +361,7 @@ submit_profile(Request) :-
 
 retry_captcha(Why, Warning) :-
 	reply_html_page(
-	    wiki,
+	    plain,
 	    title('CAPTCHA failed'),
 	    [ h1(class(wiki), Why),
 	      p(class(error), Warning),
@@ -360,10 +394,9 @@ view_profile(Request) :-
 	),
 	site_user_property(UUID, name(Name)),
 	reply_html_page(
-	    wiki,
+	    user(view_profile(UUID)),
 	    title('User ~w'-[Name]),
 	    [ \edit_link(UUID, Options),
-	      h1(class(wiki), 'Profile for user ~w'-[Name]),
 	      \view_profile(UUID, Options)
 	    ]).
 
@@ -371,7 +404,8 @@ view_profile(UUID, Options) -->
 	private_profile(UUID, Options),
 	user_description(UUID, Options),
 	user_tags(UUID, []),
-	user_annotations(UUID),
+	user_posts(UUID, annotation),
+	user_posts(UUID, news),
 	user_packs(UUID),
 	profile_reviews(UUID).
 
@@ -508,9 +542,10 @@ list_users(_Request) :-
 
 site_kudos(UUID, Annotations, Tags, Kudos) :-
 	site_user(UUID, _, _, _, _),
-	user_annotation_count(UUID, Annotations),
+	user_post_count(UUID, annotation, Annotations),
+	user_post_count(UUID, news, NewsArticles),
 	user_tag_count(UUID, Tags),
-	Kudos is Annotations*10+Tags.
+	Kudos is NewsArticles*20+Annotations*10+Tags.
 
 explain_user_listing -->
 	html({|html||
@@ -597,7 +632,11 @@ http_openid:openid_hook(logout(OpenId)) :-
 	       [CookieName, Path]),
 	fail.
 http_openid:openid_hook(logged_in(OpenId)) :-
-	(   http_in_session(_),
+	(   debugging(openid_fake(User)),
+	    atom(User)
+	->  debug(openid_fake(User), 'Fake login for ~q.', [User]),
+	    OpenId = User
+	;   http_in_session(_),
 	    http_session_data(openid(OpenId))
 	->  true
 	;   http_current_request(Request),
@@ -643,13 +682,20 @@ in_header_state :-
 %	customizating the -very basic- login page.
 
 plweb_login_page(Request) :-
+	memberchk(host(localhost), Request),
+	\+ ( debugging(openid_fake(User)),
+	     atom(User)
+	   ),
+	openid_current_url(Request, URL), !,
+	throw(http_reply(see_other(URL))).
+plweb_login_page(Request) :-
 	http_open_session(_, []),
 	http_parameters(Request,
 			[ 'openid.return_to'(ReturnTo, [])
 			]),
 	http_link_to_id(verify_user, [], Action),
 	quick_buttons(Buttons),
-	reply_html_page(wiki,
+	reply_html_page(user(login),
 			[ title('SWI-Prolog login')
 			],
 			[ \openid_login_form(
@@ -741,24 +787,36 @@ verify_user(Request) :-
 
 %%	logout(+Request)
 %
-%	Logout the current user and reload the current page.
+%	Logout  the  current  user.  If  openid.return_to  is  provided,
+%	provide a back-link
 
-logout(_Request) :-
+logout(Request) :-
 	openid_logged_in(OpenId), !,
 	openid_logout(OpenId),
 	reply_html_page(
-	    wiki,
+	    user(logout),
 	    title('Logged out'),
-	    [ h1(class(wiki), 'Logout'),
-	      p('Thanks for using www.swi-prolog.org')
+	    [ p('Thanks for using www.swi-prolog.org'),
+	      \logout_back_link(Request)
 	    ]).
-logout(_Request) :-
+logout(Request) :-
 	reply_html_page(
-	    wiki,
+	    user(logout),
 	    title('Not logged in'),
-	    [ h1(class(wiki), 'Logout'),
-	      p(class(warning), 'You were not logged in')
+	    [ p(class(warning), 'You are not logged in'),
+	      \logout_back_link(Request)
 	    ]).
+
+
+logout_back_link(Request) -->
+	{ http_parameters(Request,
+			  [ 'openid.return_to'(Return, [optional(true)])
+			  ]),
+	  nonvar(Return)
+	}, !,
+	html(p(['Go ', a(href(Return), back), '.'])).
+logout_back_link(_) -->
+	[].
 
 
 %%	current_user//
@@ -775,12 +833,11 @@ current_user(Style) -->
 	  ->  Display = Name
 	  ;   Display = OpenID
 	  ),
-	  http_link_to_id(view_profile, [], Profile),
-	  http_link_to_id(logout, [], Logout)
+	  http_link_to_id(view_profile, [], Profile)
 	},
 	html(div(class('current-user'),
 		 [ a([href(Profile)], Display),
-		   ' (', a([href(Logout)], 'logout'), ')'
+		   ' (', \logout_link, ')'
 		 ])).
 current_user(Style) -->
 	{ Style \== create_profile,
@@ -803,3 +860,11 @@ login_link(Request) -->
 	  http_link_to_id(swipl_login, Attrs, Login)
 	},
 	html(a([class(signin), href(Login)], login)).
+
+%%	logout_link//
+%
+%	Create a link to logout
+
+logout_link -->
+	{ http_link_to_id(logout, [], Logout) },
+	html(a([href(Logout)], 'logout')).

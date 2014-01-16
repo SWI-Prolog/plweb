@@ -31,9 +31,9 @@
 :- module(tagit,
 	  [ user_tags//2,		% +User, +Options
 	    user_tag_count/2,		% +User, -Count
-	    object_label/2,		% +Object, -Label
-	    object_id/2			% +Object, -Id
+	    tagit_footer//2		% +Object, +Options
 	  ]).
+:- use_module(generics).
 :- use_module(library(debug)).
 :- use_module(library(persistency)).
 :- use_module(library(aggregate)).
@@ -48,19 +48,21 @@
 :- use_module(library(http/http_json)).
 :- use_module(library(pldoc/doc_search)).
 :- use_module(library(pldoc/doc_html)).
-:- use_module(openid).
 :- use_module(notify).
-:- use_module(wiki, [wiki_page_title/2]).
+:- use_module(object_support).
+:- use_module(openid).
 
 :- html_resource(tagit,
-		 [ virtual(true),
-		   ordered(true),
+		 [ ordered(true),
 		   requires([ jquery_ui,
-			      js('tagit/css/jquery.tagit.css'),
-			      js('tagit/css/tagit.ui-zendesk.css'),
-			      js('tagit/js/tag-it.min.js')
-			    ])
+			      js('tag-it-min-2.0.js'),
+			      css('jquery.tagit.css'),
+			      css('tagit.ui-zendesk.css')
+			    ]),
+		   virtual(true)
 		 ]).
+:- html_resource(css('tags.css'), []).
+
 
 		 /*******************************
 		 *	       DATA		*
@@ -127,32 +129,6 @@ ip -->
 :- http_handler(root('list-tags'),    list_tags,    []).
 :- http_handler(root('tag-abuse'),    tag_abuse,    []).
 
-:- multifile
-	prolog:doc_object_page_footer//2,
-	prolog:doc_annotation_footer//2.
-
-%%	prolog:doc_object_page_footer(+Object, +Options)//
-%
-%	Called a to create the footer of an object page.
-
-prolog:doc_object_page_footer(Obj0, Options) -->
-	{ ground(Obj0), !,
-	  (   prolog:doc_canonical_object(Obj0, Obj)
-	  ->  true
-	  ;   Obj = Obj0
-	  )
-	}, !,
-	html(div(class('user-annotations'),
-		 [ \tagit_footer(Obj, Options),
-		   \comment_footer(Obj, Options)
-		 ])).
-prolog:doc_object_page_footer(_, _) -->
-	[].
-
-comment_footer(Obj, Options) -->
-	prolog:doc_annotation_footer(Obj, Options), !.
-comment_footer(_, _) --> [].
-
 %%	tagit_footer(+Obj, +Options)// is det.
 %
 %	Show tagit widget for adding and deleting tags.
@@ -167,24 +143,25 @@ tagit_footer(Obj, _Options) -->
 	  format(atom(PlaceHolder), 'Tag ~w', [Label]),
 	  object_tags(Obj, Tags)
 	},
-	html([ ul(id(tags), \tags_li(Tags)),
-	       div(style('overflow:auto'),
-		   [ div([id('tag-warnings'), style('float:left;')], []),
-		     div(class('tag-notes'), \tag_notes(ObjectID, Tags))
-		   ])
-	     ]),
+	html(div(id='tags-component',
+		 [ \tag_notes(ObjectID, Tags),
+		   div(id='tags-label', 'Tags:'),
+		   div(id='tags-bar', ul(id=tags, \tags_li(Tags))),
+		   div(id='tags-warnings', [])
+		 ])),
+	html_requires(css('tags.css')),
 	html_requires(tagit),
 	js_script({|javascript(Complete, OnClick, PlaceHolder, ObjectID,
 			       AddTag, RemoveTag)||
 		    function tagInfo(text) {
-		      $("#tag-warnings").text(text);
-		      $("#tag-warnings").removeClass("warning");
-		      $("#tag-warnings").addClass("informational");
+		      $("#tags-warnings").text(text);
+		      $("#tags-warnings").removeClass("warning");
+		      $("#tags-warnings").addClass("informational");
 		    }
 		    function tagWarning(text) {
-		      $("#tag-warnings").text(text);
-		      $("#tag-warnings").addClass("warning");
-		      $("#tag-warnings").removeClass("informational");
+		      $("#tags-warnings").text(text);
+		      $("#tags-warnings").addClass("warning");
+		      $("#tags-warnings").removeClass("informational");
 		    }
 
 		    $(document).ready(function() {
@@ -251,13 +228,11 @@ tags_li([]) --> [].
 tags_li([H|T]) --> html(li(H)), tags_li(T).
 
 tag_notes(ObjectID, Tags) -->
-	html([ \docs_need_work_plea,
-	       \why_login,
-	       \abuse_link(ObjectID, Tags)
-	     ]).
-
-sep -->
-	html(span(class(separator), '|')).
+	html(div(id='tags-notes',
+		 [ \docs_need_work_plea,
+		   \why_login,
+		   \abuse_link(ObjectID, Tags)
+		 ])).
 
 docs_need_work_plea -->
 	html(['Tag confusing pages with ', b('doc-needs-help')]).
@@ -269,59 +244,18 @@ abuse_link(ObjectID, _) -->
 	},
 	html(a(href(HREF), 'Report abuse')).
 
-
 why_login -->
 	{ site_user_logged_in(_) }, !.
 why_login -->
 	sep,
 	html('Tags are associated to your profile if you are logged in').
 
-%%	object_label(+Object, -Label) is det.
-
-object_label(Name/Arity, Label) :- !,
-	format(atom(Label), 'predicate ~w/~w', [Name, Arity]).
-object_label(Name//Arity, Label) :- !,
-	format(atom(Label), 'non-terminal ~w/~w', [Name, Arity]).
-object_label(M:Name/Arity, Label) :- !,
-	format(atom(Label), 'predicate ~w:~w/~w', [M, Name, Arity]).
-object_label(M:Name//Arity, Label) :- !,
-	format(atom(Label), 'non-terminal ~w:~w//~w', [M, Name, Arity]).
-object_label(f(Name/Arity), Label) :- !,
-	format(atom(Label), 'function ~w/~w', [Name, Arity]).
-object_label(c(Function), Label) :- !,
-	format(atom(Label), 'C API function ~w()', [Function]).
-object_label(Module:module(_Title), Label) :-
-	module_property(Module, file(File)), !,
-	file_base_name(File, Base),
-	format(atom(Label), 'module ~w', [Base]).
-object_label(section(ID), Label) :-
-	prolog:doc_object_summary(section(_Level, _No, ID, _File),
-				  _Class, _AbsFile, Title), !,
-	format(atom(Label), 'Section "~w"', [Title]).
-object_label(wiki(Location), Label) :-
-	wiki_page_title(Location, Title),
-	format(atom(Label), 'Wiki page "~w"', [Title]).
-object_label(Obj, Label) :-
-	term_to_atom(Obj, Label).
+sep -->
+	html(span(class(separator), '|')).
 
 object_tags(Object, Tags) :-
 	findall(Tag, tagged(Tag, Object, _Time, _User), Tags0),
 	sort(Tags0, Tags).
-
-%%	object_id(?Object, ?Id)
-%
-%	Manage identifiers for objects.
-
-:- dynamic
-	object_id_cache/2.
-
-object_id(Object, Id) :-
-	object_id_cache(Object, Id), !.
-object_id(Object, Id) :-
-	ground(Object),
-	variant_sha1(Object, Id),
-	assertz(object_id_cache(Object, Id)).
-
 
 %%	complete_tag(+Request)
 %
@@ -545,9 +479,10 @@ list_tags(Request) :-
 					    default(name)
 					  ])
 			]),
-	reply_html_page(wiki(tags),
-			title('Overview of tags'),
-			\user_tags(_, [sort_by(SortBy)])).
+	reply_html_page(
+	    tags(list),
+	    title('Overview of tags'),
+	    \user_tags(_, [sort_by(SortBy)])).
 
 
 %%	user_tags(?User, +Options)// is det.

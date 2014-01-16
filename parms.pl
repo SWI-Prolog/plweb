@@ -116,19 +116,17 @@ user:url_path(serql,	 'http://www.openrdf.org').
 		 *	      RESOURCES		*
 		 *******************************/
 
+:- html_resource(swipl_css,
+		 [ virtual(true),
+		   requires([ css('swipl.css') ])
+		 ]).
 :- html_resource(plweb,
 		 [ virtual(true),
 		   requires([ pldoc_css,
 			      css('plweb.css')
 			    ])
 		 ]).
-:- if(html_current_resource(pldoc_jquery)).
-:- html_resource(jquery,
-		 [ virtual(true),
-		   requires([ pldoc_jquery
-			    ])
-		 ]).
-:- else.
+:- if(\+html_current_resource(jquery)).
 :- html_resource(jquery,
 		 [ virtual(true),
 		   requires([ jq('jquery.js')
@@ -143,6 +141,10 @@ user:url_path(serql,	 'http://www.openrdf.org').
 		 [ virtual(true),
 		   requires([ js('jquery/ui/minified/jquery-ui.min.js'),
 			      js('jquery/themes/base/jquery-ui.css')
+			    ])
+		 ]).
+:- html_resource(jq('menu.js'),
+		 [ requires([ jquery
 			    ])
 		 ]).
 
