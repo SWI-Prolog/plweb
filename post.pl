@@ -1,3 +1,32 @@
+/*  Part of SWI-Prolog
+
+    Author:        Wouter Beek & Jan Wielemaker
+    E-mail:        J.Wielemaker@cs.vu.nl
+    WWW:           http://www.swi-prolog.org
+    Copyright (C): 2014, VU University Amsterdam
+
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 2
+    of the License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    As a special exception, if you link this library with other files,
+    compiled with a Free Software compiler, to produce an executable, this
+    library does not by itself cause the resulting executable to be covered
+    by the GNU General Public License. This exception does not however
+    invalidate any other reasons why the executable file might be covered by
+    the GNU General Public License.
+*/
+
 :- module(post,
 	  [ find_posts/3,		% +Kind:oneof([annotation,news])
 					% :CheckId
@@ -47,6 +76,7 @@
 
 :- use_module(object_support).
 :- use_module(openid).
+:- use_module(notify).
 :- use_module(generics).
 
 :- meta_predicate
@@ -964,3 +994,41 @@ summary([], _) -->
 user_post_count(User, Kind, Count) :-
 	find_posts(Kind, user_post(User), Annotations),
 	length(Annotations, Count).
+
+
+		 /*******************************
+		 *	      MESSAGES		*
+		 *******************************/
+
+:- multifile
+	mail_notify:event_subject//1,		% +Event
+	mail_notify:event_message//1.		% +event
+
+mail_notify:event_subject(annotation_added(User, _, _)) -->
+	[ 'Comment by '-[] ],
+	msg_user(User).
+mail_notify:event_subject(annotation_removed(User, _, _, _)) -->
+	[ 'Comment removed by '-[] ],
+	msg_user(User).
+mail_notify:event_subject(annotation_updated(User, _, _, _, _)) -->
+	[ 'Comment updated by '-[] ],
+	msg_user(User).
+
+mail_notify:event_message(annotation_added(User, _, New)) -->
+	[ 'Comment by '-[] ],
+	msg_user(User), [nl],
+	msg_body(New).
+mail_notify:event_message(annotation_removed(User, _OldT, _T, Old)) -->
+	[ 'Comment removed by '-[] ],
+	msg_user(User), [nl],
+	msg_body(Old).
+mail_notify:event_message(annotation_updated(User, _OldT, _T, _Old, New)) -->
+	[ 'Comment updated by '-[] ],
+	msg_user(User), [nl],
+	msg_body(New).
+
+msg_body(Body) -->
+	[ nl,
+	  '~w'-[Body],
+	  nl
+	].
