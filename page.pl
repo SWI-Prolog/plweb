@@ -294,6 +294,8 @@ page_title(pack(list)) -->
 	html('Packs (add-ons) for SWI-Prolog').
 page_title(wiki(sandbox)) -->
 	html('PlDoc wiki sandbox').
+page_title(wiki(edit(Action, Location))) -->
+	html([Action, ' wiki page ', Location]).
 page_title(wiki(_Path, Title)) -->
 	html(Title).
 page_title(tags(list)) -->

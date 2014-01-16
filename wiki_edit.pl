@@ -87,26 +87,28 @@ wiki_edit(Request) :-
 			]),
 	location_wiki_file(Location, File),
 	allowed_file(File),
+	(   exists_file(File)
+	->  Action = 'Edit'
+	;   Action = 'Create'
+	),
 	file_base_name(File, BaseName),
-	reply_html_page(wiki,
-			title('Edit ~w'-[BaseName]),
-			\edit_page(Location, File, Author)).
+	reply_html_page(
+	    wiki(edit(Action, Location)),
+	    title('~w ~w'-[Action, BaseName]),
+	    \edit_page(Location, File, Author)).
 
 edit_page(Location, File, Author) -->
 	{ (   exists_file(File)
 	  ->  read_file_to_codes(File, Codes, []),
 	      string_to_list(Content, Codes),
-	      Title = 'Edit',
 	      file_directory_name(File, Dir)
 	  ;   Content = '',
-	      Title = 'Create',
 	      Dir = _			% shortlog//2 is quiet on var
 	  ),
 	  http_location_by_id(wiki_save, Action)
 	},
 	html(div(class(wiki_edit),
-		 [ h1(class(wiki), [Title, ' ', Location]),
-		   \shortlog(Dir, [path(File), limit(5)]),
+		 [ \shortlog(Dir, [path(File), limit(5)]),
 		   form(action(Action),
 			[ \hidden(location, Location),
 			  table(class(wiki_edit),
