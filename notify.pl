@@ -38,8 +38,8 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(pldoc/doc_html), [object_href/2]).
+:- use_module(object_support).
 :- use_module(openid).
-:- use_module(tagit, [object_label/2]).
 
 :- multifile
 	event_subject//1,			% +Event

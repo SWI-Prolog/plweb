@@ -56,6 +56,7 @@
 :- use_module(library(sgml)).
 :- use_module(library(thread_pool)).
 :- use_module(library(http/http_dirindex)).
+:- use_module(library(debug)).
 
 :- use_module(parms).
 :- use_module(page).
@@ -104,7 +105,8 @@ server(Options) :-
 	thread_create(index_wiki_pages, _,
 		      [ alias('__index_wiki_pages'),
 			detached(true)
-		      ]).
+		      ]),
+  debug(plweb, 'Server was started at port ~d.', [Port]).
 
 
 :- multifile
@@ -154,6 +156,10 @@ serve_page(_, Request) :-
 %	Translate Relative into a File in the document-root tree. If the
 %	given extension is .html, also look for   .txt files that can be
 %	translated into HTML.
+%	.frg files embed the contents of the body in the normal 1 col
+%	layout format.
+%	.hom files embed the contents of the body in the home page
+%	format. Usually the home page fill will have nothing in it
 
 find_file(Relative, File) :-
 	file_name_extension(Base, html, Relative),
@@ -178,6 +184,7 @@ find_file(Relative, File) :-
 			     file_type(directory)
 			   ]).
 
+source_extension(hom).				% homepage embedded html
 source_extension(txt).				% wiki text
 source_extension(frg).				% embedded html
 
@@ -207,6 +214,8 @@ serve_file(txt, File, Request) :-
 			]),
 	Format == html, !,
 	serve_wiki_file(File, Request).
+serve_file(hom, File, Request) :-
+	serve_embedded_hom_file(File, Request).
 serve_file(frg, File, Request) :-
 	serve_embedded_html_file(File, Request).
 serve_file(_Ext, File, Request) :-	% serve plain files
@@ -247,42 +256,29 @@ serve_wiki_file(File, Request) :-
 
 serve_wiki(String, File, Request) :-
 	wiki_codes_to_dom(String, [], DOM0),
-	(   sub_term(h1(_, Title), DOM0)
-	->  true
-	;   Title = 'SWI-Prolog'
-	),
-	insert_edit_button(DOM0, File, Request, DOM),
+	extract_title(DOM0, Title, DOM),
 	setup_call_cleanup(
 	    b_setval(pldoc_options, [prefer(manual)]),
 	    serve_wiki_page(Request, File, Title, DOM),
 	    nb_delete(pldoc_options)).
 
 serve_wiki_page(Request, File, Title, DOM) :-
-	option(style(Style), Request, wiki),
-	reply_html_page(Style,
-			[ title(Title)
-			],
-			\wiki_page(Request, File, DOM)).
+	wiki_path(Request, File, WikiPath),
+	reply_html_page(
+	    wiki(WikiPath, Title),
+	    [ title(Title)
+	    ],
+	    DOM).
 
-wiki_page(Request, File, DOM) -->
-	html(DOM),
-	user_annotations(Request, File).
 
-%%	user_annotations(+Request, +File)//
+%%	wiki_path(+Request, +File, -WikiPath) is det.
 %
-%	Add  space  for  user  annotations    using  the  pseudo  object
-%	wiki(Location).
+%	WikiPath is the canonical path to describe the wiki page File.
 
-:- multifile
-	prolog:doc_object_page_footer//2.
-
-user_annotations(Request, File) -->
-	{ memberchk(request_uri(Location), Request),
-	  atom_concat(/, WikiPath0, Location),
-	  normalize_extension(WikiPath0, File, WikiPath)
-	}, !,
-	prolog:doc_object_page_footer(wiki(WikiPath), []).
-user_annotations(_, _) --> [].
+wiki_path(Request, File, WikiPath) :-
+	memberchk(request_uri(Location), Request),
+	atom_concat(/, WikiPath0, Location),
+	normalize_extension(WikiPath0, File, WikiPath).
 
 normalize_extension(Path, File, Path) :-
 	file_name_extension(_, Ext, File),
@@ -298,37 +294,19 @@ normalize_extension(Dir, _, Index) :-
 normalize_extension(Path, _, Path).
 
 
-%%	insert_edit_button(+DOM0, +File, +Request, -DOM) is det.
+%%	extract_title(+DOM0, -Title, -DOM) is det.
 %
-%	Insert a button that allows for editing the wiki page.
+%	Extract the title from a wiki page.  The title is considered
+%	to be the first h<N> element.
 
-insert_edit_button(DOM0, File, Request, DOM) :-
-	(   current_prolog_flag(wiki_edit, false),
-	    catch(http:authenticate(pldoc(edit), Request, _), _, fail)
-	->  insert_edit_button(DOM0, \edit_button(File, [edit(true)]), DOM)
-	;   memberchk(request_uri(Location), Request),
-	    insert_edit_button(DOM0, \wiki_edit_button(Location), DOM)
-	), !.
-insert_edit_button(DOM, _, _, DOM).
+extract_title([H|T], Title, T) :-
+	title(H, Title), !.
+extract_title(DOM, 'SWI-Prolog', DOM).
 
-insert_edit_button([h1(Attrs,Title)|DOM], Action,
-		   [h1(Attrs,[ span(style('float:right'),
-				    Action)
-			     | Title
-			     ])|DOM]) :- !.
-insert_edit_button(DOM, Action,
-		   [ h1(class(wiki),
-			[ span(style('float:right'),
-			       Action)
-			])
-		   | DOM
-		   ]).
-
-:- public wiki_edit_button//1.
-:- multifile wiki_edit:edit_button//1.
-
-wiki_edit_button(Location) -->
-	wiki_edit:edit_button(Location), !.
+title(h1(_Attrs, Title), Title).
+title(h2(_Attrs, Title), Title).
+title(h3(_Attrs, Title), Title).
+title(h4(_Attrs, Title), Title).
 
 %%	prolog:doc_directory(+Dir) is semidet.
 %
@@ -374,15 +352,21 @@ manual_file(Request) :-
 
 %%	serve_embedded_html_file(+File, +Request) is det.
 %
-%	Serve a .frg file, which is displayed as an embedded HTML file.
+%	Serve a .frg file, which is displayed as an embedded HTML file
+%	in the 1 col content format, or a .hom file, which is displayed
+%	as an embedded HTML file in the home page format
 
 serve_embedded_html_file(File, Request) :-
+	serve_embedded_html_file(wiki, File, Request).
+
+serve_embedded_hom_file(File, Request) :-
+	serve_embedded_html_file(homepage, File, Request).
+
+serve_embedded_html_file(Style, File, _Request) :-
 	load_html(File, DOM, []),
-	xpath(DOM, //body(self), element(_,_,Body)),
-	xpath(DOM, //head(self), element(_,_,Head)),
-	reply_html_page(wiki,
-			Head,
-			\wiki_page(Request, File, Body)).
+	xpath_chk(DOM, //body(self), element(_,_,Body)),
+	xpath_chk(DOM, //head(self), element(_,_,Head)),
+	reply_html_page(Style, Head, Body).
 
 
 		 /*******************************
