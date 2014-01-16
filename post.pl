@@ -244,7 +244,9 @@ post_process(delete, Request, Kind, User, Id) :-
 	post_authorized(Request, User, Kind),
 	post(Id, author, Author), !,
 	(   Author == User
-	->  retract_post(Id),
+	->  post(Id, about, About),
+	    retract_post(Id, OldPost),
+	    notify(About, post_deleted(OldPost)),
 	    throw(http_reply(no_content))	% 204
 	;   memberchk(path(Path), Request),
 	    throw(http_reply(forbidden(Path)))	% 403
@@ -269,6 +271,8 @@ post_process(post, Request, Kind, User, _):-
 	      ),
 	      E,
 	      throw(http_reply(bad_request(E)))),
+	post(Id, about, About),
+	notify(About, post_created(NewPost)),
 	memberchk(path(Path), Request),
 	atom_concat(Path, Id, NewLocation),
 	format('Location: ~w~n', [NewLocation]),
@@ -288,8 +292,10 @@ post_process(put, Request, Kind, User, Id):-
 	      throw(http_reply(bad_request(E)))),
 	(   post(Id, author, Author)
 	->  (   Author == User
-	    ->  retract_post(Id),
+	    ->  retract_post(Id, OldPost),
 		assert_post(Id, NewPost),
+		post(Id, about, About),
+		notify(About, post_updated(OldPost, NewPost)),
 		throw(http_reply(no_content))
 	    ;   memberchk(path(Path), Request),
 		throw(http_reply(forbidden(Path)))
@@ -339,8 +345,13 @@ post(Id, Name, Value) :-
 	post(Id, Post),
 	post1(Name, Post, Value).
 
-post1(object, Post, About) :-
-	About = Post.meta.get(object).
+post1(object, Post, Object) :-
+	Object = Post.meta.get(object).
+post1(about, Post, About) :-			% used for notification
+	(   About = Post.meta.get(object)
+	->  true
+	;   Post.kind
+	).
 post1(author, Post, Author) :-
 	Author = Post.meta.author.
 post1(content, Post, Content) :-
@@ -370,8 +381,6 @@ post1(votes_up, Post, Up) :-
 post1(votes_down, Post, Down) :-
 	aggregate_all(sum(Vote), vote_down(Post.meta.id, Vote), Down).
 
-
-% SINGLE POST %
 
 %!	post(+Id:atom, +Options)// is det.
 %
@@ -875,7 +884,9 @@ vote(Post, User, Vote) :-
 	(   \+ vote(Post, _, User, _)
 	->  get_time(NowF),
 	    Now is integer(NowF),
-	    assert_vote(Post, Vote, User, Now)
+	    assert_vote(Post, Vote, User, Now),
+	    post(Post, about, About),
+	    notify(About, voted(User, Post, Vote))
 	;   vote(Post, Vote, User, Time0),
 	    get_time(Now),
 	    Now - Time0 < 10		% double click or similar
@@ -1004,31 +1015,48 @@ user_post_count(User, Kind, Count) :-
 	mail_notify:event_subject//1,		% +Event
 	mail_notify:event_message//1.		% +event
 
-mail_notify:event_subject(annotation_added(User, _, _)) -->
+mail_notify:event_subject(post_created(Post)) -->
 	[ 'Comment by '-[] ],
-	msg_user(User).
-mail_notify:event_subject(annotation_removed(User, _, _, _)) -->
+	msg_user(Post.meta.author).
+mail_notify:event_subject(post_deleted(Post)) -->
 	[ 'Comment removed by '-[] ],
-	msg_user(User).
-mail_notify:event_subject(annotation_updated(User, _, _, _, _)) -->
+	msg_user(Post.meta.author).
+mail_notify:event_subject(post_updated(_OldPost, NewPost)) -->
 	[ 'Comment updated by '-[] ],
+	msg_user(NewPost.meta.author).
+mail_notify:event_subject(voted(User, _PostId, Vote)) -->
+	{ updown(Vote, UpDown) },
+	[ 'Voted ~w by '-[UpDown] ],
 	msg_user(User).
 
-mail_notify:event_message(annotation_added(User, _, New)) -->
+mail_notify:event_message(post_created(Post)) -->
 	[ 'Comment by '-[] ],
-	msg_user(User), [nl],
-	msg_body(New).
-mail_notify:event_message(annotation_removed(User, _OldT, _T, Old)) -->
+	msg_user(Post.meta.author), [nl],
+	msg_body(Post.content).
+mail_notify:event_message(post_deleted(Post)) -->
 	[ 'Comment removed by '-[] ],
-	msg_user(User), [nl],
-	msg_body(Old).
-mail_notify:event_message(annotation_updated(User, _OldT, _T, _Old, New)) -->
+	msg_user(Post.meta.author), [nl],
+	msg_body(Post.content).
+mail_notify:event_message(post_updated(_OldPost, NewPost)) -->
 	[ 'Comment updated by '-[] ],
-	msg_user(User), [nl],
-	msg_body(New).
+	msg_user(NewPost.meta.author), [nl],
+	msg_body(NewPost.content).
+mail_notify:event_message(voted(User, PostId, Vote)) -->
+	{ updown(Vote, UpDown) },
+	[ '~w by '-[UpDown] ],
+	msg_user(User),
+	[ 'For'-[] ],
+	{ post(PostId, content, Content) },
+	msg_body(Content).
 
 msg_body(Body) -->
 	[ nl,
 	  '~w'-[Body],
 	  nl
 	].
+
+updown(N, Atom) :-
+	N > 0, !,
+	format(atom(Atom), '+~d', [N]).
+updown(Vote, Vote).
+
