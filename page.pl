@@ -285,6 +285,8 @@ page_title(user(create_profile)) --> !,
 page_title(user(view_profile(UUID))) --> !,
 	{ site_user_property(UUID, name(Name)) },
 	html('Profile for user ~w'-[Name]).
+page_title(user(list)) --> !,
+	html('Registered site users').
 page_title(news(fresh)) --> !,
 	html('News').
 page_title(news(all)) --> !,

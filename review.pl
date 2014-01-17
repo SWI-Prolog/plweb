@@ -33,7 +33,8 @@
 	    pack_reviews//1,		% +Pack
 	    show_pack_rating//1,	% +Pack
 	    show_pack_rating//5,	% +Pack, +Rating, +Votes, +Comment, +Opts
-	    profile_reviews//1		% +UUID
+	    profile_reviews//1,		% +UUID
+	    user_review_count/2		% +UUID, -Count
 	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
@@ -518,3 +519,10 @@ profile_reviews(UUID) -->
 profile_reviews(_) -->
 	[].
 
+
+%%	user_review_count(+UUID, -Count) is det.
+%
+%	True when Count is the number of reviews by UUID.
+
+user_review_count(UUID, Count) :-
+	aggregate_all(count, review(_, UUID, _, _, _), Count).

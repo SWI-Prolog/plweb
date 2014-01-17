@@ -57,6 +57,8 @@
 :- use_module(library(uuid)).
 :- use_module(library(option)).
 :- use_module(library(error)).
+:- use_module(library(lists)).
+:- use_module(library(pairs)).
 
 :- use_module(review).
 :- use_module(pack).
@@ -435,8 +437,9 @@ private_profile(UUID, _Options) -->
 link_list_users -->
 	{ http_link_to_id(list_users, [], HREF)
 	},
-	html(a([ href(HREF),
-		 style('float:right; font-size:60%; font-style:italic; font-weight:normal')
+	html(a([ class('list-other-users'),
+		 style('float:right;'),
+		 href(HREF)
 	       ], 'other users')).
 
 
@@ -518,41 +521,60 @@ user_packs(_) -->
 %	HTTP handler to list known users.
 
 list_users(_Request) :-
-	site_user_logged_in(_User), !,
-	findall(user(Kudos, UUID, Annotations, Tags),
-		site_kudos(UUID, Annotations, Tags, Kudos),
-		Users),
-	sort(Users, ByKudos), reverse(ByKudos, BestFirst),
+	site_user_logged_in(User), !,
+	(   site_user_property(User, granted(admin))
+	->  ShowAdmin = true
+	;   ShowAdmin = false
+	),
+	findall(Kudos-Details,
+		site_kudos(_UUID, Details, Kudos),
+		Pairs),
+	keysort(Pairs, Sorted),
+	pairs_values(Sorted, Users),
+	reverse(Users, BestFirst),
 	reply_html_page(
-	    reply_html_page(users),
+	    user(list),
 	    title('SWI-Prolog site users'),
 	    [ \explain_user_listing,
 	      \html_requires(css('stats.css')),
 	      table(class(block),
-		    [ \user_table_header
-		    | \user_rows(BestFirst)
+		    [ \user_table_header(ShowAdmin)
+		    | \user_rows(BestFirst, ShowAdmin)
 		    ])
 	    ]).
 list_users(_Request) :-
 	reply_html_page(
-	    reply_html_page(users),
+	    user(list),
 	    title('Permission denied'),
 	    [ \explain_user_listing_not_logged_on
 	    ]).
 
-site_kudos(UUID, Annotations, Tags, Kudos) :-
+site_kudos(UUID, Details, Kudos) :-
+	Details = _{ user:UUID,
+		     news:NewsArticles,
+		     annotations:Annotations,
+		     reviews:Reviews,
+		     tags:Tags,
+		     votes:Up-Down
+		   },
 	site_user(UUID, _, _, _, _),
-	user_post_count(UUID, annotation, Annotations),
 	user_post_count(UUID, news, NewsArticles),
+	user_post_count(UUID, annotation, Annotations),
+	user_review_count(UUID, Reviews),
 	user_tag_count(UUID, Tags),
-	Kudos is NewsArticles*20+Annotations*10+Tags.
+	user_vote_count(UUID, Up, Down),
+	Kudos is ( NewsArticles*20 +
+		   Reviews*10 +
+		   Annotations*10 +
+		   Tags*2 +
+		   Up+Down
+		 ).
 
 explain_user_listing -->
 	html({|html||
-	      <h1 class="wiki">SWI-Prolog site users</h1>
-
 	      <p>Below is a listing of all registered users with some
-	      basic properties.
+	      basic properties.  This is list only visible to other
+	      registered users.
 	     |}).
 
 explain_user_listing_not_logged_on -->
@@ -563,20 +585,53 @@ explain_user_listing_not_logged_on -->
 	      available to users who are logged in.
 	     |}).
 
-user_rows([]) --> [].
-user_rows([H|T]) --> user_row(H), user_rows(T).
+user_rows([], _) --> [].
+user_rows([H|T], ShowAdmin) --> user_row(H, ShowAdmin), user_rows(T, ShowAdmin).
 
-user_table_header -->
+user_table_header(ShowAdmin) -->
 	html(tr([th('User'),
 		 th('#Comments'),
-		 th('#Tags')
+		 th('#Reviews'),
+		 th('#Votes'),
+		 th('#Tags'),
+		 \admin_header(ShowAdmin)
 		])).
 
-user_row(user(_Kudos, UUID, Annotations, Tags)) -->
-	html(tr([td(\user_profile_link(UUID)),
-		 td(Annotations),
-		 td(Tags)
+admin_header(true) --> !,
+	html([ th('Granted'),
+	       th('E-mail')
+	     ]).
+
+user_row(Details, ShowAdmin) -->
+	{ Up-Down = Details.votes },
+	html(tr([td(\user_profile_link(Details.user)),
+		 td(Details.annotations),
+		 td(Details.reviews),
+		 td('+~d-~d'-[Up,Down]),
+		 td(Details.tags),
+		 \admin_columns(Details.user, ShowAdmin)
 		])).
+
+admin_columns(UUID, true) --> !,
+	{ findall(Token, site_user_property(UUID, granted(Token)), Tokens),
+	  site_user_property(UUID, email(Email))
+	},
+	html([ td(\token_list(Tokens)),
+	       td(\email(Email))
+	     ]).
+admin_columns(_, _) --> [].
+
+token_list([]) --> [].
+token_list([H|T]) -->
+	html(H),
+	(   {T==[]}
+	->  []
+	;   html([', ']),
+	    token_list(T)
+	).
+
+email(Mail) -->
+	html(a(href('mailto:'+Mail), Mail)).
 
 
 		 /*******************************
