@@ -492,7 +492,7 @@ enhanced_search_area -->
 	        <div>
 	          <span class='lbl'>SEARCH DOCUMENTATION:</span>
 	          <form  id="search-form-enhanced" action="Action">
-	            <input type='text' id="forenhanced">
+	            <input name="for" type='text' id="forenhanced">
 	            <input type="image" src="/icons/go.png" alt='Search'>
 	          </form>
 	        </div>
