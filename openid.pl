@@ -521,7 +521,11 @@ user_packs(_) -->
 %	HTTP handler to list known users.
 
 list_users(_Request) :-
-	site_user_logged_in(_User), !,
+	site_user_logged_in(User), !,
+	(   site_user_property(User, granted(admin))
+	->  ShowAdmin = true
+	;   ShowAdmin = false
+	),
 	findall(Kudos-Details,
 		site_kudos(_UUID, Details, Kudos),
 		Pairs),
@@ -534,8 +538,8 @@ list_users(_Request) :-
 	    [ \explain_user_listing,
 	      \html_requires(css('stats.css')),
 	      table(class(block),
-		    [ \user_table_header
-		    | \user_rows(BestFirst)
+		    [ \user_table_header(ShowAdmin)
+		    | \user_rows(BestFirst, ShowAdmin)
 		    ])
 	    ]).
 list_users(_Request) :-
@@ -581,25 +585,53 @@ explain_user_listing_not_logged_on -->
 	      available to users who are logged in.
 	     |}).
 
-user_rows([]) --> [].
-user_rows([H|T]) --> user_row(H), user_rows(T).
+user_rows([], _) --> [].
+user_rows([H|T], ShowAdmin) --> user_row(H, ShowAdmin), user_rows(T, ShowAdmin).
 
-user_table_header -->
+user_table_header(ShowAdmin) -->
 	html(tr([th('User'),
 		 th('#Comments'),
 		 th('#Reviews'),
 		 th('#Votes'),
-		 th('#Tags')
+		 th('#Tags'),
+		 \admin_header(ShowAdmin)
 		])).
 
-user_row(Details) -->
+admin_header(true) --> !,
+	html([ th('Granted'),
+	       th('E-mail')
+	     ]).
+
+user_row(Details, ShowAdmin) -->
 	{ Up-Down = Details.votes },
 	html(tr([td(\user_profile_link(Details.user)),
 		 td(Details.annotations),
 		 td(Details.reviews),
 		 td('+~d-~d'-[Up,Down]),
-		 td(Details.tags)
+		 td(Details.tags),
+		 \admin_columns(Details.user, ShowAdmin)
 		])).
+
+admin_columns(UUID, true) --> !,
+	{ findall(Token, site_user_property(UUID, granted(Token)), Tokens),
+	  site_user_property(UUID, email(Email))
+	},
+	html([ td(\token_list(Tokens)),
+	       td(\email(Email))
+	     ]).
+admin_columns(_, _) --> [].
+
+token_list([]) --> [].
+token_list([H|T]) -->
+	html(H),
+	(   {T==[]}
+	->  []
+	;   html([', ']),
+	    token_list(T)
+	).
+
+email(Mail) -->
+	html(a(href('mailto:'+Mail), Mail)).
 
 
 		 /*******************************
