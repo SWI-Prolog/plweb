@@ -46,7 +46,8 @@
 	    sort_posts/2,		% +Ids:list(atom), -SortedIds:list(atom)
 
 	    user_posts//2,		% +User, +KInd
-	    user_post_count/3		% +User, +Kind, -Count
+	    user_post_count/3,		% +User, +Kind, -Count
+	    user_vote_count/3		% +User, -Up, -Down
 	  ]).
 
 /** <module> Posts
@@ -67,6 +68,7 @@
 :- use_module(library(http/js_write)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
+:- use_module(library(apply)).
 :- use_module(library(pairs)).
 :- use_module(library(persistency)).
 :- use_module(library(pldoc/doc_html)).
@@ -911,6 +913,19 @@ vote_up(Post, Vote) :-
 
 vote_down(Post, Vote) :-
 	vote(Post, Vote), Vote < 0.
+
+%%	user_vote_count(+User, -Up, -Down) is det.
+%
+%	Number of votes issued by this user.
+
+user_vote_count(User, Up, Down) :-
+	findall(Vote, vote(_, Vote, User, _), Votes),
+	partition(positive, Votes, UpList, DownList),
+	sum_list(UpList, Up),
+	sum_list(DownList, Down).
+
+positive(Vote) :-
+	Vote > 0.
 
 
 		 /*******************************

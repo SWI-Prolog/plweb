@@ -57,6 +57,8 @@
 :- use_module(library(uuid)).
 :- use_module(library(option)).
 :- use_module(library(error)).
+:- use_module(library(lists)).
+:- use_module(library(pairs)).
 
 :- use_module(review).
 :- use_module(pack).
@@ -435,8 +437,9 @@ private_profile(UUID, _Options) -->
 link_list_users -->
 	{ http_link_to_id(list_users, [], HREF)
 	},
-	html(a([ href(HREF),
-		 style('float:right; font-size:60%; font-style:italic; font-weight:normal')
+	html(a([ class('list-other-users'),
+		 style('float:right;'),
+		 href(HREF)
 	       ], 'other users')).
 
 
@@ -519,12 +522,14 @@ user_packs(_) -->
 
 list_users(_Request) :-
 	site_user_logged_in(_User), !,
-	findall(user(Kudos, UUID, Annotations, Tags),
-		site_kudos(UUID, Annotations, Tags, Kudos),
-		Users),
-	sort(Users, ByKudos), reverse(ByKudos, BestFirst),
+	findall(Kudos-Details,
+		site_kudos(_UUID, Details, Kudos),
+		Pairs),
+	keysort(Pairs, Sorted),
+	pairs_values(Sorted, Users),
+	reverse(Users, BestFirst),
 	reply_html_page(
-	    reply_html_page(users),
+	    user(list),
 	    title('SWI-Prolog site users'),
 	    [ \explain_user_listing,
 	      \html_requires(css('stats.css')),
@@ -535,24 +540,37 @@ list_users(_Request) :-
 	    ]).
 list_users(_Request) :-
 	reply_html_page(
-	    reply_html_page(users),
+	    user(list),
 	    title('Permission denied'),
 	    [ \explain_user_listing_not_logged_on
 	    ]).
 
-site_kudos(UUID, Annotations, Tags, Kudos) :-
+site_kudos(UUID, Details, Kudos) :-
+	Details = _{ user:UUID,
+		     news:NewsArticles,
+		     annotations:Annotations,
+		     reviews:Reviews,
+		     tags:Tags,
+		     votes:Up-Down
+		   },
 	site_user(UUID, _, _, _, _),
-	user_post_count(UUID, annotation, Annotations),
 	user_post_count(UUID, news, NewsArticles),
+	user_post_count(UUID, annotation, Annotations),
+	user_review_count(UUID, Reviews),
 	user_tag_count(UUID, Tags),
-	Kudos is NewsArticles*20+Annotations*10+Tags.
+	user_vote_count(UUID, Up, Down),
+	Kudos is ( NewsArticles*20 +
+		   Reviews*10 +
+		   Annotations*10 +
+		   Tags*2 +
+		   Up+Down
+		 ).
 
 explain_user_listing -->
 	html({|html||
-	      <h1 class="wiki">SWI-Prolog site users</h1>
-
 	      <p>Below is a listing of all registered users with some
-	      basic properties.
+	      basic properties.  This is list only visible to other
+	      registered users.
 	     |}).
 
 explain_user_listing_not_logged_on -->
@@ -569,13 +587,18 @@ user_rows([H|T]) --> user_row(H), user_rows(T).
 user_table_header -->
 	html(tr([th('User'),
 		 th('#Comments'),
+		 th('#Reviews'),
+		 th('#Votes'),
 		 th('#Tags')
 		])).
 
-user_row(user(_Kudos, UUID, Annotations, Tags)) -->
-	html(tr([td(\user_profile_link(UUID)),
-		 td(Annotations),
-		 td(Tags)
+user_row(Details) -->
+	{ Up-Down = Details.votes },
+	html(tr([td(\user_profile_link(Details.user)),
+		 td(Details.annotations),
+		 td(Details.reviews),
+		 td('+~d-~d'-[Up,Down]),
+		 td(Details.tags)
 		])).
 
 
