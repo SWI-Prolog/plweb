@@ -92,6 +92,7 @@ user:body(Style, _Body) -->
 
 page_style(user(_Action),	   [show_user(false)]).
 page_style(download(_Dir, _Title), []).
+page_style(dir_index(_Dir, _Title),[]).
 page_style(news(_Which),	   []).
 page_style(wiki(_Special),	   []).
 page_style(wiki(Path, _Title),	   [object(wiki(Path))]).
@@ -302,6 +303,8 @@ page_title(wiki(_Path, Title)) -->
 page_title(tags(list)) -->
 	html('Tags').
 page_title(download(_Dir, Title)) -->
+	html(Title).
+page_title(dir_index(_Dir, Title)) -->
 	html(Title).
 page_title(Term) -->
 	html('Title for ~q'-[Term]).
