@@ -46,10 +46,11 @@
 %
 %	HTTP handler for SWI-Prolog download pages.
 
-:- http_handler(download(devel),  download_table, []).
-:- http_handler(download(stable), download_table, []).
-:- http_handler(download(old),    download_table, []).
-:- http_handler(download(.),	  download,
+:- http_handler(download(devel),       download_table, []).
+:- http_handler(download(stable),      download_table, []).
+:- http_handler(download(old),         download_table, []).
+:- http_handler(download('daily/bin'), download_daily, []).
+:- http_handler(download(.),	       download,
 		[prefix, spawn(download), priority(10)]).
 
 %%	download_table(+Request)
@@ -560,3 +561,40 @@ ip_term_to_atom(ip(A,B,C,D), Atom) :- !,
 	format(atom(Atom), '~w.~w.~w.~w', [A,B,C,D]).
 ip_term_to_atom(Term, Atom) :-
 	term_to_atom(Term, Atom).
+
+%%	download_daily(+Request)
+%
+%	Provide the download page for the windows binaries.
+
+download_daily(_Request) :-
+	absolute_file_name(download('daily/bin'), Dir,
+			   [ file_type(directory),
+			     access(read)
+			   ]),
+	reply_html_page(
+	    download(Dir, 'Download daily builds for Windows'),
+	    title('Download daily builds for Windows'),
+	    [ \explain_win_daily,
+	      \directory_index(Dir,
+			       [ order_by(time),
+				 order(descending)
+			       ])
+	    ]).
+
+
+explain_win_daily -->
+	html({|html||
+	      <p>The table below provides access to the most recent 7
+	      daily builds of SWI-Prolog for Windows, both the 32- and
+	      64-bit versions.  The build is done automatically from the
+	      <a href="/git/">GIT sources</a>.  The files use the following
+	      naming convention:
+	      </p>
+	      <ul>
+	        <li><code>w</code><var>bits</var><code>pl</code><var>date</var><code>.exe</code>
+	      </ul>
+	      <p>
+	      Please note that these versions <b>may be unstable!</b>  Their
+	      primary purpose is to quickly provide binaries after a bug report.
+	      </p>
+	     |}).
