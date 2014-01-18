@@ -120,6 +120,7 @@ You can fake OpenID login using the debug interface:
 		 *	    USER ADMIN		*
 		 *******************************/
 
+site_user_property(UUID, uuid(UUID)).
 site_user_property(UUID, openid(OpenId)) :-
 	site_user(UUID, OpenId, _, _, _).
 site_user_property(UUID, name(Name)) :-
@@ -130,6 +131,8 @@ site_user_property(UUID, home_url(Home)) :-
 	site_user(UUID, _, _, _, Home).
 site_user_property(UUID, granted(Token)) :-
 	granted(UUID, Token).
+site_user_property(UUID, granted_list(Tokens)) :-
+	findall(Token, granted(UUID, Token), Tokens).
 
 
 		 /*******************************
@@ -381,18 +384,30 @@ update_description(UUID, Description) :- !,
 
 %%	view_profile(+Request) is det.
 %
-%	HTTP handler showing the public profile for a user.
+%	HTTP handler showing the public  profile   for  a  user. Viewing
+%	options:
+%
+%	  | Requested user is logged on | [view(private), edit_link(true)] |
+%	  | Logged on is =admin=        | [view(admin)] |
+%	  | Not logged on		| [view(public) |
 
 view_profile(Request) :-
 	http_parameters(Request,
 			[ user(UUID, [ optional(true) ])
 			]),
-	(   openid_logged_in(OpenID),
-	    site_user_property(UUID, openid(OpenID))
-	->  Options = [view(private), edit_link(true)]
-	;   nonvar(UUID)
-	->  Options = [view(public)]
-	;   existence_error(http_parameter, user)
+	(   site_user_logged_in(User)
+	->  (   User = UUID
+	    ->  (   site_user_property(User, granted(admin))
+		->  Options = [view(admin), edit_link(true)]
+		;   Options = [view(private), edit_link(true)]
+		)
+	    ;	site_user_property(User, granted(admin))
+	    ->	Options = [view(admin)]
+	    )
+	;   (   var(UUID)
+	    ->	existence_error(http_parameter, user)
+	    ;	Options = [view(public)]
+	    )
 	),
 	site_user_property(UUID, name(Name)),
 	reply_html_page(
@@ -413,12 +428,14 @@ view_profile(UUID, Options) -->
 
 %%	private_profile(+UUID, +Options)// is det.
 %
-%	If the user is viewing his/her own profile, show a table holding
-%	the private profile information.
+%	If the user is viewing his/her own profile or the logged on user
+%	has =admin= rights, show a  table   holding  the private profile
+%	information.
 
-private_profile(_UUID, Options) -->
-	{ \+ option(view(private), Options) }, !.
-private_profile(UUID, _Options) -->
+private_profile(UUID, Options) -->
+	{ option(view(private), Options)
+	; option(view(admin), Options)
+	}, !,
 	html([ div(class('private-profile'),
 		   [ h2(class(wiki),
 			[ 'Private profile data',
@@ -428,11 +445,20 @@ private_profile(UUID, _Options) -->
 			     \profile_data(UUID, 'OpenID',    openid),
 			     \profile_data(UUID, 'E-Mail',    email),
 			     \profile_data(UUID, 'Home page', home_url)
+			   | \admin_profile(UUID, Options)
 			   ])
 		   ]),
 	       div(class(smallprint),
 		   'The above private information is shown only to the owner.')
 	     ]).
+private_profile(_, _) --> [].
+
+admin_profile(UUID, Options) -->
+	{ option(view(admin), Options) }, !,
+	html([ \profile_data(UUID, 'UUID',    uuid),
+	       \profile_data(UUID, 'Granted', granted_list)
+	     ]).
+admin_profile(_, _) --> [].
 
 link_list_users -->
 	{ http_link_to_id(list_users, [], HREF)
@@ -441,7 +467,6 @@ link_list_users -->
 		 style('float:right;'),
 		 href(HREF)
 	       ], 'other users')).
-
 
 create_profile_link(HREF) :-
 	http_current_request(Request),
@@ -457,9 +482,11 @@ profile_data(UUID, Label, Field) -->
 		  td(DOM)
 		])).
 
-value_dom(name,  Name,  Name) :- !.
-value_dom(email, Email, a(href('mailto:'+Email), Email)) :- !.
-value_dom(_,     URL,   a(href(URL), URL)).
+value_dom(name,		Name,	Name) :- !.
+value_dom(uuid,		UUID,	UUID) :- !.
+value_dom(email,	Email,	a(href('mailto:'+Email), Email)) :- !.
+value_dom(granted_list,	Tokens, \token_list(Tokens)) :- !.
+value_dom(_,		URL,	a(href(URL), URL)).
 
 %%	user_description(UUID, +Options)// is det.
 %
@@ -613,7 +640,7 @@ user_row(Details, ShowAdmin) -->
 		])).
 
 admin_columns(UUID, true) --> !,
-	{ findall(Token, site_user_property(UUID, granted(Token)), Tokens),
+	{ site_user_property(UUID, granted_list(Tokens)),
 	  site_user_property(UUID, email(Email))
 	},
 	html([ td(\token_list(Tokens)),
