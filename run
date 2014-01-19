@@ -1,5 +1,8 @@
 #!/bin/sh
 
+#avoid interactive behaviour
+export GIT_ASKPASS=/bin/false
+
 while true; do
    swipl -s load.pl -g server
    if [ "$?" = 42 ]; then
