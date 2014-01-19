@@ -53,12 +53,15 @@ define man
 end
 
 define safe-bt
-  set variable gc_status.active=1
-  call backTrace(0, 20)
+  call PL_backtrace(20, 1)
 end
 
 define prolog-bt
-  set variable gc_status.active=0
-  call backTrace(0, 20)
+  call PL_backtrace(20, 0)
 end
 
+# Print Prolog thread id for the current thread
+
+define pl-tid
+  p ((PL_local_data_t*)pthread_getspecific(PL_ldata))->thread.info->pl_tid
+end
