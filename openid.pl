@@ -47,6 +47,8 @@
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/js_write)).
+:- use_module(library(http/http_json)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_authenticate)).
 :- use_module(library(http/recaptcha)).
@@ -114,12 +116,14 @@ You can fake OpenID login using the debug interface:
 :- http_handler(root(user/view_profile),    view_profile,   []).
 :- http_handler(root(user/verify),          verify_user,    []).
 :- http_handler(root(user/list),            list_users,     []).
+:- http_handler(root(user/grant),           grant_user,     []).
 
 
 		 /*******************************
 		 *	    USER ADMIN		*
 		 *******************************/
 
+site_user_property(UUID, uuid(UUID)).
 site_user_property(UUID, openid(OpenId)) :-
 	site_user(UUID, OpenId, _, _, _).
 site_user_property(UUID, name(Name)) :-
@@ -130,6 +134,8 @@ site_user_property(UUID, home_url(Home)) :-
 	site_user(UUID, _, _, _, Home).
 site_user_property(UUID, granted(Token)) :-
 	granted(UUID, Token).
+site_user_property(UUID, granted_list(Tokens)) :-
+	findall(Token, granted(UUID, Token), Tokens).
 
 
 		 /*******************************
@@ -161,6 +167,31 @@ ground_user(User) :-
 ground_user(User) :-
 	existence_error(user, User).
 
+
+%%	grant_user(+Request)
+%
+%	HTTP handler to grant or revoke rights for a user.
+
+grant_user(Request) :-
+	catch(( http_read_json_dict(Request, Data),
+		debug(grant, '~q', [Data]),
+		admin_granted(Request),
+		atom_string(UUID, Data.uuid),
+		atom_string(Token, Data.token),
+		(   Data.value == true
+		->  grant(UUID, Token)
+		;   revoke(UUID, Token)
+		)
+	      ), E,
+	      throw(http_reply(bad_request(E)))),
+	throw(http_reply(no_content)).
+
+admin_granted(_Request) :-
+	site_user_logged_in(User),
+	site_user_property(User, granted(admin)), !.
+admin_granted(Request) :-
+	memberchk(path(Path), Request),
+	throw(http_reply(forbidden(Path))).
 
 %%	authenticate(+Request, +Token, -Fields)
 %
@@ -381,18 +412,30 @@ update_description(UUID, Description) :- !,
 
 %%	view_profile(+Request) is det.
 %
-%	HTTP handler showing the public profile for a user.
+%	HTTP handler showing the public  profile   for  a  user. Viewing
+%	options:
+%
+%	  | Requested user is logged on | [view(private), edit_link(true)] |
+%	  | Logged on is =admin=        | [view(admin)] |
+%	  | Not logged on		| [view(public) |
 
 view_profile(Request) :-
 	http_parameters(Request,
 			[ user(UUID, [ optional(true) ])
 			]),
-	(   openid_logged_in(OpenID),
-	    site_user_property(UUID, openid(OpenID))
-	->  Options = [view(private), edit_link(true)]
-	;   nonvar(UUID)
-	->  Options = [view(public)]
-	;   existence_error(http_parameter, user)
+	(   site_user_logged_in(User)
+	->  (   User = UUID
+	    ->  (   site_user_property(User, granted(admin))
+		->  Options = [view(admin), edit_link(true)]
+		;   Options = [view(private), edit_link(true)]
+		)
+	    ;	site_user_property(User, granted(admin))
+	    ->	Options = [view(admin)]
+	    )
+	;   (   var(UUID)
+	    ->	existence_error(http_parameter, user)
+	    ;	Options = [view(public)]
+	    )
 	),
 	site_user_property(UUID, name(Name)),
 	reply_html_page(
@@ -413,12 +456,14 @@ view_profile(UUID, Options) -->
 
 %%	private_profile(+UUID, +Options)// is det.
 %
-%	If the user is viewing his/her own profile, show a table holding
-%	the private profile information.
+%	If the user is viewing his/her own profile or the logged on user
+%	has =admin= rights, show a  table   holding  the private profile
+%	information.
 
-private_profile(_UUID, Options) -->
-	{ \+ option(view(private), Options) }, !.
-private_profile(UUID, _Options) -->
+private_profile(UUID, Options) -->
+	{ option(view(private), Options)
+	; option(view(admin), Options)
+	}, !,
 	html([ div(class('private-profile'),
 		   [ h2(class(wiki),
 			[ 'Private profile data',
@@ -428,11 +473,20 @@ private_profile(UUID, _Options) -->
 			     \profile_data(UUID, 'OpenID',    openid),
 			     \profile_data(UUID, 'E-Mail',    email),
 			     \profile_data(UUID, 'Home page', home_url)
+			   | \admin_profile(UUID, Options)
 			   ])
 		   ]),
 	       div(class(smallprint),
 		   'The above private information is shown only to the owner.')
 	     ]).
+private_profile(_, _) --> [].
+
+admin_profile(UUID, Options) -->
+	{ option(view(admin), Options) }, !,
+	html([ \profile_data(UUID, 'UUID',    uuid),
+	       \profile_data(UUID, 'Granted', granted_list)
+	     ]).
+admin_profile(_, _) --> [].
 
 link_list_users -->
 	{ http_link_to_id(list_users, [], HREF)
@@ -442,7 +496,6 @@ link_list_users -->
 		 href(HREF)
 	       ], 'other users')).
 
-
 create_profile_link(HREF) :-
 	http_current_request(Request),
 	option(request_uri(Here), Request),
@@ -451,15 +504,19 @@ create_profile_link(HREF) :-
 profile_data(UUID, Label, Field) -->
 	{ Term =.. [Field,Value],
 	  site_user_property(UUID, Term),
-	  value_dom(Field, Value, DOM)
+	  (   value_dom(Field, UUID, Value, DOM)
+	  ->  true
+	  )
 	},
 	html(tr([ th([Label,:]),
 		  td(DOM)
 		])).
 
-value_dom(name,  Name,  Name) :- !.
-value_dom(email, Email, a(href('mailto:'+Email), Email)) :- !.
-value_dom(_,     URL,   a(href(URL), URL)).
+value_dom(name,		_,    Name,    Name).
+value_dom(uuid,		_,    UUID,    UUID).
+value_dom(email,	_,    Email,   a(href('mailto:'+Email), Email)).
+value_dom(granted_list,	UUID, Tokens, \token_list(UUID, Tokens, [edit(true)])).
+value_dom(_,		_,    URL,     a(href(URL), URL)).
 
 %%	user_description(UUID, +Options)// is det.
 %
@@ -613,13 +670,25 @@ user_row(Details, ShowAdmin) -->
 		])).
 
 admin_columns(UUID, true) --> !,
-	{ findall(Token, site_user_property(UUID, granted(Token)), Tokens),
+	{ site_user_property(UUID, granted_list(Tokens)),
 	  site_user_property(UUID, email(Email))
 	},
-	html([ td(\token_list(Tokens)),
+	html([ td(\token_list(UUID, Tokens, [])),
 	       td(\email(Email))
 	     ]).
 admin_columns(_, _) --> [].
+
+token_list(UUID, Tokens, Options) -->
+	{ option(edit(true), Options), !,
+	  http_link_to_id(grant_user, [], Action)
+	},
+	html([ \token(wiki,  UUID, Tokens),
+	       \token(news,  UUID, Tokens),
+	       \token(admin, UUID, Tokens)
+	     ]),
+	html_post(script, \granted_script(Action)).
+token_list(_, Tokens, _Options) -->
+	token_list(Tokens).
 
 token_list([]) --> [].
 token_list([H|T]) -->
@@ -629,6 +698,46 @@ token_list([H|T]) -->
 	;   html([', ']),
 	    token_list(T)
 	).
+
+token(Token, UUID, Active) -->
+	{   memberchk(Token, Active)
+	->  Extra = [checked(checked)]
+	;   Extra = []
+	},
+	html([ input([ type(checkbox),
+		       class(grant),
+		       name(Token),
+		       value(UUID)
+		     | Extra
+		     ]),
+	       Token
+	     ]).
+
+granted_script(Action) -->
+	js_script({|javascript(Action)||
+$(document).ready(function() {
+  $("input.grant").click(function(e)
+  { e.preventDefault();
+    var checkbox = $(this);
+    var checked  = checkbox.prop("checked");
+    var token    = checkbox.prop("name");
+    var UUID     = checkbox.prop("value");
+    $.ajax(Action,
+	   { "contentType": "application/json; charset=utf-8",
+	     "dataType": "json",
+	     "data": JSON.stringify({ uuid:  UUID,
+				      value: checked,
+				      token: token
+				    }),
+	     "success": function() {
+		checkbox.prop("checked", checked);
+	     },
+	     "type": "POST"
+	   });
+  });
+});
+		  |}).
+
 
 email(Mail) -->
 	html(a(href('mailto:'+Mail), Mail)).
