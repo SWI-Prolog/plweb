@@ -65,7 +65,7 @@ show_user(_) -->
 balance_columns_script -->
 	js_script({|javascript||
 		   $().ready(function()
-	           { var $navtree = $(".navtree");
+	           { var $navtree = $(".navwindow");
 		     var $navcontent = $(".navcontent");
 		     if ( $navtree.length > 0 && $navcontent.length > 0 )
 		     { var $window = $(window).on("resize", function()
