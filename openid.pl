@@ -47,6 +47,8 @@
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/js_write)).
+:- use_module(library(http/http_json)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_authenticate)).
 :- use_module(library(http/recaptcha)).
@@ -114,6 +116,7 @@ You can fake OpenID login using the debug interface:
 :- http_handler(root(user/view_profile),    view_profile,   []).
 :- http_handler(root(user/verify),          verify_user,    []).
 :- http_handler(root(user/list),            list_users,     []).
+:- http_handler(root(user/grant),           grant_user,     []).
 
 
 		 /*******************************
@@ -164,6 +167,31 @@ ground_user(User) :-
 ground_user(User) :-
 	existence_error(user, User).
 
+
+%%	grant_user(+Request)
+%
+%	HTTP handler to grant or revoke rights for a user.
+
+grant_user(Request) :-
+	catch(( http_read_json_dict(Request, Data),
+		debug(grant, '~q', [Data]),
+		admin_granted(Request),
+		atom_string(UUID, Data.uuid),
+		atom_string(Token, Data.token),
+		(   Data.value == true
+		->  grant(UUID, Token)
+		;   revoke(UUID, Token)
+		)
+	      ), E,
+	      throw(http_reply(bad_request(E)))),
+	throw(http_reply(no_content)).
+
+admin_granted(_Request) :-
+	site_user_logged_in(User),
+	site_user_property(User, granted(admin)), !.
+admin_granted(Request) :-
+	memberchk(path(Path), Request),
+	throw(http_reply(forbidden(Path))).
 
 %%	authenticate(+Request, +Token, -Fields)
 %
@@ -476,17 +504,19 @@ create_profile_link(HREF) :-
 profile_data(UUID, Label, Field) -->
 	{ Term =.. [Field,Value],
 	  site_user_property(UUID, Term),
-	  value_dom(Field, Value, DOM)
+	  (   value_dom(Field, UUID, Value, DOM)
+	  ->  true
+	  )
 	},
 	html(tr([ th([Label,:]),
 		  td(DOM)
 		])).
 
-value_dom(name,		Name,	Name) :- !.
-value_dom(uuid,		UUID,	UUID) :- !.
-value_dom(email,	Email,	a(href('mailto:'+Email), Email)) :- !.
-value_dom(granted_list,	Tokens, \token_list(Tokens)) :- !.
-value_dom(_,		URL,	a(href(URL), URL)).
+value_dom(name,		_,    Name,    Name).
+value_dom(uuid,		_,    UUID,    UUID).
+value_dom(email,	_,    Email,   a(href('mailto:'+Email), Email)).
+value_dom(granted_list,	UUID, Tokens, \token_list(UUID, Tokens, [edit(true)])).
+value_dom(_,		_,    URL,     a(href(URL), URL)).
 
 %%	user_description(UUID, +Options)// is det.
 %
@@ -643,10 +673,22 @@ admin_columns(UUID, true) --> !,
 	{ site_user_property(UUID, granted_list(Tokens)),
 	  site_user_property(UUID, email(Email))
 	},
-	html([ td(\token_list(Tokens)),
+	html([ td(\token_list(UUID, Tokens, [])),
 	       td(\email(Email))
 	     ]).
 admin_columns(_, _) --> [].
+
+token_list(UUID, Tokens, Options) -->
+	{ option(edit(true), Options), !,
+	  http_link_to_id(grant_user, [], Action)
+	},
+	html([ \token(wiki,  UUID, Tokens),
+	       \token(news,  UUID, Tokens),
+	       \token(admin, UUID, Tokens)
+	     ]),
+	html_post(script, \granted_script(Action)).
+token_list(_, Tokens, _Options) -->
+	token_list(Tokens).
 
 token_list([]) --> [].
 token_list([H|T]) -->
@@ -656,6 +698,46 @@ token_list([H|T]) -->
 	;   html([', ']),
 	    token_list(T)
 	).
+
+token(Token, UUID, Active) -->
+	{   memberchk(Token, Active)
+	->  Extra = [checked(checked)]
+	;   Extra = []
+	},
+	html([ input([ type(checkbox),
+		       class(grant),
+		       name(Token),
+		       value(UUID)
+		     | Extra
+		     ]),
+	       Token
+	     ]).
+
+granted_script(Action) -->
+	js_script({|javascript(Action)||
+$(document).ready(function() {
+  $("input.grant").click(function(e)
+  { e.preventDefault();
+    var checkbox = $(this);
+    var checked  = checkbox.prop("checked");
+    var token    = checkbox.prop("name");
+    var UUID     = checkbox.prop("value");
+    $.ajax(Action,
+	   { "contentType": "application/json; charset=utf-8",
+	     "dataType": "json",
+	     "data": JSON.stringify({ uuid:  UUID,
+				      value: checked,
+				      token: token
+				    }),
+	     "success": function() {
+		checkbox.prop("checked", checked);
+	     },
+	     "type": "POST"
+	   });
+  });
+});
+		  |}).
+
 
 email(Mail) -->
 	html(a(href('mailto:'+Mail), Mail)).
