@@ -46,7 +46,11 @@ did_you_know -->
 
 random_hint -->
 	{ predicate_property(dyk(_,_), number_of_clauses(N)),
-	  random_between(1, N, Id),
+	  (   debugging(dyk(Id)),
+	      integer(Id)
+	  ->  true
+	  ;   random_between(1, N, Id)
+	  ),
 	  dyk(Id, Saying),
 	  (   Saying = (Text-Link)
 	  ->  link(Link, HREF),
