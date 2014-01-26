@@ -161,6 +161,7 @@ obj_tag(Name/Arity, Extra) :-
 	Extra = [tag=iso].
 obj_tag(f(_Func/_Arity), [tag=function]) :- !.
 obj_tag(section(_), [tag=section]) :- !.
+obj_tag(wiki(_), [tag=wiki]) :- !.
 obj_tag(_, []).
 
 
@@ -172,6 +173,7 @@ obj_tag(_, []).
 %	@tbd: There are a lot of similar things around in the code.
 
 obj_name(Label-section(_), Label, section) :- !.
+obj_name(Label-wiki(_), Label, section) :- !.
 obj_name(_Name-Obj, Label, Class) :-
 	obj_name2(Obj, Label, Class).
 
@@ -307,6 +309,8 @@ better_category(packages, _) :- !.
 
 completion_target(section(_,_,Id,_), SummaryS, section(Id), Summary) :- !,
 	\+ sub_atom(Id, 0, _, _, 'sec:summary'),
+	atom_string(Summary, SummaryS).		% literal maps do not use strings
+completion_target(wiki(Location), SummaryS, wiki(Location), Summary) :- !,
 	atom_string(Summary, SummaryS).		% literal maps do not use strings
 completion_target(Object, _, Object, Name) :-
 	completion_target(Object, Name).
