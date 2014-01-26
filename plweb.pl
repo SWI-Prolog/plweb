@@ -106,7 +106,7 @@ server(Options) :-
 		      [ alias('__index_wiki_pages'),
 			detached(true)
 		      ]),
-  debug(plweb, 'Server was started at port ~d.', [Port]).
+	debug(plweb, 'Server was started at port ~d.', [Port]).
 
 
 :- multifile
