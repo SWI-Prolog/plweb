@@ -423,6 +423,8 @@ menu(Style,
 	 'News'                = '/news',
 	 'Mail list'           = '/Mailinglist.txt',
 	 'Bug tracker'	       = '/bugzilla/',
+	 'Submit a patch'      = '/howto/SubmitPatch.html',
+	 'Submit an add-on'    = '/howto/Pack.html',
 	 'External links'      = '/Links.html',
 	 'Contact'             = '/Contact.html',
 	 'SWI-Prolog items'    = '/loot.html'
