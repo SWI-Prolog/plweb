@@ -1,8 +1,9 @@
-/** <module> News on the SWI-Prolog Web site
+/*  Part of SWI-Prolog
 
+    Author:        Wouter Beek & Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2013, VU University Amsterdam
+    Copyright (C): 2013-2014, VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -24,12 +25,6 @@
     by the GNU General Public License. This exception does not however
     invalidate any other reasons why the executable file might be covered by
     the GNU General Public License.
-
-    @author Wouter Beek
-    @tbd Calculate relevance based on freshness lifetime and importance.
-    @tbd User-specific influencing of relevance. Based on login
-         / based on cookies.
-    @version 2013/12
 */
 
 :- module(news,
@@ -40,16 +35,24 @@
 :- use_module(library(random)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
-:- use_module(library(http/http_client)).
 :- use_module(library(http/http_dispatch)).
-:- use_module(library(http/http_path)).
-:- use_module(library(http/json_convert)).
 :- use_module(post).
 
 :- html_resource(css('news.css'), [requires([css('post.css')])]).
 
 :- http_handler(root(news), news_process, [prefix]).
 :- http_handler(root(news/archive), news_archive, []).
+
+/** <module> News on the SWI-Prolog Web site
+
+@author Wouter Beek
+@tbd Calculate relevance based on freshness lifetime and importance.
+@tbd User-specific influencing of relevance. Based on login/based on cookies.
+@version 2013/12
+*/
+
+
+
 
 %%	news_process(+Request)
 %
