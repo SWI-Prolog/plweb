@@ -89,7 +89,7 @@ annotation(Object) -->
 	  find_posts(annotation, object_post(Object2), Ids)
 	},
 	html([\html_requires(css('annotation.css')),
-	      \posts(annotation, Object2, Ids)
+	      \posts(annotation, Object2, Ids, [])
 	     ]).
 annotation(_) --> [].
 

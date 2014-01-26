@@ -37,9 +37,7 @@
 					% ?Name:atom
 					% ?Value
 	    post//2,			% +Post, +Options
-	    posts//3,			% +Kind:oneof([annotation,news])
-					% +Object
-					% +Ids:list(atom)
+	    posts//4,			% +Kind, +Object, +Ids, +Options
 	    relevance/2,		% +Id:atom
 					% -Relevance:between(0.0,1.0)
 	    post_process/2,		% +Request:list, +Id:atom
@@ -506,20 +504,26 @@ post_votes(Id) -->
 	     ]).
 
 
-%%	posts(+Kind, +Object, +Ids:list(atom))//
+%%	posts(+Kind, +Object, +Ids:list(atom), +Options)//
 %
 %	Generate HTML for a list of posts and add a link to add new
 %	posts.
 
-posts(Kind, Object, Ids1) -->
+posts(Kind, Object, Ids1, Options) -->
 	{ atomic_list_concat([Kind,component], '-', Class),
-	  sort_posts(Ids1, votes, Ids2)
+	  default_order(Kind, DefOrder),
+	  option(order_by(OrderBy), Options, DefOrder),
+	  sort_posts(Ids1, OrderBy, Ids2)
 	},
 	html_requires(css('post.css')),
 	html([ div(class=[posts,Class],
 		   \post_list(Ids2, Kind, none)),
 	       \add_post(Kind, Object)
 	     ]).
+
+default_order(news, created).
+default_order(annotation, votes).
+
 
 post_list([], _Kind, _Orient) --> [].
 post_list([Id|Ids], Kind, Orient1) -->

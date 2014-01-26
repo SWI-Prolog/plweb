@@ -82,7 +82,7 @@ news_process(Request) :-
 	    news(fresh),
 	    title(Title),
 	    [ \html_requires(css('news.css')),
-	      \posts(news, null, Ids)
+	      \posts(news, null, Ids, [order_by(created)])
 	    ]).
 news_process(Request) :-
 	post_process(Request, news).
@@ -95,7 +95,7 @@ news_archive(_Request):-
 	find_posts(news, all, Ids),
 	reply_html_page(news(all),
 			title('News archive'),
-			\posts(news, null, Ids)).
+			\posts(news, null, Ids, [order_by(created)])).
 
 news_backlink -->
 	{ http_link_to_id(news_process, [], Link) },
