@@ -42,6 +42,13 @@
 :- use_module(library(option)).
 :- use_module(library(apply)).
 
+/** <module> SWI-Prolog website autocompletion support
+
+This module provides the handler for =/autocomplete/ac_predicate=, which
+implements autocompletion for the website. This   handler is called from
+searchbox_script//1 in page.pl.
+*/
+
 :- multifile
 	prolog:doc_search_field//1,
 	prolog:ac_object/3,			% +How, +Search, -Name-Object
@@ -56,10 +63,11 @@ max_results_displayed(100).
 
 %%	prolog:doc_search_field(+Options) is det.
 %
-%	Emit the manual-search field.
-%
-%     Is this called?  AO - 7/21/2013
-%
+%	Emit the manual-search field.  This  is   a  hook  into PlDoc to
+%	override the PlDoc search field. In  theory, all searches on the
+%	website should now  be  using  the   search  box  as  defined in
+%	page.pl.  See searchbox_script//1.
+
 prolog:doc_search_field(Options) -->
 	{ option(id(Id), Options),
 	  http_link_to_id(ac_predicate, [], URL)
