@@ -159,6 +159,10 @@ prolog:doc_object_summary(wiki(Location), wiki, wiki, Summary) :-
 	wiki_page_title_cache/2,
 	wiki_pages_indexed/1.
 
+%%	wiki_page_title(?Location, ?Title) is nondet.
+%
+%	True when Title is the title of the wiki page at Location.
+
 wiki_page_title(Location, Title) :-
 	wiki_pages_indexed(_), !,
 	wiki_page_title_cache(Location, Title).
@@ -178,6 +182,9 @@ wiki_page_title(Location, Title) :-
 	->  assertz(wiki_page_title_cache(Location, TitleRaw)),
 	    Title = TitleRaw
 	).
+wiki_page_title(Location, Title) :-
+	index_wiki_pages,
+	wiki_page_title(Location, Title).
 
 
 %%	dom_title(+DOM, -Title) is semidet.
@@ -209,9 +216,18 @@ prolog:doc_file_index_header(wiki, _) --> [].
 
 %%	index_wiki_pages
 %
-%	Create a (title) index of the available wiki pages
+%	Create a (title) index of  the   available  wiki  pages. This is
+%	started from server/1 in a background thread.
 
 index_wiki_pages :-
+	wiki_pages_indexed(_), !.
+index_wiki_pages :-
+	with_mutex(index_wiki_pages,
+		   index_wiki_pages_sync).
+
+index_wiki_pages_sync :-
+	wiki_pages_indexed(_).
+index_wiki_pages_sync :-
 	wiki_locations(Locations),
 	maplist(wiki_page_title, Locations, _Titles),
 	get_time(Now),
