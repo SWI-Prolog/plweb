@@ -318,10 +318,11 @@ page_title(Term) -->
 
 swi_logo -->
 	{ http_absolute_location(icons('swipl.png'), Logo, []) },
-	html(img([ class(owl),
-		   src(Logo),
-		   alt('SWI-Prolog owl logo')
-		 ], [])).
+	html(a(href('http://www.swi-prolog.org'),
+	       img([ class(owl),
+		     src(Logo),
+		     alt('SWI-Prolog owl logo')
+		   ], []))).
 
 
 %%	menubar(+Style)// is semidet
