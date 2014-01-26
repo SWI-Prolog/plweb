@@ -100,6 +100,7 @@ page_style(pack(_Action),	   []).
 page_style(tags(_Action),	   []).
 page_style(pldoc(object(Obj)),	   [object(Obj)]) :- !.
 page_style(pldoc(_),		   []).
+page_style(pack(_Type, _Title),	   []).
 
 %%	outer_container(+Content, +Options)//
 %

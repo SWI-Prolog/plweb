@@ -398,9 +398,10 @@ pack_file_details(Pack, File, _Options) :-
 	downcase_atom(Base, BaseLwr),
 	wiki_file(BaseLwr), !,
 	format(atom(Title), 'Pack ~w -- ~w', [Pack, File]),
-	reply_html_page(wiki,
-			title(Title),
-			\pack_readme(Pack, File, Size)).
+	reply_html_page(
+	    pack(text, Title),
+	    title(Title),
+	    \pack_readme(Pack, File, Size)).
 pack_file_details(Pack, File, _Options) :-
 	pack_file(Pack, File, file(_Size), -),
 	pack_archive(Pack, _Hash, Archive),
@@ -415,3 +416,9 @@ wiki_file(readme).
 wiki_file(todo).
 wiki_file(Name) :- file_name_extension(_, md, Name).
 wiki_file(Name) :- file_name_extension(_, txt, Name).
+
+:- multifile
+	plweb:page_title//1.
+
+plweb:page_title(pack(_Type, Title)) -->
+	html(Title).
