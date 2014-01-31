@@ -455,8 +455,12 @@ menu(Style,
 	->  LoginLabel = 'Logout',
 	    http_link_to_id(logout, ['openid.return_to'(ReqURL)], LoginURL)
 	;   LoginLabel = 'Login',
+	    (	http_link_to_id(logout, [], ReqURL)
+	    ->	RetURL = '/'		% HOME
+	    ;	RetURL = ReqURL
+	    ),
 	    http_link_to_id(plweb_login_page,
-			    ['openid.return_to'(ReqURL)], LoginURL)
+			    ['openid.return_to'(RetURL)], LoginURL)
 	).
 
 
