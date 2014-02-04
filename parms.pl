@@ -54,6 +54,8 @@
 	   5,
 	   'Number of worker threads').
 
+:- set_setting_default(pengine:allow_from, []).
+
 
 		 /*******************************
 		 *	     LOCATIONS		*
