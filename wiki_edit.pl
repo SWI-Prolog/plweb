@@ -100,16 +100,16 @@ wiki_edit(Request) :-
 edit_page(Location, File, Author) -->
 	{ (   exists_file(File)
 	  ->  read_file_to_codes(File, Codes, []),
-	      string_to_list(Content, Codes),
+	      string_codes(Content, Codes),
 	      file_directory_name(File, Dir)
-	  ;   Content = '',
+	  ;   Content = "",
 	      Dir = _			% shortlog//2 is quiet on var
 	  ),
 	  http_location_by_id(wiki_save, Action)
 	},
 	html(div(class(wiki_edit),
 		 [ \shortlog(Dir, [path(File), limit(5)]),
-		   form(action(Action),
+		   form([ action(Action), method('POST') ],
 			[ \hidden(location, Location),
 			  table(class(wiki_edit),
 				[ tr(td([ class(wiki_text), colspan(2) ],
