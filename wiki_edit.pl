@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2011, VU University Amsterdam
+    Copyright (C): 2011-2014, VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -51,6 +51,7 @@
 :- http_handler(root(wiki_edit),    wiki_edit, []).
 :- http_handler(root(wiki_save),    wiki_save, []).
 :- http_handler(root(wiki/sandbox), wiki_sandbox, []).
+:- http_handler(root(wiki/changes), wiki_changes, []).
 
 %%	edit_button(+Location)//
 %
@@ -108,7 +109,8 @@ edit_page(Location, File, Author) -->
 	  http_location_by_id(wiki_save, Action)
 	},
 	html(div(class(wiki_edit),
-		 [ \shortlog(Dir, [path(File), limit(5)]),
+		 [ h4('Recent changes'),
+		   \shortlog(Dir, [path(File), limit(5)]),
 		   form([ action(Action), method('POST') ],
 			[ \hidden(location, Location),
 			  table(class(wiki_edit),
@@ -216,6 +218,21 @@ author([_User, Name, EMail], Author) :- !,
 	atomic_list_concat([Name, ' <', EMail, '>'], Author).
 author([_User, Name], Author) :-
 	atomic_list_concat([Name, ' <nospam@nospam.org>'], Author).
+
+%%	wiki_changes(+Request)
+%
+%	Show git log of the wiki
+
+wiki_changes(_Request) :-
+	reply_html_page(
+	    wiki(changes),
+	    title('WIKI ChangeLog'),
+	    \wiki_changelog).
+
+wiki_changelog -->
+	html({|html||
+	     |}),
+	shortlog(www, [path(.), limit(50)]).
 
 
 		 /*******************************
@@ -353,3 +370,9 @@ mail_notify:event_message(wiki_edit(Text)) -->
 	  '====~n~w~n===='-[Text],
 	  nl
 	].
+
+
+:- multifile plweb:page_title//1.
+
+plweb:page_title(wiki(changes)) -->
+	html('Recent changes to the SWI-Prolog wiki pages').

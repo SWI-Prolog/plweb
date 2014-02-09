@@ -58,10 +58,8 @@
 
 git_shortlog(Dir, Options) -->
 	{ git_shortlog(Dir, ShortLog, Options) },
-	html([ h3('Recent changes'),
-	       table(class(git_shortlog),
-		     \shortlog_rows(ShortLog, Dir, 1))
-	     ]).
+	html(table(class(git_shortlog),
+		   \shortlog_rows(ShortLog, Dir, 1))).
 
 shortlog_rows([], _, _) --> [].
 shortlog_rows([H|T], Pack, Row) -->
@@ -110,7 +108,7 @@ trunc(Text, Max) -->
 
 git_show(Request) :-
 	http_parameters(Request,
-			[ a(_Action,
+			[ a(Action,
 			    [ oneof([commit]),
 			      description('Action to perform')
 			    ]),
@@ -126,11 +124,9 @@ git_show(Request) :-
 				 description('Diff-style for commit')
 			       ])
 			]),
-	file_base_name(Dir, Base),
-	reply_html_page(cliopatria(cpack),
+	reply_html_page(git(show(Action, Dir, Hash)),
 			title('Commit info'),
-			[ h1(class(wiki), [Base, /, commit]),
-			  \html_requires(css('plweb.css')),
+			[ \html_requires(css('plweb.css')),
 			  \git_commit_info(Dir, Hash, [diff(Diff)])
 			]).
 
@@ -149,7 +145,7 @@ git_commit_info(Dir, Hash, Options) -->
 	},
 	html_requires(css('git.css')),
 	html(div(class(cpack),
-		 [ h2(class(wiki), Subject),
+		 [ div(class('git-comment'), Subject),
 		   table(class(commit),
 			 [ \tr_commit(author,	 author_name, Record),
 			   \tr_commit('',        author_date, Record),
@@ -261,3 +257,8 @@ truncate_atom(Atom, MaxLen, Truncated) :-
 	    sub_atom(Atom, 0, TLen, _, S0),
 	    atom_concat(S0, ' ...', Truncated)
 	).
+
+:- multifile plweb:page_title//1.
+
+plweb:page_title(git(show(commit, _Dir, _Commit))) -->
+	html('GIT commit info').

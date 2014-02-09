@@ -101,6 +101,7 @@ page_style(tags(_Action),	   []).
 page_style(pldoc(object(Obj)),	   [object(Obj)]) :- !.
 page_style(pldoc(_),		   []).
 page_style(pack(_Type, _Title),	   []).
+page_style(git(_),		   []).
 
 %%	outer_container(+Content, +Options)//
 %
@@ -439,6 +440,7 @@ menu(Style,
        'Wiki' =
        [ LoginLabel            = LoginURL,
 	 'Edit this page'      = EditHREF,
+	 'View changes'	       = '/wiki/changes',
 	 'Sandbox'             = '/wiki/sandbox',
 	 'Wiki help'           = '/wiki/',
 	 'All tags'            = '/list-tags'
