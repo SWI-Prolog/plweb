@@ -35,6 +35,7 @@
 :- use_module(library(http/html_head)).
 :- use_module(library(www_browser)).
 :- use_module(library(settings)).
+:- use_module(library(pengines)).
 
 
 :- setting(http:served_file_extensions,
