@@ -123,7 +123,10 @@ You can fake OpenID login using the debug interface:
 		 *	    USER ADMIN		*
 		 *******************************/
 
-site_user_property(UUID, uuid(UUID)).
+site_user_property(UUID, uuid(UUID)) :-
+	(   site_user(UUID, _, _, _, _)
+	->  true
+	).
 site_user_property(UUID, openid(OpenId)) :-
 	site_user(UUID, OpenId, _, _, _).
 site_user_property(UUID, name(Name)) :-
@@ -135,7 +138,9 @@ site_user_property(UUID, home_url(Home)) :-
 site_user_property(UUID, granted(Token)) :-
 	granted(UUID, Token).
 site_user_property(UUID, granted_list(Tokens)) :-
-	findall(Token, granted(UUID, Token), Tokens).
+	(   site_user(UUID, _, _, _, _)
+	->  findall(Token, granted(UUID, Token), Tokens)
+	).
 
 
 		 /*******************************
