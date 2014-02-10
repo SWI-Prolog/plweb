@@ -38,6 +38,7 @@
 :- use_module(library(http/js_write)).
 :- use_module(library(pldoc/doc_html)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(broadcast)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(apply)).
@@ -257,6 +258,8 @@ create_prefix_index(ByName, ByToken) :-
 %%	update_autocompletion_map
 %
 %	Assert that the token map is out of data.
+
+:- listen(modified(wiki(_)), update_autocompletion_map).
 
 update_autocompletion_map :-
 	retractall(token_map_up_to_date).

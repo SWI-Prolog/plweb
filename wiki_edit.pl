@@ -39,6 +39,7 @@
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_path)).
 :- use_module(library(git)).
+:- use_module(library(broadcast)).
 :- use_module(wiki).
 :- use_module(git_html).
 :- use_module(markitup).
@@ -238,6 +239,7 @@ wiki_save(Request) :-
 	git(GitArgs,
 	    [ directory(Dir)
 	    ]),
+	broadcast(modified(wiki(Location))),
 	notify(wiki(Location), wiki_edit(Text)),
 	http_redirect(see_other, Location, Request).
 
