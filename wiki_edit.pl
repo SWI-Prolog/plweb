@@ -39,6 +39,7 @@
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_path)).
 :- use_module(library(git)).
+:- use_module(wiki).
 :- use_module(git_html).
 :- use_module(markitup).
 :- use_module(notify).
@@ -217,6 +218,7 @@ wiki_save(Request) :-
 	;   New = true
 	),
 	save_file(File, Text),
+	update_wiki_page_title(Location),
 	(   var(Comment)
 	->  GitMsg = Msg
 	;   atomic_list_concat([Msg, Comment], '\n\n', GitMsg)
@@ -282,7 +284,7 @@ location_wiki_file(Relative, File) :-
 			   File,
 			   [ access(write),
 			     file_errors(fail)
-			   ]).
+			   ]), !.
 location_wiki_file(Relative, File) :-
 	absolute_file_name(document_root(Relative),
 			   Dir,

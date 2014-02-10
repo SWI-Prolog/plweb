@@ -32,6 +32,7 @@
 	    wiki_file_codes_to_dom/3,	% +Codes, +File, -DOM
 	    wiki_page_title/2,		% +Location, -Title
 	    index_wiki_pages/0,		%
+	    update_wiki_page_title/1,	% +Location
 	    file//2,			% +File, +Options
 	    include//3			% +Object, +Type, +Options
 	  ]).
@@ -156,7 +157,7 @@ prolog:doc_object_summary(wiki(Location), wiki, wiki, Summary) :-
 	wiki_page_title(Location, Summary).
 
 :- dynamic
-	wiki_page_title_cache/2,
+	wiki_page_title_cache/3,	% Location, Title, Time
 	wiki_pages_indexed/1.
 
 %%	wiki_page_title(?Location, ?Title) is nondet.
@@ -165,26 +166,57 @@ prolog:doc_object_summary(wiki(Location), wiki, wiki, Summary) :-
 
 wiki_page_title(Location, Title) :-
 	wiki_pages_indexed(_), !,
-	wiki_page_title_cache(Location, Title).
+	wiki_page_title_cache(Location, Title, _).
 wiki_page_title(Location, Title) :-
 	nonvar(Location), !,
-	(   wiki_page_title_cache(Location, TitleRaw)
+	(   wiki_page_title_cache(Location, TitleRaw, _)
 	->  Title = TitleRaw
-	;   location_wiki_file(Location, File),
-	    catch(wiki_file_to_dom(File, DOM), E,
-		  ( print_message(warning, E),
-		    fail
-		  )),
-	    dom_title(DOM, TitleRaw)
-	->  assertz(wiki_page_title_cache(Location, TitleRaw)),
-	    Title = TitleRaw
-	;   format(atom(TitleRaw), 'Wiki page at "~w"', Location)
-	->  assertz(wiki_page_title_cache(Location, TitleRaw)),
+	;   extract_wiki_page_title(Location, File, TitleRaw),
+	    time_file(File, Modified),
+	    assertz(wiki_page_title_cache(Location, TitleRaw, Modified)),
 	    Title = TitleRaw
 	).
 wiki_page_title(Location, Title) :-
 	index_wiki_pages,
 	wiki_page_title(Location, Title).
+
+
+update_wiki_title_cache :-
+	wiki_locations(Pages),
+	maplist(update_wiki_page_title, Pages).
+
+%%	update_wiki_page_title(Location) is det.
+%
+%	Update the cached information about a wiki file.
+
+update_wiki_page_title(Location) :-
+	wiki_page_title_cache(Location, _, Time), !,
+	location_wiki_file(Location, File),
+	time_file(File, Modified),
+	(   abs(Time-Modified) < 1
+	->  true
+	;   extract_wiki_page_title(Location, File, Title),
+	    retractall(wiki_page_title_cache(Location, _, _)),
+	    assertz(wiki_page_title_cache(Location, Title, Modified))
+	).
+update_wiki_page_title(Location) :-
+	extract_wiki_page_title(Location, File, Title),
+	time_file(File, Modified),
+	assertz(wiki_page_title_cache(Location, Title, Modified)).
+
+extract_wiki_page_title(Location, File, Title) :-
+	(   var(File)
+	->  location_wiki_file(Location, File)
+	;   true
+	),
+	(   catch(wiki_file_to_dom(File, DOM), E,
+		  ( print_message(warning, E),
+		    fail
+		  )),
+	    dom_title(DOM, Title)
+	->  true
+	;   format(atom(Title), 'Wiki page at "~w"', Location)
+	).
 
 
 %%	dom_title(+DOM, -Title) is semidet.
