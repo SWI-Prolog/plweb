@@ -35,6 +35,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/js_write)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_path)).
 :- use_module(library(git)).
@@ -120,9 +121,9 @@ edit_page(Location, File, Author) -->
 						    value(Content)
 						  ]))),
 				  tr([td(class(label), 'Comment summary:'),
-				      td(input([class(git_msg), name(msg)]))]),
+				      td(input([id(git_msg), name(msg)]))]),
 				  tr([td(class(label), 'Comment:'),
-				      td(textarea([ class(git_comment), cols(55), rows(5), name(comment)],
+				      td(textarea([ id(git_comment), cols(55), rows(5), name(comment)],
 						  ''))]),
 				  tr(td([ align(right), colspan(2) ],
 					[ \amend_button(Dir, File, Author), ' ',
@@ -141,13 +142,37 @@ amend_button(Dir, File, Author) -->
 	  git_shortlog(Dir, [ShortLog], [path(File), limit(1)]),
 	  git_log_data(author_name, ShortLog, LastAuthor),
 	  debug(git, 'Amend: LastAuthor = ~q, Author = ~q', [LastAuthor, Author]),
-	  LastAuthor == Author
+	  LastAuthor == Author,
+	  git_log_data(subject, ShortLog, CommitMessage),
+	  split_commit_message(CommitMessage, Summary, _Comment)
 	},
-	html([ input([class(amend),
-		      type(checkbox), name(amend), value(yes)]),
+	js_script({|javascript(Summary,Comment)||
+		   function ammend() {
+		       if ( $("#ammend-tb").prop('checked') ) {
+		           $("#git_msg").val(Summary);
+			   $("#git_comment").val(Comment);
+		       } else {
+			   $("#git_msg").val("");
+			   $("#git_comment").val("");
+		       }
+		   }
+		  |}),
+	html([ input([ id('ammend-tb'),
+		       type(checkbox),
+		       name(amend),
+		       value(yes),
+		       onClick('ammend()')
+		     ]),
 	       'Amend previous commit'
 	     ]).
 amend_button(_,_,_) --> [].
+
+split_commit_message(CommitMessage, Summary, Comment) :-
+	sub_atom(CommitMessage, B, _, A, '\n\n'), !,
+	sub_atom(CommitMessage, 0, B, _, Summary),
+	sub_atom(CommitMessage, _, A, 0, Comment).
+split_commit_message(Summary, Summary, '').
+
 
 %%	shortlog(+Dir, +Options)//
 %
