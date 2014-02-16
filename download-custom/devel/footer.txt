@@ -45,9 +45,6 @@ a short summary.
        A = 100 'Kwh'.
        ==
 
-  - Unquoted atoms may contain internal dots.  E.g., =a.b= is an
-    atom.
-
   - functor() is valid syntax.  It produces a term that is distinct
     from 'functor'.  The `block' operator '()' to hack this syntax
     has been deleted.
