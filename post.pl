@@ -351,7 +351,7 @@ post1(object, Post, Object) :-
 post1(about, Post, About) :-			% used for notification
 	(   About = Post.meta.get(object)
 	->  true
-	;   Post.kind
+	;   About = Post.kind
 	).
 post1(author, Post, Author) :-
 	Author = Post.meta.author.
