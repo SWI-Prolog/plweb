@@ -459,10 +459,10 @@ pack_row(Pack) -->
 	  http_link_to_id(pack_list, [p(Name)], HREF)
 	},
 	html(tr([ td(a(href(HREF),Name)),
-		  td(\pack_version(Pack)),
-		  td(\pack_downloads(Pack)),
-		  td(\pack_rating(Pack)),
-		  td(\pack_title(Pack))
+		  td(class('pack-version'),   \pack_version(Pack)),
+		  td(class('pack-downloads'), \pack_downloads(Pack)),
+		  td(class('pack-rating'),    \pack_rating(Pack)),
+		  td(class('pack-title'),     \pack_title(Pack))
 		])).
 
 pack_header(Name, -, Title, Subtitle) --> !,
@@ -472,9 +472,11 @@ pack_header(Name, SortBy, Title, Subtitle) -->
 	  sortable(Name), !,
 	  http_link_to_id(pack_list, [sort(Name)], HREF)
 	},
-	html(th(id(Name), [a(href(HREF), Title), \subtitle(Subtitle)])).
+	html(th(id(Name), [ a([class(resort),href(HREF)], Title),
+			    \subtitle(Subtitle)
+			  ])).
 pack_header(Name, Name, Title, Subtitle) -->
-	html(th(id(Name), [i(Title), \subtitle(Subtitle)])).
+	html(th(id(Name), [i(class(sorted), Title), \subtitle(Subtitle)])).
 pack_header(Name, _, Title, Subtitle) -->
 	html(th(id(Name), [Title, \subtitle(Subtitle)])).
 
