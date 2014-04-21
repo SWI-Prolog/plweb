@@ -159,8 +159,7 @@ dict_value(Type?, Name, Dict, Value) :- !,
 	Value0 \== null,
 	convert_dict(Type, Value0, Value).
 dict_value(Type, Name, Dict, Value) :-
-	get_dict_ex(Name, Dict, Value0),
-	convert_dict(Type, Value0, Value).
+	convert_dict(Type, Dict.Name, Value).
 
 %%	retract_post(+Id)
 %
