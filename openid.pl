@@ -436,6 +436,7 @@ view_profile(Request) :-
 		)
 	    ;	site_user_property(User, granted(admin))
 	    ->	Options = [view(admin)]
+	    ;	Options = [view(public)]
 	    )
 	;   (   var(UUID)
 	    ->	existence_error(http_parameter, user)
@@ -663,6 +664,7 @@ admin_header(true) --> !,
 	html([ th('Granted'),
 	       th('E-mail')
 	     ]).
+admin_header(_) --> [].
 
 user_row(Details, ShowAdmin) -->
 	{ Up-Down = Details.votes },
