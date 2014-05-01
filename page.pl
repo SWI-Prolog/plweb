@@ -102,6 +102,7 @@ page_style(pldoc(object(Obj)),	   [object(Obj)]) :- !.
 page_style(pldoc(_),		   []).
 page_style(pack(_Type, _Title),	   []).
 page_style(git(_),		   []).
+page_style(forum(_),		   []).
 
 %%	outer_container(+Content, +Options)//
 %
@@ -419,8 +420,8 @@ menu(Style,
 	 ]
        ],
        'Community' =
-       [ 'Support'             = '/Support.txt',
-	 'IRC'                 = 'http://webchat.freenode.net/?channels=##prolog',
+       [ 'IRC'                 = 'http://webchat.freenode.net/?channels=##prolog',
+	 'Forum'	       = '/forum',
 	 'News'                = '/news',
 	 'Mail list'           = '/Mailinglist.txt',
 	 'Bug tracker'	       = '/bugzilla/',

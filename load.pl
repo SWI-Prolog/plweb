@@ -14,7 +14,8 @@
 		pack,
 		register,
 		changelog,
-		tagit
+		tagit,
+		forum
 	      ],
 	      [ silent(true)
 	      ]).
