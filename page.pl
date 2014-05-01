@@ -390,7 +390,7 @@ menu(Style,
        [ 'SWI-Prolog'	     = '/Download.html',
 	 'Sources/building'  = '/build/',
 	 'Add-ons'           = '/pack/list',
-	 'Browse GIT'	     = '/git/'
+	 'Browse GIT'	     = 'https://github.com/SWI-Prolog'
        ],
        'Documentation' =
        [ 'Manual'              = '/pldoc/refman/',
