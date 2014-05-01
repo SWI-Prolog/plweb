@@ -43,11 +43,7 @@ forum(_Request) :-
 embed_forum -->
 	html({|html||
 <iframe id="forum_embed"
-  src="javascript:void(0)"
-  scrolling="no"
-  frameborder="0"
-  width="900"
-  height="700">
+  src="javascript:void(0)">
 </iframe>|}),
 	js_script({|javascript||
   document.getElementById('forum_embed').src =

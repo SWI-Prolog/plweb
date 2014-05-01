@@ -79,6 +79,15 @@ user:body(Style, Body) -->
 		      Body))
 	    ],
 	    Options).
+user:body(Style, Body) -->
+	{ Style = forum(_) }, !,
+	outer_container(
+	    [ \title_area(Style),
+	      \menubar(Style),
+	      div(class(breadcrumb), []),
+	      Body
+	    ],
+	    []).
 user:body(plain, Body) --> !,
 	html(body(class(plain), Body)).
 user:body(default, Body) --> !,
@@ -102,7 +111,6 @@ page_style(pldoc(object(Obj)),	   [object(Obj)]) :- !.
 page_style(pldoc(_),		   []).
 page_style(pack(_Type, _Title),	   []).
 page_style(git(_),		   []).
-page_style(forum(_),		   []).
 
 %%	outer_container(+Content, +Options)//
 %
