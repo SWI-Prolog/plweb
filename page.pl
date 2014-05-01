@@ -404,7 +404,6 @@ menu(Style,
 	   'HTML generation'   = '/pldoc/man?section=htmlwrite'
 	 ],
 	 'License'             = '/license.html',
-	 'Contributors'        = '/Contributors.html',
 	 'Publications'        = '/Publications.html'
        ],
        'Tutorials' =
@@ -436,7 +435,7 @@ menu(Style,
 	 'Submit a patch'      = '/howto/SubmitPatch.html',
 	 'Submit an add-on'    = '/howto/Pack.html',
 	 'External links'      = '/Links.html',
-	 'Contact'             = '/Contact.html',
+	 'Contributors'        = '/Contributors.html',
 	 'SWI-Prolog items'    = '/loot.html'
        ],
        'Users' =
