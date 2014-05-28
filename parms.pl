@@ -55,7 +55,7 @@
 	   5,
 	   'Number of worker threads').
 
-:- set_setting_default(pengine:allow_from, []).
+:- set_setting_default(pengines:allow_from, []).
 
 
 		 /*******************************
