@@ -424,7 +424,8 @@ menu(Style,
 	 'Advanced' =
 	 [ 'RDF namespaces'    = '/howto/UseRdfMeta.html',
 	   'Linux packages'    = '/build/guidelines.txt'
-	 ]
+	 ],
+	 'Try SWI-Prolog online' = 'http://pengines.swi-prolog.org/apps/swish/index.html'
        ],
        'Community' =
        [ 'IRC'                 = 'http://webchat.freenode.net/?channels=##prolog',
