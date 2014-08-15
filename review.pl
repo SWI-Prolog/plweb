@@ -85,7 +85,7 @@ pack_review(Request) :-
 			]),
 	http_link_to_id(pack_submit_review, [], Action),
 	reply_html_page(
-	    wiki,
+	    wiki(review(Pack)),
 	    title('Review pack ~w'-[Pack]),
 	    [ h1('Review pack ~w'-[Pack]),
 	      \explain(Pack, UUID),
@@ -202,7 +202,7 @@ pack_submit_review(Request) :-
 			  comment(Comment, [optional(true), default('')])
 			]),
 	reply_html_page(
-	    wiki,
+	    wiki(review(Pack)),
 	    title('Thanks for your review of ~w'-[Pack]),
 	    [ \update_review(Pack, UUID, Rating, Comment)
 	    ]).
