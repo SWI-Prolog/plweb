@@ -424,8 +424,7 @@ menu(Style,
 	 'Advanced' =
 	 [ 'RDF namespaces'    = '/howto/UseRdfMeta.html',
 	   'Linux packages'    = '/build/guidelines.txt'
-	 ],
-	 'Try SWI-Prolog online' = 'http://pengines.swi-prolog.org/apps/swish/index.html'
+	 ]
        ],
        'Community' =
        [ 'IRC'                 = 'http://webchat.freenode.net/?channels=##prolog',
@@ -444,7 +443,8 @@ menu(Style,
 	 'Students'            = '/students/index.html',
 	 'Researchers'         = '/research/index.html',
 	 'Commercial users'    = '/commercial/index.html',
-	 'Dog food'            = '/dogfood.html'
+	 'Dog food'            = '/dogfood.html',
+	 'Is SWIPL right for me?' = 'pldoc/man?section=swiorother'
        ],
        'Wiki' =
        [ LoginLabel            = LoginURL,
@@ -500,7 +500,7 @@ cta_area -->
     <div id='cta-container'>
         <div><a href="Download.html">Download SWI-Prolog</a></div>
         <div><a href="pldoc/man?section=quickstart">Get Started</a></div>
-        <div><a href="pldoc/man?section=swiorother">Is SWI-Prolog Right For My Project?</a></div>
+        <div><a href="http://swish.swi-prolog.org">Try SWI-Prolog online</a></div>
     </div>
     <div>&nbsp;</div>|}).
 
