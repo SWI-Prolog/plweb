@@ -895,7 +895,9 @@ vote(Post, User, Vote) :-
 			context(_, 'Author cannot vote')))
 	;   true
 	),
-	(   \+ vote(Post, _, User, _)
+	(   findall(Old, vote(Post, Old, User, _), Votes),
+	    sum_list([Vote|Votes], Sum),
+	    memberchk(Sum, [-1,0,1])
 	->  get_time(NowF),
 	    Now is integer(NowF),
 	    assert_vote(Post, Vote, User, Now),
