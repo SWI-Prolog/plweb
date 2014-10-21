@@ -409,19 +409,40 @@ pack_listing(_Pack, Author, SortBy) -->
 	  sort_packs(SortBy, Packs, Sorted)
 	},
 	html({|html||
-	      <p>
-	      Below is a list of known packages.  Please be aware that
-	      packages are <b>not moderated</b>. Installing a pack
-	      does not execute code in the pack, but simply loading a
-	      library from the pack may execute arbitrary code.
-	      More information about packages is available
-	      <a href="/howto/Pack.html">here</a>.
-	      </p>
+<p>
+Below is a list of known packages. Please be aware that packages are
+<b>not moderated</b>. Installing a pack does not execute code in the
+pack, but simply loading a library from the pack may execute arbitrary
+code. More information about packages is available <a
+href="/howto/Pack.html">here</a>.   You can search for packages from
+the Prolog command line using pack_list/1.  This contacts the pack
+server for packs that match by name or title.  A leading <b>i</b>
+indicates that the pack is already installed, while <b>p</b> merely
+indicates that it is known by the server.
+</p>
 
-	      <p>
-	      Clicking the package shows details and allows you to
-	      rate and comment the pack.
-	      </p>
+<pre class="code">
+?- pack_list(graph).
+p callgraph@0.3.4           - Predicate call graph visualisation
+i graphml@0.1.0             - Write GraphML files
+i gvterm@1.1                - Show Prolog terms using graphviz
+p musicbrainz@0.6.3         - Musicbrainz client library
+p sindice@0.0.3             - Access to Sindice semantic web search engine
+</pre>
+
+<p>
+After finding the right pack, the pack and its dependencies can be installed
+using the pack_install/1 as illustrated below.
+</p>
+
+<pre class="code">
+?- pack_install(hello).
+</pre>
+
+<p>
+Clicking the package shows details and allows you to rate and comment
+the pack.
+</p>
 	     |}),
 	pack_table(Sorted, [sort_by(SortBy)]),
 	html_receive(rating_scripts).
