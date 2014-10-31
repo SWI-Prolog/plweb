@@ -386,9 +386,12 @@ prolog:xref_open_source(File, Stream) :-
 	atom_concat(Prefix, Entry, File),
 	pack_open_entry(Pack, Entry, Stream).
 
+%%	prolog:xref_source_identifier(+Path, -Id) is semidet.
+
 prolog:xref_source_identifier(Path, Path) :-
 	atom(Path),
-	pack_file(Path, _, _).
+	pack_prefix(_Pack, Prefix),
+	atom_concat(Prefix, _Entry, Path), !.
 
 %%	pack_file(+Path, -Pack, -Entry) is semidet.
 %
