@@ -411,7 +411,8 @@ menu(Style,
 	 [ 'Getting started'   = '/pldoc/man?section=quickstart',
 	   'Modules'           = 'http://michael.richter.name/tutorials/swiplmod',
 	   'Debugger'          = '/pldoc/man?section=debugoverview',
-	   'Development tools' = '/IDE.html'
+	   'Development tools' = '/IDE.html',
+	   'Learn Prolog Now!' = 'http://lpn.swi-prolog.org/'
 	 ],
 	 'Intermediate' =
 	 [ 'Web service'       = '/howto/http/',
