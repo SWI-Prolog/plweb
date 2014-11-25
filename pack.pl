@@ -777,7 +777,7 @@ alt_urls([]) --> [].
 alt_urls([H|T]) --> alt_url(H), alt_urls(T).
 
 alt_url(H) -->
-	html(td([td(''), td(''), td(''), td(\download_url(H))])).
+	html(tr([td(''), td(''), td(''), td(\download_url(H))])).
 
 alt_hashes([]) --> [].
 alt_hashes([H|T]) --> alt_hash(H), alt_hashes(T).
@@ -786,7 +786,7 @@ alt_hash(H) -->
 	{ sha1_downloads(H, Count),
 	  sha1_urls(H, [URL|URLs])
 	},
-	html([td(''), td(\hash(H)), \count(Count), td(\download_url(URL))]),
+	html(tr([td(''), td(\hash(H)), \count(Count), td(\download_url(URL))])),
 	alt_urls(URLs).
 
 hash(H)		  --> html(span(class(hash), H)).
