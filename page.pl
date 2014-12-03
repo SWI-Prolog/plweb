@@ -417,8 +417,9 @@ menu(Style,
 	 'Intermediate' =
 	 [ 'Web service'       = '/howto/http/',
 	   'Web applications'  = 'http://www.pathwayslms.com/swipltuts/html/index.html',
+	   'DCGs'              = 'http://www.pathwayslms.com/swipltuts/dcg/',
+	   'clp(fd)'	       = 'http://www.pathwayslms.com/swipltuts/clpfd/clpfd.html',
 	   'PlDoc'             = '/swipltuts/pldoc/index.html',
-	   'DCGs'              = 'http://www.pathwayslms.com/swipltuts/dcg/"',
 	   'XPCE'              = '/download/xpce/doc/coursenotes/coursenotes.pdf',
 	   'GUI options'       = '/Graphics.html'
 	 ],
