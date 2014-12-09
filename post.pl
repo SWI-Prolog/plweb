@@ -243,7 +243,9 @@ post_process(Request, Kind) :-
 post_process(delete, Request, Kind, User, Id) :-
 	post_authorized(Request, User, Kind),
 	post(Id, author, Author), !,
-	(   Author == User
+	(   (   Author == User
+	    ;	site_user_property(User, granted(admin))
+	    )
 	->  post(Id, about, About),
 	    retract_post(Id, OldPost),
 	    notify(About, post_deleted(OldPost)),
@@ -317,8 +319,6 @@ post_authorized(Request, _User, _Kind) :-
 	memberchk(path(Path), Request),
 	throw(http_reply(forbidden(Path))).
 
-post_granted(User, _Kind) :-
-	site_user_property(User, granted(admin)), !.
 post_granted(User, Kind) :-
 	site_user_property(User, granted(Kind)), !.
 post_granted(User, annotation) :-
