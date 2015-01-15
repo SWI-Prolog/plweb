@@ -260,7 +260,20 @@ pack_search_result(Pack, pack(Pack, p, Title, VersionA, URLs)) :-
 	sha1_download(sha1:atom, peer:atom).
 
 :- initialization
-	db_attach('packs.db', []).
+	db_attach('packs.db', [sync(close)]).
+
+%%	delete_hash(Hash) is det.
+%
+%	Remove Hash from the database
+
+delete_hash(Hash) :-
+	retractall_sha1_pack(Hash, _),
+	retractall_sha1_file(Hash, _),
+	retractall_sha1_requires(Hash, _),
+	retractall_sha1_provides(Hash, _),
+	retractall_sha1_info(Hash, _),
+	retractall_sha1_url(Hash, _),
+	retractall_sha1_download(Hash, _).
 
 %%	save_request(+URL, +SHA1, +Info, +Peer)
 %
