@@ -30,6 +30,7 @@
 :- module(plweb_parms,
 	  [
 	  ]).
+:- use_module(library(http/http_log)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/html_head)).
