@@ -71,7 +71,7 @@
 
 update_pack_metadata :-
 	setup_call_cleanup(
-	    ( open('pack-warnings.log', write, ErrorOut),
+	    ( open('log/pack-warnings.log', write, ErrorOut),
 	      asserta((user:thread_message_hook(_Term, Kind, Lines) :-
 		        (   must_print(Kind)
 			->  print_message_lines(ErrorOut, kind(Kind), Lines)

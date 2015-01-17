@@ -52,10 +52,11 @@
 	   'Default port').
 :- setting(http:workers,
 	   integer,
-	   5,
+	   10,
 	   'Number of worker threads').
 
 :- set_setting_default(pengines:allow_from, []).
+:- set_setting_default(http:logfile, 'log/httpd.log').
 
 
 		 /*******************************
