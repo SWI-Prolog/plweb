@@ -29,6 +29,7 @@
 
 :- module(gitweb, []).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/html_write)).
 :- use_module(library(apply)).
 :- use_module(library(url)).
 :- use_module(library(debug)).
@@ -40,9 +41,37 @@
 @tbd	Better way to locate the GIT project root
 */
 
+:- if(true).
+
+:- http_handler(root('git'), github, []).
+:- http_handler(root('git/'), github, [ prefix, spawn(cgi) ]).
+:- http_handler(root('home/pl/git/'), github, [prefix, spawn(download)]).
+
+github(_Request) :-
+	reply_html_page(
+	    git(github),
+	    title('SWI-Prolog git services moved to github'),
+	    \github).
+
+github -->
+	html({|html||
+<p>The SWI-Prolog source repository has been moved to
+<a href="https://github.com/SWI-Prolog">GitHub</a>.
+	     |}).
+
+:- multifile plweb:page_title//1.
+
+plweb:page_title(git(github)) -->
+	html('SWI-Prolog git services moved to github').
+
+:- else.
+
 :- http_handler(root('git'), gitroot, []).
 :- http_handler(root('git/'), gitweb, [ prefix, spawn(cgi) ]).
 :- http_handler(root('home/pl/git/'), git_http, [prefix, spawn(download)]).
+
+
+
 
 %%	gitroot(+Request) is det.
 %
@@ -136,3 +165,5 @@ git_http(Request) :-
 	memberchk(request_uri(URI), Request),
 	atom_concat('/home/pl', GitWebURI, URI),
 	throw(http_reply(see_other(GitWebURI))).
+
+:- endif.
