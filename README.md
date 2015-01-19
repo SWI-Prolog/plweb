@@ -21,6 +21,37 @@ scratch locally, perform the following commands:
     ?- pack_install(smtp).
     ==
 
+  3. For a full installation, install the dynamic data.  The .db
+    files must be writeable by the server process.
+
+    - annotations.db
+    Comments on web pages
+    - tags.db
+    Tags on web pages
+    - openid.db
+    User administration
+    - packs.db
+    Known packages
+    - post.db
+    News posts
+    - reviews.db
+    Pack reviews
+    - download
+    Points to the download directory
+
+    Install the download descriptions by running the script
+    `install-custom`
+
+  4. Create directories for logging and pack mirrors.  These
+     directories must be writeable by the server and new directories
+     created below must have the same permissions:
+
+    ==
+    % mkdir log pack
+    % chgrp www-data log pack
+    % chmod g+ws log pack
+    ==
+
 ## Running the site
 
 After installation, the  website  may  be   started  locally  using  the
@@ -33,6 +64,41 @@ therefore it may be accessed on http://localhost:3040/
   % swipl -s load.pl
   ?- server.
   ==
+
+### Running as daemon using Ubuntu upstart
+
+A good way to run the website on a   Linux server is by creating a Linux
+container using lxc. After installing the server,   you can enable it to
+start at boot time by   copying `upstart/swi-prolog.conf` to `/etc/init`
+after editing it to suit your   configuration  requirements. By default,
+the server runs as user `www-data`, group `www-data` as specified in the
+above configuration file.
+
+Make sure the following components are  writeable to the server process.
+For files, this means mode 664,   group  www-data. For directories, this
+means mode 2775, group www-data.
+
+  - log
+  Write httpd.log and pack-warnings.log
+
+  - pack
+  Mirrors known packages.  Will be populated as the server is started.
+
+  - www: subdirectories and .txt files
+  Needs to make the wiki pages editable.  It is also wise to do this in
+  a git branch.  From the www directory, do:
+
+    ==
+    % git checkout master
+    % git pull
+    % git checkout -b wiki
+    % find . -type d | xargs chmod 2775
+    % find . -name '*.txt' | xargs chmod 664
+    % chgrp -W www-data .
+    ==
+
+  - *.db
+
 
 ## Issues with the locally running site
 
