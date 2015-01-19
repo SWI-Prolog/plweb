@@ -88,7 +88,7 @@ term_expansion(dyk(Saying), dyk(Id, Saying)) :-
 	;   Id = 1
 	).
 
-dyk('SWI-Prolog is 25 years old').
+dyk('SWI-Prolog is 28 years old').
 dyk(['the ', b('Profiler'), ' can speed up your code']-section('profiling-predicates')).
 dyk('You can hot-swap code').
 dyk('SWI-Prolog uses logical update view'-section('update')).
@@ -151,3 +151,32 @@ dyk(['SWI-Prolog has a ', b('Profiler')]-section(profile)).
 dyk('SWI-Prolog supports DDE on Windows'-section('DDE')).
 dyk(['You can create ', b('stand alone exe files'), ' from SWI-Prolog code']-section(runtime)).
 dyk('SWI-Prolog supports arbitrarily large integers').
+dyk(['There\'s an API to interact with', b('Amazon')]-pack(amazon_api)).
+dyk('Nifty call graphs'-pack(callgraph)).
+dyk('condition is an alternative to exceptions'-pack(condition)).
+dyk('You can train markov chains with BIMS'-pack(bims)).
+dyk('blog_core is a nifty CMS for SWI-Prolog'-pack(blog_core)).
+dyk('anything in single quotes is an atom').
+dyk('Logtalk is now a pack'-pack(logtalk)).
+dyk('probabilistic logic'-pack(cplint)).
+dyk(['DCG help at lib ',
+     a(href=location_by_id(section('dcg/basics')), 'dcg/basics'),
+     ' + packs ',
+     a(href=location_by_id(pack(dcg_util)), dcg_util), ' & ',
+     a(href=location_by_id(pack(dcg_utils)), dcg_utils)]).
+dyk('automatic UML->Prolog translation'-pack(dia)).
+dyk('docstore is a document oriented DB in SWI-Prolog'-pack(docstore)).
+dyk('you can deploy to dotcloud'-pack(dotcloud)).
+dyk('CQL makes dealing with SQL easier'-section('/packages/cql.html')).
+dyk('you can turn ugraphs into graphml'-pack(graphml)).
+dyk('you can turn terms into graphviz (.dot) files'-pack(gvterm)).
+dyk('about nifty JoCaml style multithreading'-pack(jolog)).
+dyk('the first Prolog interpreter was in Fortran').
+dyk('julian pack offers match based dates'-pack(julian)).
+dyk('eliminate helper predicates with pack lambda'-pack(lambda)).
+dyk('you can parse markdown').
+dyk('don\'t use format to print errors'-section(debug)).
+dyk('there\'s a simplex library'-section(simplex)).
+dyk('use mavis for type checking'-pack(mavis)).
+dyk('you can read ODF spreadsheets'-pack(odf_sheet)).
+
