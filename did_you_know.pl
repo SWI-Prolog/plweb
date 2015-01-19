@@ -38,11 +38,71 @@ every pldoc and SWI-Prolog website page.
 :- use_module(library(random)).
 :- use_module(news).
 
+:- use_module(library(julian)).
+
 did_you_know -->
 	{ maybe(0.5) },
 	random_news, !.
 did_you_know -->
+	{ near_april_fools_day,
+	  maybe(0.1)
+	},
+	random_silly_hint.
+did_you_know -->
 	random_hint.
+
+/**  near_april_fools_day is semidet
+ *
+ * succeeds only within 12 hours either
+ * side of April 1
+ *
+ * April fools day is a traditional holiday celebrated
+ * by playing hoaxes and practical jokes. A common form
+ * of this is to substitute nonsensical information where
+ * useful info is normally displayed
+ */
+near_april_fools_day :-
+	form_time([now, _-4-1]).
+near_april_fools_day :-
+	form_time([now, _-3-30, H:_:_]),
+	H >= 12.
+near_april_fools_day :-
+	form_time([now, _-4-2, H:_:_]),
+	H < 12.
+
+random_silly_hint -->
+	{ predicate_property(afdyk(_,_), number_of_clauses(N)),
+	  (   debugging(dyk(Id)),
+	      integer(Id)
+	  ->  true
+	  ;   random_between(1, N, Id)
+	  ),
+	  afdyk(Id, Saying)
+	},
+	say_af_saying(Saying).
+
+say_af_saying(Text-Link) -->
+	{ link(Link, HREF) },
+	html([ span(class(lbl), 'Did you know?'),
+	       ' ',
+	       span(id(dyknow), a(href(HREF), Text))
+	     ]).
+say_af_saying(news(Text-Link)) -->
+	{ link(Link, HREF) },
+	html([ span(class(lbl), 'News:'),
+	       ' ',
+	       span(id(dyknow), a(href(HREF), Text))
+	     ]).
+say_af_saying(news(Text)) -->
+	html([ span(class(lbl), 'News:'),
+	       ' ',
+	       span(id(dyknow), Text)
+	     ]).
+say_af_saying(Text) -->
+	html([ span(class(lbl), 'Did you know?'),
+	       ' ',
+	       span(id(dyknow), Text)
+	     ]).
 
 random_hint -->
 	{ predicate_property(dyk(_,_), number_of_clauses(N)),
@@ -179,4 +239,26 @@ dyk('don\'t use format to print errors'-section(debug)).
 dyk('there\'s a simplex library'-section(simplex)).
 dyk('use mavis for type checking'-pack(mavis)).
 dyk('you can read ODF spreadsheets'-pack(odf_sheet)).
+
+
+afdyk('SWI-Prolog complies with ISO JTC1/SC22/WG4'-'http://cobolstandard.info/wg4/wg4.html').
+afdyk('C-c C-q automatically corrects syntax errors'-'/AprilFools.html').
+afdyk('SWI-Prolog defaults to EBCDIC'-'/AprilFools.html').
+afdyk(news('SWI-Prolog is now available on 9-track tape'-'/AprilFools.html')).
+afdyk('pack_install(agi) installs Skynet'-'/AprilFools.html').
+afdyk(['SWI-Prolog powers ', a(href='http://java.com' , 'this popular site')]).
+afdyk('http_get is (?, ?, +)').
+afdyk(news('A SWI-Prolog program beat the world champion in box hockey'-'/AprilFools.html')).
+afdyk('8cD'-'https://github.com/Anniepoo/prolog-examples/blob/master/emoticons.pl').
+afdyk(news('Bill Joy admits he\'s wrong, urges Prolog')).
+afdyk('Prolog actually IS good for torturing undergrads').
+afdyk(news('Colmerauer admits Prolog isn\'t logical at all')).
+afdyk('about pack(antigravity)').
+afdyk('SWI-Prolog 7.1.29 requires OSGi and qPID').
+afdyk('this website runs on wind power'-'/dogfood.html').
+afdyk('Nou breekt mijn klomp. Prolog is beter.').
+afdyk('about pack(klomp)'-'/AprilFools.html').
+afdyk('about pack(cheese)'-'/AprilFools.html').
+afdyk('about pack(chocolate)'-'/AprilFools.html').
+
 
