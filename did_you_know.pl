@@ -37,8 +37,8 @@ every pldoc and SWI-Prolog website page.
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(random)).
 :- use_module(news).
+:- use_module(holidays).
 
-:- use_module(library(julian)).
 
 did_you_know -->
 	{ maybe(0.5) },
@@ -50,25 +50,6 @@ did_you_know -->
 	random_silly_hint.
 did_you_know -->
 	random_hint.
-
-/**  near_april_fools_day is semidet
- *
- * succeeds only within 12 hours either
- * side of April 1
- *
- * April fools day is a traditional holiday celebrated
- * by playing hoaxes and practical jokes. A common form
- * of this is to substitute nonsensical information where
- * useful info is normally displayed
- */
-near_april_fools_day :-
-	form_time([now, _-4-1]).
-near_april_fools_day :-
-	form_time([now, _-3-30, H:_:_]),
-	H >= 12.
-near_april_fools_day :-
-	form_time([now, _-4-2, H:_:_]),
-	H < 12.
 
 random_silly_hint -->
 	{ predicate_property(afdyk(_,_), number_of_clauses(N)),
@@ -211,6 +192,7 @@ dyk(['SWI-Prolog has a ', b('Profiler')]-section(profile)).
 dyk('SWI-Prolog supports DDE on Windows'-section('DDE')).
 dyk(['You can create ', b('stand alone exe files'), ' from SWI-Prolog code']-section(runtime)).
 dyk('SWI-Prolog supports arbitrarily large integers').
+% below here added by AO 2015-01-18
 dyk(['There\'s an API to interact with', b('Amazon')]-pack(amazon_api)).
 dyk('Nifty call graphs'-pack(callgraph)).
 dyk('condition is an alternative to exceptions'-pack(condition)).
@@ -240,6 +222,23 @@ dyk('there\'s a simplex library'-section(simplex)).
 dyk('use mavis for type checking'-pack(mavis)).
 dyk('you can read ODF spreadsheets'-pack(odf_sheet)).
 
+%%	afdyk(Id, Saying) is nondet
+%
+%	True if Saying is a DYK exression for april fools. They come in
+%	four forms:
+%
+%	  * HTML - HREF
+%	  * HTML
+%	  * news(HTML - HREF)
+%	  * news(HTML)
+%
+%	be careful with line lengths for sayings, 40 chars max
+
+term_expansion(afdyk(Saying), afdyk(Id, Saying)) :-
+	(   predicate_property(afdyk(_,_), number_of_clauses(N))
+	->  Id is N+1
+	;   Id = 1
+	).
 
 afdyk('SWI-Prolog complies with ISO JTC1/SC22/WG4'-'http://cobolstandard.info/wg4/wg4.html').
 afdyk('C-c C-q automatically corrects syntax errors'-'/AprilFools.html').
@@ -250,15 +249,15 @@ afdyk(['SWI-Prolog powers ', a(href='http://java.com' , 'this popular site')]).
 afdyk('http_get is (?, ?, +)').
 afdyk(news('A SWI-Prolog program beat the world champion in box hockey'-'/AprilFools.html')).
 afdyk('8cD'-'https://github.com/Anniepoo/prolog-examples/blob/master/emoticons.pl').
-afdyk(news('Bill Joy admits he\'s wrong, urges Prolog')).
-afdyk('Prolog actually IS good for torturing undergrads').
-afdyk(news('Colmerauer admits Prolog isn\'t logical at all')).
-afdyk('about pack(antigravity)').
-afdyk('SWI-Prolog 7.1.29 requires OSGi and qPID').
+afdyk(news('Bill Joy admits he\'s wrong, urges Prolog'-'/AprilFools.html')).
+afdyk(['Prolog actually ', b('IS'), ' good for torturing undergrads']-'/AprilFools.html').
+afdyk(news('Colmerauer admits Prolog isn\'t logical at all'-'/AprilFools.html')).
+afdyk('about pack(antigravity)'-'/AprilFools.html').
+afdyk('SWI-Prolog 7.1.29 requires OSGi and qPID'-'/AprilFools.html').
 afdyk('this website runs on wind power'-'/dogfood.html').
-afdyk('Nou breekt mijn klomp. Prolog is beter.').
+afdyk('Nou breekt mijn klomp. Prolog is beter.'-'/AprilFools.html').
 afdyk('about pack(klomp)'-'/AprilFools.html').
 afdyk('about pack(cheese)'-'/AprilFools.html').
 afdyk('about pack(chocolate)'-'/AprilFools.html').
-
-
+afdyk('about pack(evil)'-pack(evil)).
+afdyk('Appendix B can make your code clearer'-section(hack)).
