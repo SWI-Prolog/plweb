@@ -4,7 +4,7 @@ The development branches have their own GIT repository at the address
 below. See the general [[GIT][</git.html>]] instructions for details.
 
 ==
-% git clone git://www.swi-prolog.org/home/pl/git/pl-devel.git
+% git clone https://github.com/SWI-Prolog/swipl-devel.git
 ==
 
 ---++ SWI-Prolog Version 7

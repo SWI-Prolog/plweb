@@ -147,7 +147,7 @@ pack_query(search(Word), _, Reply) :-
 install_info(_, SHA1, _, Seen) :-
 	memberchk(SHA1, Seen), !, fail.
 install_info(URL, SHA1, alt_hash(Downloads, URLs, Hash), _) :-
-	file_base_name(URL, File),
+	pack_url_file(URL, File),
 	sha1_file(Hash, File),
 	Hash \== SHA1,
 	sha1_downloads(Hash, Downloads),
@@ -260,7 +260,20 @@ pack_search_result(Pack, pack(Pack, p, Title, VersionA, URLs)) :-
 	sha1_download(sha1:atom, peer:atom).
 
 :- initialization
-	db_attach('packs.db', []).
+	db_attach('packs.db', [sync(close)]).
+
+%%	delete_hash(Hash) is det.
+%
+%	Remove Hash from the database
+
+delete_hash(Hash) :-
+	retractall_sha1_pack(Hash, _),
+	retractall_sha1_file(Hash, _),
+	retractall_sha1_requires(Hash, _),
+	retractall_sha1_provides(Hash, _),
+	retractall_sha1_info(Hash, _),
+	retractall_sha1_url(Hash, _),
+	retractall_sha1_download(Hash, _).
 
 %%	save_request(+URL, +SHA1, +Info, +Peer)
 %
@@ -324,7 +337,7 @@ register_url(SHA1, IsGIT, URL) :-
 	->  throw(pack(modified_hash(SHA1-URL, SHA2-[URL])))
 	;   IsGIT == true
 	->  assert_sha1_url(SHA1, URL)
-	;   file_base_name(URL, File),
+	;   pack_url_file(URL, File),
 	    register_file(SHA1, File, URL),
 	    assert_sha1_url(SHA1, URL)
 	).
@@ -821,3 +834,21 @@ pack_file_details(Request) :-
 			  [ public_only(Public),
 			    show(Show)
 			  ]).
+
+
+		 /*******************************
+		 *	  DB MAINTENANCE	*
+		 *******************************/
+
+update_github_files :-
+	forall(( sha1_file(SHA1, File),
+		 file_name_extension(Tag, Ext, File),
+		 prolog_pack:github_archive_extension(Ext),
+		 prolog_pack:tag_version(Tag, Version),
+		 prolog_pack:atom_version(VersionA, Version)
+	       ),
+	       ( sha1_pack(SHA1, Pack),
+		 format(atom(NewFile), '~w-~w.~w', [Pack, VersionA, Ext]),
+		 retract_sha1_file(SHA1, File),
+		 assert_sha1_file(SHA1, NewFile)
+	       )).

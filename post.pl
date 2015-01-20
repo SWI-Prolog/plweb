@@ -243,7 +243,9 @@ post_process(Request, Kind) :-
 post_process(delete, Request, Kind, User, Id) :-
 	post_authorized(Request, User, Kind),
 	post(Id, author, Author), !,
-	(   Author == User
+	(   (   Author == User
+	    ;	site_user_property(User, granted(admin))
+	    )
 	->  post(Id, about, About),
 	    retract_post(Id, OldPost),
 	    notify(About, post_deleted(OldPost)),
@@ -318,7 +320,7 @@ post_authorized(Request, _User, _Kind) :-
 	throw(http_reply(forbidden(Path))).
 
 post_granted(User, Kind) :-
-	site_user_property(User, granted(Kind)).
+	site_user_property(User, granted(Kind)), !.
 post_granted(User, annotation) :-
 	User \== anonymous.
 
@@ -674,8 +676,8 @@ submit_post_label(annotation) -->
 %	post is logged on.
 
 edit_post_form(Id) -->
-	{ post(Id, author, Author),
-	  site_user_logged_in(Author), !,
+	{ site_user_logged_in(User),
+	  edit_post_granted(Id, User), !,
 	  post(Id, kind, Kind)
 	},
 	html([ form([class='edit-post-content',style='display:none;'],
@@ -690,8 +692,8 @@ edit_post_form(Id) -->
 edit_post_form(_) --> [].
 
 edit_delete_post(Id) -->
-	{ post(Id, author, Author),
-	  site_user_logged_in(Author), !
+	{ site_user_logged_in(User),
+	  edit_post_granted(Id, User), !
 	},
 	html([ \html_post(edit_delete(Id), \edit_delete_post_link),
 	       \edit_post_form(Id)
@@ -717,6 +719,12 @@ save_post_title(news) -->
 	html('Save updated article').
 save_post_title(annotation) -->
 	html('Save updated comment').
+
+edit_post_granted(_Id, User) :-
+	site_user_property(User, granted(admin)), !.
+edit_post_granted(Id, User) :-
+	post(Id, author, Author),
+	User == Author.
 
 %!	age(+Id:atom, -Age) is det.
 %

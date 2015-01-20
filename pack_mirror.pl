@@ -63,7 +63,7 @@ pack_mirror(Pack, Mirror, Hash) :-
 pack_mirror(Pack, Hashes, MirrorDir, Hash) :-
 	setof(GitURL, hashes_git_url(Hashes, GitURL), GitURLs),
 	pack_git_mirror(Pack, MirrorDir),
-	GitOptions = [directory(MirrorDir)],
+	GitOptions = [directory(MirrorDir), askpass(path(echo))],
 	(   exists_directory(MirrorDir)
 	->  (   Hashes = [Hash],
 		git_hash(Hash, GitOptions)
@@ -73,6 +73,7 @@ pack_mirror(Pack, Hashes, MirrorDir, Hash) :-
 	    ->	git_hash(Hash, GitOptions)
 	    ;	member(URL, GitURLs),
 	        git_remote_url(origin, URL, GitOptions),
+		debug(pack(mirror), 'git pull in ~q', [MirrorDir]),
 		catch(git([pull], GitOptions), E,
 		      ( print_message(warning, E), fail))
 	    ->	git_hash(Hash, GitOptions)
@@ -80,7 +81,8 @@ pack_mirror(Pack, Hashes, MirrorDir, Hash) :-
 		fail
 	    )
 	;   member(URL, GitURLs),
-	    catch(git([clone, URL, MirrorDir], []), E,
+	    debug(pack(mirror), 'git clone ~q into ~q', [URL, MirrorDir]),
+	    catch(git([clone, URL, MirrorDir], [askpass(path(echo))]), E,
 		  ( print_message(warning, E), fail))
 	->  git_hash(Hash, GitOptions)
 	), !.

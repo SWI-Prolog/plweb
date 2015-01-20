@@ -30,6 +30,7 @@
 :- module(plweb_parms,
 	  [
 	  ]).
+:- use_module(library(http/http_log)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/html_head)).
@@ -52,10 +53,11 @@
 	   'Default port').
 :- setting(http:workers,
 	   integer,
-	   5,
+	   10,
 	   'Number of worker threads').
 
 :- set_setting_default(pengines:allow_from, []).
+:- set_setting_default(http:logfile, 'log/httpd.log').
 
 
 		 /*******************************

@@ -100,6 +100,8 @@ server(Options) :-
 		      [ port(Port),
 			workers(Workers)
 		      ], HTTPOptions),
+	catch(make_directory_path(log), E,
+	      print_message(warning, E)),
 	http_server(http_dispatch, HTTPOptions),
 	update_pack_metadata_in_background,
 	thread_create(index_wiki_pages, _,
