@@ -147,7 +147,7 @@ pack_query(search(Word), _, Reply) :-
 install_info(_, SHA1, _, Seen) :-
 	memberchk(SHA1, Seen), !, fail.
 install_info(URL, SHA1, alt_hash(Downloads, URLs, Hash), _) :-
-	file_base_name(URL, File),
+	pack_url_file(URL, File),
 	sha1_file(Hash, File),
 	Hash \== SHA1,
 	sha1_downloads(Hash, Downloads),
@@ -337,7 +337,7 @@ register_url(SHA1, IsGIT, URL) :-
 	->  throw(pack(modified_hash(SHA1-URL, SHA2-[URL])))
 	;   IsGIT == true
 	->  assert_sha1_url(SHA1, URL)
-	;   file_base_name(URL, File),
+	;   pack_url_file(URL, File),
 	    register_file(SHA1, File, URL),
 	    assert_sha1_url(SHA1, URL)
 	).
