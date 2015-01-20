@@ -834,3 +834,21 @@ pack_file_details(Request) :-
 			  [ public_only(Public),
 			    show(Show)
 			  ]).
+
+
+		 /*******************************
+		 *	  DB MAINTENANCE	*
+		 *******************************/
+
+update_github_files :-
+	forall(( sha1_file(SHA1, File),
+		 file_name_extension(Tag, Ext, File),
+		 prolog_pack:github_archive_extension(Ext),
+		 prolog_pack:tag_version(Tag, Version),
+		 prolog_pack:atom_version(VersionA, Version)
+	       ),
+	       ( sha1_pack(SHA1, Pack),
+		 format(atom(NewFile), '~w-~w.~w', [Pack, VersionA, Ext]),
+		 retract_sha1_file(SHA1, File),
+		 assert_sha1_file(SHA1, NewFile)
+	       )).
