@@ -160,10 +160,8 @@ dyk('anything in single quotes is an atom').
 dyk('Logtalk is now a pack'-pack(logtalk)).
 dyk('probabilistic logic'-pack(cplint)).
 dyk(['DCG help at lib ',
-     a(href=location_by_id(section('dcg/basics')), 'dcg/basics'),
-     ' + packs ',
-     a(href=location_by_id(pack(dcg_util)), dcg_util), ' & ',
-     a(href=location_by_id(pack(dcg_utils)), dcg_utils)]).
+     a(href='/pldoc/doc/swi/library/dcg/basics.pl', 'dcg/basics'),
+     ' & packs dcg_util & dcg_utils']).
 dyk('automatic UML->Prolog translation'-pack(dia)).
 dyk('docstore is a document oriented DB in SWI-Prolog'-pack(docstore)).
 dyk('you can deploy to dotcloud'-pack(dotcloud)).

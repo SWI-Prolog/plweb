@@ -44,7 +44,6 @@
 :- use_module(post).
 :- use_module(openid).
 :- use_module(did_you_know).
-:- use_module(holidays).
 
 :- html_meta
 	outer_container(html, +, ?, ?).
@@ -324,27 +323,12 @@ page_title(Term) -->
 	html('Title for ~q'-[Term]).
 
 
-%%	todays_logo(-File:atom) is det
-%
-%	succeeds if File is the relative name of the appropriate
-%	version of the swi-Prolog logo for the day
-todays_logo('christmas.png') :-
-	todays_holiday(christmas).
-todays_logo('koningsdag.png') :-
-	todays_holiday(koningsdag).
-todays_logo('santiklaas.png') :-
-	todays_holiday(santiklaas).
-todays_logo('swipl.png') :-
-	todays_holiday(_).
-
-
 %%	swi_logo//
 %
 %	Embed the SWI-Prolog logo.
 
 swi_logo -->
-	{ todays_logo(File),
-	  http_absolute_location(icons(File), Logo, []) },
+	{ http_absolute_location(icons('swipl.png'), Logo, []) },
 	html(a(href('http://www.swi-prolog.org'),
 	       img([ class(owl),
 		     src(Logo),
