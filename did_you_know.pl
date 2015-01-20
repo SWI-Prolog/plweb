@@ -44,7 +44,7 @@ did_you_know -->
 	{ maybe(0.5) },
 	random_news, !.
 did_you_know -->
-	{ near_april_fools_day,
+	{ todays_holiday(april_fools_day),
 	  maybe(0.1)
 	},
 	random_silly_hint.
@@ -254,10 +254,13 @@ afdyk(['Prolog actually ', b('IS'), ' good for torturing undergrads']-'/AprilFoo
 afdyk(news('Colmerauer admits Prolog isn\'t logical at all'-'/AprilFools.html')).
 afdyk('about pack(antigravity)'-'/AprilFools.html').
 afdyk('SWI-Prolog 7.1.29 requires OSGi and qPID'-'/AprilFools.html').
-afdyk('this website runs on wind power'-'/dogfood.html').
-afdyk('Nou breekt mijn klomp. Prolog is beter.'-'/AprilFools.html').
+afdyk('this website powered by windmills'-'/dogfood.html').
+afdyk('Nou breekt mijn klomp. Prolog is beter!'-'/AprilFools.html').
 afdyk('about pack(klomp)'-'/AprilFools.html').
 afdyk('about pack(cheese)'-'/AprilFools.html').
 afdyk('about pack(chocolate)'-'/AprilFools.html').
 afdyk('about pack(evil)'-pack(evil)).
-afdyk('Appendix B can make your code clearer'-section(hack)).
+afdyk('Use Appendix B for clear code'-section(hack)).
+afdyk('Early Prologs ended clauses with AMEN'-
+      'http://web.archive.org/web/20070703003934/www.lim.univ-mrs.fr/~colmer/ArchivesPublications/HistoireProlog/19november92.pdf').
+

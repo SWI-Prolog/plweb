@@ -25,13 +25,23 @@
     the GNU General Public License.
 */
 :- module(holidays, [
-	      near_april_fools_day/0
+	      todays_holiday/1
 	  ]).
 
 :- use_module(library(julian)).
 
 
-/**  near_april_fools_day is semidet
+/**  todays_holiday(-Holiday:atom) is det
+ *
+ *  succeeds if Holiday is 'todays holiday'
+ *
+ *  This is none on 'ordinary' days, or
+ *  one of
+ *
+ *  april_fools_day
+ *  christmas
+ *  koningsdag
+ *  santiklaas
  *
  * succeeds only within 12 hours either
  * side of April 1
@@ -39,15 +49,27 @@
  * April fools day is a traditional holiday celebrated
  * by playing hoaxes and practical jokes. A common form
  * of this is to substitute nonsensical information where
- * useful info is normally displayed
+ * useful info is normally displayed.
+ *
+ * Koningsdag is 'Kings day' in the Netherlands
+ * Santiklaas is St. Nicholas' feast
+ *
  */
-near_april_fools_day :-
-	form_time([now, _-4-1]).
-near_april_fools_day :-
-	form_time([now, _-3-30, H:_:_]),
-	H >= 12.
-near_april_fools_day :-
-	form_time([now, _-4-2, H:_:_]),
-	H < 12.
-
+todays_holiday(april_fools_day) :-
+	form_time([now, Y-_-_]),
+	form_time([before(now), Y-3-30, 12:0:0]),
+	form_time([after(now), Y-4-2, 12:0:0]).
+todays_holiday(christmas) :-
+	form_time([now, Y-_-_]),
+	form_time([before(now), Y-12-20, 12:0:0]),
+	form_time([after(now), Y-12-27, 12:0:0]).
+todays_holiday(koningsdag) :-
+	form_time([now, Y-_-_]),
+	form_time([before(now), Y-4-26, 12:0:0]),
+	form_time([after(now), Y-4-28, 12:0:0]).
+todays_holiday(santiklaas) :-
+	form_time([now, Y-_-_]),
+	form_time([before(now), Y-12-5, 12:0:0]),
+	form_time([after(now), Y-12-6, 12:0:0]).
+todays_holiday(none).
 
