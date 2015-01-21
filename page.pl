@@ -334,8 +334,11 @@ todays_logo('koningsdag.png') :-
 	todays_holiday(koningsdag).
 todays_logo('santiklaas.png') :-
 	todays_holiday(santiklaas).
+todays_logo('carnivalswipl.png') :-
+	todays_holiday(carnival).
 todays_logo('swipl.png') :-
 	todays_holiday(_).
+
 
 
 %%	swi_logo//

@@ -122,6 +122,7 @@ link(HREF, HREF).
 %	  * HTML
 %
 %	be careful with line lengths for sayings, 40 chars max
+:- multifile  term_expansion/2.
 
 term_expansion(dyk(Saying), dyk(Id, Saying)) :-
 	(   predicate_property(dyk(_,_), number_of_clauses(N))
@@ -202,10 +203,8 @@ dyk('anything in single quotes is an atom').
 dyk('Logtalk is now a pack'-pack(logtalk)).
 dyk('SWI-Prolog has probabilistic logic'-pack(cplint)).
 dyk(['DCG help at lib ',
-     a(href=location_by_id(section('dcg/basics')), 'dcg/basics'),
-     ' + packs ',
-     a(href=location_by_id(pack(dcg_util)), dcg_util), ' & ',
-     a(href=location_by_id(pack(dcg_utils)), dcg_utils)]).
+     a(href='/pldoc/doc/swi/library/dcg/basics.pl', 'dcg/basics'),
+     ' & packs dcg_util & dcg_utils']).
 dyk('automatic UML->Prolog translation'-pack(dia)).
 dyk('docstore is a document oriented DB in SWI-Prolog'-pack(docstore)).
 dyk('you can deploy to dotcloud'-pack(dotcloud)).
@@ -263,4 +262,27 @@ afdyk('about pack(evil)'-pack(evil)).
 afdyk('Use Appendix B for clear code'-section(hack)).
 afdyk('Early Prologs ended clauses with AMEN'-
       'http://web.archive.org/web/20070703003934/www.lim.univ-mrs.fr/~colmer/ArchivesPublications/HistoireProlog/19november92.pdf').
+afdyk('test'-pack(abdcsd)).
+
+test_dyk :-
+	dyk(_, Saying),
+	try_saying(Saying),
+	fail.
+test_dyk.
+
+test_afdyk :-
+	afdyk(_, Saying),
+	try_saying(Saying),
+	fail.
+test_afdyk.
+
+try_saying(_-Link) :-
+	link(Link, _),!.
+try_saying(Saying-Link) :-
+	format('cannot create link for ~w ~w', [Saying, Link]),!.
+try_saying(_).
+
+:- test_dyk.
+:- test_afdyk.
+
 
