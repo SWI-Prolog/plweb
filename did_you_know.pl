@@ -200,7 +200,7 @@ dyk('You can train markov chains with BIMS'-pack(bims)).
 dyk('blog_core is a nifty CMS for SWI-Prolog'-pack(blog_core)).
 dyk('anything in single quotes is an atom').
 dyk('Logtalk is now a pack'-pack(logtalk)).
-dyk('probabilistic logic'-pack(cplint)).
+dyk('SWI-Prolog has probabilistic logic'-pack(cplint)).
 dyk(['DCG help at lib ',
      a(href=location_by_id(section('dcg/basics')), 'dcg/basics'),
      ' + packs ',
