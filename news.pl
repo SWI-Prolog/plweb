@@ -149,7 +149,7 @@ random_news -->
 	       span(id(dyknow), a(href=Link, Title))
 	     ]).
 
-%! random_new_item(-Id:atom, -Title:atom) is det.
+%% random_new_item(-Id:atom, -Title:atom) is det.
 
 random_new_item(Id, Title):-
 	aggregate_all(

@@ -305,6 +305,26 @@ post_process(put, Request, Kind, User, Id):-
 	;   http_404([], Request)
 	).
 
+:- dynamic debug_allow_all_posts/0.
+
+%%	debug_posts is det
+%
+%	Defeats normal authorization checking for posts,
+%	so during development we don't need to struggle with OAuth,
+%	emails, etc.
+%
+debug_posts :-
+	writeln('Anyone may now debug posts'),
+	asserta(debug_allow_all_posts).
+
+%%	nodebug_posts is det
+%
+%	remove the effects o debug_posts
+%
+nodebug_posts :-
+	writeln('Back to normal post control'),
+	retractall(debug_allow_all_posts).
+
 
 %%	post_authorized(+Request, +User, +Kind) is det.
 %
@@ -319,6 +339,7 @@ post_authorized(Request, _User, _Kind) :-
 	memberchk(path(Path), Request),
 	throw(http_reply(forbidden(Path))).
 
+post_granted(_, _) :- debug_allow_all_posts.
 post_granted(User, Kind) :-
 	site_user_property(User, granted(Kind)), !.
 post_granted(User, annotation) :-
