@@ -87,6 +87,10 @@ todays_holiday_(carnival) :-
 	carnival_date(Start, End),
 	form_time([before(now), Start]),
 	form_time([after(now), End]).
+todays_holiday_(halloween) :-
+	form_time([now, Y-_-_]),
+	form_time([before(now), Y-10-30, 12:0:0]),
+	form_time([after(now), Y-11-1, 12:0:0]).
 todays_holiday_(none).
 
 carnival_date(2015-2-15, 2015-2-17).

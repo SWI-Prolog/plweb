@@ -319,7 +319,7 @@ debug_posts :-
 
 %%	nodebug_posts is det
 %
-%	remove the effects o debug_posts
+%	remove the effects of debug_posts
 %
 nodebug_posts :-
 	writeln('Back to normal post control'),

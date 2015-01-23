@@ -324,34 +324,37 @@ page_title(Term) -->
 	html('Title for ~q'-[Term]).
 
 
-%%	todays_logo(-File:atom) is det
+%%	todays_logo(-File:atom, -AltText:atom) is det
 %
 %	succeeds if File is the relative name of the appropriate
 %	version of the swi-Prolog logo for the day
-todays_logo('christmas.png') :-
+%	and AltText is the alt text
+%
+todays_logo('christmas.png', 'Merry Christmas.') :-
 	todays_holiday(christmas).
-todays_logo('koningsdag.png') :-
+todays_logo('koningsdag.png', 'Kings day in the Netherlands') :-
 	todays_holiday(koningsdag).
-todays_logo('santiklaas.png') :-
+todays_logo('santiklaas.png', 'St. Nicholas\' eve in the Netherlands') :-
 	todays_holiday(santiklaas).
-todays_logo('carnivalswipl.png') :-
+todays_logo('carnivalswipl.png', 'Carnival in the Netherlands') :-
 	todays_holiday(carnival).
-todays_logo('swipl.png') :-
+todays_logo('halloween.png', 'Hoooo.... on Halloween') :-
+	todays_holiday(halloween).
+todays_logo('swipl.png', 'SWI-Prolog owl logo') :-
 	todays_holiday(_).
-
-
 
 %%	swi_logo//
 %
 %	Embed the SWI-Prolog logo.
 
 swi_logo -->
-	{ todays_logo(File),
+	{ todays_logo(File, Alt),
 	  http_absolute_location(icons(File), Logo, []) },
 	html(a(href('http://www.swi-prolog.org'),
 	       img([ class(owl),
 		     src(Logo),
-		     alt('SWI-Prolog owl logo')
+		     alt(Alt),
+		     title(Alt)
 		   ], []))).
 
 
