@@ -453,7 +453,7 @@ menu(Style,
        'Community' =
        [ 'IRC'                 = 'http://webchat.freenode.net/?channels=##prolog',
 	 'Forum'	       = '/forum',
-	 'News'                = '/news',
+	 'News'                = '/news/archive',
 	 'Mail list'           = '/Mailinglist.txt',
 	 'Report a bug'	       = '/bug.html',
 	 'Submit a patch'      = '/howto/SubmitPatch.html',
