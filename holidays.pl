@@ -28,8 +28,6 @@
 	      todays_holiday/1
 	  ]).
 
-:- use_module(library(julian)).
-
 :- dynamic current_holiday/2.
 
 current_holiday(0, none).
@@ -61,46 +59,62 @@ current_holiday(0, none).
 todays_holiday(Holiday) :-
 	current_holiday(Time, Holiday),
 	get_time(Now),
-	Now - Time < 3600.0.
+	Now - Time < 3600, !.
 todays_holiday(Holiday) :-
-	todays_holiday_(Holiday),
+	year(Year),
+	todays_holiday(Year, Holiday),
 	get_time(Now),
 	retractall(current_holiday(_, _)),
 	asserta(current_holiday(Now, Holiday)).
-todays_holiday_(april_fools_day) :-
-	form_time([now, Y-_-_]),
-	form_time([before(now), Y-3-30, 12:0:0]),
-	form_time([after(now), Y-4-2, 12:0:0]).
-todays_holiday_(christmas) :-
-	form_time([now, Y-_-_]),
-	form_time([before(now), Y-12-20, 12:0:0]),
-	form_time([after(now), Y-12-27, 12:0:0]).
-todays_holiday_(koningsdag) :-
-	form_time([now, Y-_-_]),
-	form_time([before(now), Y-4-26, 12:0:0]),
-	form_time([after(now), Y-4-28, 12:0:0]).
-todays_holiday_(santiklaas) :-
-	form_time([now, Y-_-_]),
-	form_time([before(now), Y-12-5, 12:0:0]),
-	form_time([after(now), Y-12-6, 12:0:0]).
-todays_holiday_(carnival) :-
+
+todays_holiday(YY, april_fools_day) :-
+	date_between(YY-03-30, 12:00:00,
+		     YY-04-02, 12:00:00).
+todays_holiday(YY, christmas) :-
+	date_between(YY-12-20, 12:00:00,
+		     YY-12-27, 12:00:00).
+todays_holiday(YY, koningsdag) :-
+	date_between(YY-04-26, 12:00:00,
+		     YY-04-28, 12:00:00).
+todays_holiday(YY, santiklaas) :-
+	date_between(YY-12-05, 12:00:00,
+		     YY-12-06, 12:00:00).
+todays_holiday(YY, halloween) :-
+	date_between(YY-10-30, 12:00:00,
+		     YY-11-01, 12:00:00).
+todays_holiday(YY, carnival) :-
 	carnival_date(Start, End),
-	form_time([before(now), Start]),
-	form_time([after(now), End]).
-todays_holiday_(halloween) :-
-	form_time([now, Y-_-_]),
-	form_time([before(now), Y-10-30, 12:0:0]),
-	form_time([after(now), Y-11-1, 12:0:0]).
-todays_holiday_(none).
+	Start = (YY-_-_),
+	End   = (YY-_-_),
+	date_between(Start, 12:00:00,
+		     End,   12:00:00).
+todays_holiday(_, none).
 
 carnival_date(2015-2-15, 2015-2-17).
-carnival_date(2016-2-7, 2016-2-9).
+carnival_date(2016-2-07, 2016-2-09).
 carnival_date(2017-2-26, 2017-2-28).
 carnival_date(2018-2-11, 2018-2-13).
-carnival_date(2019-3-3, 2019-3-5).
+carnival_date(2019-3-03, 2019-3-05).
 carnival_date(2020-2-23, 2020-2-25).
 carnival_date(2021-2-14, 2021-2-16).
 carnival_date(2022-2-27, 2022-2-29).
 carnival_date(2023-2-19, 2023-2-21).
 carnival_date(2024-2-11, 2025-2-13).
-carnival_date(2025-3-2, 2025-3-4).
+carnival_date(2025-3-02, 2025-3-04).
+
+%%	year(-Year)
+%
+%	True when Year is the current year
+
+year(Year) :-
+	get_time(Now),
+	stamp_date_time(Now, Term, 'UTC'),
+	date_time_value(year, Term, Year).
+
+date_between(SDate, STime, EDate, ETime) :-
+	get_time(Now),
+	stamp(SDate, STime, Start),  Now >= Start,
+	stamp(EDate, ETime, End),    Now =< End.
+
+stamp(YY-MM-DD, H:M:S, Time) :-
+	date_time_stamp(date(YY,MM,DD,H,M,S,0,'UTC',-), Time).
