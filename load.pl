@@ -15,7 +15,8 @@
 		register,
 		changelog,
 		tagit,
-		forum
+		forum,
+		make
 	      ],
 	      [ silent(true)
 	      ]).
