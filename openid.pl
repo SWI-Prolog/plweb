@@ -819,6 +819,10 @@ http_openid:openid_hook(logged_in(OpenId)) :-
 	    debug(openid(stay_signed_in),
 		  'Granted stay-signed-in for ~q', [OpenId])
 	).
+% see https://developers.google.com/accounts/docs/OpenID#shutdown-timetable
+http_openid:openid_hook(x_parameter('https://www.google.com/accounts/o8/ud',
+				    openid_shutdown_ack,
+				    '2015-04-20')).
 
 
 %%	yadis:xrds_specified_location(+Server, -XRDSLocation)
