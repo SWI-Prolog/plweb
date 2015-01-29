@@ -11,7 +11,7 @@
 
 :- setting(sources,
 	   atom,
-	   '~/src/pl-devel',
+	   '~/src/swipl-devel',
 	   'Sourced directory for getting changelog').
 :- setting(branches,
 	   list(any),
