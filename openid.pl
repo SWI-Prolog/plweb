@@ -51,6 +51,7 @@
 :- use_module(library(http/http_json)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_authenticate)).
+:- use_module(library(http/http_host)).
 :- use_module(library(http/recaptcha)).
 :- use_module(library(http/http_stream)).
 :- use_module(library(persistency)).
@@ -868,6 +869,7 @@ plweb_login_page(Request) :-
 	\+ ( debugging(openid_fake(User)),
 	     atom(User)
 	   ),
+	\+ http_public_host(Request, localhost, _, []),
 	openid_current_url(Request, URL), !,
 	throw(http_reply(see_other(URL))).
 plweb_login_page(Request) :-
