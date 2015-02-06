@@ -142,6 +142,12 @@ site_user_property(UUID, granted_list(Tokens)) :-
 	->  findall(Token, granted(UUID, Token), Tokens)
 	).
 
+set_user_property(UUID, Prop) :-
+	site_user_property(UUID, Prop), !.
+set_user_property(UUID, openid(OpenId)) :-
+	retract_site_user(UUID, _OldID, Name, Email, Home),
+	assert_site_user(UUID, OpenId, Name, Email, Home).
+
 
 		 /*******************************
 		 *	      RIGHTS		*
