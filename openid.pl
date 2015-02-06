@@ -329,16 +329,11 @@ user_init_property(User, P, Default) :-
 	;   arg(1, P, Default)
 	).
 
-ax(email(Email), AX) :-
-	memberchk(email(Email), AX).
+ax(email(AX.get(email)), AX).
+ax(name(AX.get(name)), AX) :- !.
 ax(name(Name), AX) :-
-	memberchk(fullname(Name), AX), !.
-ax(name(Name), AX) :-
-	memberchk(firstname(First), AX),
-	memberchk(lastname(Last), AX), !,
-	atomic_list_concat([First, Last], ' ', Name).
-ax(name(Name), AX) :-
-	memberchk(nickname(Name), AX), !.
+	atomic_list_concat([AX.get(firstname), AX.get(lastname)], ' ', Name), !.
+ax(name(AX.get(nickname)), AX).
 
 expain_create_profile -->
 	html({|html||
