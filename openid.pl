@@ -916,7 +916,6 @@ quick_button(img([ src(Icon),
 openid_provider(2, 'http://google.com', 'Google', 'social_google_box.png').
 openid_provider(2, 'http://yahoo.com',  'Yahoo', 'social_yahoo_box_lilac.png').
 openid_provider(1, 'https://openid.stackexchange.com/%user%', 'StackExchange', -).
-openid_provider(1, 'http://%user%.myopenid.com', 'MyOpenID', -).
 
 openid_ok -->
 	{ Term = openid_provider(_Version, _URL, _Name, _Icon),
