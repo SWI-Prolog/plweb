@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2013, VU University Amsterdam
+    Copyright (C): 2013-2015, VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -61,6 +61,7 @@
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(pairs)).
+:- use_module(library(google_client)).
 
 :- use_module(review).
 :- use_module(pack).
@@ -959,6 +960,72 @@ verify_user(Request) :-
 			     lastname(_)
 			   ])
 		      ], Request).
+
+
+		 /*******************************
+		 *	   GOOGLE LOGIN		*
+		 *******************************/
+
+:- if(current_predicate(oauth_authenticate/3)).
+
+:- http_handler(root(user/login_with_google), login_with_google, []).
+
+:- setting(google:client_id, atom, '',
+	   'Google project ClientID code').
+:- setting(google:client_secret, atom, '',
+	   'Google project ClientSecret code').
+
+%%	login_with_google(+Request)
+%
+%	HTTP handler to login with Google.
+
+login_with_google(Request) :-
+	http_parameters(Request,
+			[ 'openid.return_to'(ReturnTo, [default(/)])
+			]),
+	oauth_authenticate(Request, 'google.com', [return_to(ReturnTo)]).
+
+:- multifile
+	google_client:key/2,
+	google_client:login_existing_user/1,
+	google_client:create_user/1.
+
+google_client:key(client_id, ClientID) :-
+	setting(google:client_id, ClientID).
+google_client:key(client_secret, ClientSecret) :-
+	setting(google:client_secret, ClientSecret).
+
+%%	google_client:login_existing_user(+Claim) is semidet.
+%
+%	True if the user is know to us and thus we can perform the login
+%	without further interaction.
+
+google_client:login_existing_user(Claim) :-
+	google_fake_open_id(Claim, GoogleID),
+	site_user_property(_User, openid(GoogleID)), !,
+	google_login(Claim).
+google_client:login_existing_user(Claim) :-
+	downcase_atom(Claim.get(email), ClaimedEmail),
+	site_user_property(UUID, email(Email)),
+	downcase_atom(Email, ClaimedEmail), !,
+	debug(google, 'Found ~p with ~p', [UUID, Claim.email]),
+	google_fake_open_id(Claim, GoogleID),
+	set_user_property(UUID, openid(GoogleID)),
+	google_login(Claim).
+
+google_login(Claim) :-
+	http_open_session(_, []),
+	google_fake_open_id(Claim, GoogleID),
+	http_session_retractall(openid(_)),
+	http_session_assert(openid(GoogleID)),
+	http_current_request(Request),
+	http_redirect(moved_temporary, Claim.return_to, Request).
+
+google_fake_open_id(Claim, GoogleID) :-
+	atomic_list_concat(['http://google.com/fake_open_id/', Claim.sub],
+			   GoogleID).
+
+:- endif.
 
 
 		 /*******************************
