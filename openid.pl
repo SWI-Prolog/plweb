@@ -339,7 +339,7 @@ expain_create_profile -->
 	       create a minimal profile. Your name is displayed along with comments
 	       that you create.  Your E-mail and home URL are used to detect authorship of
 	       packs. Your E-mail and home URL will not be displayed,
-	       not be used for spamming and not be handed to third parties.
+	       nor be used for spamming and not be handed to third parties.
 	       The editor can be used to add a short description about yourself.
 	       This description is shown on your profile page that collects
 	       your packages and ratings and reviews you performed.
