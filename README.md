@@ -18,6 +18,7 @@ scratch locally, perform the following commands:
     ==
     % swipl
     ?- pack_install(recaptcha).
+    ?- pack_install(googleclient).
     ?- pack_install(smtp).
     ==
 
