@@ -917,7 +917,8 @@ quick_button(img([ src(Icon),
 	openid_provider(2, Provider, Name, ImgName),
 	http_absolute_location(icons(ImgName), Icon, []).
 
-openid_provider(2, 'http://google.com', 'Google', 'social_google_box.png').
+openid_provider(2, LoginWithGoogle, 'Google', 'social_google_box.png') :-
+	http_link_to_id(login_with_google, [], LoginWithGoogle).
 openid_provider(2, 'http://yahoo.com',  'Yahoo', 'social_yahoo_box_lilac.png').
 openid_provider(1, 'https://openid.stackexchange.com/%user%', 'StackExchange', -).
 
@@ -978,9 +979,11 @@ verify_user(Request) :-
 
 login_with_google(Request) :-
 	http_parameters(Request,
-			[ 'openid.return_to'(ReturnTo, [default(/)])
+			[ 'openid.return_to'(ReturnTo, [default(/)]),
+			  stay(Stay, [default(false)])
 			]),
-	oauth_authenticate(Request, 'google.com', [return_to(ReturnTo)]).
+	oauth_authenticate(Request, 'google.com',
+			   [client_data(_{return_to:ReturnTo, stay:Stay})]).
 
 :- multifile
 	google_client:key/2,
@@ -1010,17 +1013,33 @@ google_client:login_existing_user(Claim) :-
 	set_user_property(UUID, openid(GoogleID)),
 	google_login(Claim).
 
+%%	google_client:create_user(+Profile) is det.
+%
+%	Create a new user for the given Google Profile.
+
+google_client:create_user(Profile) :-
+	http_session_assert(ax(Profile)),
+	google_login(Profile).
+
 google_login(Claim) :-
 	http_open_session(_, []),
 	google_fake_open_id(Claim, GoogleID),
 	http_session_retractall(openid(_)),
 	http_session_assert(openid(GoogleID)),
 	http_current_request(Request),
-	http_redirect(moved_temporary, Claim.return_to, Request).
+	(   true(Claim.client_data.stay)
+	->  debug(google, 'Stay signed in: ~p', [GoogleID]),
+	    http_openid:openid_hook(stay_signed_in(GoogleID))
+	;   true
+	),
+	http_redirect(moved_temporary, Claim.client_data.return_to, Request).
 
 google_fake_open_id(Claim, GoogleID) :-
 	atomic_list_concat(['http://google.com/fake_open_id/', Claim.sub],
 			   GoogleID).
+
+true(true).
+true(yes).
 
 :- endif.
 
