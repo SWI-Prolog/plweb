@@ -340,6 +340,10 @@ todays_logo('carnivalswipl.png', 'Carnival in the Netherlands') :-
 	todays_holiday(carnival).
 todays_logo('halloween.png', 'Hoooo.... on Halloween') :-
 	todays_holiday(halloween).
+todays_logo('chinesenewyear.png', 'Chinese New Year') :-
+	todays_holiday(chinese_new_year).
+todays_logo('liberationday.png', 'Liberation Day in the Netherlands') :-
+	todays_holiday(liberation_day).
 todays_logo('swipl.png', 'SWI-Prolog owl logo') :-
 	todays_holiday(_).
 

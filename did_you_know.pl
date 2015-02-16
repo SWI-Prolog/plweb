@@ -221,7 +221,7 @@ dyk('there\'s a simplex library'-section(simplex)).
 dyk('use mavis for type checking'-pack(mavis)).
 dyk('you can read ODF spreadsheets'-pack(odf_sheet)).
 dyk('how to submit a patch'-'/howto/SubmitPatch.html').
-
+dyk('add language:prolog in github search').
 
 %%	afdyk(Id, Saying) is nondet
 %

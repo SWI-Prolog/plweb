@@ -82,8 +82,17 @@ todays_holiday(YY, santiklaas) :-
 todays_holiday(YY, halloween) :-
 	date_between(YY-10-30, 12:00:00,
 		     YY-11-01, 12:00:00).
+todays_holiday(YY, liberation_day) :-
+	date_between(YY-05-04, 12:00:00,
+		     YY-05-06, 12:00:00).
 todays_holiday(YY, carnival) :-
 	carnival_date(Start, End),
+	Start = (YY-_-_),
+	End   = (YY-_-_),
+	date_between(Start, 12:00:00,
+		     End,   12:00:00).
+todays_holiday(YY, chinese_new_year) :-
+	chinese_new_year_date(Start, End),
 	Start = (YY-_-_),
 	End   = (YY-_-_),
 	date_between(Start, 12:00:00,
@@ -101,6 +110,46 @@ carnival_date(2022-2-27, 2022-2-29).
 carnival_date(2023-2-19, 2023-2-21).
 carnival_date(2024-2-11, 2025-2-13).
 carnival_date(2025-3-02, 2025-3-04).
+
+chinese_new_year_date(2015-02-19,2015-02-20).
+chinese_new_year_date(2016-02-08,2016-02-09).
+chinese_new_year_date(2017-01-28,2017-01-29).
+chinese_new_year_date(2018-02-16,2018-02-17).
+chinese_new_year_date(2019-02-05,2019-02-06).
+chinese_new_year_date(2020-01-25,2020-01-26).
+chinese_new_year_date(2021-02-12,2021-02-13).
+chinese_new_year_date(2022-02-01,2022-02-02).
+chinese_new_year_date(2023-01-22,2023-01-23).
+chinese_new_year_date(2024-02-10,2024-02-11).
+chinese_new_year_date(2025-01-29,2025-01-30).
+chinese_new_year_date(2026-02-17,2026-02-18).
+chinese_new_year_date(2027-02-06,2027-02-07).
+chinese_new_year_date(2028-01-26,2028-01-27).
+chinese_new_year_date(2029-02-13,2029-02-14).
+chinese_new_year_date(2030-02-03,2030-02-04).
+
+/**
+ * chinese_new_year_animal(?Year, ?Animal).
+ *
+ * Succeeds iff Animal matches the Chinese zodiac animal for Year.
+ */
+chinese_new_year_animal(2015, 'Sheep').
+chinese_new_year_animal(2016, 'Monkey').
+chinese_new_year_animal(2017, 'Rooster').
+chinese_new_year_animal(2018, 'Dog').
+chinese_new_year_animal(2019, 'Pig').
+chinese_new_year_animal(2020, 'Rat').
+chinese_new_year_animal(2021, 'Ox').
+chinese_new_year_animal(2022, 'Tiger').
+chinese_new_year_animal(2023, 'Rabbit').
+chinese_new_year_animal(2024, 'Dragon').
+chinese_new_year_animal(2025, 'Snake').
+chinese_new_year_animal(2026, 'Horse').
+chinese_new_year_animal(2027, 'Sheep').
+chinese_new_year_animal(2028, 'Monkey').
+chinese_new_year_animal(2029, 'Rooster').
+chinese_new_year_animal(2030, 'Dog').
+
 
 %%	year(-Year)
 %
