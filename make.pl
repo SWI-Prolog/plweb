@@ -30,6 +30,8 @@
 :- module(web_make, []).
 :- use_module(library(option)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(make)).
+:- use_module(library(broadcast)).
 
 :- use_module(messages).
 :- use_module(openid).
@@ -39,7 +41,11 @@
 web_make(_Request) :-
 	site_user_logged_in(User),
 	site_user_property(User, granted(admin)), !,
-	call_showing_messages(make, []).
+	call_showing_messages(update, []).
 web_make(Request) :-
 	option(path(Path), Request),
 	throw(http_reply(forbidden(Path))).
+
+update :-
+	make,
+	broadcast(modified(wiki(reindex))).
