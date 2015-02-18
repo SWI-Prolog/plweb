@@ -173,10 +173,12 @@ wiki_page_title(Location, Title) :-
 	nonvar(Location), !,
 	(   wiki_page_title_cache(Location, TitleRaw, _)
 	->  Title = TitleRaw
-	;   extract_wiki_page_title(Location, File, TitleRaw),
-	    time_file(File, Modified),
+	;   extract_wiki_page_title(Location, File, TitleRaw)
+	->  time_file(File, Modified),
 	    assertz(wiki_page_title_cache(Location, TitleRaw, Modified)),
 	    Title = TitleRaw
+	;   print_message(warning, wiki(no_title(Location))),
+	    Title = 'No title'
 	).
 wiki_page_title(Location, Title) :-
 	index_wiki_pages,
@@ -208,7 +210,7 @@ update_wiki_page_title(Location) :-
 
 extract_wiki_page_title(Location, File, Title) :-
 	(   var(File)
-	->  location_wiki_file(Location, File)
+	->  location_wiki_file(Location, File, read)
 	;   true
 	),
 	(   catch(wiki_file_to_dom(File, DOM), E,

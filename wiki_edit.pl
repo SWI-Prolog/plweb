@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2011-2014, VU University Amsterdam
+    Copyright (C): 2011-2015, VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -28,7 +28,8 @@
 */
 
 :- module(wiki_edit,
-	  [ location_wiki_file/2
+	  [ location_wiki_file/2,
+	    location_wiki_file/3
 	  ]).
 :- use_module(library(lists)).
 :- use_module(library(debug)).
@@ -268,26 +269,30 @@ wiki_changelog -->
 		 *	       UTIL		*
 		 *******************************/
 
-%%	location_wiki_file(+Location, -Path)
+%%	location_wiki_file(+Location, -Path) is semidet.
+%%	location_wiki_file(+Location, -Path, +Access) is semidet.
 %
 %	@see Merge with find_file from plweb.pl
 
 location_wiki_file(Relative, File) :-
+	location_wiki_file(Relative, File, write).
+
+location_wiki_file(Relative, File, Access) :-
 	file_name_extension(Base, html, Relative),
 	file_name_extension(Base, txt, WikiFile),
 	absolute_file_name(document_root(WikiFile),
 			   File,
-			   [ access(write),
+			   [ access(Access),
 			     file_errors(fail)
 			   ]), !.
-location_wiki_file(Relative, File) :-
+location_wiki_file(Relative, File, Access) :-
 	file_name_extension(_, txt, Relative),
 	absolute_file_name(document_root(Relative),
 			   File,
-			   [ access(write),
+			   [ access(Access),
 			     file_errors(fail)
 			   ]), !.
-location_wiki_file(Relative, File) :-
+location_wiki_file(Relative, File, Access) :-
 	absolute_file_name(document_root(Relative),
 			   Dir,
 			   [ file_type(directory),
@@ -296,7 +301,7 @@ location_wiki_file(Relative, File) :-
 	setting(http:index_files, Indices),
         member(Index, Indices),
 	directory_file_path(Dir, Index, File),
-        access_file(File, write), !.
+        access_file(File, Access), !.
 
 %%	save_file(+File, +Text)
 %
