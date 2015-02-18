@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009, VU University Amsterdam
+    Copyright (C): 2009-2015, VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -48,6 +48,8 @@
 :- use_module(library(readutil)).
 :- use_module(library(option)).
 :- use_module(library(apply)).
+:- use_module(library(lists)).
+:- use_module(library(filesex)).
 :- use_module(wiki_edit).
 
 :- predicate_options(file//2, 2,
@@ -273,7 +275,10 @@ index_wiki_pages_sync :-
 wiki_locations(Files) :-
 	findall(Dir, absolute_file_name(
 			 document_root(.), Dir,
-			 [access(read), file_type(directory)]),
+			 [ access(read),
+			   file_type(directory),
+			   solutions(all)
+			 ]),
 		RootDirs),
 	maplist(wiki_locations, RootDirs, NestedFiles),
 	append(NestedFiles, Files).
