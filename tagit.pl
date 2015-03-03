@@ -351,20 +351,21 @@ remove_tag(Request) :-
 	->  (   retract_tagged(Tag, Object, _, Creator),
 	        gc_tag(Tag)
 	    ->  notify(Object, untagged(Tag)),
-		reply_json(json([status = @true]))
-	    ;   reply_json(json([status = @false,
-				 message = 'Unknown error'
-				]))
+		reply_json(json{status:true})
+	    ;   reply_json(json{status:false,
+				message:"Unknown error"
+			       })
 	    )
-	;   reply_json([status = @false,
-			message = 'Permission denied'
-		       ])
+	;   reply_json(json{status:false,
+			    message:"Permission denied"
+			   })
 	).
 
+%%	may_remove(+CurrentUser, +Creator)
+
 may_remove(User, User) :- !.
-may_remove(User, Anonymous) :-
-	peer(Anonymous),
-	\+ peer(User).
+may_remove(User, _Anonymous) :-
+	site_user_property(User, granted(admin)).
 
 %%	gc_tag(+Tag)
 %
