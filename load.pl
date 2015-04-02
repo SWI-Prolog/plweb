@@ -42,7 +42,7 @@ read_comments(File) :-
 	    ),
 	    ( '$set_source_module'(_, Old),
 	      set_prolog_flag(xref, false),
-	      close(In)
+	      prolog_close_source(In)
 	    )).
 read_comments(_).				% not a module, we do not care
 
