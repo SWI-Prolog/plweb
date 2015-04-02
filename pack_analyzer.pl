@@ -244,10 +244,12 @@ pack_open_entry(Directory, Entry, Stream) :-
 pack_open_entry(Archive, Entry, Stream) :-
 	ar_prefix(Archive, Prefix),
 	atom_concat(Prefix, Entry, Name),
-	archive_open(Archive, Handle, []),
-	archive_next_header(Handle, Name),
-	archive_open_entry(Handle, Stream),
-	archive_close(Handle),
+	setup_call_cleanup(
+	    archive_open(Archive, Handle, []),
+	    ( archive_next_header(Handle, Name),
+	      archive_open_entry(Handle, Stream)
+	    ),
+	    archive_close(Handle)),
 	format(atom(StreamName), '~w/~w', [Archive, Entry]),
 	set_stream(Stream, file_name(StreamName)).
 
