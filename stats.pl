@@ -1,10 +1,10 @@
-/*  Part of ClioPatria
+/*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
-    E-mail:        J.Wielemaker@uva.nl
+    E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2010, University of Amsterdam,
-			 VU University Amsterdam.
+    Copyright (C): 2010-2015, University of Amsterdam,
+			      VU University Amsterdam.
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -49,7 +49,8 @@
 
 */
 
-:- http_handler(root(stats),	server_stats, []).
+:- http_handler(root(stats),	     server_stats,      []).
+:- http_handler(root(stats/streams), list_file_streams, []).
 
 server_stats(_Request) :-
 	reply_html_page(title('SWI-Prolog server statistics'),
@@ -351,3 +352,51 @@ odd_even_row(Row, Next, Content) -->
 	  Next is Row+1
 	},
 	html(tr(class(Class), Content)).
+
+%%	list_file_streams(+Request)
+%
+%	Print a table of open streams that have an associated file name.
+
+list_file_streams(_Request) :-
+	findall(S, stream_property(S, type(_)), Streams),
+	reply_html_page(
+	    title('Server open streams'),
+	    [ \html_requires(css('stats.css')),
+	      h1(class(wiki), 'Server open streams'),
+	      table(class(block),
+		    [ tr([ th('No'),
+			   th('Stream'),
+			   th('Handle'),
+			   th('I/O'),
+			   th('File name')
+			 ])
+		    | \list_streams(Streams, 1)
+		    ])
+	    ]).
+
+list_streams([], _) -->
+	[].
+list_streams([H|T], N) -->
+	html(tr([\nc('~d', N)|\stream(H)])),
+	{ N2 is N + 1 },
+	list_streams(T, N2).
+
+stream(S) -->
+	html(td('~p'-[S])),
+	stream_prop(S, file_no),
+	stream_io(S),
+	stream_prop(S, file_name).
+
+stream_io(S) -->
+	(   { stream_property(S, input) }
+	->  html(td(input))
+	;   html(td(output))
+	).
+
+stream_prop(S, Prop) -->
+	(   { Term =.. [Prop,Val],
+	      stream_property(S, Term)
+	    }
+	->  html(td('~p'-[Val]))
+	;   html(td(-))
+	).
