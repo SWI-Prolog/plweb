@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2013, VU University Amsterdam
+    Copyright (C): 2013-2015, VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -32,6 +32,7 @@
 	    pack_version_hashes/2,	% +Pack, -VersionHashesPairs
 	    pack_version_urls/2,	% +Pack, -VersionUrlPairs
 	    hash_git_url/2,		% +Hash, -URL
+	    hash_file_url/2,		% +Hash, -URL
 	    pack_url_hash/2,		% +URL, -SHA1
 
 	    current_pack/2,		% +Filter, -Pack
@@ -360,6 +361,14 @@ hash_git_url(SHA1, GitURL) :-
 	memberchk(git(true), Info), !,
 	sha1_url(SHA1, GitURL).
 
+%%	hash_file_url(+SHA1, -FileURL) is nondet.
+%
+%	True when SHA1 was installed using GIT from GitURL.
+
+hash_file_url(SHA1, FileURL) :-
+	sha1_info(SHA1, Info),
+	\+ memberchk(git(true), Info), !,
+	sha1_url(SHA1, FileURL).
 
 %%	pack_url_hash(?URL, ?Hash) is nondet.
 %

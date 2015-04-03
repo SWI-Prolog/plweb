@@ -88,7 +88,7 @@ pack_mirror(Pack, Hashes, MirrorDir, Hash) :-
 	), !.
 pack_mirror(_Pack, Hashes, File, Hash) :-
 	member(Hash, Hashes),
-	pack_url_hash(URL, Hash),
+	hash_file_url(Hash, URL),
 	hash_file(Hash, File),
 	(   exists_file(File)
 	;   pack_url_hash(URL, Hash),
