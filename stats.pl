@@ -38,9 +38,11 @@
 :- use_module(library(http/http_session)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_stream)).
+:- use_module(library(http/http_parameters)).
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
+:- use_module(openid).
 
 :- html_meta
 	odd_even_row(+, -, html, ?, ?).
@@ -51,6 +53,7 @@
 
 :- http_handler(root(stats),	     server_stats,      []).
 :- http_handler(root(stats/streams), list_file_streams, []).
+:- http_handler(root(stats/stream),  stream_details,    []).
 
 server_stats(_Request) :-
 	reply_html_page(title('SWI-Prolog server statistics'),
@@ -382,21 +385,49 @@ list_streams([H|T], N) -->
 	list_streams(T, N2).
 
 stream(S) -->
-	html(td('~p'-[S])),
+	{ format(atom(Id), '~p', [S]),
+	  http_link_to_id(stream_details, [stream(Id)], HREF)
+	},
+	html(td(a(href(HREF), Id))),
 	stream_prop(S, file_no),
 	stream_io(S),
 	stream_prop(S, file_name).
 
 stream_io(S) -->
-	(   { stream_property(S, input) }
-	->  html(td(input))
+	(   { catch((stream_property(S, input),Val=input),
+		    _, Val=closed)
+	    }
+	->  html(td(Val))
 	;   html(td(output))
 	).
 
 stream_prop(S, Prop) -->
 	(   { Term =.. [Prop,Val],
-	      stream_property(S, Term)
+	      catch(stream_property(S, Term),_,fail)
 	    }
 	->  html(td('~p'-[Val]))
 	;   html(td(-))
 	).
+
+
+%%	stream_details(+Request)
+%
+%	Print details on stream. Requires  user   to  be  logged on with
+%	admin right because streams may reveal sensitive information.
+
+stream_details(Request) :-
+	site_user_logged_in(User),
+	site_user_property(User, granted(admin)), !,
+	http_parameters(Request,
+			[ stream(Name, [])
+			]),
+	with_output_to(string(S), stream_info(Name)),
+	reply_html_page(
+	    title('Details for stream'),
+	    [ \html_requires(css('stats.css')),
+	      pre(S)
+	    ]).
+stream_details(Request) :-
+	option(path(Path), Request),
+	throw(http_reply(forbidden(Path))).
+
