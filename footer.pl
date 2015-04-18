@@ -75,6 +75,11 @@ balance_columns_script -->
 			 { if ( ch < 300 ) ch = 300;
 			   $navtree.height(ch);
 			   $navtree.css('overflow-y', 'scroll');
+
+			   var current = $navtree.find("li.nav.current");
+			   if ( current.position().top > ch-40 )
+			   { $navtree.scrollTop(current.position().top - (ch-40));
+			   }
 			 }
 		       }).trigger("resize")
 		     }
