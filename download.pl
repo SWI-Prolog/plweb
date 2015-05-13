@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009, VU University Amsterdam
+    Copyright (C): 2009-2015, VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -378,20 +378,24 @@ file(bin, windows(WinType), Version, _) -->
 	win_type(WinType), "pl",
 	short_version(Version),
 	".exe", !.
+file(bin, windows(WinType), Version, _) -->
+	swipl, win_type(WinType), "-",
+	short_version(Version),
+	".exe", !.
 file(bin, linux(rpm, suse), Version, _) -->
-	(   "pl-"
-	;   "swipl-"
-	),
-	long_version(Version), "-", digits(_Build),
-	".i586.rpm", !.
+	swipl, long_version(Version), "-", digits(_Build), ".i586.rpm", !.
 file(bin, linux(universal), Version, _) -->
 	"swipl-",
 	long_version(Version), "-", "linux",
 	".tar.gz", !.
 file(src, tgz, Version, _) -->
-	"pl-", long_version(Version), ".tar.gz", !.
+	swipl, long_version(Version), ".tar.gz", !.
 file(doc, pdf, Version, _) -->
 	"SWI-Prolog-", long_version(Version), ".pdf", !.
+
+swipl --> "swipl-", !.
+swipl --> "pl-".
+
 
 opt_devel -->
 	"devel-", !.
