@@ -1,6 +1,7 @@
 set breakpoint pending on
 break trap_gdb
 break sysError
+break __asan_report_error
 set breakpoint pending off
 
 handle SIGPIPE noprint nostop pass
@@ -42,6 +43,10 @@ define ef
   set environment LD_PRELOAD=libefence.so.0.0
 end
 
+define dleak
+  set environment LD_PRELOAD=/home/janw/src/dleak/dleak.so
+end
+
 define leak
   set environment GC_FIND_LEAK=t
 end
@@ -53,15 +58,10 @@ define man
 end
 
 define safe-bt
-  call PL_backtrace(20, 1)
+  call PL_backtrace(20, 0x1)
 end
 
 define prolog-bt
   call PL_backtrace(20, 0)
 end
 
-# Print Prolog thread id for the current thread
-
-define pl-tid
-  p ((PL_local_data_t*)pthread_getspecific(PL_ldata))->thread.info->pl_tid
-end
