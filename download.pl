@@ -595,10 +595,15 @@ explain_win_daily -->
 	      naming convention:
 	      </p>
 	      <ul>
-	        <li><code>w</code><var>bits</var><code>pl</code><var>date</var><code>.exe</code>
+	        <li><code>swipl-w</code><var>bits</var><code>-</code><var>date</var><code>.exe</code>
 	      </ul>
 	      <p>
-	      Please note that these versions <b>may be unstable!</b>  Their
-	      primary purpose is to quickly provide binaries after a bug report.
+	      Please note that these versions <b>may be unstable!</b>  It is
+	      adviced to follow current discussions on the
+	      <a href="/Mailinglist.html">mailing
+	      list</a> and/or the git commit messages at
+	      <a href="https://github.com/SWI-Prolog/swipl-devel">GitHub</a>.
+	      The primary purpose of the daily builds is to quickly provide
+	      binaries after a bug report.
 	      </p>
 	     |}).
