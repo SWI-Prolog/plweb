@@ -1,21 +1,93 @@
----++ About the 6.6.x release
+---++ About the 7.2.x release
 
-SWI-Prolog 6.6.0 is based on version 6.5.3 with some addional patches.
-The 6.6.x release is the last stable release before SWI-Prolog version 7.
-It provides changes that make it easier to write code for version 7
-that also runs on version 6.
+SWI-Prolog 7.2.0 is based on version  7.3.1.
 
-Version 6.6 introduces some changes, notably in command line processing:
+SWI-Prolog 7 at a glance
+------------------------
 
-  - Processing of =|#!|=, binding a file to an interpreter in Unix no
-    longer tries to be smart about processing options to the
-    interpreter.  The effect of this change depends on the Unix
-    versions: some only pass the first option, others pack all options
-    into one and yet others pass the options after breaking them.
+  - The new dict type and syntax provides both time and space efficient
+    name-value maps with a pleasant syntax:
 
-  - The Prolog flag =argv= only provides arguments that have not
-    been processed by Prolog.
+	tag{key1:value1, key2:value2, ...}
 
-  - The init file =|.plrc|= (=pl.ini= on Windows) is no longer searched
-    for in the working directory for security reasons.
+    Fields can be accessed using functional notation, as in
+
+	writeln(Dict.key1).
+
+  - As a consequence, it was necessary to replace the list constructor
+    .(H,T) by the (also in use by Mercury) '[|]'(H,T).  That may seem
+    drastic, but in practice affects only a few programs, notably doing
+    functor(Term, F, A) on lists and then selecting further processing
+    on `F == '.', A == 2`.  To turn lists more into a special construct,
+    [] is still the empty list, but no longer the same as '[]', i.e.,
+    [] is not at atom.
+
+  - The syntax "..." is now mapped to strings.  Strings are compatible
+    with ECLiPSe (thanks to Joachim Schimpf for all the discussions).
+    Traditional code-lists are constructed using `...`.  The flags
+    double_quotes and back_quotes control this behaviour.
+
+  - Thanks to Torbjorn Lager, we have "Pengines", Prolog engines on the
+    web.  This provides a generic API to talk comfortably to a Prolog
+    server from JavaScript and other Prolog instances.  It enabled
+    SWISH, SWI-Prolog in your browser (http://swish.swi-prolog.org)
+    as well as http://lpn.swi-prolog.org (Learn Prolog Now! with
+    embedded SWISH).
+
+  - Markus Triska added clp(b), the boolean constraint solver, improved
+    his clp(fd) and was before several enhancements to the toplevel
+    dealing with constraints.
+
+  - Thanks to Matt Lilley and Mike Elston, there is CQL, a DSL
+    (Domain Specific Language) for dealing with SQL.  CQL is
+    developed in an environment where complex SQL databases are
+    the norm and therefore supports a large subset of SQL and
+    can deal with tables with thousands of columns and other
+    stuff that the ocasional SQL user won't expect.
+
+  - Matt Lilley improved networking support significantly, including
+    much better support for SSL and general support for both HTTP and
+    SOCKS proxy servers.
+
+  - Many people have provided add-ons (packs) that rely on SWI-Prolog
+    version 7.  See http://www.swi-prolog.org/pack/list.
+
+There are no big changes to the  Prolog engine. Notably SWISH has proved
+to be a great honeypot for finding  ways   to  crash the system. Many of
+these have been fixed and notably stack   overflow  handling is now much
+more robust. Paulo Moura included an   extensive  portable test suite in
+Logtalk which pointed out various small errors.  Some of these are still
+present, none deemed urgent.
+
+
+Porting to SWI-Prolog 7
+-----------------------
+
+Quite a lot of  programs  will   run  unmodified.  Notable programs that
+extensively use DCGs (grammar rules, -->) may not run unmodified.  See
+
+    - http://www.swi-prolog.org/pldoc/man?section=ext-dquotes-port
+
+for dealing with this. The changes  are typically rather straigthforward
+and not hard to debug.
+
+The modified list notation does not   often  lead to portability issues,
+but portability issues are typically harder to   spot. A good step is to
+run the following after loading your program:
+
+    ?- explain(.).
+
+This lists clauses in the  program  in   which  '.'  appears. You can of
+course also search the sources, but this  is relatively hard because the
+'.' is used in many contexts (end-of-term, =.., comments, etc).
+
+As a work-around, you might be able   to start SWI-Prolog as below. This
+restores  the  traditional  list  standard  and  disables  the  Dict.key
+functional notation. It may work well for you  if you merely rely on the
+core Prolog engine. A growing number of the libraries depends on the new
+features and will thus become unusable in this mode.
+
+    swipl --traditional
+
+
 
