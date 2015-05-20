@@ -7,13 +7,9 @@ on specific distros [[here][</build/LinuxDistro.txt>]].
 We provide a [[PPA][https://launchpad.net/~swi-prolog/+archive/stable]]
 for [[Ubuntu][http://www.ubuntu.com/]]
 
-[[windows.jpg;align="left",width="24px"][</build/windows.txt>]] Starting
-with version 6.1.7, the Windows binary is compiled using the
-[[MinGW][http://www.mingw.org]] GCC based compiler suite. Due to changed
-naming conventions this implies that extension DLLs are neither forward
-nor backward compatible. Please check the [[windows release
-nodes][</windows.html>]] (also in the SWI-Prolog startup menu of your
-installed version).
+[[windows.jpg;align="left",width="24px"][</build/windows.txt>]] Please
+check the [[windows release nodes][</windows.html>]] (also in the
+SWI-Prolog startup menu of your installed version) for details.
 
 [[WIP.png;align="left",width="24px"][</ChangeLog?branch=stable>]]
 Examine the [[ChangeLog][</ChangeLog?branch=stable>]].
