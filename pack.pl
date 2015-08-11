@@ -157,7 +157,7 @@ install_info(_, SHA1, downloads(Count), _) :-
 	sha1_downloads(SHA1, Count).
 install_info(_, SHA1, dependency(Token, Pack, Version, URLs, SubDeps), Seen) :-
 	sha1_requires(SHA1, Token),
-	(   (   sha1_pack(Hash, Token),
+	(   (   sha1_pack(_Hash, Token),
 		Pack = Token
 	    ;	sha1_provides(Hash, Token),
 		sha1_pack(Hash, Pack),
