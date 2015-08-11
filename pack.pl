@@ -163,10 +163,12 @@ install_info(_, SHA1, dependency(Token, Pack, Version, URLs, SubDeps), Seen) :-
 		sha1_pack(Hash, Pack),
 		Pack \== Token
 	    ),
-	    sha1_info(Hash, Info),
+	    pack_latest_version(Pack, Hash1, _VersionTerm, _Older),
+	    sha1_info(Hash1, Info),
 	    memberchk(version(Version), Info),
-	    findall(URL, sha1_url(Hash, URL), URLs)
-	*-> findall(SubDep, install_info(-, Hash, SubDep, [SHA1|Seen]), SubDeps)
+	    findall(URL, sha1_url(Hash1, URL), URLs),
+	    URLs \== []
+	->  findall(SubDep, install_info(-, Hash1, SubDep, [SHA1|Seen]), SubDeps)
 	;   Pack = (-), Version = (-), URLs = []
 	).
 
