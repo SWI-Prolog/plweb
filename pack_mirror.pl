@@ -28,7 +28,8 @@
 */
 
 :- module(pack_mirror,
-	  [ pack_mirror/3		% +Pack, -MirrorArchive, -Hash
+	  [ pack_mirror/3,		% +Pack, -MirrorArchive, -Hash
+	    pack_unmirror/1		% +Pack
 	  ]).
 :- use_module(pack).
 :- use_module(library(sha)).
@@ -138,6 +139,30 @@ git_has_commit(Repo, Commit) :-
 			   ]), _, fail),
 	assertz(git_commit_in_repo(Commit, Repo)).
 
+%%	pack_unmirror(+Pack)
+%
+%	Delete all mirrors we have for Pack
+
+pack_unmirror(Pack) :-
+	(   pack_git_mirror(Pack, MirrorDir),
+	    exists_directory(MirrorDir)
+	->  print_message(informational, pack(unmirror(dir(MirrorDir)))),
+	    catch(delete_directory_and_contents(MirrorDir), E,
+		  print_message(warning, E))
+	;   true
+	),
+	pack_version_hashes(Pack, VersionHashes),
+	forall(member(_Version-Hashes, VersionHashes),
+	       forall(member(Hash, Hashes),
+		      delete_mirror_hash(Hash))).
+
+delete_mirror_hash(Hash) :-
+	hash_file(Hash, File),
+	(   exists_file(File)
+	->  print_message(informational, pack(unmirror(file(File)))),
+	    catch(delete_file(File), E, print_message(warning, E))
+	;   true
+	).
 
 :- public ssl_verify/5.
 
@@ -188,4 +213,8 @@ prolog:message(pack(hash_mismatch(URL, Hash, FileSHA1))) -->
 	].
 prolog:message(pack(mirror_failed(Pack))) -->
 	[ 'Mirror for pack ~q failed'-[Pack] ].
+prolog:message(pack(unmirror(dir(MirrorDir)))) -->
+	[ 'Deleting GIT mirror directory ~p'-[MirrorDir] ].
+prolog:message(pack(unmirror(file(Hash)))) -->
+	[ 'Deleting mirror archive ~p'-[Hash] ].
 

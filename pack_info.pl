@@ -33,6 +33,7 @@
 	    pack_file_hierarchy//1,		% +Pack
 	    pack_readme//1,			% +Pack
 	    pack_file_details/3,		% +Pack, +File, +Options
+	    clean_pack_info/1,			% +Pack
 	    pack_archive/3			% ?Pack, ?Hash, ?Archive
 	  ]).
 :- use_module(library(http/http_dispatch)).
@@ -96,7 +97,6 @@ clean_pack_metadata :-
 	       )),
 	retractall(xreffed_pack(_,_)).
 
-
 update_pack_metadata_in_background :-
 	thread_create(update_pack_metadata, _,
 		      [ detached(true),
@@ -137,6 +137,10 @@ assert_file_info(Pack, ArchivePath, file(File, Size)) :-
 	).
 assert_file_info(Pack, _, link(File, Target)) :-
 	assertz(pack_file(Pack, File, link(Target), -)).
+
+%%	clean_pack_info(+Pack)
+%
+%	Remove the collected info for Pack
 
 clean_pack_info(Pack) :-
 	retractall(pack_archive(Pack,_,_)),

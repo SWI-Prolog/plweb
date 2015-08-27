@@ -49,14 +49,18 @@
 :- use_module(library(memfile)).
 :- use_module(library(record)).
 :- use_module(library(pairs)).
+:- use_module(library(error)).
 
 :- use_module(pack_info).
+:- use_module(pack_mirror).
 :- use_module(review).
+:- use_module(messages).
 :- use_module(openid).
 
 :- http_handler(root(pack/query),	 pack_query,	    []).
 :- http_handler(root(pack/list),	 pack_list,	    []).
 :- http_handler(root(pack/file_details), pack_file_details, [prefix]).
+:- http_handler(root(pack/delete),       pack_delete,       []).
 
 %%	pack_query(+Request)
 %
@@ -120,6 +124,19 @@ pack_query(locate(Pack), _, Reply) :-
 pack_query(search(Word), _, Reply) :-
 	search_packs(Word, Reply).
 
+
+%%	pack_delete(+Request)
+%
+%	HTTP handler to delete a pack
+
+pack_delete(Request) :-
+	site_user_logged_in(User),
+	site_user_property(User, granted(admin)), !,
+	http_parameters(Request, [p(Pack, [])], []),
+	call_showing_messages(delete_pack(Pack), []).
+pack_delete(Request) :-
+	memberchk(path(Path), Request),
+	throw(http_reply(forbidden(Path))).
 
 		 /*******************************
 		 *	COMPUTATIONAL LOGIC	*
@@ -264,6 +281,20 @@ pack_search_result(Pack, pack(Pack, p, Title, VersionA, URLs)) :-
 
 :- initialization
 	db_attach('packs.db', [sync(close)]).
+
+%%	delete_pack(+PackName) is det.
+%
+%	Remove a pack from the database.
+
+delete_pack(PackName) :-
+	must_be(atom, PackName),
+	pack(PackName), !,
+	clean_pack_info(PackName),
+	pack_unmirror(PackName),
+	forall(sha1_pack(Hash, PackName),
+	       delete_hash(Hash)).
+delete_pack(PackName) :-
+	existence_error(pack, PackName).
 
 %%	delete_hash(Hash) is det.
 %
