@@ -462,6 +462,7 @@ menu(Style,
 	 'Report a bug'	       = '/bug.html',
 	 'Submit a patch'      = '/howto/SubmitPatch.html',
 	 'Submit an add-on'    = '/howto/Pack.html',
+	 'Roadmap'             = '/Roadmap.html',
 	 'External links'      = '/Links.html',
 	 'Contributors'        = '/Contributors.html',
 	 'SWI-Prolog items'    = '/loot.html'
