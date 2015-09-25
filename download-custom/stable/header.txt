@@ -8,7 +8,7 @@ We provide a [[PPA][https://launchpad.net/~swi-prolog/+archive/stable]]
 for [[Ubuntu][http://www.ubuntu.com/]]
 
 [[windows.jpg;align="left",width="24px"][</build/windows.txt>]] Please
-check the [[windows release nodes][</windows.html>]] (also in the
+check the [[windows release notes][</windows.html>]] (also in the
 SWI-Prolog startup menu of your installed version) for details.
 
 [[WIP.png;align="left",width="24px"][</ChangeLog?branch=stable>]]
