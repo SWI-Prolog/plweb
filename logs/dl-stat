@@ -1,4 +1,4 @@
-#!/home/janw/bin/swipl
+#!/home/swipl/bin/swipl
 
 :- set_prolog_flag(verbose, silent).
 :- initialization main, halt.

@@ -1,4 +1,6 @@
-#!/home/janw/bin/swipl -q -g true -t main -s
+#!/home/swipl/bin/swipl
+
+:- initialization main.
 
 :- use_module(logstat).
 :- use_module(plstat).
@@ -34,10 +36,9 @@ main :-
 
 run :-
 	current_prolog_flag(argv, Argv),
-	append(_, [--|More], Argv),
-	(   More = [LogFile, Out]
+	(   Argv = [LogFile, Out]
 	->  true
-	;   More = [LogFile]
+	;   Argv = [LogFile]
 	->  file_name_extension(Base, log, LogFile),
 	    file_name_extension(Base, dat, Out)
 	;   usage
