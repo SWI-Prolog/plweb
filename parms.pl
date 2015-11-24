@@ -28,7 +28,7 @@
 */
 
 :- module(plweb_parms,
-	  [
+	  [ server/2			% ?Role, ?Host
 	  ]).
 :- use_module(library(http/http_log)).
 :- use_module(library(http/http_path)).
@@ -176,3 +176,20 @@ user:file_search_path(yui,	     document_root('yui/2.7.0')).
 user:file_search_path(cgi_bin,	     plweb('git-web')).
 user:file_search_path(download,	     plweb(download)).
 user:file_search_path(gitweb,	     plweb('git-web')).
+
+
+		 /*******************************
+		 *	   MASTER/SLAVE		*
+		 *******************************/
+
+%%	server(?Type, ?Host) is nondet.
+%
+%	Describe known servers  and  their   role.  Currently,  the only
+%	important role is `master`. Logged in sessions are redirected to
+%	the master to simplify keeping one view   of the data. In future
+%	versions we might go for a more distributed database.
+
+server(cdn,    'www.swi-prolog.org').
+server(slave,  'us.swi-prolog.org').
+server(master, 'eu.swi-prolog.org').
+%server(test,   'localhost').

@@ -46,7 +46,7 @@
 :- use_module(library(http/html_head)).
 :- use_module(library(persistency)).
 :- use_module(library(aggregate)).
-:- use_module(library(memfile)).
+:- use_module(library(option)).
 :- use_module(library(record)).
 :- use_module(library(pairs)).
 :- use_module(library(error)).
@@ -56,6 +56,8 @@
 :- use_module(review).
 :- use_module(messages).
 :- use_module(openid).
+:- use_module(proxy).
+:- use_module(parms).
 
 :- http_handler(root(pack/query),	 pack_query,	    []).
 :- http_handler(root(pack/list),	 pack_list,	    []).
@@ -65,33 +67,31 @@
 %%	pack_query(+Request)
 %
 %	Handle package query requests from remote installers.  Content
-%	is of type text/x-prolog.   Reply is also a Prolog term.
+%	is of type application/x-prolog.   Reply is also a Prolog term.
 
 pack_query(Request) :-
+	proxy_master(Request), !.
+pack_query(Request) :-
 	memberchk(content_type(ContentType), Request),
-	sub_atom(ContentType, 0, _, _, 'text/x-prolog'), !,
+	content_x_prolog(ContentType, ReplyType), !,
 	peer(Request, Peer),
-	setup_call_cleanup(
-	    new_memory_file(MemFile),
-	    ( setup_call_cleanup(
-		  open_memory_file(MemFile, write, Stream),
-		  http_read_data(Request, _, [to(stream(Stream))]),
-		  close(Stream)),
-	      setup_call_cleanup(
-		  open_memory_file(MemFile, read, In),
-		  read(In, Query),
-		  close(In))
-	    ),
-	    free_memory_file(MemFile)),
+	http_read_data(Request, Query,
+		       [ content_type('application/x-prolog')
+		       ]),
 	(   catch(pack_query(Query, Peer, Reply), E, true)
-	->  format('Content-type: text/x-prolog; charset=UTF8~n~n'),
+	->  format('Content-type: ~w; charset=UTF8~n~n', [ReplyType]),
 	    (   var(E)
 	    ->	format('~q.~n', [true(Reply)])
 	    ;	format('~q.~n', [exception(E)])
 	    )
-	;   format('Content-type: text/x-prolog; charset=UTF8~n~n'),
+	;   format('Content-type: ~w; charset=UTF8~n~n', [ReplyType]),
 	    format('false.~n')
 	).
+
+content_x_prolog(ContentType, 'text/x-prolog') :-
+	sub_atom(ContentType, 0, _, _, 'text/x-prolog'), !.
+content_x_prolog(ContentType, 'application/x-prolog') :-
+	sub_atom(ContentType, 0, _, _, 'application/x-prolog').
 
 peer(Request, Peer) :-
 	memberchk(x_forwarded_for(Peer), Request), !.
@@ -101,6 +101,20 @@ peer(Request, PeerAtom) :-
 
 peer_to_atom(ip(A,B,C,D), Atom) :-
 	atomic_list_concat([A,B,C,D], '.', Atom).
+
+%%	proxy_master(Request)
+%
+%	Proxy the request to the master to make sure the central package
+%	database remains synchronised.
+
+proxy_master(Request) :-
+	option(host(Host), Request),
+	server(_, Host),
+	server(master, Master),
+	Master \== Host, !,
+	format(string(To), 'http://~w', [Master]),
+	proxy(To, Request).
+
 
 %%	pack_query(+Query, +Peer, -Reply)
 %

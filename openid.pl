@@ -37,7 +37,8 @@
 	    user_profile_link//1,	% +User
 	    current_user//1,		% +PageStyle
 	    current_user//0,
-	    login_link//1		% +Request
+	    login_link//1,		% +Request
+	    redirect_master/1		% +Request
 	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
@@ -64,6 +65,7 @@
 :- use_module(library(pairs)).
 :- use_module(library(google_client)).
 
+:- use_module(parms).
 :- use_module(review).
 :- use_module(pack).
 :- use_module(wiki).
@@ -216,6 +218,7 @@ authenticate(_Request, Token, [UUID,Name]) :-
 	site_user_property(UUID, granted(Token)),
 	site_user_property(UUID, name(Name)), !.
 authenticate(Request, Token, Fields) :-
+	redirect_master(Request),
 	(   http_authenticate(basic(passwd), Request, Fields)
 	->  true
 	;   format(atom(Msg), 'SWI-Prolog ~w authoring', [Token]),
@@ -860,6 +863,7 @@ in_header_state :-
 %	customizating the -very basic- login page.
 
 plweb_login_page(Request) :-
+	redirect_master(Request),
 	memberchk(host(localhost), Request),
 	\+ ( debugging(openid_fake(User)),
 	     atom(User)
@@ -1131,3 +1135,19 @@ login_link(Request) -->
 logout_link -->
 	{ http_link_to_id(logout, [], Logout) },
 	html(a([href(Logout)], 'logout')).
+
+
+%%	redirect_master(+Request)
+%
+%	Redirect a request to the master server,   so  we do not have to
+%	deal with multiple versions of the database files.
+
+redirect_master(Request) :-
+	option(host(Host), Request),
+	server(_, Host),
+	server(master, Master),
+	Host \== Master, !,
+	option(request_uri(URI), Request),
+	format(string(To), 'http://~w~w', [Master, URI]),
+	http_redirect(see_other, To, Request).
+
