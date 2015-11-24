@@ -42,6 +42,7 @@
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
+:- use_module(library(http/http_json)).
 :- use_module(openid).
 
 :- html_meta
@@ -52,6 +53,7 @@
 */
 
 :- http_handler(root(stats),	     server_stats,      []).
+:- http_handler(root(health),	     server_health,     []).
 :- http_handler(root(stats/streams), list_file_streams, []).
 :- http_handler(root(stats/stream),  stream_details,    []).
 
@@ -431,3 +433,40 @@ stream_details(Request) :-
 	option(path(Path), Request),
 	throw(http_reply(forbidden(Path))).
 
+
+%%	server_health(+Request)
+%
+%	HTTP handler that replies with the overall health of the server
+
+server_health(_Request) :-
+	get_server_health(Health),
+	reply_json(Health).
+
+get_server_health(Health) :-
+	findall(Key-Value, health(Key, Value), Pairs),
+	dict_pairs(Health, health, Pairs).
+
+health(up, true).
+health(uptime, Time) :-
+	get_time(Now),
+	http_server_property(_, start_time(StartTime)),
+	Time is round(Now - StartTime).
+health(requests, RequestCount) :-
+	cgi_statistics(requests(RequestCount)).
+health(bytes_sent, BytesSent) :-
+	cgi_statistics(bytes_sent(BytesSent)).
+health(open_files, Streams) :-
+	aggregate_all(count, N, stream_property(_, file_no(N)), Streams).
+health(loadavg, LoadAVG) :-
+	catch(setup_call_cleanup(
+		  open('/proc/loadavg', read, In),
+		  read_string(In, _, String),
+		  close(In)),
+	      _, fail),
+	split_string(String, " ", " ", [One,Five,Fifteen|_]),
+	maplist(number_string, LoadAVG, [One,Five,Fifteen]).
+health(dir_scan_time, Time) :-
+	get_time(T0),
+	expand_file_name(*, _),
+	get_time(T),
+	Time is T - T0.
