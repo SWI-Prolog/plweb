@@ -169,10 +169,10 @@ dyk('SWI-Prolog has multiple high quality random number generators'-'/contrib/Sa
 dyk('The SWI-Prolog manual is available in printed form'-
     'http://books.google.nl/books/about/SWI_Prolog_Reference_Manual_6_2_2.html?id=q6R3Q3B-VC4C&redir_esc=y').
 dyk(['ETALIS ', b('Event Processing'), ' runs on SWI-Prolog']-'http://code.google.com/p/etalis/').
-dyk('This website\'s code is available'-'git://www.swi-prolog.org/home/pl/git/plweb.git').
+dyk('This website\'s code is available'-'https://github.com/SWI-Prolog/plweb').
 dyk(['SWI-Prolog can talk to ', b('Matlab')]-'/contrib/SamerAbdallah/index.html').
 dyk(['SWI-Prolog has an active ', b('mailing list')]-'/Mailinglist.html').
-dyk(['Jan loves it when you ', b('Report Bugs')]-'/bugzilla/').
+dyk(['Jan loves it when you ', b('Report Bugs')]-'https://github.com/SWI-Prolog/issues/issues').
 dyk(['You can get ', span(class=colored, 'COLORED'), ' text on the command line']-'/FAQ/ColorConsole.html').
 dyk(['SWI-Prolog has a ', b('Nifty IDE')]-'/IDE.html').
 dyk(['SWI-Prolog has a ', b('Graphic Debugger')]-'/gtrace.html').
