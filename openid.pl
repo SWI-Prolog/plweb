@@ -213,10 +213,13 @@ admin_granted(Request) :-
 %	Get authentication for editing wiki pages.  This now first tries
 %	the OpenID login.
 
-authenticate(_Request, Token, [UUID,Name]) :-
+authenticate(Request, Token, [UUID,Name]) :-
 	site_user_logged_in(UUID),
-	site_user_property(UUID, granted(Token)),
-	site_user_property(UUID, name(Name)), !.
+	(   site_user_property(UUID, granted(Token))
+	->  site_user_property(UUID, name(Name))
+	;   option(path(Path), Request),
+	    permission_error(access, http_location, Path)
+	).
 authenticate(Request, Token, Fields) :-
 	redirect_master(Request),
 	(   http_authenticate(basic(passwd), Request, Fields)
