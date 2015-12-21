@@ -78,6 +78,7 @@ pack_query(Request) :-
 	http_read_data(Request, Query,
 		       [ content_type('application/x-prolog')
 		       ]),
+	format('Cache-Control: no-cache~n'),
 	(   catch(pack_query(Query, Peer, Reply), E, true)
 	->  format('Content-type: ~w; charset=UTF8~n~n', [ReplyType]),
 	    (   var(E)
@@ -94,7 +95,13 @@ content_x_prolog(ContentType, 'application/x-prolog') :-
 	sub_atom(ContentType, 0, _, _, 'application/x-prolog').
 
 peer(Request, Peer) :-
-	memberchk(x_forwarded_for(Peer), Request), !.
+	memberchk(fastly_client_ip(Peer), Request), !.
+peer(Request, Peer) :-
+	memberchk(x_forwarded_for(PeerAtom), Request), !,
+	atomic_list_concat(Peers, ' ', PeerAtom),
+	last(Peers, Peer).
+peer(Request, Peer) :-
+	memberchk(x_real_ip(Peer), Request), !.
 peer(Request, PeerAtom) :-
 	memberchk(peer(Peer), Request),
 	peer_to_atom(Peer, PeerAtom).
@@ -112,7 +119,10 @@ proxy_master(Request) :-
 	server(_, Host),
 	server(master, Master),
 	Master \== Host, !,
+	peer(Request, Peer),
 	format(string(To), 'http://~w', [Master]),
+	format('X-Forwarded-for: ~w~n', [Peer]),
+	format('Cache-Control: no-cache~n'),
 	proxy(To, Request).
 
 
