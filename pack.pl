@@ -42,6 +42,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_client)).
+:- use_module(library(http/http_log)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 :- use_module(library(persistency)).
@@ -78,15 +79,20 @@ pack_query(Request) :-
 	http_read_data(Request, Query,
 		       [ content_type('application/x-prolog')
 		       ]),
+	http_log('pack_query(~q, ~q).~n', [Query, Peer]),
 	format('Cache-Control: no-cache~n'),
 	(   catch(pack_query(Query, Peer, Reply), E, true)
 	->  format('Content-type: ~w; charset=UTF8~n~n', [ReplyType]),
 	    (   var(E)
-	    ->	format('~q.~n', [true(Reply)])
-	    ;	format('~q.~n', [exception(E)])
+	    ->	format('~q.~n', [true(Reply)]),
+		http_log('pack_query_done(ok, ~q).~n', [Peer])
+	    ;	format('~q.~n', [exception(E)]),
+		message_to_string(E, String),
+		http_log('pack_query_done(error(~q), ~q).~n', [String, Peer])
 	    )
 	;   format('Content-type: ~w; charset=UTF8~n~n', [ReplyType]),
-	    format('false.~n')
+	    format('false.~n'),
+	    http_log('pack_query_done(failed, ~q).~n', [Peer])
 	).
 
 content_x_prolog(ContentType, 'text/x-prolog') :-
