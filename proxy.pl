@@ -28,45 +28,66 @@
 */
 
 :- module(plweb_proxy,
-	  [ proxy/2			% +Target, +Request
+	  [ proxy/2,			% +Target, +Request
+	    proxy/3			% +Target, +Request, +HdrExtra
 	  ]).
-
 :- use_module(library(http/http_open)).
+:- use_module(library(option)).
+:- use_module(library(apply)).
 
 %%	proxy(+To, +Request) is det.
+%%	proxy(+To, +Request, +Options) is det.
 %
 %	Proxy a request to a remote   server.  This proxies all methods,
-%	including those carrying data such as POST and PUT.
+%	including those carrying data such as POST and PUT.  Options:
+%
+%	  - request_headers(+List)
+%	  Additional headers for the request.  List is of the form
+%	  Name = Value.
+%	  - reply_headers+List)
+%	  Additional headers for the reply
 
 proxy(To, Request) :-
+	proxy(To, Request, []).
+proxy(To, Request, Options) :-
 	memberchk(method(Method), Request),
-	proxy(Method, To, Request).
+	proxy(Method, To, Request, Options).
 
-proxy(Method, To, Request) :-
+proxy(Method, To, Request, Options) :-
 	data_method(Method), !,
 	read_data(Request, Data),
 	memberchk(request_uri(URI), Request),
         atomic_list_concat([To,URI], Target),
+	option(request_headers(ReqHrd0), Options, []),
+	maplist(request_header, ReqHrd0, ReqHrd),
 	http_open(Target, In,
 		  [ method(Method),
 		    post(Data),
 		    header(content_type, ContentType)
+		  | ReqHrd
 		  ]),
         call_cleanup(
 	    read_string(In, _, Bytes),
 	    close(In)),
-	throw(http_reply(bytes(ContentType, Bytes))).
-proxy(Method, To, Request) :-
+	option(reply_headers(HdrExtra0), Options, []),
+	maplist(reply_header, HdrExtra0, HdrExtra),
+	throw(http_reply(bytes(ContentType, Bytes), HdrExtra)).
+proxy(Method, To, Request, Options) :-
 	memberchk(request_uri(URI), Request),
         atomic_list_concat([To,URI], Target),
+	option(request_headers(ReqHrd0), Options, []),
+	maplist(request_header, ReqHrd0, ReqHrd),
 	http_open(Target, In,
 		  [ method(Method),
 		    header(content_type, ContentType)
+		  | ReqHrd
 		  ]),
         call_cleanup(
 	    read_string(In, _, Bytes),
 	    close(In)),
-	throw(http_reply(bytes(ContentType, Bytes))).
+	option(reply_headers(HdrExtra0), Options, []),
+	maplist(reply_header, HdrExtra0, HdrExtra),
+	throw(http_reply(bytes(ContentType, Bytes), HdrExtra)).
 
 read_data(Request, bytes(ContentType, Bytes)) :-
 	memberchk(input(In), Request),
@@ -78,3 +99,8 @@ read_data(Request, bytes(ContentType, Bytes)) :-
 
 data_method(post).
 data_method(put).
+
+request_header(Name = Value, request_header(Name = Value)).
+
+reply_header(Name = Value, Term) :-
+	Term =.. [Name,Value].
