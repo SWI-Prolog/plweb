@@ -127,9 +127,11 @@ proxy_master(Request) :-
 	Master \== Host, !,
 	peer(Request, Peer),
 	format(string(To), 'http://~w', [Master]),
-	format('X-Forwarded-for: ~w~n', [Peer]),
-	format('Cache-Control: no-cache~n'),
-	proxy(To, Request).
+	proxy(To, Request,
+	      [ request_headers([ 'X-Forwarded-For' = Peer,
+				  'Cache-Control' = 'no-cache'
+				])
+	      ]).
 
 
 %%	pack_query(+Query, +Peer, -Reply)
