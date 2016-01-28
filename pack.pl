@@ -104,8 +104,8 @@ peer(Request, Peer) :-
 	memberchk(fastly_client_ip(Peer), Request), !.
 peer(Request, Peer) :-
 	memberchk(x_forwarded_for(PeerAtom), Request), !,
-	atomic_list_concat(Peers, ' ', PeerAtom),
-	last(Peers, Peer).
+	split_string(PeerAtom, ", ", ", ", [PeerString|_]),
+	atom_string(Peer, PeerString).
 peer(Request, Peer) :-
 	memberchk(x_real_ip(Peer), Request), !.
 peer(Request, PeerAtom) :-
