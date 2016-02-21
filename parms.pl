@@ -28,7 +28,8 @@
 */
 
 :- module(plweb_parms,
-	  [ server/2			% ?Role, ?Host
+	  [ server/2,			% ?Role, ?Host
+	    server/3			% ?Role, ?Host, -HostName
 	  ]).
 :- use_module(library(http/http_log)).
 :- use_module(library(http/http_path)).
@@ -183,13 +184,17 @@ user:file_search_path(gitweb,	     plweb('git-web')).
 		 *******************************/
 
 %%	server(?Type, ?Host) is nondet.
+%%	server(?Type, ?Host, ?HostName) is nondet.
 %
 %	Describe known servers  and  their   role.  Currently,  the only
 %	important role is `master`. Logged in sessions are redirected to
 %	the master to simplify keeping one view   of the data. In future
 %	versions we might go for a more distributed database.
 
-server(cdn,    'www.swi-prolog.org').
-server(slave,  'us.swi-prolog.org').
-server(master, 'eu.swi-prolog.org').
-%server(test,   'localhost').
+server(Type, Host) :-
+	server(Type, Host, _HostName).
+
+server(cdn,    'www.swi-prolog.org', -).
+server(slave,  'us.swi-prolog.org', 'swi-prolog.osuosl.org').
+server(master, 'eu.swi-prolog.org', -).
+server(test,   'localhost', -).

@@ -108,6 +108,7 @@ server(Options) :-
 		      [ alias('__index_wiki_pages'),
 			detached(true)
 		      ]),
+	db_sync_thread,
 	debug(plweb, 'Server was started at port ~d.', [Port]).
 
 

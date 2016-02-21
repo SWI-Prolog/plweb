@@ -27,12 +27,19 @@
     the GNU General Public License.
 */
 
-:- module(web_update, []).
+:- module(web_update,
+	  [ db_sync_thread/0,
+	    db_sync_thread/1			% +Time
+	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_authenticate)).
 :- use_module(library(http/html_write)).
 :- use_module(library(readutil)).
 :- use_module(library(process)).
+:- use_module(library(persistency)).
+:- use_module(library(socket)).
+
+:- use_module(parms).
 
 :- http_handler(root(update), update, []).
 
@@ -55,7 +62,9 @@ update(Request) :-
 			  h2('GIT'),
 			  \git_update,
 			  h2('make'),
-			  \make
+			  \make,
+			  h2('Persistent file sync'),
+			  \db_sync
 			]).
 
 
@@ -127,4 +136,29 @@ html_message_lines([Fmt|T]) --> !,
 	},
 	html([S]),
 	html_message_lines(T).
+
+db_sync -->
+	{ db_sync_all(reload) }.
+
+db_sync_thread :-
+	gethostname(HostName),
+	server(slave, _, HostName), !,
+	db_sync_thread(3600).
+db_sync_thread.
+
+%%	db_sync_thread(+Time)
+%
+%	Sync the persistency database every Time seconds.
+
+db_sync_thread(Time) :-
+	catch(thread_create(sync_loop(Time), _,
+			    [ alias('__sync_db') ]),
+	      E, print_message(warning, E)).
+
+sync_loop(Time) :-
+	repeat,
+	sleep(Time),
+	catch(db_sync_all(reload),
+	      E, print_message(warning, E)),
+	fail.
 
