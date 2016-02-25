@@ -102,7 +102,7 @@ user:url_path(pl_gmane,  gmane('gmane.comp.ai.prolog.swi')).
 user:url_path(chr_mail,  'http://listserv.cc.kuleuven.ac.be/archives/chr.html').
 user:url_path(bugzilla,  'http://www.swi-prolog.org/bugzilla/').
 user:url_path(gitweb,	 'http://www.swi-prolog.org/git/').
-user:url_path(swieditor, 'http://lakk.bildung.hessen.de/netzwerk/faecher/informatik/swiprolog/indexe.html').
+user:url_path(swieditor, 'http://arbeitsplattform.bildung.hessen.de/fach/informatik/swiprolog/indexe.html').
 user:url_path(pub,	 hcs('projects/SWI-Prolog/articles')).
 user:url_path(swipub,	 swi('download/publications')).
 user:url_path(git,	 'http://git-scm.com/').
