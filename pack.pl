@@ -80,7 +80,7 @@ pack_query(Request) :-
 		       [ content_type('application/x-prolog')
 		       ]),
 	http_log('pack_query(~q, ~q).~n', [Query, Peer]),
-	format('Cache-Control: no-cache~n'),
+	format('Cache-Control: private~n'),
 	(   catch(pack_query(Query, Peer, Reply), E, true)
 	->  format('Content-type: ~w; charset=UTF8~n~n', [ReplyType]),
 	    (   var(E)
