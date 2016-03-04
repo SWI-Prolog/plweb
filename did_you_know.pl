@@ -25,7 +25,10 @@
     the GNU General Public License.
 */
 
-:-module(did_you_know, [did_you_know//0]).
+:-module(did_you_know,
+	 [ did_you_know_script//1,
+	   did_you_know//0
+	 ]).
 
 /**  <module>  Interesting snippets about SWI-Prolog
 
@@ -38,7 +41,41 @@ every pldoc and SWI-Prolog website page.
 :- use_module(library(random)).
 :- use_module(news).
 :- use_module(holidays).
+:- use_module(library(http/js_write)).
 
+:- http_handler(root(dyk), did_you_know, []).
+
+%%	did_you_know(+Request)
+%
+%	Reply with a non-cacheable DYK fragment.
+
+did_you_know(_Request) :-
+	format('Cache-Control: no-cache~n'),
+	reply_html_page(plain,
+			title('SWI-Prolog Did You Know'),
+			\did_you_know).
+
+%%	did_you_know_script(+Id)//
+%
+%	Emit script to fetch DYK through AJAX
+
+did_you_know_script(Id) -->
+	html('Did you know ... '),
+	{ http_link_to_id(did_you_know, [], HREF) },
+	js_script({|javascript(Id, HREF)||
+		   $(function() {
+		     $.ajax({ url: HREF,
+			      success: function(data) {
+			        $("#"+Id).html(data);
+			      }
+		            });
+		   });
+		  |}).
+
+
+%%	did_you_know//
+%
+%	Generate a DYK fragment.
 
 did_you_know -->
 	{ maybe(0.5) },
