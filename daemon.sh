@@ -98,6 +98,10 @@ case $1 in
 	    waitserver $PID
 	  fi
 	;;
+	reload)
+	  PID=$(pidofserver)
+	  kill -HUP $PID
+	;;
 	restart)
 	  $0 stop && $0 start
 	;;
