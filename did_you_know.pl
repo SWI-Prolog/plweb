@@ -124,11 +124,11 @@ link(HREF, HREF).
 %	be careful with line lengths for sayings, 40 chars max
 :- multifile  term_expansion/2.
 
+:- nb_setval(dyk_id, 1).
 term_expansion(dyk(Saying), dyk(Id, Saying)) :-
-	(   predicate_property(dyk(_,_), number_of_clauses(N))
-	->  Id is N+1
-	;   Id = 1
-	).
+	nb_getval(dyk_id, Id),
+	Id2 is Id+1,
+	nb_setval(dyk_id, Id2).
 
 dyk('SWI-Prolog is 28 years old').
 dyk(['the ', b('Profiler'), ' can speed up your code']-section('profiling-predicates')).
