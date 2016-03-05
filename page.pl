@@ -517,6 +517,7 @@ blurb -->
 	 by the needs of real world applications. SWI-Prolog is widely
 	 used in research and education as well as commercial applications.
 	 Join over a million users who have downloaded SWI-Prolog.
+	 <a href="/features.html">more ...</a>
       </div>
     </div>
 	     |}).
