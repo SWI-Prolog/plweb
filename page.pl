@@ -436,7 +436,7 @@ menu(Style,
        'Tutorials' =
        [ 'Beginner' =
 	 [ 'Getting started'   = '/pldoc/man?section=quickstart',
-	   'Modules'           = 'http://michael.richter.name/tutorials/swiplmod',
+	   'Modules'           = 'http://chiselapp.com/user/ttmrichter/repository/gng/doc/trunk/output/tutorials/swiplmodtut.html',
 	   'Debugger'          = '/pldoc/man?section=debugoverview',
 	   'Development tools' = '/IDE.html',
 	   'Learn Prolog Now!' = 'http://lpn.swi-prolog.org/'
