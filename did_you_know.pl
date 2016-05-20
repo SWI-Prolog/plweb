@@ -180,6 +180,7 @@ dyk('Special quasiquote syntax for html and javascript'-section('quasiquotations
 dyk('Advice for choosing 32/64 bits'-section('64bits')).
 dyk('You can configure your environment'-section('initfile')).
 dyk(['SWI-Prolog supports the ', b('Snowball'), ' stemmer']-section('snowball')).
+dyk(['SWI-Prolog supports ', b(tabling), ' (SLG resolution)']-section('tabling')).
 dyk('SWI-Prolog has an RDF Semantic Web Server'-'http://cliopatria.swi-prolog.org/home').
 dyk('You can interface C++ to SWI-Prolog'-package('pl2cpp')).
 dyk('SWI-Prolog can work with tar archives'-package('archive')).
