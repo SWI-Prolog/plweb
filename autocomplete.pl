@@ -309,6 +309,8 @@ keep_best_doc :-
 
 same_object(_:Name/Arity, Name/Arity).
 same_object(Name/Arity, _:Name/Arity).
+same_object(_:Name//Arity, Name//Arity).
+same_object(Name//Arity, _:Name//Arity).
 
 better_category(manual, _) :- !.
 better_category(packages, _) :- !.
@@ -327,7 +329,12 @@ completion_target(Object, _, Object, Name) :-
 	completion_target(Object, Name).
 
 completion_target(Name/_,   Name).
+completion_target(Name//_,  Name).
 completion_target(M:Name/A, Name) :-
+	functor(Head, Name, A),
+	predicate_property(M:Head, exported).
+completion_target(M:Name//DA, Name) :-
+	A is DA+2,
 	functor(Head, Name, A),
 	predicate_property(M:Head, exported).
 completion_target(f(Name/_),Name).
