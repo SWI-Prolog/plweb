@@ -331,9 +331,11 @@ completion_target(Object, _, Object, Name) :-
 completion_target(Name/_,   Name).
 completion_target(Name//_,  Name).
 completion_target(M:Name/A, Name) :-
+	integer(A), atom(Name),
 	functor(Head, Name, A),
 	predicate_property(M:Head, exported).
 completion_target(M:Name//DA, Name) :-
+	integer(DA), atom(Name),
 	A is DA+2,
 	functor(Head, Name, A),
 	predicate_property(M:Head, exported).
