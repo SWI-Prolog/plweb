@@ -436,23 +436,32 @@ menu(Style,
        'Tutorials' =
        [ 'Beginner' =
 	 [ 'Getting started'   = '/pldoc/man?section=quickstart',
-	   'Modules'           = 'http://chiselapp.com/user/ttmrichter/repository/gng/doc/trunk/output/tutorials/swiplmodtut.html',
+	   'Learn Prolog Now!' = 'http://lpn.swi-prolog.org/',
 	   'Debugger'          = '/pldoc/man?section=debugoverview',
-	   'Development tools' = '/IDE.html',
-	   'Learn Prolog Now!' = 'http://lpn.swi-prolog.org/'
-	 ],
-	 'Intermediate' =
-	 [ 'Web service'       = '/howto/http/',
-	   'Web applications'  = 'http://www.pathwayslms.com/swipltuts/html/index.html',
-	   'DCGs'              = 'http://www.pathwayslms.com/swipltuts/dcg/',
-	   'clp(fd)'	       = 'http://www.pathwayslms.com/swipltuts/clpfd/clpfd.html',
-	   'PlDoc'             = '/swipltuts/pldoc/index.html',
-	   'XPCE'              = '/download/xpce/doc/coursenotes/coursenotes.pdf',
-	   'GUI options'       = '/Graphics.html'
+	   'Development tools' = '/IDE.html'
 	 ],
 	 'Advanced' =
-	 [ 'RDF namespaces'    = '/howto/UseRdfMeta.html',
-	   'Linux packages'    = '/build/guidelines.txt'
+	 [ 'Modules'           = 'http://chiselapp.com/user/ttmrichter/repository/gng/doc/trunk/output/tutorials/swiplmodtut.html',
+	   'Grammars (DCGs)'   = 'http://www.pathwayslms.com/swipltuts/dcg/',
+	   'clp(fd)'	       = 'http://www.pathwayslms.com/swipltuts/clpfd/clpfd.html',
+	   'PlDoc'             = '/swipltuts/pldoc/index.html'
+	 ],
+	 'Web applications' =
+	 [ 'Web applications'  = 'http://www.pathwayslms.com/swipltuts/html/index.html',
+	   'Let\'s Encrypt!'   = 'https://github.com/triska/letswicrypt'
+	 ],
+	 'Graphics' =
+	 [ 'XPCE'              = '/download/xpce/doc/coursenotes/coursenotes.pdf',
+	   'GUI options'       = '/Graphics.html'
+	 ],
+	 'Semantic web' =
+	 [ 'RDF namespaces'    = '/howto/UseRdfMeta.html'
+	 ],
+	 'External collections' =
+	 [ 'Meta level tutorials' = 'https://www.metalevel.at/prolog'
+	 ],
+	 'For packagers' =
+	 [ 'Linux packages'    = '/build/guidelines.txt'
 	 ]
        ],
        'Community' =
