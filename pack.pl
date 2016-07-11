@@ -122,7 +122,8 @@ peer_to_atom(ip(A,B,C,D), Atom) :-
 
 proxy_master(Request) :-
 	option(host(Host), Request),
-	server(_, Host),
+	server(Role, Host),
+	Role \== master,
 	server(master, Master),
 	Master \== Host, !,
 	peer(Request, Peer),

@@ -197,4 +197,4 @@ server(Type, Host) :-
 server(cdn,    'www.swi-prolog.org', -).
 server(slave,  'us.swi-prolog.org', 'swi-prolog.osuosl.org').
 server(master, 'eu.swi-prolog.org', -).
-server(test,   'localhost', -).
+server(master, 'localhost', -).
