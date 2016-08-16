@@ -72,6 +72,7 @@
 :- use_module(library(persistency)).
 :- use_module(library(pldoc/doc_html)).
 :- use_module(library(uri)).
+:- use_module(library(md5)).
 :- use_module(library(dcg/basics)).
 :- use_module(library(aggregate)).
 
@@ -779,7 +780,7 @@ author_image(User) -->
 user_avatar(User, URL) :-
 	site_user_property(User, email(Email)),
 	downcase_atom(Email, CanonicalEmail),
-	md5(CanonicalEmail, Hash),
+	md5_hash(CanonicalEmail, Hash, []),
 	atom_concat('/avatar/', Hash, Path),
 	uri_data(scheme,    Components, http),
 	uri_data(authority, Components, 'www.gravatar.com'),

@@ -7,8 +7,6 @@
                      % -Number:number
     is_empty/1, % +Content:atom
     login_link//0,
-    md5/2, % +Unencrypted:or([atom,list(code),string])
-           % -Encrypted:or([atom,list(code),string])
     request_to_id/3, % +Request:list
                      % +Kind:oneof([annotation,news,post])
                      % -Id:atom
@@ -75,9 +73,6 @@ is_empty(Content):-
 login_link -->
   {http_current_request(Request)},
   login_link(Request).
-
-md5(Unencrypted, Encrypted):-
-  rdf_atom_md5(Unencrypted, 1, Encrypted).
 
 %%	request_to_id(+Request, ?Kind, -Id) is semidet.
 %
