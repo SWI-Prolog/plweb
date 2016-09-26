@@ -926,7 +926,7 @@ quick_button(img([ src(Icon),
 
 openid_provider(2, LoginWithGoogle, 'Google', 'social_google_box.png') :-
 	http_link_to_id(login_with_google, [], LoginWithGoogle).
-openid_provider(2, 'http://yahoo.com',  'Yahoo', 'social_yahoo_box_lilac.png').
+openid_provider(2, 'http://me.yahoo.com',  'Yahoo', 'social_yahoo_box_lilac.png').
 openid_provider(1, 'https://openid.stackexchange.com/%user%', 'StackExchange', -).
 
 openid_ok -->
