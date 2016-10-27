@@ -431,7 +431,8 @@ menu(Style,
 	   'HTML generation'   = '/pldoc/man?section=htmlwrite'
 	 ],
 	 'License'             = '/license.html',
-	 'Publications'        = '/Publications.html'
+	 'Publications'        = '/Publications.html',
+	 'Rev 7 Extensions'    = '/pldoc/man?section=extensions'
        ],
        'Tutorials' =
        [ 'Beginner' =
