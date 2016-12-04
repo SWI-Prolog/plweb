@@ -48,6 +48,7 @@
 :- use_module(library(prolog_xref)).
 :- use_module(pack_analyzer).
 :- use_module(pack_mirror).
+:- use_module(pack).
 :- use_module(wiki).
 
 
