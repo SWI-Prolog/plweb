@@ -34,7 +34,7 @@ test_links(_=L) :-
 	maplist(test_links, L).
 test_links(_=Uri) :-
 	is_link(Uri), !,
-	verbose(test_link(Uri), "Checking URL", []).
+	verbose(test_link(Uri), "Checking URL ‘~a’", [Uri]).
 test_links(_).
 
 
