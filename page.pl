@@ -446,7 +446,7 @@ menu(Style,
 	   'Grammars (DCGs)'   = 'http://www.pathwayslms.com/swipltuts/dcg/',
 	   'clp(fd)'	       = 'http://www.pathwayslms.com/swipltuts/clpfd/clpfd.html',
 	   'Printing messages' = 'http://www.pathwayslms.com/swipltuts/message/index.html',
-	   'PlDoc'             = '/swipltuts/pldoc/index.html'
+	   'PlDoc'             = 'http://chiselapp.com/user/ttmrichter/repository/swipldoctut/doc/tip/doc/tutorial.html'
 	 ],
 	 'Web applications' =
 	 [ 'Web applications'  = 'http://www.pathwayslms.com/swipltuts/html/index.html',
