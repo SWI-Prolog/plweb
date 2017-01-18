@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009-2015, VU University Amsterdam
+    Copyright (C): 2009-2017, VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -238,8 +238,10 @@ file_description(file(pkg(Pkg), PlatForm, Version, _, Path)) -->
 package(Name) -->
 	html([ 'Package ', Name ]).
 
-version(version(Major, Minor, Patch)) -->
+version(version(Major, Minor, Patch, '')) --> !,
 	html(b('~w.~w.~w'-[Major, Minor, Patch])).
+version(version(Major, Minor, Patch, Tag)) -->
+	html(b('~w.~w.~w-~w'-[Major, Minor, Patch, Tag])).
 
 down_file_href(Path, HREF) :-
 	absolute_file_name(download(.),
@@ -418,8 +420,14 @@ macos_def_cpu(_, ppc).
 win_type(win32) --> "w32".
 win_type(win64) --> "w64".
 
-long_version(version(Major, Minor, Patch)) -->
-	int(Major, 1), ".", int(Minor, 2), ".", int(Patch, 2), !.
+long_version(version(Major, Minor, Patch, Tag)) -->
+	int(Major, 1), ".", int(Minor, 2), ".", int(Patch, 2), !,
+        tag(Tag).
+
+tag(Tag) -->
+	"-", alnums(Codes), !,
+        { atom_codes(Tag, Codes) }.
+tag('') --> "".
 
 int(Value, MaxDigits) -->
 	digits(Digits),
@@ -428,7 +436,12 @@ int(Value, MaxDigits) -->
 	  number_codes(Value, Digits)
 	}.
 
-short_version(version(Major, Minor, Patch)) -->
+alnums([H|T]) -->
+	[H], { code_type(H, alnum) }, !,
+        alnums(T).
+alnums([]) --> "".
+
+short_version(version(Major, Minor, Patch, Tag)) -->
 	digits(Digits),
 	{   Digits = [D1,D2,D3]
 	->  number_codes(Major, [D1]),
@@ -447,7 +460,8 @@ short_version(version(Major, Minor, Patch)) -->
 	->  number_codes(Major, [D1]),
 	    number_codes(Minor, [D2,D3]),
 	    number_codes(Patch, [D4,D5])
-	}.
+	},
+        tag(Tag).
 
 %%	sort_files(+In, -Out, +Options)
 %
