@@ -264,9 +264,9 @@ platform(linux(rpm, _)) -->
 platform(macos(Name, CPU)) -->
 	html(['MacOSX ', \html_macos_version(Name), ' on ', b(CPU)]).
 platform(windows(win32)) -->
-	html(['Windows 7/8/10 32-bit edition']).
+	html(['Microsoft Windows (32 bit)']).
 platform(windows(win64)) -->
-	html(['Windows 7/8/10 64-bit edition']).
+	html(['Microsoft Windows (64 bit)']).
 
 html_macos_version(tiger)        --> html('10.4 (Tiger)').
 html_macos_version(leopard)      --> html('10.5 (Leopard)').
@@ -494,7 +494,9 @@ map_type(File, Tag) :-
 
 type_tag(bin, linux(A),   tag(10, linux(A))) :- !.
 type_tag(bin, linux(A,B), tag(11, linux(A,B))) :- !.
-type_tag(bin, windows(A), tag(20, windows(A))) :- !.
+type_tag(bin, windows(A), tag(Tg, windows(A))) :- !,
+	win_tag(A, Tg2),
+        Tg is 20+Tg2.
 type_tag(bin, macos(A,B), tag(Tg, macos(A,B))) :- !,
 	mac_tag(A, Tg2),
 	Tg is 30+Tg2.
@@ -507,6 +509,9 @@ mac_tag(lion,			6).
 mac_tag(snow_leopard,		7).
 mac_tag(leopard,		8).
 mac_tag(tiger,			9).
+
+win_tag(win64, 1).
+win_tag(win32, 2).
 
 sort_group_by_version(Tag-Files, Tag-Sorted) :-
 	map_list_to_pairs(tag_version, Files, TFiles),
