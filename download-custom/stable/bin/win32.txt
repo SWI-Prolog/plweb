@@ -1,4 +1,3 @@
-Self-installing executable for MS-Windows. Installs *|swipl-win.exe|*
-and *|swipl.exe|*. Works on Windows XP/Vista/7/8/10. This binary is
-linked against GMP 5.0.5, which implies that it is covered by the
-LGPL-V3 license. See below.
+Self-installing executable for MS-Windows. Requires at least Windows 7.
+Installs *|swipl-win.exe|* and *|swipl.exe|*. This binary is linked
+against GMP 6.1.1 which is covered by the LGPL license.
