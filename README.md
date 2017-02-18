@@ -7,20 +7,20 @@ scratch locally, perform the following commands:
 
   1. Downloading the site
 
-    ==
+    ```
     % git clone git://www.swi-prolog.org/home/pl/git/plweb.git
     % cd plweb
     % git submodule update --init
-    ==
+    ```
 
   2. Install required SWI-Prolog add-ons:
 
-    ==
+    ```
     % swipl
     ?- pack_install(recaptcha).
     ?- pack_install(googleclient).
     ?- pack_install(smtp).
-    ==
+    ```
 
   3. For a full installation, install the dynamic data.  The .db
     files must be writeable by the server process.
@@ -47,11 +47,11 @@ scratch locally, perform the following commands:
      directories must be writeable by the server and new directories
      created below must have the same permissions:
 
-    ==
+    ```
     % mkdir log pack
     % chgrp www-data log pack
     % chmod g+ws log pack
-    ==
+    ```
 
 ## Running the site
 
@@ -61,10 +61,10 @@ available  from  http://www.swi-prolog.org,  except   for  the  download
 section of the website. The  default  port   of  the  site  is 3040, and
 therefore it may be accessed on http://localhost:3040/
 
-  ==
+  ```
   % swipl -s load.pl
   ?- server.
-  ==
+  ```
 
 ### Running as daemon using Ubuntu upstart
 
@@ -89,14 +89,14 @@ means mode 2775, group www-data.
   Needs to make the wiki pages editable.  It is also wise to do this in
   a git branch.  From the www directory, do:
 
-    ==
+    ```
     % git checkout master
     % git pull
     % git checkout -b wiki
     % find . -type d | xargs chmod 2775
     % find . -name '*.txt' | xargs chmod 664
     % chgrp -W www-data .
-    ==
+    ```
 
   - *.db
 
@@ -112,11 +112,11 @@ means mode 2775, group www-data.
 
       2. Run (from a started server)
 
-         ==
+         ```
 	 ?- set_setting(recaptcha:public_key, 'public key goes here').
 	 ?- set_setting(recaptcha:private_key, 'private key goes here').
 	 ?- save_settings.
-	 ==
+	 ```
 
       3. Run the server from a port that is accessible from the public
          internet.
