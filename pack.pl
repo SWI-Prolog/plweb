@@ -43,6 +43,7 @@
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_client)).
 :- use_module(library(http/http_log)).
+:- use_module(library(http/http_wrapper)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 :- use_module(library(persistency)).
@@ -75,7 +76,7 @@ pack_query(Request) :-
 pack_query(Request) :-
 	memberchk(content_type(ContentType), Request),
 	content_x_prolog(ContentType, ReplyType), !,
-	peer(Request, Peer),
+	http_peer(Request, Peer),
 	http_read_data(Request, Query,
 		       [ content_type('application/x-prolog')
 		       ]),
@@ -100,21 +101,6 @@ content_x_prolog(ContentType, 'text/x-prolog') :-
 content_x_prolog(ContentType, 'application/x-prolog') :-
 	sub_atom(ContentType, 0, _, _, 'application/x-prolog').
 
-peer(Request, Peer) :-
-	memberchk(fastly_client_ip(Peer), Request), !.
-peer(Request, Peer) :-
-	memberchk(x_forwarded_for(PeerAtom), Request), !,
-	split_string(PeerAtom, ", ", ", ", [PeerString|_]),
-	atom_string(Peer, PeerString).
-peer(Request, Peer) :-
-	memberchk(x_real_ip(Peer), Request), !.
-peer(Request, PeerAtom) :-
-	memberchk(peer(Peer), Request),
-	peer_to_atom(Peer, PeerAtom).
-
-peer_to_atom(ip(A,B,C,D), Atom) :-
-	atomic_list_concat([A,B,C,D], '.', Atom).
-
 %%	proxy_master(Request)
 %
 %	Proxy the request to the master to make sure the central package
@@ -126,7 +112,7 @@ proxy_master(Request) :-
 	Role \== master,
 	server(master, Master),
 	Master \== Host, !,
-	peer(Request, Peer),
+	http_peer(Request, Peer),
 	format(string(To), 'http://~w', [Master]),
 	proxy(To, Request,
 	      [ request_headers([ 'X-Forwarded-For' = Peer,
