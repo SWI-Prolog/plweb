@@ -537,12 +537,16 @@ blurb -->
 %	Emit the Call To Action - the 3 big buttons on homepage
 cta_area -->
 	html({|html(_)||
-    <div id='cta-container'>
-        <div><a href="Download.html">Download SWI-Prolog</a></div>
-        <div><a href="pldoc/man?section=quickstart">Get Started</a></div>
-        <div><a href="http://swish.swi-prolog.org">Try SWI-Prolog online</a></div>
-    </div>
-    <div>&nbsp;</div>|}).
+    <table id='cta-container'>
+      <tr>
+        <td style="text-align:left">
+	      <a href="Download.html">Download SWI-Prolog</a>
+        <td style="text-align:center">
+	      <a href="pldoc/man?section=quickstart">Get Started</a>
+        <td style="text-align:right">
+	      <a href="http://swish.swi-prolog.org">Try SWI-Prolog online</a>
+      </tr>
+    </table>|}).
 
 
 %%	enhanced_search_area//
