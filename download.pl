@@ -33,6 +33,7 @@
 :- use_module(library(http/http_path)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_dirindex)).
+:- use_module(library(http/http_wrapper)).
 :- use_module(library(dcg/basics)).
 :- use_module(library(broadcast)).
 :- use_module(library(pairs)).
@@ -554,7 +555,7 @@ download(Request) :-
 			   [ access(read),
 			     file_errors(fail)
 			   ]), !,
-	remote_ip(Request, Remote),
+	http_peer(Request, Remote),
 	broadcast(download(Download, Remote)),
 	http_reply_file(AbsFile, [unsafe(true)], Request).
 download(Request) :-
@@ -572,18 +573,6 @@ download(Request) :-
 download(Request) :-
 	memberchk(path(Path), Request),
 	existence_error(http_location, Path).
-
-remote_ip(Request, IP) :-
-	memberchk(x_forwarded_for(IP), Request), !.
-remote_ip(Request, IP) :-
-	memberchk(peer(IPTerm), Request), !,
-	ip_term_to_atom(IPTerm, IP).
-remote_ip(_, '0.0.0.0').
-
-ip_term_to_atom(ip(A,B,C,D), Atom) :- !,
-	format(atom(Atom), '~w.~w.~w.~w', [A,B,C,D]).
-ip_term_to_atom(Term, Atom) :-
-	term_to_atom(Term, Atom).
 
 %%	download_daily(+Request)
 %
