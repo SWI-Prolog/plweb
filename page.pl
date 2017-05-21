@@ -162,25 +162,23 @@ shortcut_icons -->
 upper_header -->
 	{ http_link_to_id(plweb_search, [], Action) },
 	html(div(id('upper-header'),
-		 div(id('upper-header-contents'),
-		     [ span(id('dyknow-container'),
-			    \did_you_know_script('dyknow-container')),
-		       span(id('search-container'),
-			    [ span(class(lbl), 'Search Documentation:'),
-			      form([action(Action),id('search-form')],
-				   [ input([ name(for),
-					     id(for)
-					   ], []),
-				     input([ id('submit-for'),
-					     type(submit),
-					     value('Search')
-					   ], []),
-				     \searchbox_script(for)
-				   ])
-			    ])
-		     ])
-		)
-	    ).
+		 table(id('upper-header-contents'),
+		       tr([ td(id('dyknow-container'),
+			       \did_you_know_script('dyknow-container')),
+			    td(id('search-container'),
+			       [ span(class(lbl), 'Search Documentation:'),
+				 form([action(Action),id('search-form')],
+				      [ input([ name(for),
+						id(for)
+					      ], []),
+					input([ id('submit-for'),
+						type(submit),
+						value('Search')
+					      ], []),
+					\searchbox_script(for)
+				      ])
+			       ])
+			  ])))).
 
 %%	plweb_search(+Request)
 %
