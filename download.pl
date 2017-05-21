@@ -208,7 +208,8 @@ file_description(file(bin, PlatForm, Version, _, Path)) -->
 		 [ 'SWI-Prolog ', \version(Version), ' for ',
 		   \platform(PlatForm)
 		 ]),
-	       \platform_notes(PlatForm, Path)
+	       \platform_notes(PlatForm, Path),
+	       \checksum(Path)
 	     ]).
 file_description(file(src, Format, Version, _, Path)) -->
 	{ down_file_href(Path, HREF)
@@ -216,7 +217,8 @@ file_description(file(src, Format, Version, _, Path)) -->
 	html([ a(href(HREF),
 		 [ 'SWI-Prolog source for ', \version(Version)
 		 ]),
-	       \platform_notes(Format, Path)
+	       \platform_notes(Format, Path),
+	       \checksum(Path)
 	     ]).
 file_description(file(doc, Format, Version, _, Path)) -->
 	{ down_file_href(Path, HREF)
@@ -244,6 +246,17 @@ version(version(Major, Minor, Patch, '')) --> !,
 	html(b('~w.~w.~w'-[Major, Minor, Patch])).
 version(version(Major, Minor, Patch, Tag)) -->
 	html(b('~w.~w.~w-~w'-[Major, Minor, Patch, Tag])).
+
+checksum(Path) -->
+	{ file_checksum(Path, SHA256) },
+	html(div([ class(checksum),
+		   title('You can use the checksum to verify the integrity \c
+		          of the downloaded file.  It provides some protection \c
+			  against deliberate tamporing with the file.')
+		 ],
+		 [ span(class('checkum-header'), 'SHA256'), :,
+		   span(class([checksum,sha256]), SHA256)
+		 ])).
 
 down_file_href(Path, HREF) :-
 	absolute_file_name(download(.),
