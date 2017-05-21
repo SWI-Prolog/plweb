@@ -41,6 +41,7 @@
 :- use_module(library(apply)).
 :- use_module(library(error)).
 :- use_module(library(filesex)).
+:- use_module(library(persistency)).
 :- use_module(wiki).
 
 %%	download(+Request) is det.
@@ -550,14 +551,23 @@ old_file_type(macos(tiger,_)).
 
 download(Request) :-
 	memberchk(path_info(Download), Request),
-	absolute_file_name(download(Download),
+	(   file_name_extension(File, sha256, Download)
+	->  true
+	;   File = Download
+	),
+	absolute_file_name(download(File),
 			   AbsFile,
 			   [ access(read),
 			     file_errors(fail)
 			   ]), !,
-	http_peer(Request, Remote),
-	broadcast(download(Download, Remote)),
-	http_reply_file(AbsFile, [unsafe(true)], Request).
+	(   File == Download
+	->  http_peer(Request, Remote),
+	    broadcast(download(File, Remote)),
+	    http_reply_file(AbsFile, [unsafe(true)], Request)
+	;   file_checksum(AbsFile, SHA256),
+	    format('Content-type: text/plain~n~n'),
+	    format('~w~n', [SHA256])
+	).
 download(Request) :-
 	(   memberchk(path_info(Download), Request)
 	->  true
@@ -615,3 +625,44 @@ explain_win_daily -->
 	      binaries after a bug report.
 	      </p>
 	     |}).
+
+
+		 /*******************************
+		 *	     CHECKSUMS		*
+		 *******************************/
+
+:- persistent
+	sha256(path:atom,
+	       sha256:atom).
+
+attach_db :-
+	db_attached('checksum.db'), !.
+attach_db :-
+	db_attach('checksum.db', []).
+
+%!	file_checksum(+Path:atom, -Sum:atom) is det.
+%
+%	True when Sum is the SHA256 checksum   of  file. We keep this in
+%	the Prolog database because  this   simplifies  uploading files.
+%	Although the data under control  of   the  server  and thus more
+%	vulnerable than the download area on   disk  because that is not
+%	writeable by the server, I think  this   is  also  better from a
+%	security point of view because it  requires the attacker to both
+%	modify the filesystem and the   server,  something that requires
+%	different rights and expertise.
+
+file_checksum(Path, Sum) :-
+	attach_db,
+	sha256(Path, Sum0), !,
+	Sum = Sum0.
+file_checksum(Path, Sum) :-
+	setup_call_cleanup(
+	    process_create('/usr/bin/sha256sum', ['-b', file(Path)],
+			   [ stdout(pipe(Out)) ]),
+	    read_string(Out, _, Line),
+	    close(Out)),
+	split_string(Line, " ", " ", [Hash|_]),
+	atom_string(Sum0, Hash),
+	assert_sha256(Path, Sum0),
+	Sum = Sum0.
+
