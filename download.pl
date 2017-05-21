@@ -42,6 +42,7 @@
 :- use_module(library(error)).
 :- use_module(library(filesex)).
 :- use_module(library(persistency)).
+:- use_module(library(crypto)).
 :- use_module(wiki).
 
 %%	download(+Request) is det.
@@ -707,13 +708,5 @@ file_checksum(Path, Sum) :-
 	sha256(Path, Sum0), !,
 	Sum = Sum0.
 file_checksum(Path, Sum) :-
-	setup_call_cleanup(
-	    process_create('/usr/bin/sha256sum', ['-b', file(Path)],
-			   [ stdout(pipe(Out)) ]),
-	    read_string(Out, _, Line),
-	    close(Out)),
-	split_string(Line, " ", " ", [Hash|_]),
-	atom_string(Sum0, Hash),
-	assert_sha256(Path, Sum0),
-	Sum = Sum0.
-
+	crypto_file_hash(Path, Sum, [encoding(octet)]),
+	assert_sha256(Path, Sum).
