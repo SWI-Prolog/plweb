@@ -1,28 +1,20 @@
 # The SWI-Prolog web-site
 
 This repository contains the software  of http://www.swi-prolog.org. The
-(wiki) content of the website is stored in a git submodule. This must be
-installed seperately using the command below.   To install the site from
-scratch locally, perform the following commands:
+(wiki) content of the website and  required   add-ons  are stored in git
+submodules. These must be installed seperately  using the command below.
+To  install  the  site  from  scratch  locally,  perform  the  following
+commands:
 
   1. Downloading the site
 
     ```
-    % git clone git://www.swi-prolog.org/home/pl/git/plweb.git
+    % git clone https:github.com/SWI-Prolog/plweb.git
     % cd plweb
     % git submodule update --init
     ```
 
-  2. Install required SWI-Prolog add-ons:
-
-    ```
-    % swipl
-    ?- pack_install(recaptcha).
-    ?- pack_install(googleclient).
-    ?- pack_install(smtp).
-    ```
-
-  3. For a full installation, install the dynamic data.  The .db
+  2. For a full installation, install the dynamic data.  The .db
     files must be writeable by the server process.
 
     - annotations.db
@@ -43,7 +35,7 @@ scratch locally, perform the following commands:
     Install the download descriptions by running the script
     `install-custom`
 
-  4. Create directories for logging and pack mirrors.  These
+  3. Create directories for logging and pack mirrors.  These
      directories must be writeable by the server and new directories
      created below must have the same permissions:
 
