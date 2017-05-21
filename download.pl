@@ -424,7 +424,9 @@ win_type(win64) --> "w64".
 
 long_version(version(Major, Minor, Patch, Tag)) -->
 	int(Major, 1), ".", int(Minor, 2), ".", int(Patch, 2), !,
-        tag(Tag).
+        tag(Tag), !.
+long_version(latest) -->
+	"latest".
 
 tag(Tag) -->
 	"-", alnums(Codes), !,
@@ -463,7 +465,9 @@ short_version(version(Major, Minor, Patch, Tag)) -->
 	    number_codes(Minor, [D2,D3]),
 	    number_codes(Patch, [D4,D5])
 	},
-        tag(Tag).
+        tag(Tag), !.
+short_version(latest) -->
+	"latest".
 
 %%	sort_files(+In, -Out, +Options)
 %
@@ -547,7 +551,12 @@ old_file_type(macos(tiger,_)).
 
 %%	download(+Request) is det.
 %
-%	Actually download a file.
+%	Actually download a file.  Two special requests are supported:
+%
+%	  - By postfixing the file with `.sha256` you get the SHA1
+%	    checksum rather than the file.
+%	  - If you replace the version with `latest` you get an HTTP
+%	    303 (See Other) reply pointing at the latest version.
 
 download(Request) :-
 	memberchk(path_info(Download), Request),
@@ -568,6 +577,21 @@ download(Request) :-
 	    format('Content-type: text/plain~n~n'),
 	    format('~w~n', [SHA256])
 	).
+download(Request) :-
+	memberchk(path_info(Download), Request),
+	classify_file(Download, file(Class,Platform,latest,_,_), [show(last)]),
+	file_directory_name(Download, Dir),
+	absolute_file_name(download(Dir),
+			   AbsDir,
+			   [ access(read),
+			     file_type(directory),
+			     file_errors(fail)
+			   ]),
+	download_files(AbsDir, Class, Files, [show(last)]),
+	memberchk(file(Class, Platform, _, File, _), Files), !,
+	directory_file_path(Dir, File, Redirect),
+	http_link_to_id(download, path_postfix(Redirect), URI),
+	http_redirect(see_other, URI, Request).
 download(Request) :-
 	(   memberchk(path_info(Download), Request)
 	->  true
