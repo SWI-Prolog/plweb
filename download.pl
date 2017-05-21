@@ -95,6 +95,7 @@ list_downloads(Dir, Options) :-
 	      br(clear(all)),
 	      table(class(downloads),
 		    \download_table(Dir, Options)),
+	      \machine_download_text,
 	      \wiki(Dir, 'footer.txt')
 	    ]).
 
@@ -108,6 +109,19 @@ wiki(Dir, File) -->
 	html(DOM).
 wiki(_, _) -->
 	[].
+
+machine_download_text -->
+	html({|html||
+<div class="machine-download">
+Install scripts may download the SHA256 checksum by appending
+<code>.sha256</code> to the file name.  Scripts can download
+the latest version by replacing the version of the file with
+<code>latest</code>.  This causes the server to reply with the
+location of the latest version using an
+<code>HTTP 303 See Other</code> message.
+</div>
+	     |}).
+
 
 download_table(Dir, Options) -->
 	list_files(Dir, bin, bin,    'Binaries',         Options),
