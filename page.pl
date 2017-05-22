@@ -388,11 +388,13 @@ menu(Label = Link, _) -->
 	  uri_is_global(Link), !,
 	  http_absolute_location(icons('ext-link.png'), IMG, [])
 	}, !,
-	html(li([ a(href(Link), Label),
-		  img([ class('ext-link'),
-			src(IMG),
-			alt('External')
-		      ])
+	html(li([ a(href(Link),
+		    [ Label,
+		      img([ class('ext-link'),
+			    src(IMG),
+			    alt('External')
+			  ])
+		    ])
 		])).
 menu(_Label = (-), _) --> !,
 	[].
