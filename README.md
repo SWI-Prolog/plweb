@@ -2,48 +2,49 @@
 
 This repository contains the software  of http://www.swi-prolog.org. The
 (wiki) content of the website and  required   add-ons  are stored in git
-submodules. These must be installed seperately  using the command below.
+submodules. These must be installed separately  using the command below.
 To  install  the  site  from  scratch  locally,  perform  the  following
 commands:
 
   1. Downloading the site
 
-    ```
-    % git clone https:github.com/SWI-Prolog/plweb.git
-    % cd plweb
-    % git submodule update --init
-    ```
+       ```
+       % git clone https://github.com/SWI-Prolog/plweb.git
+       % cd plweb
+       % git submodule update --init
+       ```
 
   2. For a full installation, install the dynamic data.  The .db
     files must be writeable by the server process.
 
-    - annotations.db
-    Comments on web pages
-    - tags.db
-    Tags on web pages
-    - openid.db
-    User administration
-    - packs.db
-    Known packages
-    - post.db
-    News posts
-    - reviews.db
-    Pack reviews
-    - download
-    Points to the download directory
+     <dl>
+       <dt>annotations.db</dt>
+       <dd>Comments on web pages</dd>
+       <dt>tags.db</dt>
+       <dd>Tags on web pages</dd>
+       <dt>openid.db</dt>
+       <dd>User administration</dd>
+       <dt>packs.db</dt>
+       <dd>Known packages</dd>
+       <dt>post.db</dt>
+       <dd>News posts</dd>
+       <dt>reviews.db</dt>
+       <dd>Pack reviews</dd>
+       <dt>download</dt>
+       <dd>Points to the download directory</dd>
+     </dl>
 
-    Install the download descriptions by running the script
-    `install-custom`
+     Install the download descriptions by running the script `install-custom`
 
   3. Create directories for logging and pack mirrors.  These
      directories must be writeable by the server and new directories
      created below must have the same permissions:
 
-    ```
-    % mkdir log pack
-    % chgrp www-data log pack
-    % chmod g+ws log pack
-    ```
+      ```
+      % mkdir log pack
+      % chgrp www-data log pack
+      % chmod g+ws log pack
+      ``` 
 
 ## Running the site
 
@@ -53,10 +54,10 @@ available  from  http://www.swi-prolog.org,  except   for  the  download
 section of the website. The  default  port   of  the  site  is 3040, and
 therefore it may be accessed on http://localhost:3040/
 
-  ```
-  % swipl -s load.pl
-  ?- server.
-  ```
+```
+% swipl -s load.pl
+?- server.
+```
 
 ### Running as daemon using Ubuntu upstart
 
@@ -71,26 +72,29 @@ Make sure the following components are  writeable to the server process.
 For files, this means mode 664,   group  www-data. For directories, this
 means mode 2775, group www-data.
 
-  - log
+* log
+
   Write httpd.log and pack-warnings.log
 
-  - pack
+* pack
+
   Mirrors known packages.  Will be populated as the server is started.
 
-  - www: subdirectories and .txt files
+* www: subdirectories and .txt files
+
   Needs to make the wiki pages editable.  It is also wise to do this in
   a git branch.  From the www directory, do:
 
-    ```
-    % git checkout master
-    % git pull
-    % git checkout -b wiki
-    % find . -type d | xargs chmod 2775
-    % find . -name '*.txt' | xargs chmod 664
-    % chgrp -W www-data .
-    ```
+     ```
+     % git checkout master
+     % git pull
+     % git checkout -b wiki
+     % find . -type d | xargs chmod 2775
+     % find . -name '*.txt' | xargs chmod 664
+     % chgrp -W www-data .
+     ```
 
-  - *.db
+* *.db
 
 
 ## Issues with the locally running site
@@ -104,11 +108,11 @@ means mode 2775, group www-data.
 
       2. Run (from a started server)
 
-         ```
-	 ?- set_setting(recaptcha:public_key, 'public key goes here').
-	 ?- set_setting(recaptcha:private_key, 'private key goes here').
-	 ?- save_settings.
-	 ```
+          ```
+          ?- set_setting(recaptcha:public_key, 'public key goes here').
+          ?- set_setting(recaptcha:private_key, 'private key goes here').
+          ?- save_settings.
+          ```
 
       3. Run the server from a port that is accessible from the public
          internet.
