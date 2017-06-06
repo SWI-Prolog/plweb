@@ -257,11 +257,11 @@ tag_line_area -->
 
 title_area(pldoc(file(File, Title))) --> !,
 	{ file_base_name(File, Base) },
-	html([ div(id('header-line-area'),
-		   [ \swi_logo,
-		     span(class('primary-header'),
-			  \page_title(title(Title)))
-		   ]),
+	html([ table(id('header-line-area'),
+		     tr([ td(id('logo'), \swi_logo),
+			  td(class('primary-header'),
+			     \page_title(title(Title)))
+			])),
 	       div([ class('file-buttons')
 		   ],
 		   [ \zoom_button(Base, []),
@@ -269,11 +269,11 @@ title_area(pldoc(file(File, Title))) --> !,
 		   ])
 	     ]).
 title_area(Style) -->
-	html(div(id('header-line-area'),
-		 [ \swi_logo,
-		   span(class('primary-header'),
-			\page_title(Style))
-		 ])).
+	html(table(id('header-line-area'),
+		   tr([ td(id('logo'), \swi_logo),
+			td(class('primary-header'),
+			   \page_title(Style))
+		      ]))).
 
 page_title(For) -->
 	plweb:page_title(For), !.
@@ -352,7 +352,8 @@ todays_logo('swipl.png', 'SWI-Prolog owl logo') :-
 
 swi_logo -->
 	{ todays_logo(File, Alt),
-	  http_absolute_location(icons(File), Logo, []) },
+	  http_absolute_location(icons(File), Logo, [])
+	},
 	html(a(href('http://www.swi-prolog.org'),
 	       img([ class(owl),
 		     src(Logo),
