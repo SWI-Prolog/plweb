@@ -267,12 +267,31 @@ serve_wiki(String, File, Request) :-
 
 serve_wiki_page(Request, File, Title, DOM) :-
 	wiki_path(Request, File, WikiPath),
+	title_text(Title, TitleString),
 	reply_html_page(
 	    wiki(WikiPath, Title),
-	    [ title(Title)
+	    [ title(TitleString)
 	    ],
 	    DOM).
 
+%!	title_text(+Title, -Text:atom) is det.
+%
+%	Turn the title, represented as  an   argument  to html//1 into a
+%	plain string. Turns it  into  HTML,   then  parses  the HTML and
+%	finally extracts the string. First clause   avoids  this for the
+%	common normal case.
+
+title_text(Title, Text) :-
+	maplist(atomic, Title), !,
+	atomics_to_string(Title, Text).
+title_text(Title, Text) :-
+	phrase(html(Title), Tokens),
+	with_output_to(string(HTML), print_html(Tokens)),
+	setup_call_cleanup(
+	    open_string(HTML, In),
+	    load_html(In, DOM, []),
+	    close(In)),
+	xpath(element(div, [], DOM), /('*'(text)), Text).
 
 %%	wiki_path(+Request, +File, -WikiPath) is det.
 %
