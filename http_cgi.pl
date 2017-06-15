@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009-2013, VU University Amsterdam
+    Copyright (C): 2009-2017, VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -94,7 +94,7 @@ This module provides two interfaces:
 
 @tbd complete environment translation.  See env/3.
 @tbd testing.  Notably for POST and PUT commands.
-@see http://hoohoo.ncsa.uiuc.edu/cgi/env.html
+@see http://wiht.link/CGIaccessvariables
 */
 
 :- multifile
