@@ -44,7 +44,7 @@ commands:
       % mkdir log pack
       % chgrp www-data log pack
       % chmod g+ws log pack
-      ``` 
+      ```
 
 ## Running the site
 
@@ -55,7 +55,7 @@ section of the website. The  default  port   of  the  site  is 3040, and
 therefore it may be accessed on http://localhost:3040/
 
 ```
-% swipl -s load.pl
+% swipl -l load.pl
 ?- server.
 ```
 
