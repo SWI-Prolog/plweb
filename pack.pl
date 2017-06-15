@@ -135,7 +135,9 @@ proxy_master(Request) :-
 %	  * search(+Keyword)
 %	  Find packs that match Keyword.
 
-pack_query(install(URL, SHA1, Info), Peer, Reply) :-
+pack_query(install(URL0, SHA10, Info), Peer, Reply) :-
+	to_atom(URL0, URL),
+	to_atom(SHA10, SHA1),
 	with_mutex(pack, save_request(URL, SHA1, Info, Peer)),
 	findall(ReplyInfo, install_info(URL, SHA1, ReplyInfo, []), Reply).
 pack_query(locate(Pack), _, Reply) :-
@@ -143,6 +145,10 @@ pack_query(locate(Pack), _, Reply) :-
 pack_query(search(Word), _, Reply) :-
 	search_packs(Word, Reply).
 
+to_atom(Atom, Atom) :-
+	atom(Atom), !.
+to_atom(String, Atom) :-
+	atom_string(Atom, String).
 
 %%	pack_delete(+Request)
 %
