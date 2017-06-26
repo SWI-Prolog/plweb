@@ -95,35 +95,33 @@
 server :-
 	server([]).
 
-:- dynamic
-	server_started/0.
-
-server(_Options) :-
-	server_started, !.
 server(Options) :-
-	with_mutex(plweb_server, server_sync(Options)).
-
-server_sync(_Options) :-
-	server_started, !.
-server_sync(Options) :-
-	asserta(server_started),
-	load_settings('plweb.conf'),
+	with_mutex(plweb_init, server_init),
 	setting(http:port, Port),
 	setting(http:workers, Workers),
 	merge_options(Options,
 		      [ port(Port),
 			workers(Workers)
 		      ], HTTPOptions),
+	http_server(http_dispatch, HTTPOptions),
+	debug(plweb, 'Server was started at port ~d.', [Port]).
+
+:- dynamic
+	server_init_done/0.
+
+server_init :-
+	server_init_done, !.
+server_init :-
+	asserta(server_init_done),
+	load_settings('plweb.conf'),
 	catch(make_directory_path(log), E,
 	      print_message(warning, E)),
-	http_server(http_dispatch, HTTPOptions),
 	update_pack_metadata_in_background,
 	thread_create(index_wiki_pages, _,
 		      [ alias('__index_wiki_pages'),
 			detached(true)
 		      ]),
-	db_sync_thread,
-	debug(plweb, 'Server was started at port ~d.', [Port]).
+	db_sync_thread.
 
 
 :- multifile
