@@ -57,6 +57,7 @@
 :- use_module(library(thread_pool)).
 :- use_module(library(http/http_dirindex)).
 :- use_module(library(debug)).
+:- use_module(library(http/http_files)).
 
 :- use_module(parms).
 :- use_module(page).
@@ -77,6 +78,8 @@
 :- http_handler(root('apple-touch-icon.png'), touch_icon, []).
 :- http_handler(root(man), manual_file,
 		[prefix, priority(10), spawn(wiki)]).
+:- http_handler(root('.well-known/'),
+		http_reply_from_files('.well-known', []), [prefix]).
 
 :- create_prolog_flag(wiki_edit, true, []).
 
