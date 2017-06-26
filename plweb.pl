@@ -95,7 +95,18 @@
 server :-
 	server([]).
 
+:- dynamic
+	server_started/0.
+
+server(_Options) :-
+	server_started, !.
 server(Options) :-
+	with_mutex(plweb_server, server_sync(Options)).
+
+server_sync(_Options) :-
+	server_started, !.
+server_sync(Options) :-
+	asserta(server_started),
 	load_settings('plweb.conf'),
 	setting(http:port, Port),
 	setting(http:workers, Workers),
