@@ -1151,6 +1151,6 @@ redirect_master(Request) :-
 	server(master, Master),
 	Host \== Master, !,
 	option(request_uri(URI), Request),
-	format(string(To), 'http://~w~w', [Master, URI]),
+	format(string(To), 'https://~w~w', [Master, URI]),
 	http_redirect(see_other, To, Request).
 
