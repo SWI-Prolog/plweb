@@ -116,6 +116,7 @@ proxy_master(Request) :-
 	format(string(To), 'http://~w', [Master]),
 	proxy(To, Request,
 	      [ request_headers([ 'X-Forwarded-For' = Peer,
+				  'X-Real-IP' = Peer,
 				  'Cache-Control' = 'no-cache'
 				])
 	      ]).
