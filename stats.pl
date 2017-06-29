@@ -449,8 +449,9 @@ get_server_health(Health) :-
 health(up, true).
 health(uptime, Time) :-
 	get_time(Now),
-	http_server_property(_, start_time(StartTime)),
-	Time is round(Now - StartTime).
+	(   http_server_property(_, start_time(StartTime))
+	->  Time is round(Now - StartTime)
+	).
 health(requests, RequestCount) :-
 	cgi_statistics(requests(RequestCount)).
 health(bytes_sent, BytesSent) :-
