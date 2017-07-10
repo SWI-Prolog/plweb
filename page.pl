@@ -453,12 +453,17 @@ menu(Style,
 	 [ 'Web applications'  = 'http://www.pathwayslms.com/swipltuts/html/index.html',
 	   'Let\'s Encrypt!'   = 'https://github.com/triska/letswicrypt'
 	 ],
+	 'Semantic web' =
+	 [ 'ClioPatria'	       = 'https://cliopatria.swi-prolog.org/tutorial/',
+	   'RDF namespaces'    = '/howto/UseRdfMeta.html'
+	 ],
 	 'Graphics' =
 	 [ 'XPCE'              = '/download/xpce/doc/coursenotes/coursenotes.pdf',
 	   'GUI options'       = '/Graphics.html'
 	 ],
-	 'Semantic web' =
-	 [ 'RDF namespaces'    = '/howto/UseRdfMeta.html'
+	 'Machine learning' =
+	 [ 'Probabilistic Logic Programming' =
+			         'http://cplint.ml.unife.it/'
 	 ],
 	 'External collections' =
 	 [ 'Meta level tutorials' = 'https://www.metalevel.at/prolog'
