@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009-2013, VU University Amsterdam
+    Copyright (C): 2009-2017, VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -439,6 +439,7 @@ menu(Style,
        [ 'Beginner' =
 	 [ 'Getting started'   = '/pldoc/man?section=quickstart',
 	   'Learn Prolog Now!' = 'http://lpn.swi-prolog.org/',
+	   'Simply Logical'    = 'http://book.simply-logical.space/',
 	   'Debugger'          = '/pldoc/man?section=debugoverview',
 	   'Development tools' = '/IDE.html'
 	 ],
