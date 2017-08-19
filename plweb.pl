@@ -33,6 +33,7 @@
 	  ]).
 
 :- use_module(library(pldoc)).
+:- use_module(library(doc_http)).
 :- use_module(library(pldoc/doc_wiki)).
 :- use_module(library(pldoc/doc_man)).
 :- use_module(library(http/thread_httpd)).
@@ -97,6 +98,7 @@ server :-
 
 server(Options) :-
 	with_mutex(plweb_init, server_init),
+	doc_enable(true),
 	setting(http:port, Port),
 	setting(http:workers, Workers),
 	merge_options(Options,
@@ -105,6 +107,10 @@ server(Options) :-
 		      ], HTTPOptions),
 	http_server(http_dispatch, HTTPOptions),
 	debug(plweb, 'Server was started at port ~d.', [Port]).
+
+:- if(\+current_predicate(doc_enable/1)).
+doc_enable(_).
+:- endif.
 
 :- dynamic
 	server_init_done/0.
