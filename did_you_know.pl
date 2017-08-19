@@ -304,25 +304,4 @@ afdyk('Early Prologs ended clauses with AMEN'-
       'http://web.archive.org/web/20070703003934/www.lim.univ-mrs.fr/~colmer/ArchivesPublications/HistoireProlog/19november92.pdf').
 afdyk('test'-pack(abdcsd)).
 
-test_dyk :-
-	dyk(_, Saying),
-	try_saying(Saying),
-	fail.
-test_dyk.
-
-test_afdyk :-
-	afdyk(_, Saying),
-	try_saying(Saying),
-	fail.
-test_afdyk.
-
-try_saying(_-Link) :-
-	link(Link, _),!.
-try_saying(Saying-Link) :-
-	format('cannot create link for ~w ~w', [Saying, Link]),!.
-try_saying(_).
-
-:- test_dyk.
-:- test_afdyk.
-
 
