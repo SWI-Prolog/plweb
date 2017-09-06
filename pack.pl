@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2013-2015, VU University Amsterdam
+    Copyright (C): 2013-2017, VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -52,6 +52,7 @@
 :- use_module(library(record)).
 :- use_module(library(pairs)).
 :- use_module(library(error)).
+:- use_module(library(apply)).
 
 :- use_module(pack_info).
 :- use_module(pack_mirror).
@@ -296,11 +297,34 @@ pack_search_result(Pack, pack(Pack, p, Title, VersionA, URLs)) :-
 		 *	     DATABASE		*
 		 *******************************/
 
+:- multifile error:has_type/2.
+
+error:has_type(dependency, Value) :-
+    is_dependency(Value, _Token, _Version).
+
+is_dependency(Token, Token, *) :-
+    atom(Token).
+is_dependency(Term, Token, VersionCmp) :-
+    Term =.. [Op,Token,Version],
+    cmp(Op, _),
+    version_data(Version, _),
+    VersionCmp =.. [Op,Version].
+
+cmp(<,  @<).
+cmp(=<, @=<).
+cmp(==, ==).
+cmp(>=, @>=).
+cmp(>,  @>).
+
+version_data(Version, version(Data)) :-
+    atomic_list_concat(Parts, '.', Version),
+    maplist(atom_number, Parts, Data).
+
 :- persistent
 	sha1_pack(sha1:atom, pack:atom),
 	sha1_file(sha1:atom, file:atom),
-	sha1_requires(sha1:atom, token:atom),
-	sha1_provides(sha1:atom, token:atom),
+	sha1_requires(sha1:atom, token:dependency),
+	sha1_provides(sha1:atom, token:dependency),
 	sha1_info(sha1:atom, info:list),
 	sha1_url(sha1:atom, url:atom),
 	sha1_download(sha1:atom, peer:atom).
