@@ -553,8 +553,28 @@ sort_group_by_version(Tag-Files, Tag-Sorted) :-
 	pairs_values(TRevSorted, RevSorted),
 	reverse(RevSorted, Sorted).
 
-tag_version(File, Version) :-
-	File = file(_,_,Version,_,_).
+tag_version(File, Tag) :-
+	File = file(_,_,Version,_,_),
+	version_tag(Version, Tag).
+
+version_tag(version(Major, Minor, Patch, Tag),
+	    version(Major, Minor, Patch, Order)) :-
+	(   pre_version(Tag, Order)
+	->  true
+	;   print_message(error,
+			  error(domain_error(pre_release_version, Tag),_)),
+	    Order = pre(-100, 0)
+	).
+
+pre_version('', pre(0, 0)) :- !.
+pre_version(Tag, pre(TagOrder, N)) :-
+	tag(TagPrefix, TagOrder),
+	atom_concat(TagPrefix, NA, Tag),
+	atom_number(NA, N).
+
+tag(rc,    -1).
+tag(beta,  -2).
+tag(alpha, -3).
 
 take_latest([], []).
 take_latest([_-[H|_]|T0], [H|T]) :- !,
