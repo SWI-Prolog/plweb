@@ -1,5 +1,5 @@
 ## SWI-Prolog version 7
 
 SWI-Prolog version 7 has several extensions and incompatibilities wrt.
-traditional Prolog. See [extensions](<pldoc/man?section=extensions>)
+traditional Prolog. See [extensions](</pldoc/man?section=extensions>)
 for details.
