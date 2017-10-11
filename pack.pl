@@ -54,6 +54,7 @@
 :- use_module(library(error)).
 :- use_module(library(apply)).
 :- use_module(library(uri)).
+:- use_module(library(debug)).
 
 :- use_module(pack_info).
 :- use_module(pack_mirror).
@@ -416,6 +417,8 @@ register_provides(SHA1, Token) :-
 %
 %	Register we have that data loaded from URL has signature SHA1.
 
+:- debug(pack(changed)).
+
 register_url(SHA1, IsGIT, URL) :-
 	(   sha1_url(SHA1, URL)
 	->  true
@@ -423,8 +426,10 @@ register_url(SHA1, IsGIT, URL) :-
 	    \+ ( IsGIT == true,
 		 hash_git_url(SHA2, URL)
 	       ),
-	    (	is_github_release(URL)
-	    ->	retractall_sha1_url(SHA1, URL),
+	    (	debug(pack(changed), '~p seems changed', [URL]),
+		is_github_release(URL)
+	    ->	debug(pack(changed), 'From github: ~p', [URL]),
+		retractall_sha1_url(SHA1, URL),
 		fail
 	    ;	true
 	    )
