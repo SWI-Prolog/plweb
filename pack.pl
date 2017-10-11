@@ -595,16 +595,20 @@ the pack.
 %	Show a table of packs.
 
 pack_table(Packs, Options) -->
-	{ option(sort_by(SortBy), Options, -)
+	{ option(sort_by(SortBy), Options, -),
+	  length(Packs, PackCount),
+	  maplist(pack_downloads, Packs, Totals),
+	  sum_list(Totals, Total)
 	},
 	html_requires(css('pack.css')),
 	html(table(class(packlist),
 		   [ tr([ \pack_header(name,  SortBy,
-				       'Pack', []),
+				       'Pack', ['(~D)'-[PackCount]]),
 			  \pack_header(version, SortBy,
 				       'Version', '(#older)'),
 			  \pack_header(downloads, SortBy,
-				       'Downloads', '(#latest)'),
+				       'Downloads', ['(tot. ~D)'-[Total],
+						     br([]), '(#latest)']),
 			  \pack_header(rating, SortBy,
 				       'Rating', ['(#votes/', br([]),
 						  '#comments)']),
