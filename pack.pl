@@ -53,6 +53,7 @@
 :- use_module(library(pairs)).
 :- use_module(library(error)).
 :- use_module(library(apply)).
+:- use_module(library(uri)).
 
 :- use_module(pack_info).
 :- use_module(pack_mirror).
@@ -411,13 +412,22 @@ register_provides(SHA1, Token) :-
 	;   assert_sha1_provides(SHA1, Token)
 	).
 
+%!	register_url(+SHA1, +IsGIT, +URL) is det.
+%
+%	Register we have that data loaded from URL has signature SHA1.
+
 register_url(SHA1, IsGIT, URL) :-
 	(   sha1_url(SHA1, URL)
 	->  true
 	;   sha1_url(SHA2, URL),
 	    \+ ( IsGIT == true,
 		 hash_git_url(SHA2, URL)
-	       )
+	       ),
+	    (	is_github_release(URL)
+	    ->	retractall(assert_sha1_url(SHA1, URL)),
+		fail
+	    ;	true
+	    )
 	->  throw(pack(modified_hash(SHA1-URL, SHA2-[URL])))
 	;   IsGIT == true
 	->  assert_sha1_url(SHA1, URL)
@@ -425,6 +435,19 @@ register_url(SHA1, IsGIT, URL) :-
 	    register_file(SHA1, File, URL),
 	    assert_sha1_url(SHA1, URL)
 	).
+
+%!	is_github_release(+URL) is semidet.
+%
+%	True when URL reflects a  GitHub   release  pack download. These
+%	have the unpeleasant habbit to change exact content.
+
+is_github_release(URL) :-
+	uri_components(URL, Components),
+	uri_data(scheme, Components, Scheme), Scheme == https,
+	uri_data(authority, Components, Auth), Auth == 'github.com',
+	uri_data(path, Components, Path), atomic(Path),
+	split_string(Path, "/", "", ["", _User, _Repo, "archive", Zip]),
+	file_name_extension(_, zip, Zip).
 
 register_file(SHA1, File, URL) :-
 	(   sha1_file(SHA1, File)
