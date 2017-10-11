@@ -424,7 +424,7 @@ register_url(SHA1, IsGIT, URL) :-
 		 hash_git_url(SHA2, URL)
 	       ),
 	    (	is_github_release(URL)
-	    ->	retractall(assert_sha1_url(SHA1, URL)),
+	    ->	retractall_sha1_url(SHA1, URL),
 		fail
 	    ;	true
 	    )
