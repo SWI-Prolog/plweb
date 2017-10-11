@@ -458,7 +458,12 @@ register_file(SHA1, File, URL) :-
 	(   sha1_file(SHA1, File)
 	->  true
 	;   sha1_file(SHA2, File),
-	    sha1_urls(SHA2, URLs)
+	    sha1_urls(SHA2, URLs),
+	    (	maplist(is_github_release, [URL|URLs])
+	    ->	retractall_sha1_file(SHA1, File),
+		fail
+	    ;	true
+	    )
 	->  throw(pack(modified_hash(SHA1-URL, SHA2-URLs)))
 	;   assert_sha1_file(SHA1, File)
 	).
