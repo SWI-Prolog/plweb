@@ -197,6 +197,7 @@ install_info(URL, SHA1, alt_hash(Downloads, URLs, Hash), _) :-
 	pack_url_file(URL, File),
 	sha1_file(Hash, File),
 	Hash \== SHA1,
+	\+ is_github_release(URL),
 	sha1_downloads(Hash, Downloads),
 	sha1_urls(Hash, URLs).
 install_info(_, SHA1, downloads(Count), _) :-
@@ -452,7 +453,11 @@ is_github_release(URL) :-
 	uri_data(authority, Components, Auth), Auth == 'github.com',
 	uri_data(path, Components, Path), atomic(Path),
 	split_string(Path, "/", "", ["", _User, _Repo, "archive", Zip]),
-	file_name_extension(_, zip, Zip).
+	file_name_extension(_, Ext, Zip),
+	github_archive_extension(Ext).
+
+github_archive_extension(tgz).
+github_archive_extension(zip).
 
 register_file(SHA1, File, URL) :-
 	(   sha1_file(SHA1, File)
