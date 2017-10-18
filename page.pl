@@ -417,6 +417,7 @@ menu(Style,
        'Download' =
        [ 'SWI-Prolog'	     = '/Download.html',
 	 'Sources/building'  = '/build/',
+	 'Docker images'     = '/Docker.html',
 	 'Add-ons'           = '/pack/list',
 	 'Browse GIT'	     = 'https://github.com/SWI-Prolog'
        ],

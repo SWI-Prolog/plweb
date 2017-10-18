@@ -260,6 +260,8 @@ dyk('use mavis for type checking'-pack(mavis)).
 dyk('you can read ODF spreadsheets'-pack(odf_sheet)).
 dyk('how to submit a patch'-'/howto/SubmitPatch.html').
 dyk('add language:prolog in github search').
+dyk('there is an official Docker library for SWI-Prolog'-'/Docker.html').
+dyk('there is a Docker image SWISH'-'/Docker.html').
 
 %%	afdyk(Id, Saying) is nondet
 %
