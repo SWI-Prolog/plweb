@@ -68,7 +68,7 @@ development purposes.
 
 This module provides two interfaces:
 
-  * http_run_cgi/2 can be used to call a CGI script located exernally.
+  * http_run_cgi/3 can be used to call a CGI script located exernally.
   This is typically used for an individual script used to extend the
   server functionality.  For example, the handler declaration below
   runs the PHP script =myscript.php= from the location =/myscript/=.
@@ -110,10 +110,10 @@ This module provides two interfaces:
 %
 %	Locate a CGI script  in  the   file-search-path  Alias  from the
 %	=path_info=  in  Request   and   execute    the   script   using
-%	http_run_cgi/2. This library installs one handler using:
+%	http_run_cgi/3. This library installs one handler using:
 %
 %	  ==
-%	  :- http_handler(root('cgi-bin'), http_run_cgi(cgi_bin),
+%	  :- http_handler(root('cgi-bin'), http_run_cgi(cgi_bin, []),
 %			  [prefix, spawn([])]).
 %	  ==
 
