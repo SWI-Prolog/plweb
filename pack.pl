@@ -161,8 +161,15 @@ to_atom(String, Atom) :-
 pack_delete(Request) :-
 	site_user_logged_in(User),
 	site_user_property(User, granted(admin)), !,
-	http_parameters(Request, [p(Pack, [])], []),
-	call_showing_messages(delete_pack(Pack), []).
+	http_parameters(Request,
+			[ p(Pack, [optional(true)]),
+			  h(Hash, [optional(true)])
+			], []),
+	(   nonvar(Pack)
+	->  call_showing_messages(delete_pack(Pack), [])
+	;   nonvar(Hash)
+	->  call_showing_messages(delete_hash(Hash), [])
+	).
 pack_delete(Request) :-
 	memberchk(path(Path), Request),
 	throw(http_reply(forbidden(Path))).
