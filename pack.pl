@@ -414,15 +414,21 @@ accept_url(URL, Pack, IsGIT) :-
 
 admissible_url(URL) :-
 	uri_components(URL, Components),
+	uri_data(scheme, Components, Scheme),
 	uri_data(authority, Components, Authority),
 	uri_authority_components(Authority, AuthComponents),
 	uri_authority_data(host, AuthComponents, Host),
-	\+ nonadmissible_host(Host).
+	uri_authority_data(port, AuthComponents, Port),
+	\+ nonadmissible_host(Host),
+	admissible_scheme(Scheme, Port).
 
 nonadmissible_host(localhost).
 nonadmissible_host(IP) :-
 	split_string(IP, ".", "", Parts),
 	maplist(number_string, _, Parts).
+
+admissible_scheme(http, 80).
+admissible_scheme(https, 443).
 
 url_pattern(URL, true, URL) :- !.
 url_pattern(URL, false, Pattern) :-
