@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2013-2017, VU University Amsterdam
+    Copyright (C): 2013-2018, VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -47,6 +47,7 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 :- use_module(library(persistency)).
+:- use_module(library(lists)).
 :- use_module(library(aggregate)).
 :- use_module(library(option)).
 :- use_module(library(record)).
@@ -68,6 +69,7 @@
 :- http_handler(root(pack/list),	 pack_list,	    []).
 :- http_handler(root(pack/file_details), pack_file_details, [prefix]).
 :- http_handler(root(pack/delete),       pack_delete,       []).
+:- http_handler(root(pack/pattern),	 set_allowed_url,   []).
 
 %%	pack_query(+Request)
 %
@@ -337,10 +339,12 @@ version_data(Version, version(Data)) :-
 	sha1_provides(sha1:atom, token:dependency),
 	sha1_info(sha1:atom, info:list),
 	sha1_url(sha1:atom, url:atom),
-	sha1_download(sha1:atom, peer:atom).
+	sha1_download(sha1:atom, peer:atom),
+	pack_allowed_url(pack:atom, isgit:boolean, pattern:atom).
 
 :- initialization
-	db_attach('packs.db', [sync(close)]).
+	db_attach('packs.db', [sync(close)]),
+	populate_pack_url_patterns.
 
 %%	delete_pack(+PackName) is det.
 %
@@ -352,7 +356,8 @@ delete_pack(PackName) :-
 	clean_pack_info(PackName),
 	pack_unmirror(PackName),
 	forall(sha1_pack(Hash, PackName),
-	       delete_hash(Hash)).
+	       delete_hash(Hash)),
+	retractall_pack_allowed_url(PackName,_,_).
 delete_pack(PackName) :-
 	existence_error(pack, PackName).
 
@@ -382,15 +387,101 @@ save_request(URL, SHA1, Info, Peer) :-
 save_request(URL, SHA1, Info, Peer) :-
 	memberchk(name(Pack), Info),
 	info_is_git(Info, IsGIT),
-	register_url(SHA1, IsGIT, URL),
-	register_pack(SHA1, Pack),
-	register_info(SHA1, Info),
+	(   accept_url(URL, Pack, IsGIT)
+	->  register_url(SHA1, IsGIT, URL),
+	    register_pack(SHA1, Pack),
+	    register_info(SHA1, Info)
+	;   true
+	),
 	assert_sha1_download(SHA1, Peer).
 
 info_is_git(Info, IsGIT) :-
 	memberchk(git(IsGIT), Info), !.
 info_is_git(_, false).
 
+%!	accept_url(+URL, +Pack, +IsGit) is det.
+%
+%	True when URL is an aceptable URL for Pack.  We only
+%	register this on the first submission of a pack.
+
+accept_url(URL, Pack, IsGIT) :-
+	(   pack_allowed_url(Pack, IsGIT, Pattern)
+	*-> wildcard_match(Pattern, URL), !
+	;   admissible_url(URL)
+	->  url_pattern(URL, IsGIT, Pattern),
+	    assert_pack_allowed_url(Pack, IsGIT, Pattern)
+	).
+
+admissible_url(URL) :-
+	uri_components(URL, Components),
+	uri_data(authority, Components, Authority),
+	uri_authority_components(Authority, AuthComponents),
+	uri_authority_data(host, AuthComponents, Host),
+	\+ nonadmissible_host(Host).
+
+nonadmissible_host(localhost).
+nonadmissible_host(IP) :-
+	split_string(IP, ".", "", Parts),
+	maplist(number_string, _, Parts).
+
+url_pattern(URL, true, URL) :- !.
+url_pattern(URL, false, Pattern) :-
+	(   atom_concat('http://', Rest, URL)
+	->  atom_concat('http{,s}://', Rest, URL2)
+	;   URL2 = URL
+	),
+	file_directory_name(URL2, Dir),
+	atom_concat(Dir, '/*', Pattern).
+
+populate_pack_url_patterns :-
+	forall(pack(Pack),
+	       populate_pack_url_pattern(Pack)).
+
+populate_pack_url_pattern(Pack) :-
+	pack_allowed_url(Pack, _, _), !.
+populate_pack_url_pattern(Pack) :-
+	findall(URL-IsGIT,
+		( sha1_pack(SHA1, Pack),
+		  sha1_info(SHA1, Info),
+		  (   memberchk(git(IsGIT), Info)
+		  ->  true
+		  ;   IsGIT = false
+		  ),
+		  sha1_url(SHA1, URL)
+		),
+		URLS),
+	last(URLS, URL-IsGIT),
+	url_pattern(URL, IsGIT, Pattern),
+	assert_pack_allowed_url(Pack, IsGIT, Pattern), !.
+populate_pack_url_pattern(Pack) :-
+	print_message(error, pack(pattern_failed(Pack))).
+
+%!	set_allowed_url(+Request)
+%
+%	Set the URL pattern for a pack.
+
+set_allowed_url(Request) :-
+	site_user_logged_in(User),
+	site_user_property(User, granted(admin)), !,
+	http_parameters(Request,
+			[ p(Pack, []),
+			  url(Pattern, []),
+			  git(IsGit, [boolean, optional(true)])
+			], []),
+	retractall_pack_allowed_url(Pack, _, _),
+	(   var(IsGit)
+	->  (   sub_atom(Pattern, _, _, _, *)
+	    ->	IsGit = false
+	    ;	IsGit = true
+	    )
+	;   true
+	),
+	assert_pack_allowed_url(Pack, IsGit, Pattern).
+set_allowed_url(Request) :-
+	memberchk(path(Path), Request),
+	throw(http_reply(forbidden(Path))).
+
+%!	register_pack(+SHA1, +Pack) is det.
 
 register_pack(SHA1, Pack) :-
 	(   sha1_pack(SHA1, Pack)
