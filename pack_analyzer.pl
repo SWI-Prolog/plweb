@@ -270,16 +270,29 @@ ar_prefix(Archive, Prefix) :-
 %	Pack. Pack is either a git repository, a directory holding files
 %	or an archive.
 
-pack_members(Directory, Members) :-
+:- dynamic
+	pack_member_cache/3.
+
+pack_members(Dir, Members) :-
+	time_file(Dir, T),
+	pack_member_cache(Dir, T, Members0), !,
+	Members = Members0.
+pack_members(Dir, Members) :-
+	pack_members_no_cache(Dir, Members0),
+	time_file(Dir, T),
+	asserta(pack_member_cache(Dir, T, Members0)),
+	Members = Members0.
+
+pack_members_no_cache(Directory, Members) :-
 	is_git_directory(Directory), !,
 	git_ls_tree(Entries, [directory(Directory)]),
 	include(git_blob, Entries, Blobs),
 	maplist(git_entry, Blobs, Members).
-pack_members(Directory, Members) :-
+pack_members_no_cache(Directory, Members) :-
 	exists_directory(Directory), !,
 	recursive_directory_files(Directory, Files),
 	maplist(file_entry(Directory), Files, Members).
-pack_members(Archive, Members) :-
+pack_members_no_cache(Archive, Members) :-
 	ar_pack_members(Archive, Members0, Prefix),
 	maplist(strip_prefix(Prefix), Members0, Members).
 
