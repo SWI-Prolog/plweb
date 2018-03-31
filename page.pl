@@ -493,7 +493,7 @@ menu(Style,
 	 'Researchers'         = '/research/index.html',
 	 'Commercial users'    = '/commercial/index.html',
 	 'Dog food'            = '/dogfood.html',
-	 'Is SWIPL right for me?' = 'pldoc/man?section=swiorother'
+	 'Is SWIPL right for me?' = '/pldoc/man?section=swiorother'
        ],
        'Wiki' =
        [ LoginLabel            = LoginURL,
