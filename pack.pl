@@ -88,7 +88,7 @@ pack_query(Request) :-
 	http_log('pack_query(~q, ~q).~n', [Query, Peer]),
 	format('Cache-Control: private~n'),
 	(   catch(pack_query(Query, Peer, Reply), E, true)
-	->  format('Content-type: ~w; charset=UTF8~n~n', [ReplyType]),
+	->  format('Content-type: ~w; charset=UTF-8~n~n', [ReplyType]),
 	    (   var(E)
 	    ->	format('~q.~n', [true(Reply)]),
 		http_log('pack_query_done(ok, ~q).~n', [Peer])
@@ -96,7 +96,7 @@ pack_query(Request) :-
 		message_to_string(E, String),
 		http_log('pack_query_done(error(~q), ~q).~n', [String, Peer])
 	    )
-	;   format('Content-type: ~w; charset=UTF8~n~n', [ReplyType]),
+	;   format('Content-type: ~w; charset=UTF-8~n~n', [ReplyType]),
 	    format('false.~n'),
 	    http_log('pack_query_done(failed, ~q).~n', [Peer])
 	).
