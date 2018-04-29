@@ -55,9 +55,9 @@
 :- html_resource(tagit,
 		 [ ordered(true),
 		   requires([ jquery_ui,
-			      js('tag-it-min-2.0.js'),
-			      css('jquery.tagit.css'),
-			      css('tagit.ui-zendesk.css')
+			      js('tagit/js/tag-it.min.js'),
+			      js('tagit/css/jquery.tagit.css'),
+			      js('tagit/css/tagit.ui-zendesk.css')
 			    ]),
 		   virtual(true)
 		 ]).

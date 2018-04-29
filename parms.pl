@@ -139,14 +139,14 @@ user:url_path(serql,	 'http://www.openrdf.org').
 			    ])
 		 ]).
 :- endif.
-:- html_resource(js('jquery/ui/minified/jquery-ui.min.js'),
+:- html_resource(js('jquery/ui/jquery-ui.min.js'),
 		 [ requires([ jquery
 			    ])
 		 ]).
 :- html_resource(jquery_ui,
 		 [ virtual(true),
-		   requires([ js('jquery/ui/minified/jquery-ui.min.js'),
-			      js('jquery/themes/base/jquery-ui.css')
+		   requires([ js('jquery/ui/jquery-ui.min.js'),
+			      js('jquery/ui/jquery-ui.min.css')
 			    ])
 		 ]).
 :- html_resource(jq('menu.js'),
