@@ -300,11 +300,9 @@ add_tag(Request) :-
 	    Now is round(NowF),
 	    assert_tagged(Tag, Object, Now, User),
 	    notify(Object, tagged(Tag)),
-	    reply_json(json([ status = @true
-			    ]))
-	;   reply_json(json([ status = @false,
-			      message = Message
-			    ]))
+	    reply_json_dict(json{status:true})
+	;   reply_json_dict(json{status:false,
+			         message:Message})
 	).
 
 add_tag_validate(Tag, _Object, _UserType, Message) :-

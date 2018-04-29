@@ -55,7 +55,7 @@ reload_pre_files :-
 :- reload_pre_files.
 :- doc_load_library.
 :- http_set_session_options([enabled(false)]).
-:- send(@pce, catch_error_signals, @off).
+:- send(@(pce), catch_error_signals, @(off)).
 
 %%	show_fd
 %
