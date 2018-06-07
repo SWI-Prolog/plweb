@@ -17,7 +17,8 @@
 		changelog,
 		tagit,
 		forum,
-		make
+		make,
+		test_recaptcha
 	      ],
 	      [ silent(true)
 	      ]).
