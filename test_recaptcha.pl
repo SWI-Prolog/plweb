@@ -31,7 +31,7 @@ captcha_callback(Request) :-
 			RecapthaParams,
 			[form_data(Form)]),
 	format('Content-type: text/plain\n\n'),
-	pp(Form),
+	print_term(Form, [output(current_output)]),
 	(   recaptcha_verify(Request, RecapthaParams)
 	->  format('Welcome human!~n')
 	;   format('Go away, alien!~n')
