@@ -474,7 +474,16 @@ set_allowed_url(Request) :-
 			  url(Pattern, []),
 			  git(IsGit, [boolean, optional(true)])
 			], []),
-	retractall_pack_allowed_url(Pack, _, _),
+	call_showing_messages(set_allowed_url(Pack, IsGit, Pattern), []).
+set_allowed_url(Request) :-
+	memberchk(path(Path), Request),
+	throw(http_reply(forbidden(Path))).
+
+set_allowed_url(Pack, _IsGit, _Pattern) :-
+	\+ sha1_pack(_, Pack),
+	!,
+	existence_error(pack, Pack).
+set_allowed_url(Pack, IsGit, Pattern) :-
 	(   var(IsGit)
 	->  (   sub_atom(Pattern, _, _, _, *)
 	    ->	IsGit = false
@@ -482,10 +491,8 @@ set_allowed_url(Request) :-
 	    )
 	;   true
 	),
+	retractall_pack_allowed_url(Pack, _, _),
 	assert_pack_allowed_url(Pack, IsGit, Pattern).
-set_allowed_url(Request) :-
-	memberchk(path(Path), Request),
-	throw(http_reply(forbidden(Path))).
 
 %!	register_pack(+SHA1, +Pack) is det.
 
