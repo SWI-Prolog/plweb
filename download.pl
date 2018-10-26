@@ -368,6 +368,9 @@ download_files(Dir, Class, Files, Options0) :-
 	Files = Files0.
 download_files(_, _, [], _).
 
+clear_download_cache :-
+	retractall(download_cache(_Hash, _Dir, _Class, _Options, _Time, _Files0)).
+
 download_option(show(_)).
 
 
@@ -403,9 +406,18 @@ file(bin, macos(OSVersion, CPU), Version, Options) -->
 	;   { macos_def_cpu(OSVersion, CPU) }
 	),
 	".mpkg.zip", !.
+% Cmake version
+file(bin, macos(snow_leopard_and_later, intel), Version, _) -->
+	"swipl-", long_version(Version), opt_release(_),
+	opt_cpu(_),
+	".dmg", !.
 file(bin, macos(snow_leopard_and_later, intel), Version, _) -->
 	"SWI-Prolog-", long_version(Version),
 	".dmg", !.
+file(bin, windows(WinType), Version, _) -->
+	"swipl-", long_version(Version), opt_release(_),
+	cmake_win_type(WinType),
+	".exe", !.
 file(bin, windows(WinType), Version, _) -->
 	win_type(WinType), "pl",
 	short_version(Version),
@@ -428,11 +440,14 @@ file(doc, pdf, Version, _) -->
 swipl --> "swipl-", !.
 swipl --> "pl-".
 
+opt_release(Rel) --> "-", int(Rel, 4), !.
+opt_release(-)   --> "".
 
-opt_devel -->
-	"devel-", !.
-opt_devel -->
-	"".
+opt_devel --> "devel-", !.
+opt_devel --> "".
+
+opt_cpu(x86_64) --> ".", "x86_64", !.
+opt_cpu(unknown) --> "".
 
 macos_version(tiger)        --> "tiger".
 macos_version(leopard)      --> "leopard".
@@ -450,6 +465,9 @@ macos_def_cpu(_, ppc).
 win_type(win32) --> "w32".
 win_type(win64) --> "w64".
 
+cmake_win_type(win64) --> ".", "x64".
+cmake_win_type(win32) --> ".", "x86".
+
 long_version(version(Major, Minor, Patch, Tag)) -->
 	int(Major, 1), ".", int(Minor, 2), ".", int(Patch, 2), !,
         tag(Tag), !.
@@ -465,6 +483,7 @@ int(Value, MaxDigits) -->
 	digits(Digits),
 	{ length(Digits, Len),
 	  Len =< MaxDigits,
+	  Len > 0,
 	  number_codes(Value, Digits)
 	}.
 
@@ -567,6 +586,8 @@ version_tag(version(Major, Minor, Patch, Tag),
 	).
 
 pre_version('', pre(0, 0)) :- !.
+pre_version(NrA, pre(0, 0)) :-
+	atom_number(NrA, _Nr), !.
 pre_version(Tag, pre(TagOrder, N)) :-
 	tag(TagPrefix, TagOrder),
 	atom_concat(TagPrefix, NA, Tag),
