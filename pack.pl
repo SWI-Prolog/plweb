@@ -432,12 +432,29 @@ admissible_scheme(https, 443).
 
 url_pattern(URL, true, URL) :- !.
 url_pattern(URL, false, Pattern) :-
+	site_pattern(URL, Pattern), !.
+url_pattern(URL, false, Pattern) :-
 	(   atom_concat('http://', Rest, URL)
 	->  atom_concat('http{,s}://', Rest, URL2)
 	;   URL2 = URL
 	),
 	file_directory_name(URL2, Dir),
 	atom_concat(Dir, '/*', Pattern).
+
+site_pattern(URL, Pattern) :-
+	sub_atom(URL, 0, _, _, 'https://gitlab.com/'),
+	git_user_project_pattern(URL, Pattern).
+site_pattern(URL, Pattern) :-
+	sub_atom(URL, 0, _, _, 'https://github.com/'),
+	git_user_project_pattern(URL, Pattern).
+
+git_user_project_pattern(URL, Pattern) :-
+	uri_components(URL, Components),
+	uri_data(path, Components, Path0),
+	split_string(Path0, "/", "/", [User,Project|_]),
+	atomic_list_concat([/, User, /, Project, /, *], Path),
+	uri_data(path, Components, Path, Components1),
+	uri_components(Pattern, Components1).
 
 populate_pack_url_patterns :-
 	forall(pack(Pack),
