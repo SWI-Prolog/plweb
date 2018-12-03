@@ -44,6 +44,7 @@
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_json)).
 :- use_module(openid).
+:- use_module(messages).
 
 :- html_meta
 	odd_even_row(+, -, html, ?, ?).
@@ -56,6 +57,7 @@
 :- http_handler(root(health),	     server_health,     []).
 :- http_handler(root(stats/streams), list_file_streams, []).
 :- http_handler(root(stats/stream),  stream_details,    []).
+:- http_handler(root(admin/debug),   start_debugger,    []).
 
 server_stats(_Request) :-
 	reply_html_page(title('SWI-Prolog server statistics'),
@@ -164,18 +166,18 @@ server_stats(Port-Workers) -->
 	       tr(th(colspan(6), 'Statistics by worker')),
 	       tr([ th('Thread'),
 		    th('CPU'),
-		    th(''),
 		    th('Local'),
 		    th('Global'),
-		    th('Trail')
+		    th('Trail'),
+		    th('Limit')
 		  ]),
 	       \http_workers(Workers, odd)
 	     ]).
 
 server_stat(Name, Value, OE) -->
 	html(tr(class(OE),
-		[ th([class(p_name), colspan(3)], Name),
-		  td([class(value),  colspan(3)], Value)
+		[ th([class(p_name), colspan(4)], Name),
+		  td([class(value),  colspan(4)], Value)
 		])).
 
 
@@ -195,27 +197,19 @@ http_workers([H|T], OE) -->
 	http_workers(T, OE2).
 
 http_worker(H, OE) -->
-	{ thread_statistics(H, locallimit, LL),
-	  thread_statistics(H, globallimit, GL),
-	  thread_statistics(H, traillimit, TL),
+	{ current_prolog_flag(stack_limit, SL),
 	  thread_statistics(H, localused, LU),
 	  thread_statistics(H, globalused, GU),
 	  thread_statistics(H, trailused, TU),
 	  thread_statistics(H, cputime, CPU)
 	},
 	html([ tr(class(OE),
-		  [ td(rowspan(2), H),
-		    \nc('~3f', CPU, [rowspan(2)]),
-		    th('In use'),
+		  [ td(H),
+		    \nc('~3f', CPU),
 		    \nc(human, LU),
 		    \nc(human, GU),
-		    \nc(human, TU)
-		  ]),
-	       tr(class(OE),
-		  [ th('Limit'),
-		    \nc(human, LL),
-		    \nc(human, GL),
-		    \nc(human, TL)
+		    \nc(human, TU),
+		    \nc(human, SL)
 		  ])
 	     ]).
 
@@ -471,3 +465,11 @@ health(dir_scan_time, Time) :-
 	expand_file_name(*, _),
 	get_time(T),
 	Time is T - T0.
+
+start_debugger(_Request) :-
+	site_user_logged_in(User),
+	site_user_property(User, granted(admin)), !,
+	call_showing_messages(
+	    prolog_server(4242, []),
+	    [ head(title('SWI-Prolog -- Starting debugger'))]).
+
