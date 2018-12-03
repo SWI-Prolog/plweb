@@ -67,7 +67,8 @@
 
 :- http_handler(root(pack/query),	 pack_query,	    []).
 :- http_handler(root(pack/list),	 pack_list,	    []).
-:- http_handler(root(pack/file_details), pack_file_details, [prefix]).
+:- http_handler(root(pack/file_details), pack_file_details,
+		[prefix, time_limit(20)]).
 :- http_handler(root(pack/delete),       pack_delete,       []).
 :- http_handler(root(pack/pattern),	 set_allowed_url,   []).
 
