@@ -57,15 +57,19 @@
 %		Concurrency level (default: 1)
 
 http_replay(Log, Options) :-
-	start_dispatchers(Options),
-	open(Log, read, In, [encoding(utf8)]),
-	call_cleanup((read(In, T0),
-		      replay(T0, In)),
-		     close(In)),
-	join_dispatchers.
+	flag(http_processed, _, 0),
+	flag(http_bytes, _, 0),
+	setup_call_cleanup(
+	    start_dispatchers(Options),
+	    setup_call_cleanup(
+		open(Log, read, In, [encoding(utf8)]),
+		( read(In, T0),
+		  replay(T0, In)
+		),
+		close(In)),
+	    join_dispatchers).
 
-replay(end_of_file, _) :- !,
-	dispatch(quit).
+replay(end_of_file, _) :- !.
 replay(Term, In) :-
 	(   dispatch(Term)
 	->  true
@@ -160,6 +164,7 @@ process_event(Queue, Options) :-
 	Message == quit, !.
 
 join_dispatchers :-
+	dispatch(quit),
 	forall(retract(dispatcher(Id, Queue)),
 	       (   thread_join(Id, _),
 		   message_queue_destroy(Queue))).
@@ -192,26 +197,36 @@ Restrictions
 %	Re-sent a request to the server.
 
 request(Id, Request, Options) :-
-	memberchk(method(get), Request), !,
+	memberchk(method(Method), Request),
+	ok_method(Method),
+	!,
 	(   memberchk(session(Session), Request)
 	->  true
 	;   Session = (-)
 	),
 	url_parts(Request, Parts, Options),
 	request_options(Request, ROptions),
-	thread_create(make_request(Id, Session, Parts, ROptions), TID, []),
+	thread_create(make_request(Id, Session, Method, Parts, ROptions), TID, []),
 	assert(thread_map(Id, TID)).
-request(Id, _Request, _Options) :-
-	format(user_error, 'Request ~w is not a GET~n', [Id]).
+request(Id, Request, _Options) :-
+	memberchk(method(Method), Request),
+	format(user_error, 'Request ~w using method ~q is not supported~n',
+	       [Id, Method]).
+
+ok_method(get).
+ok_method(head).
+
 
 :- thread_local
 	session_map/2,			% LogSession, Client
 	thread_map/2.			% RequestID, Thread
 
-make_request(Id, Session, Parts, Options) :-
-	call_with_time_limit(30, make_request2(Id, Session, Parts, Options)).
+make_request(Id, Session, Method, Parts, Options) :-
+	call_with_time_limit(
+	    300,
+	    make_request2(Id, Session, Method, Parts, Options)).
 
-make_request2(Id, Session, Parts, Options) :-
+make_request2(Id, Session, Method, Parts, Options) :-
 	(   session_map(Session, ClientId)
 	->  IsNew = old
 	;   IsNew = new,
@@ -220,10 +235,11 @@ make_request2(Id, Session, Parts, Options) :-
 	memberchk(path(Path), Parts),
 	debug(replay, 'Request ~w for ~q on ~w client ~w',
 	      [Id, Path, IsNew, ClientId]),
-	open_null_stream(Dest),
 	get_time(Now),
+	open_null_stream(Dest),
 	call_cleanup(http_get(ClientId, Parts, _Reply,
-			      [ to(stream(Dest))
+			      [ to(stream(Dest)),
+				method(Method)
 			      | Options
 			      ]),
 		     Reason, done(Path, Reason, Now, Dest)),
@@ -239,10 +255,21 @@ done(Path, Reason, T0, Dest) :-
 	get_time(Now),
 	Time is Now-T0,
 	byte_count(Dest, Count),
+	progress(Count),
 	close(Dest),
 	debug(replay, '~w: (~w) got ~D bytes in ~3f sec',
 	      [Path, Reason, Count, Time]).
 
+
+progress(Count) :-
+	flag(http_processed, Requests, Requests+1),
+	flag(http_bytes,     Bytes,    Bytes+Count),
+	(   Count mod 1000 =:= 0
+	->  format(user_error,
+		   '\rProcessed: ~`.t ~D~25|~t~D~40|',
+		   [Requests, Bytes])
+	;   true
+	).
 
 %%	url_parts(+Request, -Parts, +Options) is det.
 %
