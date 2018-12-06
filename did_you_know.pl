@@ -262,6 +262,7 @@ dyk('how to submit a patch'-'/howto/SubmitPatch.html').
 dyk('add language:prolog in github search').
 dyk('there is an official Docker library for SWI-Prolog'-'/Docker.html').
 dyk('there is a Docker image SWISH'-'/Docker.html').
+dyk('SWI-Prolog runs on Android Termux'-'/build/Termux.html').
 
 %%	afdyk(Id, Saying) is nondet
 %
