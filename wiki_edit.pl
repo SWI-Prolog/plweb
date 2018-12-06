@@ -279,14 +279,16 @@ location_wiki_file(Relative, File) :-
 
 location_wiki_file(Relative, File, Access) :-
 	file_name_extension(Base, html, Relative),
-	file_name_extension(Base, txt, WikiFile),
+	wiki_extension(Ext),
+	file_name_extension(Base, Ext, WikiFile),
 	absolute_file_name(document_root(WikiFile),
 			   File,
 			   [ access(Access),
 			     file_errors(fail)
 			   ]), !.
 location_wiki_file(Relative, File, Access) :-
-	file_name_extension(_, txt, Relative),
+	wiki_extension(Ext),
+	file_name_extension(_, Ext, Relative),
 	absolute_file_name(document_root(Relative),
 			   File,
 			   [ access(Access),
@@ -302,6 +304,9 @@ location_wiki_file(Relative, File, Access) :-
         member(Index, Indices),
 	directory_file_path(Dir, Index, File),
         access_file(File, Access), !.
+
+
+
 
 %%	save_file(+File, +Text)
 %

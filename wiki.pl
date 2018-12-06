@@ -33,6 +33,7 @@
 	    wiki_page_title/2,		% +Location, -Title
 	    index_wiki_pages/0,		%
 	    update_wiki_page_title/1,	% +Location
+	    wiki_extension/1,		% ?Extension
 	    file//2,			% +File, +Options
 	    include//3			% +Object, +Type, +Options
 	  ]).
