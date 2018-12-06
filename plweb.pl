@@ -206,7 +206,8 @@ find_file(Relative, File) :-
 			   ]).
 
 source_extension(hom).				% homepage embedded html
-source_extension(txt).				% wiki text
+source_extension(txt).				% Markdown
+source_extension(md).				% Markdown
 source_extension(frg).				% embedded html
 
 
@@ -228,6 +229,8 @@ serve_file('',  Dir, Request) :-
 	;   http_reply_dirindex(Dir, [unsafe(true)], Request)
 	).
 serve_file(txt, File, Request) :-
+	serve_file(md, File, Request).
+serve_file(md, File, Request) :-
 	http_parameters(Request,
 			[ format(Format, [ oneof([raw,html]),
 					   default(html)
