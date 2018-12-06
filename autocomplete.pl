@@ -324,7 +324,10 @@ completion_target(section(_,_,Id,_), SummaryS, section(Id), Summary) :- !,
 	\+ sub_atom(Id, 0, _, _, 'sec:summary'),
 	atom_string(Summary, SummaryS).		% literal maps do not use strings
 completion_target(wiki(Location), SummaryS, wiki(Location), Summary) :- !,
-	atom_string(Summary, SummaryS).		% literal maps do not use strings
+	(   atom_string(Summary, SummaryS)	% literal maps do not use strings
+	;   file_base_name(Location, Base),
+	    file_name_extension(Summary, _, Base)
+	).
 completion_target(Object, _, Object, Name) :-
 	completion_target(Object, Name).
 
