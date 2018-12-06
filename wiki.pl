@@ -308,6 +308,7 @@ wiki_locations(Entry, Root) -->
 wiki_locations(_, _) --> [].
 
 wiki_extension(txt).
+wiki_extension(md).
 
 special(.).
 special(..).
