@@ -185,21 +185,47 @@ upper_header -->
 %	HTTP Handler to search the Prolog website.
 
 plweb_search(Request) :-
-	http_parameters(Request,
-			[ for(For,
-			      [ default(''),
-				description('String to search for')
-			      ])
-			]),
+	http_parameters(
+	    Request,
+	    [ for(For,
+		  [ default(''),
+		    description('String to search for')
+		  ]),
+	      in(In,
+		 [ oneof([all,app,noapp,man]),
+		   default(noapp),
+		   description('Search everying, application only \c
+		                or manual only')
+		 ]),
+	      match(Match,
+		    [ oneof([name,summary]),
+		      default(summary),
+		      description('Match only the name or also the summary')
+		    ]),
+	      resultFormat(Format,
+			   [ oneof(long,summary),
+			     default(summary),
+			     description('Return full documentation \c
+			                  or summary-lines')
+			   ]),
+	      page(Page,
+		   [ integer,
+		     default(1),
+		     description('Page of search results to view')
+		   ])
+
+	    ]),
 	format(string(Title), 'Prolog search -- ~w', [For]),
 	reply_html_page(pldoc(search(For)),
 			title(Title),
 			\search_reply(For,
-				      [ resultFormat(summary),
-					search_in(noapp),
-					search_match(summary),
+				      [ resultFormat(Format),
+					search_in(In),
+					search_match(Match),
 					header(false),
-					edit(false)
+					private(false),
+					edit(false),
+					page(Page)
 				      ])).
 
 
