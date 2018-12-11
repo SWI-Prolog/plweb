@@ -192,7 +192,7 @@ plweb_search(Request) :-
 		    description('String to search for')
 		  ]),
 	      in(In,
-		 [ oneof([all,app,noapp,man]),
+		 [ oneof([all,app,noapp,man,lib,pack,wiki]),
 		   default(noapp),
 		   description('Search everying, application only \c
 		                or manual only')
