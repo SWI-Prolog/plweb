@@ -45,6 +45,7 @@
 :- use_module(library(debug)).
 :- use_module(library(git)).
 
+:- use_module(pack_mirror).
 :- use_module(pack_info).
 
 /** <module> Analyse the content of a Prolog pack
@@ -405,8 +406,11 @@ prolog:xref_open_source(File, Stream) :-
 
 prolog:xref_source_identifier(Path, Path) :-
 	atom(Path),
+	pack_mirror_directory(MirrorDir),
+	sub_atom(Path, 0, _, _, MirrorDir),
+	atom(Path),
 	pack_prefix(_Pack, Prefix),
-	atom_concat(Prefix, _Entry, Path), !.
+	sub_atom(Path, 0, _, _, Prefix), !.
 
 %%	pack_file(+Path, -Pack, -Entry) is semidet.
 %

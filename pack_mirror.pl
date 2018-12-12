@@ -29,7 +29,8 @@
 
 :- module(pack_mirror,
 	  [ pack_mirror/3,		% +Pack, -MirrorArchive, -Hash
-	    pack_unmirror/1		% +Pack
+	    pack_unmirror/1,		% +Pack
+	    pack_mirror_directory/1	% -Dir
 	  ]).
 :- use_module(pack).
 :- use_module(library(sha)).
@@ -50,6 +51,24 @@ meta-information on packs.
 */
 
 pack_mirror_dir('pack/mirror').
+
+%!	pack_mirror_directory(-Dir)
+%
+%	True when Dir is the absolute file name for the mirrors.
+
+:- dynamic
+	cached_pack_mirror_dir/1.
+
+pack_mirror_directory(Dir) :-
+	cached_pack_mirror_dir(Dir), !.
+pack_mirror_directory(Dir) :-
+	pack_mirror_dir(Dir0),
+	absolute_file_name(Dir0, Dir,
+			   [ access(read),
+			     file_type(directory)
+			   ]),
+	asserta(cached_pack_mirror_dir(Dir)).
+
 
 %%	pack_mirror(+Pack, -File, -Hash) is semidet.
 %
