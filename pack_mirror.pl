@@ -65,7 +65,8 @@ pack_mirror_directory(Dir) :-
 	pack_mirror_dir(Dir0),
 	absolute_file_name(Dir0, Dir,
 			   [ access(read),
-			     file_type(directory)
+			     file_type(directory),
+			     file_errors(fail)
 			   ]),
 	asserta(cached_pack_mirror_dir(Dir)).
 
