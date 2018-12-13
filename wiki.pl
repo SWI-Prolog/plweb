@@ -247,7 +247,7 @@ prolog:doc_object_page(wiki(Location), _Options) -->
 	  http_redirect(see_other, root(Location), Request)
 	}.
 
-prolog:doc_category(wiki, 60, 'Wiki pages from the website').
+prolog:doc_category(wiki, 60, 'Wiki pages').
 
 prolog:doc_file_index_header(wiki, _) --> [].
 
