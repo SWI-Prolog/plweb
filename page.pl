@@ -40,6 +40,8 @@
 :- use_module(library(http/http_parameters)).
 :- use_module(library(pldoc/doc_html), [object_name//2]).
 :- use_module(library(uri)).
+:- use_module(library(option)).
+
 :- use_module(wiki).
 :- use_module(post).
 :- use_module(openid).
@@ -109,6 +111,7 @@ page_style(wiki(Path, _Title),	   [object(wiki(Path))]).
 page_style(pack(_Action),	   []).
 page_style(tags(_Action),	   []).
 page_style(pldoc(object(Obj)),	   [object(Obj)]) :- !.
+page_style(pldoc(search(For)),     [for(For)]) :- !.
 page_style(pldoc(_),		   []).
 page_style(pack(_Type, _Title),	   []).
 page_style(git(_),		   []).
@@ -122,7 +125,7 @@ outer_container(Content, Options) -->
 		  [ \html_requires(plweb),
 		    \html_requires(swipl_css),
 		    \shortcut_icons,
-		    \upper_header,
+		    \upper_header(Options),
 		    Content,
 		    div([id(dialog),style('display:none;')], []),
 		    div(class([footer, newstyle]), \footer(Options)),
@@ -155,12 +158,14 @@ shortcut_icons -->
 		    link([ rel('apple-touch-icon'), href(TouchIcon) ])
 		  ]).
 
-%%	upper_header//
+%%	upper_header(+Options)//
 %
 %	Emit the small blue header with Did You Know? and search box
 
-upper_header -->
-	{ http_link_to_id(plweb_search, [], Action) },
+upper_header(Options) -->
+	{ http_link_to_id(plweb_search, [], Action),
+	  option(for(Search), Options, '')
+	},
 	html(div(id('upper-header'),
 		 table(id('upper-header-contents'),
 		       tr([ td(id('dyknow-container'),
@@ -169,7 +174,8 @@ upper_header -->
 			       [ span(class(lbl), 'Search Documentation:'),
 				 form([action(Action),id('search-form')],
 				      [ input([ name(for),
-						id(for)
+						id(for),
+						value(Search)
 					      ], []),
 					input([ id('submit-for'),
 						type(submit),
