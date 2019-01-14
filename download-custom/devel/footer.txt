@@ -1,57 +1,25 @@
----++ About the development releases
+## About the development releases
 
 The development branches have their own GIT repository at the address
 below. See the general [[GIT][</git.html>]] instructions for details.
 
-==
+```
 % git clone https://github.com/SWI-Prolog/swipl-devel.git
-==
+```
 
----++ SWI-Prolog Version 7
+### Should I use the development release or the stable one?
 
-SWI-Prolog version 7 is a major release that introduces significant
-new concepts to the language.  A full description is in the
-section [SWI-Prolog extensions](</pldoc/man?section=extensions>). Below is
-a short summary.
+Many active SWI-Prolog users  track  the   development  releases  or GIT
+versions for developing Prolog  applications.  Most   of  the  time  the
+development versions are fairly stable.   Infrequent  larger rewrites to
+the  core  infrastructure  that  may   cause  instability  is  typically
+announced on the mailinglist.
 
-  - Lists are no longer represented as .(H,T).  Instead, the list
-    functor is now '[|]'(H, T).  The empty list is still [], but
-    this is not an atom.  I.e., '[]' == [] fails.
+Tracking the latest version offers some advantages for you are user:
 
-  - By default, double quoted "text" is mapped to an object of type
-    string.  This already raised some discussions.
-
-  - The system introduces `dicts' as primary citizens.  Dicts are
-    collections of key-value pairs, optionally tagged. Dicts are
-    supported by read and write.  The syntax is
-
-        ==
-        tag{key1:value1, key2:value2, ...}
-	==
-
-    Keys in a dict can be addressed using the functional notation
-    Dict.Key.  User functions on dicts can be accessed as Dict.Compound
-    (e.g., Vector.multiply(V2)).
-
-  - Putting quotes around operator names that do not need quoting
-    stops the atom to act as an operator:
-
-       ==
-       ?- A = 'dynamic'/1.
-       A = (dynamic)/1.
-       ?- op(100, xf, 'Kwh').
-       true.
-       ?- A = 100'Kwh'.
-       A = 100 'Kwh'.
-       ==
-
-  - functor() is valid syntax.  It produces a term that is distinct
-    from 'functor'.  The `block' operator '()' to hack this syntax
-    has been deleted.
-
-  - The `block' operators [] and {} remain.
-
-@see [SWI-Prolog future directions](</Directions.txt>)
-@see [Daily builds for Windows](</download/daily/bin>)
-@see [Ubuntu PPA binary packages](</build/Debian.html>)
-@see [Build instructions](</build/>)
+  - Bug fixes are quickly available.
+  - When you are stuck on a missing feature you can use this quickly
+    after it has been added.
+  - Although you are a little more often confronted with
+    incompatibilities and regressions, such issues can be discussed and
+    resolved.
