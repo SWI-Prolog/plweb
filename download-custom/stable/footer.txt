@@ -1,5 +1,6 @@
-## SWI-Prolog version 7
+## SWI-Prolog version 8
 
-SWI-Prolog version 7 has several extensions and incompatibilities wrt.
-traditional Prolog. See [extensions](</pldoc/man?section=extensions>)
-for details.
+The SWI-Prolog 8.0 major  release  marks   mostly  a  milestone  for the
+internals, stability, deployment options  and   maintainability  of  the
+system. SWI-Prolog extensions  and   incompatibilities  wrt. traditional
+Prolog are described in [extensions](</pldoc/man?section=extensions>).
