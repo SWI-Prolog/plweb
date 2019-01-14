@@ -3,7 +3,8 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2013, VU University Amsterdam
+    Copyright (C): 2013-2018, VU University Amsterdam
+			      CWI, Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -222,8 +223,9 @@ closing(_, _) --> [].
 
 %%	server(-Server) is det.
 %
-%	Provide a URL for the server.  Note   that  we  are running in a
-%	different thread.
+%	Provide a URL for the server. Note  that the mail server runs in
+%	a different thread and thus  the   HTTP  thread should call this
+%	before launching the mail thread.
 
 :- dynamic
 	server_cache/1.
@@ -231,17 +233,12 @@ closing(_, _) --> [].
 server(Server) :-
 	server_cache(Server), !.
 server(Server) :-
-	http_current_request(Request), !,
+	ignore(http_current_request(Request)),
 	http_current_host(Request, Host, Port, [global(true)]),
 	(   Port == 80
 	->  format(atom(Server), 'http://~w', [Host])
-	;   format(atom(Server), 'http://~w:~w', [Host, Port])
-	),
-	asserta(server_cache(Server)).
-server(Server) :-
-	http_current_host(_, Host, Port, [global(true)]),
-	(   Port == 80
-	->  format(atom(Server), 'http://~w', [Host])
+	;   Port == 443
+	->  format(atom(Server), 'https://~w', [Host])
 	;   format(atom(Server), 'http://~w:~w', [Host, Port])
 	).
 
