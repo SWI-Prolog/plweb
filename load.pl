@@ -8,6 +8,7 @@
 		library(thread_pool),
 		library(http/http_session),
 		library(http/http_unix_daemon),
+		library(http/http_dyn_workers),
 		library(prolog_source),
 		plweb,
 		wiki_edit,
