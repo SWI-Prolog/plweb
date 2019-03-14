@@ -244,6 +244,13 @@ searchbox_script(Tag) -->
 	    \html_requires(jquery_ui),
 	    script(type('text/javascript'), {|javascript(Tag)||
     $(function() {
+	function htmlEncode(text) {
+	  if ( !text ) return "";
+	  return document.createElement('a')
+			 .appendChild(document.createTextNode(text))
+			 .parentNode
+			 .innerHTML;
+	}
         $("#"+Tag).autocomplete({
         minLength: 1,
         delay: 0.3,
@@ -259,9 +266,9 @@ searchbox_script(Tag) -->
         }
         })
         .data("ui-autocomplete")._renderItem = function(ul,item) {
-        var label = String(item.label).replace(
-            new RegExp(this.term),
-            "<span class=\"acmatch\">$&</span>");
+        var label = String(htmlEncode(item.label)).replace(
+            htmlEncode(this.term),
+            "<span class=\"acmatch\">"+this.term+"</span>");
         var tag = item.tag ? " <i>["+item.tag+"]</i>" : "";
         return $("<li>")
           .append("<a class=\""+item.class+"\">"+label+tag+"</a>")
