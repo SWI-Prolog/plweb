@@ -782,7 +782,7 @@ user_avatar(User, URL) :-
 	downcase_atom(Email, CanonicalEmail),
 	md5_hash(CanonicalEmail, Hash, []),
 	atom_concat('/avatar/', Hash, Path),
-	uri_data(scheme,    Components, http),
+	uri_data(scheme,    Components, https),
 	uri_data(authority, Components, 'www.gravatar.com'),
 	uri_data(path,      Components, Path),
 	uri_components(URL, Components).
