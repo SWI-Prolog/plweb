@@ -416,13 +416,12 @@ menubar(Style) -->
 
 menu([], _) --> !.
 menu([H|T], Level) --> !, menu(H, Level), menu(T, Level).
+menu(Label = Link + SubMenu, Level) --> !,
+	submenu(Label, Level, SubMenu, Link).
 menu(Label = SubMenu, Level) -->
-	{ is_list(SubMenu),
-	  SubLevel is Level+1
+	{ is_list(SubMenu)
 	}, !,
-	html(li([ \submenu_label(Label, Level),
-		  ul(\menu(SubMenu, SubLevel))
-		])).
+	submenu(Label, Level, SubMenu, -).
 menu(Label = Link, _) -->
 	{ atom(Link),
 	  uri_is_global(Link), !,
@@ -438,9 +437,22 @@ menu(Label = Link, _) -->
 		])).
 menu(_Label = (-), _) --> !,
 	[].
-%	html(li(span(class(inactive), Label))).
+menu(Label = Link, 1) -->
+	{ upcase_atom(Label, LABEL) },
+	html(li(a(href(Link), LABEL))).
 menu(Label = Link, _) -->
 	html(li(a(href(Link), Label))).
+
+submenu(Label, Level, SubMenu, -) --> !,
+	{ SubLevel is Level+1 },
+	html(li([ \submenu_label(Label, Level),
+		  ul(\menu(SubMenu, SubLevel))
+		])).
+submenu(Label, Level, SubMenu, HREF) -->
+	{ SubLevel is Level+1 },
+	html(li([ a(href(HREF), \submenu_label(Label, Level)),
+		  ul(\menu(SubMenu, SubLevel))
+		])).
 
 submenu_label(Label, Level) -->
 	{ Level =< 1,
@@ -510,19 +522,19 @@ menu(Style,
 	 [ 'Meta level tutorials' = 'https://www.metalevel.at/prolog'
 	 ],
 	 'For packagers' =
-	 [ 'Linux packages'    = '/build/guidelines.txt'
+	 [ 'Linux packages'    = '/build/guidelines.html'
 	 ]
        ],
-       'Community' =
+       'Community' =           '/community.html' +
        [ 'IRC'                 = 'http://webchat.freenode.net/?channels=##prolog',
-	 'Forum'	       = 'https://swi-prolog.discourse.group',
-	 'Mailing list'	       = '/Mailinglist.html',
+	 'Forum & mailing list'= 'https://swi-prolog.discourse.group',
 	 'News'                = '/news/archive',
 	 'Report a bug'	       = '/bug.html',
 	 'Submit a patch'      = '/howto/SubmitPatch.html',
 	 'Submit an add-on'    = '/howto/Pack.html',
 	 'Roadmap (on GitHub)' = 'https://github.com/SWI-Prolog/roadmap',
 	 'External links'      = '/Links.html',
+	 'Contributing'        = '/contributing.html',
 	 'Contributors'        = '/Contributors.html',
 	 'SWI-Prolog items'    = '/loot.html'
        ],
