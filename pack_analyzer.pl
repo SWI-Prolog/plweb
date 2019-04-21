@@ -294,8 +294,14 @@ pack_members_no_cache(Directory, Members) :-
 	recursive_directory_files(Directory, Files),
 	maplist(file_entry(Directory), Files, Members).
 pack_members_no_cache(Archive, Members) :-
-	ar_pack_members(Archive, Members0, Prefix),
+	E = error(archive_error(_,_),_),
+	catch(ar_pack_members(Archive, Members0, Prefix),
+	      E, bad_archive(Archive, E)),
 	maplist(strip_prefix(Prefix), Members0, Members).
+
+bad_archive(Archive, Error) :-
+	delete_file(Archive),
+	throw(Error).
 
 git_blob(object(_Mode, blob, _Hash, _Size, _Name)).
 git_entry(object(_Mode, blob, _Hash, Size, Name), file(Name, Size)).
@@ -333,10 +339,14 @@ make_entry(file, Handle, File, file(File, Size)) :- !,
 	archive_header_property(Handle, size(Size)).
 make_entry(link, Handle, File, link(File, Target)) :- !,
 	archive_header_property(Handle, link_target(Target)).
+make_entry(directory, _, _, _) :- !,
+	fail.
 make_entry(Type, _, Name, Entry) :-
-	Type \== directory,
+	atom(Type), !,
 	Entry =.. [Type, Name].
-
+make_entry(Type, _, Name, _Entry) :-
+	print_message(warning, unknown_archive_type(Type, Name)),
+	fail.
 
 strip_prefix(Prefix, Term0, Term) :-
 	Term0 =.. [Type, Name, Size],
