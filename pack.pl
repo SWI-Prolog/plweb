@@ -382,7 +382,8 @@ delete_hash(Hash) :-
 %	downloaded from the same Peer.
 
 save_request(URL, SHA1, Info, Peer) :-
-	sha1_download(SHA1, Peer), !,		% already downloaded from here
+	sha1_download(SHA1, Peer),
+	sha1_pack(SHA1, Peer), !,		% already downloaded from here
 	info_is_git(Info, IsGIT),
 	register_url(SHA1, IsGIT, URL).		% but maybe from a different URL
 save_request(URL, SHA1, Info, Peer) :-
@@ -392,7 +393,7 @@ save_request(URL, SHA1, Info, Peer) :-
 	->  register_url(SHA1, IsGIT, URL),
 	    register_pack(SHA1, Pack),
 	    register_info(SHA1, Info)
-	;   true
+	;   permission_error(register, pack(Pack), URL)
 	),
 	assert_sha1_download(SHA1, Peer).
 
