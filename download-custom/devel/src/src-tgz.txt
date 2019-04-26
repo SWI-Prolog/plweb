@@ -1,2 +1,3 @@
-Sources in =|.tar.gz|= format, including packages and generated documentation
-files.  See [[build instructions][</build/>]].
+Sources in =|.tar.gz|= format, including packages. See [[build
+instructions][</build/>]]. See also the [GIT
+repository](https://github.com/SWI-Prolog).
