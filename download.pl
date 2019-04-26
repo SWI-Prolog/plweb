@@ -199,6 +199,8 @@ icon_for_file(bin, macos(snow_leopard,_),
 	      'snowleopard.gif', 'Snow Leopard').
 icon_for_file(bin, macos(snow_leopard_and_later,_),
 	      'macapp.png', 'Snow Leopard and later').
+icon_for_file(bin, macos(bundle,_),
+	      'macapp.png', 'MacOS bundle').
 icon_for_file(bin, macos(_,_),
 	      'mac.gif', 'MacOSX version').
 icon_for_file(_, windows(win32),
@@ -303,6 +305,7 @@ html_macos_version(leopard)      --> html('10.5 (Leopard)').
 html_macos_version(snow_leopard) --> html('10.6 (Snow Leopard)').
 html_macos_version(lion)	 --> html('10.7 (Lion)').
 html_macos_version(snow_leopard_and_later) --> html('10.6 (Snow Leopard) and later').
+html_macos_version(bundle)       --> html('10.12 (Sierra) and later').
 html_macos_version(OS)	         --> html(OS).
 
 %%	platform_notes(+Platform, +Path) is det.
@@ -329,8 +332,6 @@ platform_note_file(windows(win32),   'win32.txt').
 platform_note_file(windows(win64),   'win64.txt').
 platform_note_file(pkg(Pkg),         File) :-
 	file_name_extension(Pkg, txt, File).
-platform_note_file(macos(Version,_), File) :-
-	atomic_list_concat([macosx, -, Version, '.txt'], File).
 platform_note_file(macos(Version,_), File) :-
 	atomic_list_concat([macosx, -, Version, '.txt'], File).
 platform_note_file(macos(_,_),	     'macosx.txt').
@@ -407,7 +408,7 @@ file(bin, macos(OSVersion, CPU), Version, Options) -->
 	),
 	".mpkg.zip", !.
 % Cmake version
-file(bin, macos(snow_leopard_and_later, intel), Version, _) -->
+file(bin, macos(bundle, intel), Version, _) -->
 	"swipl-", long_version(Version), opt_release(_),
 	opt_cpu(_),
 	".dmg", !.
@@ -557,6 +558,7 @@ type_tag(src, Format,     tag(40, Format)) :- !.
 type_tag(doc, Format,     tag(50, Format)) :- !.
 type_tag(X,   Y,	  tag(60, X-Y)).
 
+mac_tag(bundle,			4).
 mac_tag(snow_leopard_and_later,	5).
 mac_tag(lion,			6).
 mac_tag(snow_leopard,		7).
