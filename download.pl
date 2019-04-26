@@ -614,6 +614,7 @@ old_file_type(linux(_)).
 old_file_type(linux(_,_)).
 old_file_type(macos(_,ppc)).
 old_file_type(macos(tiger,_)).
+old_file_type(macos(snow_leopard_and_later,_)).
 
 
 		 /*******************************
