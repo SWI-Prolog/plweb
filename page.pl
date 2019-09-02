@@ -535,6 +535,7 @@ menu(Style,
 	 'Roadmap (on GitHub)' = 'https://github.com/SWI-Prolog/roadmap',
 	 'External links'      = '/Links.html',
 	 'Contributing'        = '/contributing.html',
+	 'Code of Conduct'     = '/Code-of-Conduct.html',
 	 'Contributors'        = '/Contributors.html',
 	 'SWI-Prolog items'    = '/loot.html'
        ],
