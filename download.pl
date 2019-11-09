@@ -679,7 +679,10 @@ download(Request) :-
 			     file_errors(fail),
 			     file_type(directory)
 			   ]), !,
-	http_reply_dirindex(AbsFile, [unsafe(true)], Request).
+	http_reply_dirindex(AbsFile,
+			    [ unsafe(true),
+			      name(name_cell)
+			    ], Request).
 download(Request) :-
 	memberchk(path(Path), Request),
 	existence_error(http_location, Path).
@@ -691,6 +694,21 @@ download_file(File, AbsFile) :-
 			     file_errors(fail)
 			   ]).
 
+:- public
+	name_cell//1.
+
+name_cell(File) -->
+	{ needs_envelope(File),
+	  file_base_name(File, Name),
+	  uri_encoded(path, Name, Ref0),
+	  file_name_extension(Ref0, envelope, Ref)
+	},
+	html(a(href(Ref), Name)).
+name_cell(File) -->
+	{ file_base_name(File, Name),
+	  uri_encoded(path, Name, Ref)
+	},
+	html(a(href(Ref), Name)).
 
 %%	download_daily(+Request)
 %
@@ -707,7 +725,8 @@ download_daily(_Request) :-
 	    [ \explain_win_daily,
 	      \directory_index(Dir,
 			       [ order_by(time),
-				 order(descending)
+				 order(descending),
+				 name(name_cell)
 			       ])
 	    ]).
 
@@ -739,8 +758,11 @@ explain_win_daily -->
 		 *	      ENVELOPE		*
 		 *******************************/
 
+needs_envelope(File) :-
+	file_name_extension(_, exe, File).
+
 add_envelope(File, Envelope) :-
-	file_name_extension(_, exe, File),
+	needs_envelope(File),
 	!,
 	file_name_extension(File, envelope, Envelope).
 add_envelope(File, File).
