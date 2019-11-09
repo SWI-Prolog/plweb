@@ -3,7 +3,8 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009-2017, VU University Amsterdam
+    Copyright (C): 2009-2019, VU University Amsterdam
+			      CWI, Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -29,6 +30,7 @@
 
 :- module(plweb_download, []).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/js_write)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/http_parameters)).
@@ -43,6 +45,7 @@
 :- use_module(library(filesex)).
 :- use_module(library(persistency)).
 :- use_module(library(crypto)).
+:- use_module(library(random)).
 :- use_module(wiki).
 
 %%	download(+Request) is det.
@@ -283,7 +286,8 @@ down_file_href(Path, HREF) :-
 			   ]),
 	atom_concat(Dir, SlashLocal, Path),
 	delete_leading_slash(SlashLocal, Local),
-	http_absolute_location(download(Local), HREF, []).
+	add_envelope(Local, SafeLocal),
+	http_absolute_location(download(SafeLocal), HREF, []).
 
 delete_leading_slash(SlashPath, Path) :-
 	atom_concat(/, Path, SlashPath), !.
@@ -625,22 +629,22 @@ old_file_type(macos(snow_leopard_and_later,_)).
 %
 %	Actually download a file.  Two special requests are supported:
 %
-%	  - By postfixing the file with `.sha256` you get the SHA1
+%	  - By postfixing the file with `.sha256` you get the SHA256
 %	    checksum rather than the file.
 %	  - If you replace the version with `latest` you get an HTTP
 %	    303 (See Other) reply pointing at the latest version.
 
 download(Request) :-
 	memberchk(path_info(Download), Request),
+	file_name_extension(File, envelope, Download), !,
+	envelope(File).
+download(Request) :-
+	memberchk(path_info(Download), Request),
 	(   file_name_extension(File, sha256, Download)
 	->  true
 	;   File = Download
 	),
-	absolute_file_name(download(File),
-			   AbsFile,
-			   [ access(read),
-			     file_errors(fail)
-			   ]), !,
+	download_file(File, AbsFile),
 	(   File == Download
 	->  http_peer(Request, Remote),
 	    broadcast(download(File, Remote)),
@@ -679,6 +683,14 @@ download(Request) :-
 download(Request) :-
 	memberchk(path(Path), Request),
 	existence_error(http_location, Path).
+
+download_file(File, AbsFile) :-
+	absolute_file_name(download(File),
+			   AbsFile,
+			   [ access(read),
+			     file_errors(fail)
+			   ]).
+
 
 %%	download_daily(+Request)
 %
@@ -724,6 +736,82 @@ explain_win_daily -->
 
 
 		 /*******************************
+		 *	      ENVELOPE		*
+		 *******************************/
+
+add_envelope(File, Envelope) :-
+	file_name_extension(_, exe, File),
+	!,
+	file_name_extension(File, envelope, Envelope).
+add_envelope(File, File).
+
+envelope(File) :-
+	maybe(0.1),
+	download_file(File, AbsFile),
+	file_checksum(AbsFile, OkHash),
+	compute_file_checksum(AbsFile, NewHash),
+	NewHash \== OkHash,
+	!,
+	reply_html_page(
+	    download(File, 'Possibly tampered binary'),
+	    title('Possibly tampered binary'),
+	    \tampered(File, OkHash, NewHash)).
+envelope(Path) :-
+	file_base_name(Path, File),
+	reply_html_page(
+	    download(File, 'Download binary'),
+	    title('Download a binary file'),
+	    \envelope(File)).
+
+envelope(File) -->
+	{ http_absolute_location(icons('alert.gif'), Alert, [])
+	},
+	html({|html(File, Alert)||
+<p><img src=Alert style="float:left">
+Windows antivirus software works using <i>signatures</i> and <i>heuristics</i>.
+Using the huge amount of virusses and malware known today, arbitrary executables
+are often <a href="https://en.wikipedia.org/wiki/Antivirus_software#Problems_caused_by_false_positives">falsily classified as malicious</a>.
+<a href="https://safebrowsing.google.com/">Google Safe Browsing</a>, used by
+most modern browsers, therefore classify our binaries often as malware.
+You can use e.g., <a href="https://www.virustotal.com/gui/home/url">virustotal</a> to verify files with a large number of antivirus softwares.
+</p>
+
+<p>
+Our Windows binaries are cross-compiled on an isolated Linux container.  The
+integrity of the binaries on the server is regularly verified by validating its
+SHA256 fingerprint.
+</p>
+
+<p>
+Please select the checkbox below to enable the actual download link.
+</p>
+
+<table>
+<tr><td><input type="checkbox" id="understand"><td>I understand</tr>
+<tr><td><td><a id="download">Download <code>File</code></a></tr>
+</table>
+	     |}),
+	js_script({|javascript(File)||
+$(function() {
+  $("#understand").prop("checked", false)
+                  .on("click", function() {
+    $("#download").attr("href", File);
+  });
+});
+
+		  |}).
+
+tampered(File, OkHash, NewHash) -->
+	{ http_absolute_location(icons('alert.gif'), Alert, [])
+	},
+	html({|html(File, Alert, OkHash, NewHash)||
+<p><img src=Alert style="float:left">
+The file <code>File</code> SHA256 signature has changed.  Please
+report this at <a href="mailto:bugs@swi-prolog.org">bugs@swi-prolog.org</a>
+	     |}).
+
+
+		 /*******************************
 		 *	     CHECKSUMS		*
 		 *******************************/
 
@@ -752,6 +840,9 @@ file_checksum(Path, Sum) :-
 	sha256(Path, Sum0), !,
 	Sum = Sum0.
 file_checksum(Path, Sum) :-
+	compute_file_checksum(Path, Sum).
+
+compute_file_checksum(Path, Sum) :-
 	crypto_file_hash(Path, Sum,
 			 [ encoding(octet),
 			   algorithm(sha256)
