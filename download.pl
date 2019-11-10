@@ -817,7 +817,7 @@ Please select the checkbox below to enable the actual download link.
 <tr><td><input type="checkbox" id="understand"><td>I understand</tr>
 <tr><td><td><a id="download">Download <code>Base</code></a>
 <span style="color:#888; font-size:small;">(SHA256: <code>Hash</code>)</span></tr>
-<tr><td align="right"><img src=VTLogo style="width:1.5ex"><td><a href=VTHREF>VIRUSTOTAL Scan Result</a></tr>
+<tr><td style="text-align:right"><img src=VTLogo style="width:1.5ex"><td><a href=VTHREF>VIRUSTOTAL Scan Result</a></tr>
 </table>
 	     |}),
 	js_script({|javascript(Base)||
