@@ -794,8 +794,8 @@ Windows antivirus software works using <i>signatures</i> and <i>heuristics</i>.
 Using the huge amount of virusses and malware known today, arbitrary executables
 are often <a href="https://en.wikipedia.org/wiki/Antivirus_software#Problems_caused_by_false_positives">falsily classified as malicious</a>.
 <a href="https://safebrowsing.google.com/">Google Safe Browsing</a>, used by
-most modern browsers, therefore classify our binaries often as malware.
-You can use e.g., <a href="https://www.virustotal.com/gui/home/url">virustotal</a> to verify files with a large number of antivirus softwares.
+most modern browsers, therefore often classifies our Windows binaries as malware.
+You can use e.g., <a href="https://www.virustotal.com/gui/home/url">virustotal</a> to verify files with a large number of antivirus programs.
 </p>
 
 <p>
