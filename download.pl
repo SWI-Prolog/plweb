@@ -778,24 +778,27 @@ envelope(File) :-
 	    download(File, 'Possibly tampered binary'),
 	    title('Possibly tampered binary'),
 	    \tampered(File, OkHash, NewHash)).
-envelope(Path) :-
-	file_base_name(Path, File),
+envelope(File) :-
+	file_base_name(File, Base),
 	reply_html_page(
-	    download(File, 'Download binary'),
+	    download(Base, 'Download binary'),
 	    title('Download a binary file'),
 	    \envelope(File)).
 
 envelope(File) -->
-	{ http_absolute_location(icons('alert.gif'), Alert, [])
+	{ http_absolute_location(icons('alert.gif'), Alert, []),
+	  download_file(File, AbsFile),
+	  file_checksum(AbsFile, Hash),
+	  file_base_name(File, Base)
 	},
-	html({|html(File, Alert)||
+	html({|html(Base, Hash, Alert)||
 <p><img src=Alert style="float:left">
 Windows antivirus software works using <i>signatures</i> and <i>heuristics</i>.
 Using the huge amount of virusses and malware known today, arbitrary executables
 are often <a href="https://en.wikipedia.org/wiki/Antivirus_software#Problems_caused_by_false_positives">falsily classified as malicious</a>.
 <a href="https://safebrowsing.google.com/">Google Safe Browsing</a>, used by
-most modern browsers, therefore often classifies our Windows binaries as malware.
-You can use e.g., <a href="https://www.virustotal.com/gui/home/url">virustotal</a> to verify files with a large number of antivirus programs.
+most modern browsers, therefore often classifies our Windows binaries as
+malware. You can use e.g., <a href="https://www.virustotal.com/gui/home/url">virustotal</a> to verify files with a large number of antivirus programs.
 </p>
 
 <p>
@@ -810,14 +813,15 @@ Please select the checkbox below to enable the actual download link.
 
 <table>
 <tr><td><input type="checkbox" id="understand"><td>I understand</tr>
-<tr><td><td><a id="download">Download <code>File</code></a></tr>
+<tr><td><td><a id="download">Download <code>Base</code></a></tr>
+<tr><td><td>SHA256 fingerprint: <code>Hash</code></tr>
 </table>
 	     |}),
 	js_script({|javascript(File)||
 $(function() {
   $("#understand").prop("checked", false)
                   .on("click", function() {
-    $("#download").attr("href", File);
+    $("#download").attr("href", Base);
   });
 });
 
