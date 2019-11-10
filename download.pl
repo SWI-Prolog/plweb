@@ -787,11 +787,13 @@ envelope(File) :-
 
 envelope(File) -->
 	{ http_absolute_location(icons('alert.gif'), Alert, []),
+	  http_absolute_location(icons('vt_logo.png'), VTLogo, []),
 	  download_file(File, AbsFile),
 	  file_checksum(AbsFile, Hash),
-	  file_base_name(File, Base)
+	  file_base_name(File, Base),
+	  format(atom(VTHREF), 'https://www.virustotal.com/file/~w/analysis/', Hash)
 	},
-	html({|html(Base, Hash, Alert)||
+	html({|html(Base, Hash, VTHREF, VTLogo, Alert)||
 <p><img src=Alert style="float:left">
 Windows antivirus software works using <i>signatures</i> and <i>heuristics</i>.
 Using the huge amount of virusses and malware known today, arbitrary executables
@@ -813,11 +815,12 @@ Please select the checkbox below to enable the actual download link.
 
 <table>
 <tr><td><input type="checkbox" id="understand"><td>I understand</tr>
-<tr><td><td><a id="download">Download <code>Base</code></a></tr>
-<tr><td><td>SHA256 fingerprint: <code>Hash</code></tr>
+<tr><td><td><a id="download">Download <code>Base</code></a>
+<span style="color:#888; font-size:small;">(SHA256: <code>Hash</code>)</span></tr>
+<tr><td align="right"><img src=VTLogo style="width:1.5ex"><td><a href=VTHREF>VIRUSTOTAL Scan Result</a></tr>
 </table>
 	     |}),
-	js_script({|javascript(File)||
+	js_script({|javascript(Base)||
 $(function() {
   $("#understand").prop("checked", false)
                   .on("click", function() {
