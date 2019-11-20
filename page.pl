@@ -504,7 +504,8 @@ menu(Style,
 	 ],
 	 'Web applications' =
 	 [ 'Web applications'  = 'http://www.pathwayslms.com/swipltuts/html/index.html',
-	   'Let\'s Encrypt!'   = 'https://github.com/triska/letswicrypt'
+	   'Let\'s Encrypt!'   = 'https://github.com/triska/letswicrypt',
+	   'Pengines'	       = '/pengines/'
 	 ],
 	 'Semantic web' =
 	 [ 'ClioPatria'	       = 'https://cliopatria.swi-prolog.org/tutorial/',
