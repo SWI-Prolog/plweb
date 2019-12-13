@@ -74,12 +74,12 @@ changelog_dom(Range, DOM) :-
 	assertz(changelog_cache(Range, DOM)),
 	get_time(Now),
 	assertz(changelog_seen(Range, Now)),
-	clean_cached_changelogs.
+	clean_cached_changelogs(5).
 
-clean_cached_changelogs :-
+clean_cached_changelogs(Keep) :-
 	repeat,
 	predicate_property(changelog_cache(_,_), number_of_clauses(N)),
-	(   N > 5
+	(   N > Keep
 	->  retract(changelog_seen(Range, _)),
 	    retractall(changelog_cache(Range, _)),
 	    fail
