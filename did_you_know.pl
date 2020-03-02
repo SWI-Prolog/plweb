@@ -50,10 +50,15 @@ every pldoc and SWI-Prolog website page.
 %	Reply with a non-cacheable DYK fragment.
 
 did_you_know(_Request) :-
-	format('Cache-Control: max-age=10~n'),
+	disable_client_cache,
 	reply_html_page(plain,
 			title('SWI-Prolog Did You Know'),
 			\did_you_know).
+
+disable_client_cache :-
+	format('Cache-Control: no-cache, no-store, must-revalidate\r\n\c
+                Pragma: no-cache\r\n\c
+		Expires: 0\r\n').
 
 %%	did_you_know_script(+Id)//
 %
