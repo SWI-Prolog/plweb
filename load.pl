@@ -27,7 +27,14 @@
 
 :- if(exists_source(library(ssh_server))).
 :- use_module(library(ssh_server)).
-:- initialization ssh_server(2022).
+:- use_module(library(broadcast)).
+:- listen(http(pre_server_start),
+          start_sshd).
+
+start_sshd :-
+    ssh_server([ port(2022),
+                 authorized_keys_file('etc/ssh/authorized_keys')
+               ]).
 :- endif.
 
 %%	read_comments(+File)
