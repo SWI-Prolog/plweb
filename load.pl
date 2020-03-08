@@ -19,7 +19,8 @@
 		tagit,
 		forum,
 		make,
-		test_recaptcha
+		test_recaptcha,
+		watchdog
 	      ],
 	      [ silent(true)
 	      ]).
