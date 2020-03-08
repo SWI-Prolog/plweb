@@ -25,6 +25,11 @@
 	      [ silent(true)
 	      ]).
 
+:- if(exists_source(library(ssh_server))).
+:- use_module(library(ssh_server)).
+:- initialization ssh_server(2022).
+:- endif.
+
 %%	read_comments(+File)
 %
 %	Reads PlDoc comments for a file that was already loaded before
