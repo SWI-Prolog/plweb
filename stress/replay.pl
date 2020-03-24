@@ -55,28 +55,34 @@
 %
 %		* concurrent(Count)
 %		Concurrency level (default: 1)
+%
+%		* count(+Count)
+%		Process (at most) Count records.
 
 http_replay(Log, Options) :-
 	flag(http_processed, _, 0),
 	flag(http_bytes, _, 0),
+	option(count(Count), Options, -1),
 	setup_call_cleanup(
 	    start_dispatchers(Options),
 	    setup_call_cleanup(
 		open(Log, read, In, [encoding(utf8)]),
 		( read(In, T0),
-		  replay(T0, In)
+		  replay(T0, In, Count)
 		),
 		close(In)),
 	    join_dispatchers).
 
-replay(end_of_file, _) :- !.
-replay(Term, In) :-
+replay(end_of_file, _, _) :- !.
+replay(_, _, 0) :- !.
+replay(Term, In, Count0) :-
 	(   dispatch(Term)
 	->  true
 	;   format(user_error, 'FAILED: Replay ~q~n', [Term])
 	),
 	read_log(In, Term2),
-	replay(Term2, In).
+	Count1 is Count0 - 1,
+	replay(Term2, In, Count1).
 
 read_log(In, Term) :-
 	read_term(In, Term, [syntax_errors(dec10)]).
