@@ -465,6 +465,11 @@ health(dir_scan_time, Time) :-
 	expand_file_name(*, _),
 	get_time(T),
 	Time is T - T0.
+:- if(current_predicate(malloc_property/1)).
+health(heap, json{inuse:InUse, size:Size}) :-
+	malloc_property('generic.current_allocated_bytes'(InUse)),
+	malloc_property('generic.heap_size'(Size)).
+:- endif.
 
 start_debugger(_Request) :-
 	site_user_logged_in(User),
