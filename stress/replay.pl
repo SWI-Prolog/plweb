@@ -29,6 +29,7 @@
 :- use_module(library(time)).
 :- use_module(library(gensym)).
 :- use_module(library(aggregate)).
+:- use_module(library(option)).
 
 /** <module> Replay HTTP logfiles to stress-test the server
 
@@ -245,7 +246,8 @@ make_request2(Id, Session, Method, Parts, Options) :-
 	open_null_stream(Dest),
 	call_cleanup(http_get(ClientId, Parts, _Reply,
 			      [ to(stream(Dest)),
-				method(Method)
+				method(Method),
+				cert_verify_hook(http_replay:ssl_verify)
 			      | Options
 			      ]),
 		     Reason, done(Path, Reason, Now, Dest)),
@@ -256,6 +258,10 @@ make_request2(Id, Session, Method, Parts, Options) :-
 	    assert(session_map(Session, ClientId))
 	;   true
 	).
+
+ssl_verify(_SSL,
+           _ProblemCertificate, _AllCertificates, _FirstCertificate,
+           _Error).
 
 done(Path, Reason, T0, Dest) :-
 	get_time(Now),
@@ -286,9 +292,10 @@ url_parts(Request,
 	    host(Host),
 	    port(Port),
 	    path(Path),
-	    protocol(http)
+	    scheme(Proto)
 	  | Parts
 	  ], Options) :-
+	option(scheme(Proto), Options, http),
 	memberchk(method(Method), Request),
 	memberchk(path(Path0), Request),
 	map_path(Path0, Path, Options),
