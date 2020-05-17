@@ -29,7 +29,10 @@ for_link(For, Info) :-
     atom_to_object(For, Obj),
     current_man_object(Obj),
     findall(Prop, obj_property(Obj, Prop), Props),
-    dict_pairs(Info, json, Props).
+    format(string(URL),
+           'https://www.swi-prolog.org/pldoc/doc_for?object=~w',
+           [For]),
+    dict_pairs(Info, json, [url-URL|Props]).
 
 obj_property(Obj, summary-Summary) :-
     once(man_object_property(Obj, summary(Summary))).
