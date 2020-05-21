@@ -334,7 +334,7 @@ pack_readme(Pack) -->
 	pack_readme(Pack, File, Size).
 
 pack_readme(_Pack, File, Size) -->
-	{ MaxSize = 20000,
+	{ MaxSize = 50000,
 	  Size > MaxSize
 	}, !,
 	html(p(class(warning),
