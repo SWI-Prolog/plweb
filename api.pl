@@ -8,13 +8,35 @@
 :- use_module(library(pldoc/doc_util)).
 :- use_module(library(prolog_code)).
 :- use_module(library(prolog_source)).
+:- use_module(library(apply)).
+:- use_module(library(error)).
+:- use_module(library(pairs)).
 
 :- http_handler(root(doc_link), doc_link, []).
 
 %!  doc_link(+Request)
 %
-%   Get a link to the documentation for a predicate reference.
+%   Get a link to the documentation for a predicate reference.  This
+%   hander may be used in two ways:
+%
+%      - GET
+%        Adding a parameter `for` providing the predicate you want
+%        to have information about.
+%      - POST
+%        Passing a JSON list of strings.  The reply is a JSON object
+%        with for each string the corresponding reply object (`null`
+%        if the predicate is not known).
 
+doc_link(Request) :-
+    memberchk(method(post), Request),
+    !,
+    http_read_json_dict(Request, Atoms,
+                        [value_string_as(atom)]),
+    cors_enable,
+    must_be(list(atom), Atoms),
+    for_links(Atoms, Pairs),
+    dict_create(Dict, json, Pairs),
+    reply_json_dict(Dict).
 doc_link(Request) :-
     http_parameters(Request,
                     [ for(For, [])
@@ -24,6 +46,14 @@ doc_link(Request) :-
     ->  reply_json_dict(Link)
     ;   reply_json_dict(null, [status(404)])
     ).
+
+for_links([], []).
+for_links([H|T0], [H-I|T]) :-
+    (   for_link(H, I)
+    ->  true
+    ;   I = null
+    ),
+    for_links(T0, T).
 
 for_link(For, Info) :-
     atom_to_object(For, Obj),
