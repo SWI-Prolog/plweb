@@ -65,7 +65,7 @@ doc_link(Request) :-
     !,
     http_read_json_dict(Request, Atoms,
                         [value_string_as(atom)]),
-    cors_enable,
+    cors_enable(Request, [methods([get,post])]),
     must_be(list(atom), Atoms),
     for_links(Atoms, Pairs),
     dict_create(Dict, json, Pairs),
@@ -74,7 +74,7 @@ doc_link(Request) :-
     http_parameters(Request,
                     [ for(For, [])
                     ]),
-    cors_enable,
+    cors_enable(Request, [methods([get,post])]),
     (   for_link(For, Link)
     ->  reply_json_dict(Link)
     ;   reply_json_dict(null, [status(404)])
