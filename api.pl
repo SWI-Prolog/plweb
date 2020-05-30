@@ -1,3 +1,32 @@
+/*  Part of SWI-Prolog
+
+    Author:        Jan Wielemaker
+    E-mail:        J.Wielemaker@cs.vu.nl
+    WWW:           http://www.swi-prolog.org
+    Copyright (C): 2020, VU University Amsterdam
+
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 2
+    of the License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    As a special exception, if you link this library with other files,
+    compiled with a Free Software compiler, to produce an executable, this
+    library does not by itself cause the resulting executable to be covered
+    by the GNU General Public License. This exception does not however
+    invalidate any other reasons why the executable file might be covered by
+    the GNU General Public License.
+*/
+
 :- module(plweb_api,
           []).
 :- use_module(library(http/http_dispatch)).
@@ -11,6 +40,7 @@
 :- use_module(library(apply)).
 :- use_module(library(error)).
 :- use_module(library(pairs)).
+:- use_module(library(option)).
 
 :- http_handler(root(doc_link), doc_link, []).
 
@@ -27,6 +57,9 @@
 %        with for each string the corresponding reply object (`null`
 %        if the predicate is not known).
 
+doc_link(Request) :-
+    reply_options(Request, [get,post]),
+    !.
 doc_link(Request) :-
     memberchk(method(post), Request),
     !,
@@ -93,3 +126,16 @@ library_prop(File, library-LibS) :-
     file_name_extension(File, pl, LibFile),
     file_name_on_path(LibFile, library(Lib)),
     format(string(LibS), '~w', [Lib]).
+
+%!  reply_options(+Request, +Methods) is semidet.
+%
+%   Reply the HTTP OPTIONS request
+
+reply_options(Request, Allowed) :-
+    option(method(options), Request),
+    !,
+    cors_enable(Request,
+                [ methods(Allowed)
+                ]),
+    format('Content-type: text/plain\r\n'),
+    format('~n').                   % empty body
