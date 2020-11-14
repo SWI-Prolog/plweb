@@ -58,6 +58,8 @@
 :- http_handler(download('daily/bin/'), download_daily, []).
 :- http_handler(download(.),	        download,
 		[prefix, spawn(download), priority(10)]).
+:- http_handler(root(download),	        http_redirect(moved, download(.)),
+		[priority(10)]).
 
 %%	download_table(+Request)
 %
