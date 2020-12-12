@@ -11,6 +11,7 @@
 		library(http/http_dyn_workers),
 		library(prolog_source),
 		plweb,
+                examples,
                 api,
 		wiki_edit,
 		stats,
