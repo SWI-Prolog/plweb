@@ -10,3 +10,6 @@
 [submodule "packs/googleclient"]
 	path = packs/googleclient
 	url = https://github.com/JanWielemaker/googleclient.git
+[submodule "examples"]
+	path = examples
+	url = ../plweb-examples.git
