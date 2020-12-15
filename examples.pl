@@ -46,6 +46,8 @@
 :- use_module(library(solution_sequences)).
 :- use_module(library(git)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(option)).
+:- use_module(library(http/http_json)).
 
 :- use_module(wiki).
 :- use_module(messages).
@@ -659,5 +661,10 @@ pull_examples :-
 
 :- http_handler(root(examples/pull), pull_examples, []).
 
-pull_examples(_Request) :-
+pull_examples(Request) :-
+    (   option(method(post), Request)
+    ->  http_read_json(Request, JSON),
+        print_message(informational, got(JSON))
+    ;   true
+    ),
     call_showing_messages(pull_examples, []).
