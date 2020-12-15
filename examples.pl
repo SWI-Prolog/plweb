@@ -44,8 +44,11 @@
 :- use_module(library(pairs)).
 :- use_module(library(prolog_code)).
 :- use_module(library(solution_sequences)).
+:- use_module(library(git)).
+:- use_module(library(http/http_dispatch)).
 
 :- use_module(wiki).
+:- use_module(messages).
 
 user:file_search_path(examples, examples).
 
@@ -203,12 +206,29 @@ label(reference, 'Mentioned in comment').
 		 *******************************/
 
 %!  index_examples is det.
+%!  index_examples(+Backlog) is det.
 %!  reindex_examples is det.
+%
+%   Update the example index.
+%
+%   @tbd We only have to reprocess modified or new examples.
 
 index_examples :-
-    with_mutex(examples, index_up_to_data), !.
-index_examples :-
+    index_examples(60).
+
+index_examples(Backlog) :-
+    index_up_to_data(Backlog), !.
+index_examples(Backlog) :-
+    with_mutex(index_examples, index_examples2(Backlog)).
+
+index_examples2(Backlog) :-
+    index_up_to_data(Backlog), !.
+index_examples2(_) :-
     transaction(reindex_examples).
+
+reindex_examples :-
+    clean_examples,
+    do_index_examples.
 
 do_index_examples :-
     forall(ex_file(File),
@@ -217,16 +237,12 @@ do_index_examples :-
     assertz(ex_done(Now)),
     assertz(ex_checked(Now)).
 
-reindex_examples :-
-    clean_examples,
-    do_index_examples.
-
-index_up_to_data :-
+index_up_to_data(Backlog) :-
     ex_done(Indexed),
     retract(ex_checked(Last)),
     get_time(Now),
     asserta(ex_checked(Now)),
-    Now-Last > 60,
+    Now-Last > Backlog,
     (   ex_directory(Dir),
         time_file(Dir, Modified),
         Modified > Indexed
@@ -266,16 +282,24 @@ ex_xref(File, Code, XRef) :-
     dom_code(DOM, Code, _Attrs),
     code_xref(Code, XRef).
 
+%!  ex_repo(-Dir) is nondet.
+%
+%   True when Dir is a toplevel example directory
+
+ex_repo(Dir) :-
+    absolute_file_name(examples(.), Dir,
+                       [ file_type(directory),
+                         access(read),
+                         solutions(all)
+                       ]).
+
+
 %!  ex_file(-File) is nondet.
 %
 %   True when File is the name of an example file
 
 ex_file(File) :-
-    absolute_file_name(examples(.), ExDir,
-                       [ file_type(directory),
-                         access(read),
-                         solutions(all)
-                       ]),
+    ex_repo(ExDir),
     directory_member(ExDir, Path,
                      [ recursive(true),
                        extensions([md]),
@@ -285,11 +309,7 @@ ex_file(File) :-
     file_name_extension(File, md, FileEx).
 
 ex_directory(Path) :-
-    absolute_file_name(examples(.), ExDir,
-                       [ file_type(directory),
-                         access(read),
-                         solutions(all)
-                       ]),
+    ex_repo(ExDir),
     (   Path = ExDir
     ;   directory_member(ExDir, Path,
                          [ recursive(true),
@@ -613,3 +633,31 @@ is_binding_or_constraint(Var = _) :-
 is_binding_or_constraint(:-_) :- !, fail.
 is_binding_or_constraint(?-_) :- !, fail.
 is_binding_or_constraint(_).            % how to find out?
+
+
+		 /*******************************
+		 *            UPDATE		*
+		 *******************************/
+
+%!  pull_examples
+%
+%   Do a git pull on the examples and update the index.
+
+pull_examples :-
+    (   ex_repo(ExDir),
+        is_git_directory(ExDir),
+        git([pull], [directory(ExDir)]),
+        fail
+    ;   true
+    ),
+    index_examples(1).
+
+
+		 /*******************************
+		 *             HTTP		*
+		 *******************************/
+
+:- http_handler(root(examples/pull), pull_examples, []).
+
+pull_examples(_Request) :-
+    call_showing_messages(pull_examples, []).
