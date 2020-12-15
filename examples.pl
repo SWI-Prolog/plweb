@@ -81,7 +81,7 @@ examples(Objs, _Options) -->
       keysort(Refs0, Refs),
       group_pairs_by_key(Refs, Grouped0),
       map_list_to_pairs(ex_score, Grouped0, Scored),
-      sort(2, >, Scored, Sorted),
+      sort(1, >, Scored, Sorted),
       pairs_values(Sorted, Grouped)
     },
     html_requires(pldoc_examples),
