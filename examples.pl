@@ -48,6 +48,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(option)).
 :- use_module(library(http/http_json)).
+:- use_module(library(dcg/basics)).
 
 :- use_module(wiki).
 :- use_module(messages).
@@ -103,24 +104,30 @@ ex_list(ExList) -->
 ex_html(More, File-How) -->
     { best_flag(How, Flag),
       (   Flag == file
-      ->  Classes = [primary|More]
+      ->  Classes = ['ex-current'|More]
       ;   Classes = More
       )
     },
     html(div(class([ex|Classes]),
              [ div(class('ex-header'),
-                   [ \ex_title(File),
-                     \ex_authors(File),
-                     \ex_flag(Flag)
+                   [ \ex_flag(Flag),
+                     \ex_title(File, How),
+                     \ex_authors(File)
                    ]),
                div(class('ex-content'),
                    \ex_content(File))
              ])).
 
-ex_title(File) -->
+ex_title(File, _) -->
     { ex_prop(File, title, Title) }, !,
     html(span(class(title), Title)).
-ex_title(_) -->
+ex_title(File, How) -->
+    { memberchk(file, How),
+      file_title(File, Title)
+    },
+    !,
+    html(span(class(title), Title)).
+ex_title(_, _) -->
     [].
 
 ex_authors(File) -->
@@ -132,7 +139,6 @@ ex_authors(_) -->
 ex_author(Author) -->
     html(span(class(author), Author)).
 
-ex_flag(file) --> !.
 ex_flag(Flag) -->
     { label(Flag, Title) },
     html(span([ class(['ex-flag', Flag]),
@@ -184,10 +190,19 @@ rank(query,      30).
 rank(called,     20).
 rank(reference,   5).
 
+label(file,      'Example file for predicate').
 label(titleref,  'Mentioned in the title').
 label(query,     'Used in a query').
 label(called,    'Called in example').
 label(reference, 'Mentioned in comment').
+
+file_title(File, Title) :-
+    file_base_name(File, Base),
+    atom_codes(Base, Codes),
+    (   phrase((string(Name),integer(Arity)), Codes)
+    ->  format(string(Title), 'Examples for ~s/~d', [Name, Arity])
+    ;   format(string(Title), 'Examples for ~s/N',  [Base])
+    ).
 
 
 		 /*******************************
