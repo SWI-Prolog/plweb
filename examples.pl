@@ -95,6 +95,9 @@ examples(_,_) -->
     [].
 
 ex_list([One]) -->
+    { One = _File-How,
+      memberchk(file, How)
+    },
     !,
     ex_html(['ex-current'], One).
 ex_list(ExList) -->
@@ -122,8 +125,7 @@ ex_title(File, _) -->
     { ex_prop(File, title, Title) }, !,
     html(span(class(title), Title)).
 ex_title(File, How) -->
-    { memberchk(file, How),
-      file_title(File, Title)
+    { file_title(File, Title)
     },
     !,
     html(span(class(title), Title)).
@@ -200,9 +202,19 @@ file_title(File, Title) :-
     file_base_name(File, Base),
     atom_codes(Base, Codes),
     (   phrase((string(Name),integer(Arity)), Codes)
-    ->  format(string(Title), 'Examples for ~s/~d', [Name, Arity])
-    ;   format(string(Title), 'Examples for ~s/N',  [Base])
+    ->  documented(Name/Arity),
+        format(string(Title), 'Examples for ~s/~d', [Name, Arity])
+    ;   documented(Base/A1),
+        documented(Base/A2),
+        A1 \== A2
+    ->  format(string(Title), 'Examples for ~s/N',  [Base])
     ).
+
+:- multifile
+    prolog:doc_object_summary/4.
+
+documented(PI) :-
+    prolog:doc_object_summary(PI, _Category, _Section, _Summary).
 
 
 		 /*******************************
