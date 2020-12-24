@@ -295,25 +295,6 @@ serve_wiki_page(Request, File, Title, DOM) :-
 	    ],
 	    DOM).
 
-%!	title_text(+Title, -Text:atom) is det.
-%
-%	Turn the title, represented as  an   argument  to html//1 into a
-%	plain string. Turns it  into  HTML,   then  parses  the HTML and
-%	finally extracts the string. First clause   avoids  this for the
-%	common normal case.
-
-title_text(Title, Text) :-
-	maplist(atomic, Title), !,
-	atomics_to_string(Title, Text).
-title_text(Title, Text) :-
-	phrase(html(Title), Tokens),
-	with_output_to(string(HTML), print_html(Tokens)),
-	setup_call_cleanup(
-	    open_string(HTML, In),
-	    load_html(In, DOM, []),
-	    close(In)),
-	xpath(element(div, [], DOM), /('*'(text)), Text).
-
 %%	wiki_path(+Request, +File, -WikiPath) is det.
 %
 %	WikiPath is the canonical path to describe the wiki page File.
@@ -335,21 +316,6 @@ normalize_extension(Dir, _, Index) :-
 	sub_atom(Dir, _, _, 0, /), !,
 	atom_concat(Dir, 'index.txt', Index).
 normalize_extension(Path, _, Path).
-
-
-%%	extract_title(+DOM0, -Title, -DOM) is det.
-%
-%	Extract the title from a wiki page.  The title is considered
-%	to be the first h<N> element.
-
-extract_title([H|T], Title, T) :-
-	title(H, Title), !.
-extract_title(DOM, 'SWI-Prolog', DOM).
-
-title(h1(_Attrs, Title), Title).
-title(h2(_Attrs, Title), Title).
-title(h3(_Attrs, Title), Title).
-title(h4(_Attrs, Title), Title).
 
 %%	prolog:doc_directory(+Dir) is semidet.
 %

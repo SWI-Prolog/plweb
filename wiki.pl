@@ -35,7 +35,10 @@
 	    update_wiki_page_title/1,	% +Location
 	    wiki_extension/1,		% ?Extension
 	    file//2,			% +File, +Options
-	    include//3			% +Object, +Type, +Options
+	    include//3,			% +Object, +Type, +Options
+	    extract_title/3,		% +DOM0, -Title, -DOM
+	    title_text/2,		% +Title, -Text:atom
+	    safe_file_name/1		% +Name
 	  ]).
 :- reexport(library(pldoc/doc_html),
 	    except([ file//2,
@@ -313,3 +316,54 @@ wiki_extension(md).
 
 special(.).
 special(..).
+
+%!	extract_title(+DOM0, -Title, -DOM) is det.
+%
+%	Extract the title from a wiki page.  The title is considered
+%	to be the first h<N> element.
+
+extract_title([H|T], Title, T) :-
+	title(H, Title), !.
+extract_title(DOM, 'SWI-Prolog', DOM).
+
+title(h1(_Attrs, Title), Title).
+title(h2(_Attrs, Title), Title).
+title(h3(_Attrs, Title), Title).
+title(h4(_Attrs, Title), Title).
+
+%!	title_text(+Title, -Text:atom) is det.
+%
+%	Turn the title, represented as  an   argument  to html//1 into a
+%	plain string. Turns it  into  HTML,   then  parses  the HTML and
+%	finally extracts the string. First clause   avoids  this for the
+%	common normal case.
+
+title_text(Title, Text) :-
+	maplist(atomic, Title), !,
+	atomics_to_string(Title, Text).
+title_text(Title, Text) :-
+	phrase(html(Title), Tokens),
+	with_output_to(string(HTML), print_html(Tokens)),
+	setup_call_cleanup(
+	    open_string(HTML, In),
+	    load_html(In, DOM, []),
+	    close(In)),
+	xpath(element(div, [], DOM), /('*'(text)), Text).
+
+%!	safe_file_name(+Name)
+%
+%	True  when  Name  is  a  file    without  references  to  parent
+%	directories.
+
+safe_file_name(Name) :-
+    must_be(atom, Name),
+    prolog_to_os_filename(FileName, Name),
+    \+ unsafe_name(FileName),
+    !.
+safe_file_name(Name) :-
+    permission_error(read, file, Name).
+
+unsafe_name(Name) :- Name == '..'.
+unsafe_name(Name) :- sub_atom(Name, 0, _, _, '../').
+unsafe_name(Name) :- sub_atom(Name, _, _, _, '/../').
+unsafe_name(Name) :- sub_atom(Name, _, _, 0, '/..').
