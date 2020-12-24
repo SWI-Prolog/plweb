@@ -13,3 +13,6 @@
 [submodule "examples"]
 	path = examples
 	url = ../plweb-examples.git
+[submodule "blog"]
+	path = blog
+	url = ../plweb-blog.git
