@@ -108,6 +108,8 @@ page_style(dir_index(_Dir, _Title),[]).
 page_style(news(_Which),	   []).
 page_style(wiki(_Special),	   []).
 page_style(wiki(Path, _Title),	   [object(wiki(Path))]).
+page_style(blog(_Special),	   []).
+page_style(blog(Path, _Title),	   [object(blog(Path))]).
 page_style(pack(_Action),	   []).
 page_style(tags(_Action),	   []).
 page_style(pldoc(object(Obj)),	   [object(Obj)]) :- !.
@@ -351,6 +353,10 @@ page_title(wiki(sandbox)) -->
 page_title(wiki(edit(Action, Location))) -->
 	html([Action, ' wiki page ', Location]).
 page_title(wiki(_Path, Title)) -->
+	html(Title).
+page_title(blog(index)) -->
+	html('SWI-Prolog blog -- index').
+page_title(blog(_Path, Title)) -->
 	html(Title).
 page_title(tags(list)) -->
 	html('Tags').
