@@ -124,7 +124,7 @@ ex_html(More, File-How) -->
 ex_title(File, _) -->
     { ex_prop(File, title, Title) }, !,
     html(span(class(title), Title)).
-ex_title(File, How) -->
+ex_title(File, _) -->
     { file_title(File, Title)
     },
     !,
