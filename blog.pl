@@ -47,6 +47,7 @@
 
 :- use_module(wiki).
 :- use_module(messages).
+:- use_module(fastly).
 :- use_module(parms).
 
 :- http_handler(root(blog), blog, [prefix, id(blog)]).
@@ -231,7 +232,7 @@ ccount(List, _, List, C, C).
 
 %!  pull_blogs
 %
-%   Do a git pull on the examples and update the index.
+%   Do a git pull on the blog repo
 
 pull_blogs :-
     (   absolute_file_name(blog(.), BlogDir,
@@ -242,7 +243,7 @@ pull_blogs :-
         is_git_directory(BlogDir),
         git([pull], [directory(BlogDir)]),
         fail
-    ;   true
+    ;   purge_location('/blog')
     ).
 
 
