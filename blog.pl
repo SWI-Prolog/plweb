@@ -41,6 +41,8 @@
 :- use_module(library(git)).
 :- use_module(library(option)).
 :- use_module(library(http/http_json)).
+:- use_module(library(http/http_host)).
+:- use_module(library(http/js_write)).
 
 :- use_module(wiki).
 :- use_module(messages).
@@ -69,7 +71,8 @@ blog(Request) :-
                        [ access(read)
                        ]),
     wiki_file_to_dom(Path, DOM0),
-    extract_title(DOM0, Title, DOM),
+    extract_title(DOM0, Title, DOM1),
+    append(DOM1, [\discourse(Request)], DOM),
     title_text(Title, TitleString),
     http_link_to_id(blog, [], HREF),
     reply_html_page(
@@ -163,6 +166,31 @@ block_date(Blog) -->
     optional(html(span(class('blog-index-date'),Blog.get(date))), []).
 block_title(Blog) -->
     optional(html(span(class('blog-index-title'),Blog.get(title))), []).
+
+
+		 /*******************************
+		 *            DISCOURSE		*
+		 *******************************/
+
+discourse(Request) -->
+    { http_public_url(Request, URL) },
+    html(div(id('discourse-comments'), [])),
+    js_script({|javascript(URL)||
+window.DiscourseEmbed = { discourseUrl: 'https://swi-prolog.discourse.group/',
+                   discourseEmbedUrl: URL };
+
+(function() {
+  var d = document.createElement('script'); d.type = 'text/javascript'; d.async = true;
+  d.src = window.DiscourseEmbed.discourseUrl + 'javascripts/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(d);
+})();
+|}).
+
+
+
+		 /*******************************
+		 *         UTIL (TO LIB)	*
+		 *******************************/
 
 %!  clumped(+Items, -Pairs)
 %
