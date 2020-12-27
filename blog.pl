@@ -43,9 +43,11 @@
 :- use_module(library(http/http_json)).
 :- use_module(library(http/http_host)).
 :- use_module(library(http/js_write)).
+:- use_module(library(uri)).
 
 :- use_module(wiki).
 :- use_module(messages).
+:- use_module(parms).
 
 :- http_handler(root(blog), blog, [prefix, id(blog)]).
 
@@ -173,7 +175,7 @@ block_title(Blog) -->
 		 *******************************/
 
 discourse(Request) -->
-    { http_public_url(Request, URL) },
+    { cdn_url(Request, URL) },
     html(div(id('discourse-comments'), [])),
     js_script({|javascript(URL)||
 window.DiscourseEmbed = { discourseUrl: 'https://swi-prolog.discourse.group/',
@@ -186,6 +188,17 @@ window.DiscourseEmbed = { discourseUrl: 'https://swi-prolog.discourse.group/',
 })();
 |}).
 
+
+cdn_url(Request, CDNURL) :-
+    http_public_url(Request, URL),
+    uri_components(URL, Components),
+    uri_data(host, Components, Host),
+    (   server(_, Host, _),
+        server(cdn, CDN, _)
+    ->  uri_data(host, Components, CDN, CDNComponents),
+        uri_components(CDNURL, CDNComponents)
+    ;   CDNURL = URL
+    ).
 
 
 		 /*******************************
