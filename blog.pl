@@ -65,6 +65,7 @@ user:file_search_path(blog, blog).
 
 blog(Request) :-
     memberchk(path_info(PathInfo), Request),
+    PathInfo \== '/',
     !,
     debug(blog, 'Path info ~p', [PathInfo]),
     atom_concat(/, File, PathInfo),
