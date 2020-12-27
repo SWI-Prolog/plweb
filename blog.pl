@@ -190,15 +190,9 @@ window.DiscourseEmbed = { discourseUrl: 'https://swi-prolog.discourse.group/',
 
 
 cdn_url(Request, CDNURL) :-
-    http_public_url(Request, URL),
-    uri_components(URL, Components),
-    uri_data(host, Components, Host),
-    (   server(_, Host, _),
-        server(cdn, CDN, _)
-    ->  uri_data(host, Components, CDN, CDNComponents),
-        uri_components(CDNURL, CDNComponents)
-    ;   CDNURL = URL
-    ).
+    memberchk(request_uri(ReqURL), Request),
+    server(cdn, CDN, _),
+    format(atom(CDNURL), 'https://~w~w', [CDN, ReqURL]).
 
 
 		 /*******************************
