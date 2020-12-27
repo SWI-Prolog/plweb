@@ -12,6 +12,7 @@
 		library(prolog_source),
 		plweb,
                 examples,
+                blog,
                 api,
 		wiki_edit,
 		stats,
