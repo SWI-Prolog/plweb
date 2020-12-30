@@ -198,35 +198,6 @@ cdn_url(Request, CDNURL) :-
 
 
 		 /*******************************
-		 *         UTIL (TO LIB)	*
-		 *******************************/
-
-%!  clumped(+Items, -Pairs)
-%
-%   True when Pairs is a set  of   Item-Count  pairs  where Count is the
-%   number of times Item occurs  in   Items.  Items are considered equal
-%   based on ==/2. The elements of Pairs   are  ordered according to the
-%   standard order of terms.  Items need not be sorted on input.
-%
-%   @compat SICStus
-
-clumped(Items, Counts) :-
-    msort(Items, Sorted),
-    clump(Sorted, Counts).
-
-clump([], []).
-clump([H|T0], [H-C|T]) :-
-    ccount(T0, H, T1, 1, C),
-    clump(T1, T).
-
-ccount([H|T0], E, T, C0, C) :-
-    E == H,
-    !,
-    C1 is C0+1,
-    ccount(T0, E, T, C1, C).
-ccount(List, _, List, C, C).
-
-		 /*******************************
 		 *            UPDATE		*
 		 *******************************/
 
