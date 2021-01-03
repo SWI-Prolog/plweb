@@ -125,7 +125,8 @@ tag(Tag-Count) -->
 
 blog_tag_counts(Blogs, Pairs) :-
     convlist(get_dict(tags), Blogs, Tags),
-    flatten(Tags, TagList),
+    flatten(Tags, TagList0),
+    msort(TagList0, TagList),
     clumped(TagList, Pairs0),
     sort(2, >=, Pairs0, Pairs).
 
