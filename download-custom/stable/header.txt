@@ -1,4 +1,4 @@
----+ Download SWI-Prolog stable versions
+# Download SWI-Prolog stable versions
 
 [[linux.png;align="left",width="24px"][</build/unix.html>]]
 Linux versions are often available as a package for your distribution.
@@ -7,6 +7,11 @@ on specific distros [[here][</build/unix.html>]].
 We provide a [[PPA][</build/PPA.html>]]
 for [[Ubuntu][http://www.ubuntu.com/]] and [[snap
 images][</build/snap.html>]]
+
+[[Android.png;align="left",width="24px"][</build/Termux.html>]] Android
+binaries are available for [Termux](https://termux.com/) as the package
+`swi-prolog`. See also [[Building SWI-Prolog on Android using
+LinuxOnAndroid][</build/linuxonandroid.html>]]
 
 [[windows.jpg;align="left",width="24px"][</build/windows.txt>]] Please
 check the [[windows release notes][</windows.html>]] (also in the
