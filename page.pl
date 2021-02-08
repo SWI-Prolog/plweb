@@ -503,13 +503,13 @@ menu(Style,
 	 ],
 	 'Advanced' =
 	 [ 'Modules'           = 'http://chiselapp.com/user/ttmrichter/repository/gng/doc/trunk/output/tutorials/swiplmodtut.html',
-	   'Grammars (DCGs)'   = 'http://www.pathwayslms.com/swipltuts/dcg/',
-	   'clp(fd)'	       = 'http://www.pathwayslms.com/swipltuts/clpfd/clpfd.html',
-	   'Printing messages' = 'http://www.pathwayslms.com/swipltuts/message/index.html',
+	   'Grammars (DCGs)'   = 'https://www.github.com/Anniepoo/swipldcgtut/blob/master/dcgcourse.adoc',
+	   'clp(fd)'	       = 'https://www.github.com/Anniepoo/swiplclpfd/blob/master/clpfd.adoc',
+	   'Printing messages' = 'https://www.github.com/Anniepoo/swiplmessage/blob/master/message.adoc',
 	   'PlDoc'             = 'http://chiselapp.com/user/ttmrichter/repository/swipldoctut/doc/tip/doc/tutorial.html'
 	 ],
 	 'Web applications' =
-	 [ 'Web applications'  = 'http://www.pathwayslms.com/swipltuts/html/index.html',
+	 [ 'Web applications'  = 'https://www.github.com/Anniepoo/swiplwebtut/blob/master/web.adoc',
 	   'Let\'s Encrypt!'   = 'https://github.com/triska/letswicrypt',
 	   'Pengines'	       = '/pengines/'
 	 ],
