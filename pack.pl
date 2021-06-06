@@ -407,7 +407,7 @@ info_is_git(_, false).
 %	register this on the first submission of a pack.
 
 accept_url(URL, Pack, IsGIT) :-
-	(   pack_allowed_url(Pack, IsGIT, Pattern)
+	(   pack_allowed_url(Pack, _, Pattern)
 	*-> wildcard_match(Pattern, URL), !
 	;   admissible_url(URL)
 	->  url_pattern(URL, IsGIT, Pattern),
