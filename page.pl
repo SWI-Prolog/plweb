@@ -612,7 +612,7 @@ cta_area -->
         <td style="text-align:left">
 	      <a href="Download.html">Download SWI-Prolog</a>
         <td style="text-align:center">
-	      <a href="pldoc/man?section=quickstart">Get Started</a>
+	      <a href="GetStarted.html">Get Started</a>
         <td style="text-align:right">
 	      <a href="http://swish.swi-prolog.org">Try SWI-Prolog online</a>
       </tr>
