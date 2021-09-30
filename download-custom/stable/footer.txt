@@ -5,8 +5,7 @@ internals, stability, deployment options  and   maintainability  of  the
 system. SWI-Prolog extensions  and   incompatibilities  wrt. traditional
 Prolog are described in [extensions](</pldoc/man?section=extensions>).
 
-SWI-Prolog 8.2 notably brings much of   the  advanced tabling support of
-XSB  to  SWI-Prolog:  Well  Founded    Semantics,   restraints  (bounded
-rationality), incremental tabling and  shared   tabling.  It  also makes
-rational numbers primary citizens. Using   Google's tcmalloc reduces the
-memory footprint drastically on some multi-threaded workloads.
+SWI-Prolog 8.4.x Adds interfaces to [Redis](https://redis.io/) and
+[STOMP](http://stomp.github.io/) _micro services_, isolated
+_transactions_ and additional thread synchronization, new support for
+deterministic coding using $/0, $/1 and det/1 and _monotonic tabling_.
