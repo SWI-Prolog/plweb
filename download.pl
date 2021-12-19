@@ -300,19 +300,25 @@ platform(linux(universal)) -->
 platform(linux(rpm, _)) -->
 	html(['i586/Linux (RPM)']).
 platform(macos(Name, CPU)) -->
-	html(['MacOSX ', \html_macos_version(Name), ' on ', b(CPU)]).
+	html(['MacOSX ', \html_macos_version(Name, CPU), ' on ', \cpu(CPU)]).
 platform(windows(win32)) -->
 	html(['Microsoft Windows (32 bit)']).
 platform(windows(win64)) -->
 	html(['Microsoft Windows (64 bit)']).
 
-html_macos_version(tiger)        --> html('10.4 (Tiger)').
-html_macos_version(leopard)      --> html('10.5 (Leopard)').
-html_macos_version(snow_leopard) --> html('10.6 (Snow Leopard)').
-html_macos_version(lion)	 --> html('10.7 (Lion)').
-html_macos_version(snow_leopard_and_later) --> html('10.6 (Snow Leopard) and later').
-html_macos_version(bundle)       --> html('10.12 (Sierra) and later').
-html_macos_version(OS)	         --> html(OS).
+html_macos_version(tiger, _)        --> html('10.4 (Tiger)').
+html_macos_version(leopard, _)      --> html('10.5 (Leopard)').
+html_macos_version(snow_leopard, _) --> html('10.6 (Snow Leopard)').
+html_macos_version(lion, _)	    --> html('10.7 (Lion)').
+html_macos_version(snow_leopard_and_later, _)
+				    --> html('10.6 (Snow Leopard) and later').
+html_macos_version(bundle, x86_64)  --> html('10.12 (Sierra) and later').
+html_macos_version(bundle, fat)     --> html('10.14 (Mojave) and later').
+html_macos_version(OS, _CPU)	    --> html(OS).
+
+cpu(fat) --> !, html("x86_64 and arm64").
+cpu(CPU) --> html(CPU).
+
 
 %%	platform_notes(+Platform, +Path) is det.
 %
@@ -338,6 +344,8 @@ platform_note_file(windows(win32),   'win32.txt').
 platform_note_file(windows(win64),   'win64.txt').
 platform_note_file(pkg(Pkg),         File) :-
 	file_name_extension(Pkg, txt, File).
+platform_note_file(macos(Version,fat), File) :-
+	atomic_list_concat([macosx, -, fat, -, Version, '.txt'], File).
 platform_note_file(macos(Version,_), File) :-
 	atomic_list_concat([macosx, -, Version, '.txt'], File).
 platform_note_file(macos(_,_),	     'macosx.txt').
@@ -418,6 +426,9 @@ file(bin, macos(bundle, intel), Version, _) -->
 	"swipl-", long_version(Version), opt_release(_),
 	opt_cpu(_),
 	".dmg", !.
+file(bin, macos(bundle, fat), Version, _) -->
+	"swipl-", long_version(Version), opt_release(_),
+	".fat.dmg", !.
 file(bin, macos(snow_leopard_and_later, intel), Version, _) -->
 	"SWI-Prolog-", long_version(Version),
 	".dmg", !.
