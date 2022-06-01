@@ -59,7 +59,11 @@
 
 :- multifile
 	user:body//2,
-	plweb:page_title//1.
+	plweb:page_title//1,
+	html_write:html_header_hook/1.
+
+html_write:html_header_hook(_) :-
+	format('Content-Security-Policy: frame-ancestors \'none\'~n').
 
 user:body(homepage, Body) --> !,
 	outer_container([ \tag_line_area,
