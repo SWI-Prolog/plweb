@@ -610,6 +610,10 @@ blurb -->
 %
 %	Emit the Call To Action - the 3 big buttons on homepage
 cta_area -->
+	html_post(head,
+		  script([ defer(defer), async(async),
+			   src('https://buttons.github.io/buttons.js')
+			 ], [])),
 	html({|html(_)||
     <table id='cta-container'>
       <tr>
@@ -620,7 +624,14 @@ cta_area -->
         <td style="text-align:right">
 	      <a href="http://swish.swi-prolog.org">Try SWI-Prolog online</a>
       </tr>
-    </table>|}).
+    </table>
+
+    <div id='cta-github' title="Github links">
+    <a class="github-button" id="github-star" href="https://github.com/SWI-Prolog/swipl-devel" data-color-scheme="no-preference: light; light: light; dark: dark;" data-size="large" data-show-count="true" aria-label="Star SWI-Prolog/swipl-devel on GitHub">Star</a>
+    &nbsp;&nbsp;
+    <a class="github-button" id="github-sponsor" href="https://github.com/sponsors/SWI-Prolog" data-color-scheme="no-preference: light; light: light; dark: dark;" data-icon="octicon-heart" data-size="large" aria-label="Sponsor @SWI-Prolog on GitHub">Sponsor</a>
+    </div>
+|}).
 
 
 %%	enhanced_search_area//
