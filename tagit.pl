@@ -229,13 +229,9 @@ tags_li([H|T]) --> html(li(H)), tags_li(T).
 
 tag_notes(ObjectID, Tags) -->
 	html(div(id='tags-notes',
-		 [ \docs_need_work_plea,
-		   \why_login,
+		 [ \why_login,
 		   \abuse_link(ObjectID, Tags)
 		 ])).
-
-docs_need_work_plea -->
-	html(['Tag confusing pages with ', b('doc-needs-help')]).
 
 abuse_link(_, []) --> [].
 abuse_link(ObjectID, _) -->
@@ -247,7 +243,6 @@ abuse_link(ObjectID, _) -->
 why_login -->
 	{ site_user_logged_in(_) }, !.
 why_login -->
-	sep,
 	html('Tags are associated to your profile if you are logged in').
 
 sep -->
@@ -305,15 +300,15 @@ add_tag(Request) :-
 			         message:Message})
 	).
 
-add_tag_validate(Tag, _Object, _UserType, Message) :-
-	tag_not_ok(Tag, Message), !.
+add_tag_validate(Tag, _Object, UserType, Message) :-
+	tag_create_not_ok(Tag, UserType, Message), !.
 add_tag_validate(Tag, Object, _UserType, Message) :-
 	object_label(Object, Label),
 	sub_atom_icasechk(Label, _, Tag), !,
 	Message = 'Rejected: tag is part of object name'.
-add_tag_validate(Tag, _Object, UserType, Message) :-
-%	\+ tag(Tag, _, _),
-	tag_create_not_ok(Tag, UserType, Message), !.
+add_tag_validate(Tag, _Object, _UserType, Message) :-
+	\+ current_op(_,_,system:Tag),
+	tag_not_ok(Tag, Message), !.
 add_tag_validate(_, _, _, _).
 
 tag_not_ok(Tag, Message) :-
