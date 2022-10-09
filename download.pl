@@ -661,6 +661,7 @@ download(Request) :-
 	),
 	download_file(File, AbsFile),
 	cors_enable,
+	format('Cross-origin-resource-policy: cross-origin\n'),
 	(   File == Download
 	->  http_peer(Request, Remote),
 	    broadcast(download(File, Remote)),
