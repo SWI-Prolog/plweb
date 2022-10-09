@@ -34,6 +34,7 @@
 :- use_module(library(http/http_log)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_cors)).
 :- use_module(library(http/html_head)).
 :- use_module(library(www_browser)).
 :- use_module(library(settings)).
@@ -59,6 +60,7 @@
 
 :- set_setting_default(pengines:allow_from, []).
 :- set_setting_default(http:logfile, 'log/httpd.log').
+:- set_setting_default(http:cors, [*]).
 
 
 		 /*******************************

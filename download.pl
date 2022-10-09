@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009-2019, VU University Amsterdam
+    Copyright (C): 2009-2022, VU University Amsterdam
 			      CWI, Amsterdam
+			      SWI-Prolog Solutions b.v.
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -36,6 +37,7 @@
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_dirindex)).
 :- use_module(library(http/http_wrapper)).
+:- use_module(library(http/http_cors)).
 :- use_module(library(dcg/basics)).
 :- use_module(library(broadcast)).
 :- use_module(library(pairs)).
@@ -658,6 +660,7 @@ download(Request) :-
 	;   File = Download
 	),
 	download_file(File, AbsFile),
+	cors_enable,
 	(   File == Download
 	->  http_peer(Request, Remote),
 	    broadcast(download(File, Remote)),
