@@ -75,7 +75,7 @@ update_pack_metadata :-
 	setup_call_cleanup(
 	    ( open('log/pack-warnings.log', write, ErrorOut),
 	      asserta((user:thread_message_hook(_Term, Kind, Lines) :-
-		        (   must_print(Kind)
+			(   must_print(Kind)
 			->  print_message_lines(ErrorOut, kind(Kind), Lines)
 			;   true
 			)))
@@ -155,6 +155,8 @@ clean_pack_info(Pack) :-
 %
 %	Cross-reference all mirrored packs
 
+xref_packs :-
+    !.
 xref_packs :-
 	forall(pack_archive(Pack, _Hash, Archive),
 	       ( debug(pack(xref), 'Cross-referencing pack ~w', [Pack]),
