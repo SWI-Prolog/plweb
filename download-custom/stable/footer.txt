@@ -27,5 +27,6 @@ Highlights:
     [sweep](https://eshelyaron.com/sweep.html).  Sweep embeds Prolog, which
     allows for _semantic highlighting_ and much more.
   - A bundled replacement for [GMP](https://gmplib.org/), providing
-    unbounded integers and rational numbers under a permissive license.
-    Currently significantly shorter on notably larger rational numbers.
+    unbounded integers and rational numbers based on
+    [LibBF](https://bellard.org/libbf/) under a permissive license.
+    Currently significantly slower on notably larger rational numbers.
