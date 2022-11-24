@@ -13,7 +13,7 @@ Many active SWI-Prolog users  track  the   development  releases  or GIT
 versions for developing Prolog  applications.  Most   of  the  time  the
 development versions are fairly stable.   Infrequent  larger rewrites to
 the  core  infrastructure  that  may   cause  instability  is  typically
-announced on the mailinglist.
+announced on the [forum](https://swi-prolog.discourse.group/).
 
 Tracking the latest version offers some advantages for you are user:
 

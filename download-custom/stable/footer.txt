@@ -1,11 +1,28 @@
-## SWI-Prolog version 8
+## SWI-Prolog version 9
 
-The SWI-Prolog 8.0 major  release  marks   mostly  a  milestone  for the
-internals, stability, deployment options  and   maintainability  of  the
-system. SWI-Prolog extensions  and   incompatibilities  wrt. traditional
-Prolog are described in [extensions](</pldoc/man?section=extensions>).
+The SWI-Prolog 9.0  consolidates many improvements of  the 8.x series.
+This major release mainly adds  and improves features.  Upgrading from
+any 8.x release should not come with major compatibility issues.
 
-SWI-Prolog 8.4.x Adds interfaces to [Redis](https://redis.io/) and
-[STOMP](http://stomp.github.io/) _micro services_, isolated
-_transactions_ and additional thread synchronization, new support for
-deterministic coding using $/0, $/1 and det/1 and _monotonic tabling_.
+Highlights:
+
+  - Mature and feature-rich tabling support including _well founded
+    semantics_, _incremental tabling_, _monotonic tabling_ and
+    _shared tabling_.
+  - Single sided unification [SSU](/pldoc/man?section=ssu) and zero-cost
+    runtime determinism checking.  See also `$/0`, `$/1` and det/1.
+  - Database _transactions_ see transaction/1 and snapshot/1.
+  - A new C++ interface that covers the whole foreign API and provides
+    much better type safety.
+  - Linux versions are by default linked to
+    [tcmalloc](https://github.com/google/tcmalloc).  This provides more
+    information and control and reduces the footprint of multi-threaded
+    7x7 servers considerably compared to the default ptmalloc.
+  - Interfaces to [Redis](https://redis.io/) and
+    [STOMP](http://stomp.github.io/) message passing systems.
+  - A port to WASM [WebAssembly](https://webassembly.org/) allows running
+    SWI-Prolog in the browser.  The high level bi-directional interfaces
+    to JavaScript allows for inspecting and modifying the browser DOM.
+  - A completely new GNU-Emacs package called
+    [sweep](https://eshelyaron.com/sweep.html).  Sweep embeds Prolog, which
+    allows for _semantic highlighting_ and much more.
