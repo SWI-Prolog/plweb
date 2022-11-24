@@ -26,3 +26,6 @@ Highlights:
   - A completely new GNU-Emacs package called
     [sweep](https://eshelyaron.com/sweep.html).  Sweep embeds Prolog, which
     allows for _semantic highlighting_ and much more.
+  - A bundled replacement for [GMP](https://gmplib.org/), providing
+    unbounded integers and rational numbers under a permissive license.
+    Currently significantly shorter on notably larger rational numbers.
