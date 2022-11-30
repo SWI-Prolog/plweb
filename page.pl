@@ -207,7 +207,7 @@ plweb_search(Request) :-
 		 [ oneof([all,app,noapp,man,lib,pack,wiki]),
 		   default(noapp),
 		   description('Search everying, application only \c
-		                or manual only')
+				or manual only')
 		 ]),
 	      match(Match,
 		    [ oneof([name,summary]),
@@ -218,7 +218,7 @@ plweb_search(Request) :-
 			   [ oneof(long,summary),
 			     default(summary),
 			     description('Return full documentation \c
-			                  or summary-lines')
+					  or summary-lines')
 			   ]),
 	      page(Page,
 		   [ integer,
@@ -257,30 +257,30 @@ searchbox_script(Tag) -->
 			 .parentNode
 			 .innerHTML;
 	}
-        $("#"+Tag).autocomplete({
-        minLength: 1,
-        delay: 0.3,
-        source: "/autocomplete/ac_predicate",
-        focus: function(event,ui) {
-          $("#"+Tag).val(ui.item.label);
-          return false;
-        },
-        select: function(event,ui) {
-          $("#"+Tag).val(ui.item.label);
-          window.location.href = ui.item.href;
-          return false;
-        }
-        })
-        .data("ui-autocomplete")._renderItem = function(ul,item) {
-        var label = String(htmlEncode(item.label)).replace(
-            htmlEncode(this.term),
-            "<span class=\"acmatch\">"+this.term+"</span>");
-        var tag = item.tag ? " <i>["+item.tag+"]</i>" : "";
-        return $("<li>")
-          .append("<a class=\""+item.class+"\">"+label+tag+"</a>")
-          .appendTo(ul)
-        };
-        });
+	$("#"+Tag).autocomplete({
+	minLength: 1,
+	delay: 0.3,
+	source: "/autocomplete/ac_predicate",
+	focus: function(event,ui) {
+	  $("#"+Tag).val(ui.item.label);
+	  return false;
+	},
+	select: function(event,ui) {
+	  $("#"+Tag).val(ui.item.label);
+	  window.location.href = ui.item.href;
+	  return false;
+	}
+	})
+	.data("ui-autocomplete")._renderItem = function(ul,item) {
+	var label = String(htmlEncode(item.label)).replace(
+	    htmlEncode(this.term),
+	    "<span class=\"acmatch\">"+this.term+"</span>");
+	var tag = item.tag ? " <i>["+item.tag+"]</i>" : "";
+	return $("<li>")
+	  .append("<a class=\""+item.class+"\">"+label+tag+"</a>")
+	  .appendTo(ul)
+	};
+	});
 |})]).
 
 %%	tag_line_area//
@@ -527,7 +527,7 @@ menu(Style,
 	 ],
 	 'Machine learning' =
 	 [ 'Probabilistic Logic Programming' =
-			         'http://cplint.ml.unife.it/'
+				 'http://cplint.ml.unife.it/'
 	 ],
 	 'External collections' =
 	 [ 'Meta level tutorials' = 'https://www.metalevel.at/prolog'
@@ -617,12 +617,16 @@ cta_area -->
 	html({|html(_)||
     <table id='cta-container'>
       <tr>
-        <td style="text-align:left">
-	      <a href="Download.html">Download SWI-Prolog</a>
-        <td style="text-align:center">
-	      <a href="GetStarted.html">Get Started</a>
-        <td style="text-align:right">
-	      <a href="http://swish.swi-prolog.org">Try SWI-Prolog online</a>
+	<td style="text-align:left; vertical-align: top">
+	   <a href="Download.html">Download SWI-Prolog</a>
+	<td style="text-align:center; vertical-align: top">
+	   <a href="GetStarted.html">Get Started</a>
+	<td style="text-align:right; white-space: nowrap; vertical-align: top">
+	   <a href="http://swish.swi-prolog.org">
+	   Try SWI-Prolog online (SWISH) </a><br>
+	   <a href="http://dev.swi-prolog.org/wasm/shell"
+	     style="font-size: 60%">
+	   &#128293; Try SWI-Prolog in your browser (WASM)</a><br>
       </tr>
     </table>
 |}),
@@ -630,7 +634,7 @@ cta_area -->
 		 [ a([ class('github-button'), id('github-star'),
 		       href('https://github.com/SWI-Prolog/swipl-devel'),
 		       'data-color-scheme'('no-preference: light; \c
-		                            light: light; dark: dark;'),
+					    light: light; dark: dark;'),
 		       'data-size'(large),
 		       'data-show-count'(true),
 		       'aria-label'('Star SWI-Prolog/swipl-devel on GitHub')
@@ -638,7 +642,7 @@ cta_area -->
 		   a([ class('github-button'), id('github-sponsor'),
 		       href('https://github.com/sponsors/SWI-Prolog'),
 		       'data-color-scheme'('no-preference: light; \c
-		                            light: light; dark: dark;'),
+					    light: light; dark: dark;'),
 		       'data-size'(large),
 		       'data-icon'('octicon-heart'),
 		       'data-show-count'(true),
@@ -655,12 +659,12 @@ enhanced_search_area -->
 	{ http_link_to_id(plweb_search, [], Action) },
 	html({|html(Action)||
 	      <div id='enhanced-search-container'>
-	        <div>
-	          <span class='lbl'>SEARCH DOCUMENTATION:</span>
-	          <form  id="search-form-enhanced" action="Action">
-	            <input name="for" type='text' id="forenhanced">
-	            <input type="image" src="/icons/go.png" alt='Search'>
-	          </form>
-	        </div>
+		<div>
+		  <span class='lbl'>SEARCH DOCUMENTATION:</span>
+		  <form  id="search-form-enhanced" action="Action">
+		    <input name="for" type='text' id="forenhanced">
+		    <input type="image" src="/icons/go.png" alt='Search'>
+		  </form>
+		</div>
 	      </div>|}),
 	searchbox_script(forenhanced).
