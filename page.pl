@@ -537,7 +537,7 @@ menu(Style,
 	 ]
        ],
        'Community' =           '/community.html' +
-       [ 'IRC'                 = 'http://webchat.freenode.net/?channels=##prolog',
+       [ 'IRC'                 = 'https://web.libera.chat/?channels=##prolog',
 	 'Forum & mailing list'= 'https://swi-prolog.discourse.group',
 	 'Blog'                = '/blog',
 	 'News'                = '/news/archive',
