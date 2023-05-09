@@ -255,7 +255,7 @@ dyk('CQL makes dealing with SQL easier'-section('/packages/cql.html')).
 dyk('you can turn ugraphs into graphml'-pack(graphml)).
 dyk('you can turn terms into graphviz (.dot) files'-pack(gvterm)).
 dyk('about nifty JoCaml style multithreading'-pack(jolog)).
-dyk('the first Prolog interpreter was in Fortran').
+dyk('the first Prolog interpreter was in Algol-W by Philippe Roussel (1972)').
 dyk('julian pack offers match based dates'-pack(julian)).
 dyk('eliminate helper predicates with pack lambda'-pack(lambda)).
 dyk('you can parse markdown').
