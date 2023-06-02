@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        jan@swi-prolog.org
     WWW:           https://www.swi-prolog.org
-    Copyright (C): 2020, SWI-Prolog Solutions b.v.
+    Copyright (C): 2020-2023, SWI-Prolog Solutions b.v.
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -303,7 +303,7 @@ index_code(File, DOM) :-
     ;   true
     ).
 
-%!  ex_xref(Id, Code, XRef) is nondet.
+%!  ex_xref(?Id, -Code, -XRef) is nondet.
 
 ex_xref(File, Code, XRef) :-
     ex_file(File),
@@ -513,7 +513,7 @@ xref_term(Head) -->
     xref_head(Head).
 
 xref_head(Term) --> { atom(Term) }, !, [defined-Term].
-xref_head(Term) --> { compound(Term), !, generalize(Term,Gen) }, [defined-Gen].
+xref_head(Term) --> { compound(Term), !, most_general_goal(Term,Gen) }, [defined-Gen].
 xref_head(Term) --> [ error-type_error(callable, Term) ].
 
 xref_query(Query) -->
@@ -522,18 +522,37 @@ xref_query(Query) -->
 xref_body(Body) -->
     xref_body(Body, called).
 
+:- multifile
+    prolog:meta_goal/2.
+:- dynamic
+    prolog:meta_goal/2.
+
 xref_body(Term, _) --> { var(Term) }, !.
 xref_body(Term, Ctx) -->
-    { predicate_property(user:Term, meta_predicate(Meta)), !,
-      generalize(Term, Called),
+    { prolog:meta_goal(Term, Explicit),
+      !,
+      most_general_goal(Term, Called)
+    },
+    [ Ctx-Called ],
+    xref_explicit(Explicit, Ctx).
+xref_body(Term, Ctx) -->
+    { meta_head(Term, Meta), !,
+      most_general_goal(Term, Called),
       Term =.. [_|Args],
       Meta =.. [_|Specs]
     },
     [ Ctx-Called ],
     xref_meta(Specs, Args, Ctx).
 xref_body(Term, Ctx) --> { atom(Term) }, !, [Ctx-Term].
-xref_body(Term, Ctx) --> { compound(Term), !, generalize(Term,Gen) }, [Ctx-Gen].
+xref_body(Term, Ctx) --> { compound(Term), !, most_general_goal(Term,Gen) }, [Ctx-Gen].
 xref_body(Term, _Ctx) --> [ error-type_error(callable, Term) ].
+
+meta_head(Term, Meta) :-
+    predicate_property(user:Term, meta_predicate(Meta)).
+meta_head(Term, Meta) :-
+    predicate_property(M:Term, exported),
+    module_property(M, class(library)),
+    predicate_property(M:Term, meta_predicate(Meta)).
 
 xref_meta([], [], _) --> [].
 xref_meta([S|ST], [A|AT], Ctx) -->
@@ -605,6 +624,19 @@ dcg_control(\+(A), [A]).
 xref_dcg_body_list([]) --> [].
 xref_dcg_body_list([H|T]) --> xref_dcg_body(H), xref_dcg_body_list(T).
 
+xref_explicit([], _) -->
+    [].
+xref_explicit([G+N|T], Ctx) -->
+    !,
+    { extend(G,N,G1) },
+    xref_body(G1, Ctx),
+    xref_explicit(T, Ctx).
+xref_explicit([G|T], Ctx) -->
+    xref_body(G, Ctx),
+    xref_explicit(T, Ctx).
+
+
+
 strip_existential(T0, T) :-
     (   var(T0)
     ->  T = T0
@@ -623,10 +655,6 @@ extend(T0, N, T) :-
     length(Extra, N),
     append(Args0, Extra, Args),
     compound_name_arguments(T, Name, Args).
-
-generalize(Compound, Gen) :-
-    compound_name_arity(Compound, Name, Arity),
-    compound_name_arity(Gen, Name, Arity).
 
 built_in(PI) :-
     pi_head(PI, Head),
