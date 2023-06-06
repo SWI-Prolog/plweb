@@ -94,9 +94,16 @@ pack_mirror(Pack, Hashes, MirrorDir, Hash) :-
 	    ->	git_hash(Hash, GitOptions)
 	    ;	member(URL, GitURLs),
 	        git_remote_url(origin, URL, GitOptions),
-		debug(pack(mirror), 'git pull in ~q', [MirrorDir]),
-		catch(git([pull], GitOptions), E,
-		      ( print_message(warning, E), fail))
+		debug(pack(mirror), 'git pull in ~p', [MirrorDir]),
+		(   catch(git([pull], GitOptions), E,
+			  ( print_message(warning, E), fail))
+		->  true
+		;   debug(pack(mirror), 'pull ~p failed; retrying with fetch', [MirrorDir]),
+		    catch(git([fetch], GitOptions), E,
+			  ( print_message(warning, E), fail)),
+		    catch(git([reset, '--hard'], GitOptions), E,
+			  ( print_message(warning, E), fail))
+		)
 	    ->	git_hash(Hash, GitOptions)
 	    ;	print_message(warning, pack_mirror(Pack)), % TBD
 		fail
