@@ -3,7 +3,8 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009-2017, VU University Amsterdam
+    Copyright (C): 2009-2023, VU University Amsterdam
+			      SWI-Prolog Solutions b.v.
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -135,7 +136,8 @@ outer_container(Content, Options) -->
 		    Content,
 		    div([id(dialog),style('display:none;')], []),
 		    div(class([footer, newstyle]), \footer(Options)),
-		    div(id('tail-end'), &(nbsp))
+		    div(id('tail-end'), &(nbsp)),
+		    \page_script(Options)
 		  ]))),
 	html_receive(script).
 
@@ -551,14 +553,7 @@ menu(Style,
 	 'Contributors'        = '/Contributors.html',
 	 'SWI-Prolog items'    = '/loot.html'
        ],
-       'Users' =
-       [ 'Semantic web'        = '/web/index.html',
-	 'Students'            = '/students/index.html',
-	 'Researchers'         = '/research/index.html',
-	 'Commercial users'    = '/commercial/index.html',
-	 'Dog food'            = '/dogfood.html',
-	 'Is SWIPL right for me?' = '/pldoc/man?section=swiorother'
-       ],
+       'Commercial' = '/commercial/index.html',
        'Wiki' =
        [ LoginLabel            = LoginURL,
 	 'Edit this page'      = EditHREF,
@@ -668,3 +663,129 @@ enhanced_search_area -->
 		</div>
 	      </div>|}),
 	searchbox_script(forenhanced).
+
+
+page_script(Options) -->
+	{ option(object(wiki('commercial/index.md')), Options) },
+	js_script({|javascript||
+function toCollapsible(id)
+{ const c = document.getElementById(id);
+  const elems = [];
+  let divs = [];
+
+  function hlevel(node)
+  { return parseInt(node.tagName.substring(1,2));
+  }
+
+  function expand(ev) {
+    const closed = [];
+    const el = ev.target.parentElement;  // The collapsible
+    const ex = el.parentElement.querySelectorAll(':scope > .collapsible:not(.collapsed)');
+    const duration = 200;
+
+    for (const e of ex ) {
+      if ( duration ) {
+        const h = e.clientHeight;
+	e.animate([ { opacity: 1, height: h },
+		    { opacity: 0, height: 0 }
+		  ],
+		  { duration: duration,
+		    iterationa: 1
+		  });
+      }
+      e.classList.add("collapsed");
+      closed.push(e);
+    }
+    if ( closed.indexOf(el) == -1 ) {
+      const detail = ev.target.nextSibling;
+      el.classList.remove("collapsed");
+      if ( duration ) {
+	const h = detail.clientHeight;
+	detail.animate([ { opacity: 0, height: 0 },
+			 { opacity: 1, height: h }
+		       ],
+		       { duration: 500,
+			 iterationa: 1
+		       });
+      }
+    }
+  }
+
+  for (const child of c.childNodes) {
+    elems.push(child);
+  }
+
+  for (const child of elems) {
+    if ( /^h[1-4]$/i.test(child.tagName) ) {
+      const level = hlevel(child);
+
+      while ( divs.length > 0 &&
+	      divs[0].level >= level ) {
+	divs.shift();
+      }
+
+      const text = child.textContent;
+      if ( /^[QO][:]/.test(text) ) {
+	const div = document.createElement("div");
+	const detail = document.createElement("div");
+
+	if ( /^[O][:]/.test(text) )
+	  child.textContent = text.replace(/^O[:] */, "");
+
+	div.classList.add("collapsible", "collapsed");
+	if ( divs.length > 0 )
+	  divs[0].div.appendChild(div);
+	else
+	  c.insertBefore(div, child);
+	child.classList.add("summary");
+	detail.classList.add("detail");
+	child.addEventListener("click", expand);
+	div.appendChild(child);
+	div.appendChild(detail);
+
+	divs.unshift({level:level, div:detail});
+      }
+    } else if ( divs.length > 0 ) {
+      divs[0].div.appendChild(child);
+    }
+  }
+}
+
+toCollapsible("contents");
+		  |}),
+	html({|html||
+<style>
+  .collapsible > .detail > .collapsible {
+      margin-left: 3ex;
+  }
+  .collapsible.collapsed .detail {
+      display: none;
+  }
+  .collapsible.collapsed .summary::before {
+      content: "\0027A4 ";
+      margin-right: 1ex;
+      color: yellow;
+  }
+  .collapsible:not(.collapsed) .summary::before {
+      content: "\002B9F ";
+      margin-right: 1ex;
+      color: yellow;
+  }
+  .collapsible.collapsed .summary:hover {
+      text-decoration: underline;
+      cursor: pointer;
+  }
+  .summary {
+      margin: 0px;
+  }
+  .detail p {
+      margin-top: 0px;
+  }
+  .detail {
+      overflow-y: hidden;
+  }
+</style>
+	     |}).
+page_script(_) -->
+	[].
+
