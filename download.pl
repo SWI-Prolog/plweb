@@ -687,7 +687,7 @@ download(Request) :-
 	http_redirect(see_other, URI, Request).
 download(Request) :-
 	(   memberchk(path_info(Download), Request)
-	->  true
+	->  http_safe_file(download(Download), [])
 	;   Download = '.'
 	),
 	absolute_file_name(download(Download),
@@ -705,6 +705,7 @@ download(Request) :-
 	existence_error(http_location, Path).
 
 download_file(File, AbsFile) :-
+	http_safe_file(download(File), []),
 	absolute_file_name(download(File),
 			   AbsFile,
 			   [ access(read),
