@@ -1,9 +1,10 @@
 /*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
-    E-mail:        J.Wielemaker@cs.vu.nl
+    E-mail:        jan@swi-prolog.org
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2013-2018, VU University Amsterdam
+    Copyright (C): 2013-2023, VU University Amsterdam
+			      SWI-Prolog Solutions b.v.
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -141,6 +142,9 @@ proxy_master(Request) :-
 %	  locate(archive, Pack).
 %	  * search(+Keyword)
 %	  Find packs that match Keyword.
+%	  * info(+Packs)
+%	  Return a list of meta-data terms for the latest version of
+%	  Packs.  Unknown packs are omitted from the result list.
 
 pack_query(install(URL0, SHA10, Info), Peer, Reply) :-
 	to_atom(URL0, URL),
@@ -151,6 +155,8 @@ pack_query(locate(Pack), _, Reply) :-
 	pack_version_urls(Pack, Reply).
 pack_query(search(Word), _, Reply) :-
 	search_packs(Word, Reply).
+pack_query(info(Packs), _, Hits) :-
+	convlist(pack_search_result, Packs, Hits).
 
 to_atom(Atom, Atom) :-
 	atom(Atom), !.
