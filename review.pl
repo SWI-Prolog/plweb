@@ -43,6 +43,7 @@
 :- use_module(library(persistency)).
 :- use_module(library(aggregate)).
 :- use_module(library(record)).
+:- use_module(library(debug)).
 
 :- use_module(markitup).
 :- use_module(rating).

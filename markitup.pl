@@ -36,6 +36,7 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/js_write)).
 :- use_module(library(option)).
+:- use_module(library(debug)).
 :- use_module(markdown).
 :- use_module(wiki).
 

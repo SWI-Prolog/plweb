@@ -48,6 +48,7 @@
 :- use_module(library(persistency)).
 :- use_module(library(crypto)).
 :- use_module(library(random)).
+:- use_module(library(debug)).
 :- use_module(wiki).
 
 %%	download(+Request) is det.

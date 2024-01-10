@@ -39,6 +39,7 @@ every pldoc and SWI-Prolog website page.
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(random)).
+:- use_module(library(debug)).
 :- use_module(news).
 :- use_module(holidays).
 :- use_module(library(http/js_write)).
