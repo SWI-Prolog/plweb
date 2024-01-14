@@ -153,8 +153,8 @@ pack_query(install(URL0, SHA10, Info), Peer, Reply) :-
 	findall(ReplyInfo, install_info(URL, SHA1, ReplyInfo), Reply).
 pack_query(locate(Pack), _, Reply) :-
 	pack_version_urls_v1(Pack, Reply).
-pack_query(locate_v2(Pack, Options), _, Reply) :-
-	pack_version_urls_v2(Pack, Reply, Options).
+pack_query(versions(Pack, Options), _, Reply) :-
+	pack_versions(Pack, Reply, Options).
 pack_query(search(Word), _, Reply) :-
 	search_packs(Word, Reply).
 pack_query(info(Packs), _, Hits) :-
@@ -258,6 +258,14 @@ sha1_title(Hash, Title) :-
 	;   Title = '<no title>'
 	).
 
+sha1_is_git(Hash, Boolean) :-
+	sha1_info(Hash, Info),
+	(   memberchk(git(true), Info)
+	->  Boolean = true
+	;   Boolean = false
+	).
+
+
 %%	pack_version_hashes(+Pack, -VersionHashesPairs) is semidet.
 %
 %	True when HashesByVersion is  an   ordered  list Version-Hashes,
@@ -291,40 +299,105 @@ version_hashes_urls(Version-Hashes, Version-URLs) :-
 	maplist(sha1_url, Hashes, URLs0),
 	sort(URLs0, URLs).
 
-%%	pack_version_urls_v2(+Pack, -Locations, +Options) is det.
+%%	pack_versions(+Packs, -PackVersions, +Options) is det.
 %
-%	Version 2 of pack_version_urls.  Allows  Pack   to  be  a  list,
-%	returning information about multiple packages.   Locations  is a
-%	list `Pack-Infos`, where each `Info` is a dict.
+%	Given a single or multiple  packs,   return  information  on all
+%	these packs as well as  their   dependencies.  PackVersions is a
+%	list   of   `Pack-Versions`.   `Versions`   is     a   list   of
+%	`Version-InfoList`. `InfoList` is a list of dicts, each holding
 %
-%	  - details(true)
-%	    Include the installation details as available from
-%	    pack_query(install(URL, SHA1, Info)).
+%	   - info.pack
+%	     Pack name
+%	   - info.hash
+%	     Hash of the version.   This is either a GIT hash or the
+%	     sha1 of the archive file.
+%	   - info.provides
+%	     List of provided tokens.  Each provide is either a simple
+%	     token or a term @(Token,Version).
+%	   - info.requires
+%	     List of required tokens.  Each requirement is either a
+%	     simple token or a term `Token cmp Version`, where _cmp_
+%	     is one of `<`, `=<`, `=`, `>=` or `>`.
+%	   - info.url
+%	     URL for downloading the archive or URL of the git repo.
+%	   - info.git
+%	     Boolean expressing wether the URL is a git repo or
+%	     archive.
 
-pack_version_urls_v2([], [], _) :-
+pack_versions(Packs, Deps, Options) :-
+	phrase(pack_versions(Packs, [seen(Deps)|Options]), Deps).
+
+pack_versions([], _) --> !.
+pack_versions([H|T], Options) -->
+	pack_versions(H, Options),
+	pack_versions(T, Options).
+pack_versions(Pack, Options) -->
+	{ option(seen(Deps), Options),
+	  seen(Pack, Deps)
+	},
 	!.
-pack_version_urls_v2([H0|T0], [H|T], Options) :-
-	pack_version_urls_v2(H0, H, Options),
-	pack_version_urls_v2(T0, T, Options).
-pack_version_urls_v2(Pack, Pack-VersionURLs, Options) :-
-	pack_version_hashes(Pack, VersionHashes),
-	maplist(version_hashes_urls_v2(Pack, Options),
-		VersionHashes, VersionURLs).
+pack_versions(Pack, Options) -->
+	{ pack_version_hashes(Pack, VersionHashes),
+	  maplist(version_hash_info(Pack, Options),
+		  VersionHashes, VersionInfo, RequiresLists),
+	  append(RequiresLists, Requires0),
+	  sort(Requires0, Requires)
+	},
+	[ Pack-VersionInfo ],
+	include_pack_requirements(Requires, Options).
 
-version_hashes_urls_v2(Pack, Options, Version-Hashes, Version-Info) :-
-	maplist(hash_info(Pack, Options), Hashes, Info).
+seen(Pack, [Pack-_|_]) => true.
+seen(Pack, [_|T]) => seen(Pack, T).
+seen(_, _) => fail.
 
-hash_info(Pack, Options, Hash, Dict) :-
+version_hash_info(Pack, Options, Version-Hashes, Version-Info, Requires) :-
+	maplist(hash_info(Pack, Options), Hashes, Info, Requires0),
+	append(Requires0, Requires1),
+	sort(Requires1, Requires).
+
+hash_info(Pack, _Options, Hash, Dict, Requires) :-
 	sha1_url(Hash, URL),
-	Dict0 = #{ pack: Pack,
-		   hash: Hash,
-		   url: URL
-		 },
-	(   option(details(true), Options)
-	->  findall(Info, install_info(URL, Hash, Info), Infos),
-	    Dict = Dict0.put(details, Infos)
-	;   Dict = Dict0
-	).
+	sha1_is_git(Hash, IsGit),
+	findall(Req, sha1_requires(Hash, Req), Requires),
+	findall(Prv, sha1_provides(Hash, Prv), Provides),
+	Dict = #{ pack: Pack,
+		  hash: Hash,
+		  url: URL,
+		  git: IsGit,
+		  requires: Requires,
+		  provides: Provides
+		}.
+
+include_pack_requirements([], _) --> !.
+include_pack_requirements([ReqToken|T], Options) -->
+	{ findall(Unseen, resolves(ReqToken, Unseen), DepPacks)
+	},
+	pack_versions(DepPacks, Options),
+	include_pack_requirements(T, Options).
+
+resolves(ReqToken, Pack) :-
+	(   sha1_pack(Hash, Token),
+	    sha1_version(Hash, Version),
+	    PrvToken = @(Token,Version)
+	;   sha1_provides(Hash, PrvToken)
+	),
+	satisfies(PrvToken, ReqToken),
+	sha1_pack(Hash, Pack).
+
+satisfies(Token, Token) => true.
+satisfies(@(Token,_), Token) => true.
+satisfies(@(Token,PrvVersion), Req), cmp(Req, Token, Cmp, ReqVersion) =>
+	atomic_list_concat(PrvVersion, PrvVersionAtom),
+	atomic_list_concat(ReqVersion, ReqVersionAtom),
+	cmp_versions(Cmp, PrvVersionAtom, ReqVersionAtom).
+satisfies(_,_) => fail.
+
+cmp(Token  < Version, Token, <,	 Version).
+cmp(Token =< Version, Token, =<, Version).
+cmp(Token =  Version, Token, =,	 Version).
+cmp(Token == Version, Token, ==, Version).
+cmp(Token >= Version, Token, >=, Version).
+cmp(Token >  Version, Token, >,	 Version).
 
 %%	search_packs(+Search, -Packs) is det.
 %
@@ -371,6 +444,7 @@ is_dependency(Term, Token, VersionCmp) :-
 cmp(<,  @<).
 cmp(=<, @=<).
 cmp(==, ==).
+cmp(=,  =).
 cmp(>=, @>=).
 cmp(>,  @>).
 
