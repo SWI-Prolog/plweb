@@ -31,7 +31,6 @@
 :- module(pack,
 	  [ pack/1,			% ?Pack
 	    pack_version_hashes/2,	% +Pack, -VersionHashesPairs
-	    pack_version_urls/2,	% +Pack, -VersionUrlPairs
 	    hash_git_url/2,		% +Hash, -URL
 	    hash_file_url/2,		% +Hash, -URL
 	    pack_url_hash/2,		% +URL, -SHA1
@@ -120,7 +119,7 @@ proxy_master(Request) :-
 	server(master, Master),
 	Master \== Host, !,
 	http_peer(Request, Peer),
-	format(string(To), 'http://~w', [Master]),
+	format(string(To), 'https://~w', [Master]),
 	proxy(To, Request,
 	      [ request_headers([ 'X-Forwarded-For' = Peer,
 				  'X-Real-IP' = Peer,
@@ -138,8 +137,9 @@ proxy_master(Request) :-
 %	  User tries to install from URL an object with the indicated
 %	  hash and Info.
 %	  * locate(+Pack)
-%	  Query download locations for Pack.  Same as
-%	  locate(archive, Pack).
+%	  Query download locations for Pack.
+%	  * locate_v2(+Packs, +Options)
+%	  Query download and versions for a set of packs.
 %	  * search(+Keyword)
 %	  Find packs that match Keyword.
 %	  * info(+Packs)
@@ -150,9 +150,11 @@ pack_query(install(URL0, SHA10, Info), Peer, Reply) :-
 	to_atom(URL0, URL),
 	to_atom(SHA10, SHA1),
 	with_mutex(pack, save_request(URL, SHA1, Info, Peer)),
-	findall(ReplyInfo, install_info(URL, SHA1, ReplyInfo, []), Reply).
+	findall(ReplyInfo, install_info(URL, SHA1, ReplyInfo), Reply).
 pack_query(locate(Pack), _, Reply) :-
-	pack_version_urls(Pack, Reply).
+	pack_version_urls_v1(Pack, Reply).
+pack_query(locate_v2(Pack, Options), _, Reply) :-
+	pack_version_urls_v2(Pack, Reply, Options).
 pack_query(search(Word), _, Reply) :-
 	search_packs(Word, Reply).
 pack_query(info(Packs), _, Hits) :-
@@ -187,7 +189,7 @@ pack_delete(Request) :-
 		 *	COMPUTATIONAL LOGIC	*
 		 *******************************/
 
-%%	install_info(+URL, +SHA1, -Info, +Seen) is nondet.
+%%	install_info(+URL, +SHA1, -Info) is nondet.
 %
 %	Info is relevant information  for  the   client  who  whishes to
 %	install URL, which has the given   SHA1 hash. Currently provided
@@ -206,6 +208,9 @@ pack_delete(Request) :-
 %	    may be downloaded from the given URLs (a list).  Pack has
 %	    install info as specified by SubSeps (recursive
 %	    dependencies)
+
+install_info(URL, SHA1, Info) :-
+	install_info(URL, SHA1, Info, []).
 
 install_info(_, SHA1, _, Seen) :-
 	memberchk(SHA1, Seen), !, fail.
@@ -269,16 +274,16 @@ pack_version_hashes(Pack, VersionAHashesPairs) :-
 atomic_version_hashes(Version-Hashes, VersionA-Hashes) :-
 	prolog_pack:atom_version(VersionA, Version).
 
-%%	pack_version_urls(+Pack, -Locations) is nondet.
+%%	pack_version_urls_v1(+Pack, -Locations) is det.
 %
 %	True when Locations is a set of Version-list(URL) pairs used for
 %	installing Pack.
 %
-%	@param	Locations is a list Version-URLs, sorted latest version
+%	@arg	Locations is a list Version-URLs, sorted latest version
 %		first.
-%	@tbd	Handle versions with multiple hashes!
+%	@see	pack_version_urls_v2/3
 
-pack_version_urls(Pack, VersionURLs) :-
+pack_version_urls_v1(Pack, VersionURLs) :-
 	pack_version_hashes(Pack, VersionHashes),
 	maplist(version_hashes_urls, VersionHashes, VersionURLs).
 
@@ -286,6 +291,40 @@ version_hashes_urls(Version-Hashes, Version-URLs) :-
 	maplist(sha1_url, Hashes, URLs0),
 	sort(URLs0, URLs).
 
+%%	pack_version_urls_v2(+Pack, -Locations, +Options) is det.
+%
+%	Version 2 of pack_version_urls.  Allows  Pack   to  be  a  list,
+%	returning information about multiple packages.   Locations  is a
+%	list `Pack-Infos`, where each `Info` is a dict.
+%
+%	  - details(true)
+%	    Include the installation details as available from
+%	    pack_query(install(URL, SHA1, Info)).
+
+pack_version_urls_v2([], [], _) :-
+	!.
+pack_version_urls_v2([H0|T0], [H|T], Options) :-
+	pack_version_urls_v2(H0, H, Options),
+	pack_version_urls_v2(T0, T, Options).
+pack_version_urls_v2(Pack, Pack-VersionURLs, Options) :-
+	pack_version_hashes(Pack, VersionHashes),
+	maplist(version_hashes_urls_v2(Pack, Options),
+		VersionHashes, VersionURLs).
+
+version_hashes_urls_v2(Pack, Options, Version-Hashes, Version-Info) :-
+	maplist(hash_info(Pack, Options), Hashes, Info).
+
+hash_info(Pack, Options, Hash, Dict) :-
+	sha1_url(Hash, URL),
+	Dict0 = #{ pack: Pack,
+		   hash: Hash,
+		   url: URL
+		 },
+	(   option(details(true), Options)
+	->  findall(Info, install_info(URL, Hash, Info), Infos),
+	    Dict = Dict0.put(details, Infos)
+	;   Dict = Dict0
+	).
 
 %%	search_packs(+Search, -Packs) is det.
 %
