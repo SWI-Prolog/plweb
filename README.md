@@ -50,7 +50,7 @@ commands:
 
 After installation, the  website  may  be   started  locally  using  the
 commands below. After that, you  have  access   to  the  same content as
-available  from  http://www.swi-prolog.org,  except   for  the  download
+available  from  https://www.swi-prolog.org,  except  for  the  download
 section of the website. The  default  port   of  the  site  is 3040, and
 therefore it may be accessed on http://localhost:3040/
 
