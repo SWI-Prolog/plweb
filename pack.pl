@@ -226,6 +226,7 @@ install_info(_, SHA1, downloads(Count), _) :-
 	sha1_downloads(SHA1, Count).
 install_info(_, SHA1, dependency(Token, Pack, Version, URLs, SubDeps), Seen) :-
 	sha1_requires(SHA1, Token),
+	\+ is_prolog_token(Token),	% not in this version
 	(   (   sha1_pack(_Hash, Token),
 		Pack = Token
 	    ;	sha1_provides(Hash, Token),
@@ -240,6 +241,10 @@ install_info(_, SHA1, dependency(Token, Pack, Version, URLs, SubDeps), Seen) :-
 	->  findall(SubDep, install_info(-, Hash1, SubDep, [SHA1|Seen]), SubDeps)
 	;   Pack = (-), Version = (-), URLs = []
 	).
+
+is_prolog_token(Token), cmp(Token, prolog, _Cmp, _Version) => true.
+is_prolog_token(prolog:_Feature) => true.
+is_prolog_token(prolog/_Component) => true.
 
 sha1_downloads(Hash, Count) :-
 	aggregate_all(count, sha1_download(Hash, _), Count).
