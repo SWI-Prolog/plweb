@@ -128,7 +128,7 @@ proxy_master(Request) :-
 	      ]).
 
 
-%%	pack_query(+Query, +Peer, -Reply)
+%%	pack_query(+Query, +Peer, -Reply) is det.
 %
 %	Implements  the  various  queries    from   the  pack_install/1.
 %	Currently defined Query values are:
@@ -138,26 +138,27 @@ proxy_master(Request) :-
 %	  hash and Info.
 %	  * locate(+Pack)
 %	  Query download locations for Pack.
-%	  * locate_v2(+Packs, +Options)
-%	  Query download and versions for a set of packs.
+%	  * versions(+Packs, +Options)
+%	  Query download and versions for a set of packs and all
+%	  (recursive) dependencies.
 %	  * search(+Keyword)
 %	  Find packs that match Keyword.
 %	  * info(+Packs)
 %	  Return a list of meta-data terms for the latest version of
 %	  Packs.  Unknown packs are omitted from the result list.
 
-pack_query(install(URL0, SHA10, Info), Peer, Reply) :-
+pack_query(install(URL0, SHA10, Info), Peer, Reply) =>
 	to_atom(URL0, URL),
 	to_atom(SHA10, SHA1),
 	with_mutex(pack, save_request(URL, SHA1, Info, Peer)),
 	findall(ReplyInfo, install_info(URL, SHA1, ReplyInfo), Reply).
-pack_query(locate(Pack), _, Reply) :-
+pack_query(locate(Pack), _, Reply) =>
 	pack_version_urls_v1(Pack, Reply).
-pack_query(versions(Pack, Options), _, Reply) :-
+pack_query(versions(Pack, Options), _, Reply) =>
 	pack_versions(Pack, Reply, Options).
-pack_query(search(Word), _, Reply) :-
+pack_query(search(Word), _, Reply) =>
 	search_packs(Word, Reply).
-pack_query(info(Packs), _, Hits) :-
+pack_query(info(Packs), _, Hits) =>
 	convlist(pack_search_result, Packs, Hits).
 
 to_atom(Atom, Atom) :-
