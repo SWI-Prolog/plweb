@@ -242,9 +242,13 @@ install_info(_, SHA1, dependency(Token, Pack, Version, URLs, SubDeps), Seen) :-
 	;   Pack = (-), Version = (-), URLs = []
 	).
 
+%!	is_prolog_token(+Token) is semidet.
+%
+%	@tbd: share with library(pack_install).
+
 is_prolog_token(Token), cmp(Token, prolog, _Cmp, _Version) => true.
 is_prolog_token(prolog:_Feature) => true.
-is_prolog_token(prolog/_Component) => true.
+is_prolog_token(_) => fail.
 
 sha1_downloads(Hash, Count) :-
 	aggregate_all(count, sha1_download(Hash, _), Count).
