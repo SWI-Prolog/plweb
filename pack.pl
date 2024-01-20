@@ -282,7 +282,7 @@ sha1_is_git(Hash, Boolean) :-
 %	latest version first.
 
 pack_version_hashes(Pack, VersionAHashesPairs) :-
-	setof(SHA1, sha1_pack(SHA1, Pack), Hashes),
+	findall(SHA1, sha1_pack(SHA1, Pack), Hashes),
 	map_list_to_pairs(sha1_version, Hashes, VersionHashPairs),
 	keysort(VersionHashPairs, Sorted),
 	group_pairs_by_key(Sorted, VersionHashesPairs),
