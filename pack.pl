@@ -216,7 +216,7 @@ install_info(URL, SHA1, Info) :-
 install_info(_, SHA1, _, Seen) :-
 	memberchk(SHA1, Seen), !, fail.
 install_info(URL, SHA1, alt_hash(Downloads, URLs, Hash), _) :-
-	pack_url_file(URL, File),
+	prolog_pack:pack_url_file(URL, File),
 	sha1_file(Hash, File),
 	Hash \== SHA1,
 	\+ is_github_release(URL),
@@ -328,6 +328,8 @@ version_hashes_urls(Version-Hashes, Version-URLs) :-
 %	     List of required tokens.  Each requirement is either a
 %	     simple token or a term `Token cmp Version`, where _cmp_
 %	     is one of `<`, `=<`, `=`, `>=` or `>`.
+%	   - info.conflicts
+%	     Similar to `info.requires`, declaring conflicts
 %	   - info.url
 %	     URL for downloading the archive or URL of the git repo.
 %	   - info.git
@@ -370,12 +372,14 @@ hash_info(Pack, _Options, Hash, Dict, Requires) :-
 	sha1_is_git(Hash, IsGit),
 	findall(Req, sha1_requires(Hash, Req), Requires),
 	findall(Prv, sha1_provides(Hash, Prv), Provides),
+	findall(Prv, sha1_conflicts(Hash, Prv), Conflicts),
 	Dict = #{ pack: Pack,
 		  hash: Hash,
 		  url: URL,
 		  git: IsGit,
 		  requires: Requires,
-		  provides: Provides
+		  provides: Provides,
+		  conflicts: Conflicts
 		}.
 
 include_pack_requirements([], _) --> !.
@@ -467,6 +471,7 @@ version_data(Version, version(Data)) :-
 	sha1_file(sha1:atom, file:atom),
 	sha1_requires(sha1:atom, token:dependency),
 	sha1_provides(sha1:atom, token:dependency),
+	sha1_conflicts(sha1:atom, token:dependency),
 	sha1_info(sha1:atom, info:list),
 	sha1_url(sha1:atom, url:atom),
 	sha1_download(sha1:atom, peer:atom),
@@ -500,6 +505,7 @@ delete_hash(Hash) :-
 	retractall_sha1_file(Hash, _),
 	retractall_sha1_requires(Hash, _),
 	retractall_sha1_provides(Hash, _),
+	retractall_sha1_conflicts(Hash, _),
 	retractall_sha1_info(Hash, _),
 	retractall_sha1_url(Hash, _),
 	retractall_sha1_download(Hash, _).
@@ -658,7 +664,9 @@ register_info(SHA1, Info0) :-
 	    forall(member(requires(Token), Info),
 		   register_requires(SHA1, Token)),
 	    forall(member(provides(Token), Info),
-		   register_provides(SHA1, Token))
+		   register_provides(SHA1, Token)),
+	    forall(member(conflicts(Token), Info),
+		   register_conflicts(SHA1, Token))
 	).
 
 register_requires(SHA1, Token) :-
@@ -671,6 +679,12 @@ register_provides(SHA1, Token) :-
 	(   sha1_provides(SHA1, Token)
 	->  true
 	;   assert_sha1_provides(SHA1, Token)
+	).
+
+register_conflicts(SHA1, Token) :-
+	(   sha1_conflicts(SHA1, Token)
+	->  true
+	;   assert_sha1_conflicts(SHA1, Token)
 	).
 
 %!	register_url(+SHA1, +IsGIT, +URL) is det.
@@ -696,7 +710,7 @@ register_url(SHA1, IsGIT, URL) :-
 	->  throw(pack(modified_hash(SHA1-URL, SHA2-[URL])))
 	;   IsGIT == true
 	->  assert_sha1_url(SHA1, URL)
-	;   pack_url_file(URL, File),
+	;   prolog_pack:pack_url_file(URL, File),
 	    register_file(SHA1, File, URL),
 	    assert_sha1_url(SHA1, URL)
 	).
