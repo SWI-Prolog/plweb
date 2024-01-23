@@ -136,6 +136,8 @@ proxy_master(Request) :-
 %	  * install(+URL, +SHA1, +Info)
 %	  User tries to install from URL an object with the indicated
 %	  hash and Info.
+%	  * downloaded(+Data)
+%	  Register download for indicated Data
 %	  * locate(+Pack)
 %	  Query download locations for Pack.
 %	  * versions(+Packs, +Options)
@@ -152,6 +154,9 @@ pack_query(install(URL0, SHA10, Info), Peer, Reply) =>
 	to_atom(SHA10, SHA1),
 	with_mutex(pack, save_request(URL, SHA1, Info, Peer)),
 	findall(ReplyInfo, install_info(URL, SHA1, ReplyInfo), Reply).
+pack_query(downloaded(Data), Peer, Reply) =>
+	maplist(save_request(Peer), Data),
+	Reply = true.
 pack_query(locate(Pack), _, Reply) =>
 	pack_version_urls_v1(Pack, Reply).
 pack_query(versions(Pack, Options), _, Reply) =>
@@ -509,6 +514,13 @@ delete_hash(Hash) :-
 	retractall_sha1_info(Hash, _),
 	retractall_sha1_url(Hash, _),
 	retractall_sha1_download(Hash, _).
+
+%!	save_request(+Peer, +Data)
+%
+%
+
+save_request(Peer, download(URL, Hash, Metadata)) =>
+	with_mutex(pack, save_request(URL, Hash, Metadata, Peer)).
 
 %%	save_request(+URL, +SHA1, +Info, +Peer)
 %
