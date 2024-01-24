@@ -530,11 +530,11 @@ save_request(Peer, download(URL, Hash, Metadata), Result) =>
 	with_mutex(pack, save_request(URL, Hash, Metadata, Peer, Action)).
 
 save_request(URL, Hash, Metadata, Peer, Result) :-
-	(   Error = error(_,_),
+	(   Error = error(Formal,_),
 	    catch(save_request_(URL, Hash, Metadata, Peer, Res0),
 		  Error,
 		  true)
-	->  (   var(Error)
+	->  (   var(Formal)
 	    ->	Result = Res0
 	    ;	Result = throw(Error)
 	    )
