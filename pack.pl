@@ -524,9 +524,10 @@ delete_hash(Hash) :-
 %	downloaded from the same Peer.
 
 :- det(save_request/3).
-save_request(Peer, download(URL, Hash, Metadata), Pack-Result) =>
+save_request(Peer, download(URL, Hash, Metadata), Result) =>
+	Result = Pack-Action,
 	memberchk(name(Pack), Metadata),
-	with_mutex(pack, save_request(URL, Hash, Metadata, Peer, Result)).
+	with_mutex(pack, save_request(URL, Hash, Metadata, Peer, Action)).
 
 save_request(URL, Hash, Metadata, Peer, Result) :-
 	(   Error = error(_,_),
