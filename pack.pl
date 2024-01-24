@@ -733,7 +733,7 @@ register_url(SHA1, IsGIT, URL, Result) :-
 		is_github_release(URL)
 	    ->	debug(pack(changed), 'From github: ~p', [URL]),
 		retractall_sha1_url(SHA1, URL),
-		Result = github_modified_archive
+		fail
 	    ;	true
 	    )
 	->  Result = throw(pack(modified_hash(SHA1-URL, SHA2-[URL])))
