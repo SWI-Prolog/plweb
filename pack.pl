@@ -152,11 +152,13 @@ proxy_master(Request) :-
 pack_query(install(URL0, SHA10, Info), Peer, Reply) =>
 	to_atom(URL0, URL),
 	to_atom(SHA10, SHA1),
-	with_mutex(pack, save_request(URL, SHA1, Info, Peer)),
-	findall(ReplyInfo, install_info(URL, SHA1, ReplyInfo), Reply).
+	save_request(Peer, download(URL, SHA1, Info), Result),
+	(   Result = throw(Error)
+	->  throw(Error)
+	;   findall(ReplyInfo, install_info(URL, SHA1, ReplyInfo), Reply)
+	).
 pack_query(downloaded(Data), Peer, Reply) =>
-	maplist(save_request(Peer), Data),
-	Reply = true.
+	maplist(save_request(Peer), Data, Reply).
 pack_query(locate(Pack), _, Reply) =>
 	pack_version_urls_v1(Pack, Reply).
 pack_query(versions(Pack, Options), _, Reply) =>
@@ -515,34 +517,48 @@ delete_hash(Hash) :-
 	retractall_sha1_url(Hash, _),
 	retractall_sha1_download(Hash, _).
 
-%!	save_request(+Peer, +Data)
-%
-%
-
-save_request(Peer, download(URL, Hash, Metadata)) =>
-	with_mutex(pack, save_request(URL, Hash, Metadata, Peer)).
-
-%%	save_request(+URL, +SHA1, +Info, +Peer)
+%!	save_request(+Peer, +Data, -Result)
 %
 %	Update the database with the given   information. We only update
 %	if the request is new, which means   the  same SHA1 has not been
 %	downloaded from the same Peer.
 
-save_request(URL, SHA1, Info, Peer) :-
+:- det(save_request/3).
+save_request(Peer, download(URL, Hash, Metadata), Pack-Result) =>
+	memberchk(name(Pack), Metadata),
+	with_mutex(pack, save_request(URL, Hash, Metadata, Peer, Result)).
+
+save_request(URL, Hash, Metadata, Peer, Result) :-
+	(   Error = error(_,_),
+	    catch(save_request_(URL, Hash, Metadata, Peer, Res0),
+		  Error,
+		  true)
+	->  (   var(Error)
+	    ->	Result = Res0
+	    ;	Result = throw(Error)
+	    )
+	;   Result = false
+	).
+
+save_request_(URL, SHA1, Info, Peer, Result) :-
 	sha1_download(SHA1, Peer),
 	sha1_pack(SHA1, Peer), !,		% already downloaded from here
 	info_is_git(Info, IsGIT),
-	register_url(SHA1, IsGIT, URL).		% but maybe from a different URL
-save_request(URL, SHA1, Info, Peer) :-
+	register_url(SHA1, IsGIT, URL, Result).	% but maybe from a different URL
+save_request_(URL, SHA1, Info, Peer, Result) :-
 	memberchk(name(Pack), Info),
 	info_is_git(Info, IsGIT),
 	(   accept_url(URL, Pack, IsGIT)
-	->  register_url(SHA1, IsGIT, URL),
+	->  register_url(SHA1, IsGIT, URL, Result0),
 	    register_pack(SHA1, Pack),
 	    register_info(SHA1, Info)
 	;   permission_error(register, pack(Pack), URL)
 	),
-	assert_sha1_download(SHA1, Peer).
+	assert_sha1_download(SHA1, Peer),
+	(   Result0 == no_change
+	->  Result = download
+	;   Result = Result0
+	).
 
 info_is_git(Info, IsGIT) :-
 	memberchk(git(IsGIT), Info), !.
@@ -705,9 +721,9 @@ register_conflicts(SHA1, Token) :-
 
 :- debug(pack(changed)).
 
-register_url(SHA1, IsGIT, URL) :-
+register_url(SHA1, IsGIT, URL, Result) :-
 	(   sha1_url(SHA1, URL)
-	->  true
+	->  Result = no_change
 	;   sha1_url(SHA2, URL),
 	    \+ ( IsGIT == true,
 		 hash_git_url(SHA2, URL)
@@ -716,15 +732,17 @@ register_url(SHA1, IsGIT, URL) :-
 		is_github_release(URL)
 	    ->	debug(pack(changed), 'From github: ~p', [URL]),
 		retractall_sha1_url(SHA1, URL),
-		fail
+		Result = github_modified_archive
 	    ;	true
 	    )
-	->  throw(pack(modified_hash(SHA1-URL, SHA2-[URL])))
+	->  Result = throw(pack(modified_hash(SHA1-URL, SHA2-[URL])))
 	;   IsGIT == true
-	->  assert_sha1_url(SHA1, URL)
+	->  assert_sha1_url(SHA1, URL),
+	    Result = git(URL)
 	;   prolog_pack:pack_url_file(URL, File),
 	    register_file(SHA1, File, URL),
-	    assert_sha1_url(SHA1, URL)
+	    assert_sha1_url(SHA1, URL),
+	    Result = file(URL)
 	).
 
 %!	is_github_release(+URL) is semidet.
