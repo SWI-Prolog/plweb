@@ -377,6 +377,7 @@ version_hash_info(Pack, Options, Version-Hashes, Version-Info, Requires) :-
 hash_info(Pack, _Options, Hash, Dict, Requires) :-
 	sha1_url(Hash, URL),
 	sha1_is_git(Hash, IsGit),
+	sha1_downloads(Hash, Count),
 	findall(Req, sha1_requires(Hash, Req), Requires),
 	findall(Prv, sha1_provides(Hash, Prv), Provides),
 	findall(Prv, sha1_conflicts(Hash, Prv), Conflicts),
@@ -386,7 +387,8 @@ hash_info(Pack, _Options, Hash, Dict, Requires) :-
 		  git: IsGit,
 		  requires: Requires,
 		  provides: Provides,
-		  conflicts: Conflicts
+		  conflicts: Conflicts,
+		  downloads: Count
 		}.
 
 include_pack_requirements([], _) --> !.
