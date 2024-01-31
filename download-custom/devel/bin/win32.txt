@@ -1,2 +1,3 @@
-Self-installing executable for MS-Windows. Installs *|swipl-win.exe|*
-and *|swipl.exe|*. Works on Windows 7/8/10.
+Self-installing executable for Microsoft Windows 32-bit editions.
+Version 9.3 is that last version of SWI-Prolog that is also released for
+32-bit.  Note that this version lacks the Janus interface to Python.

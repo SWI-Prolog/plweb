@@ -2,4 +2,5 @@ Mac OS X disk image with [relocatable application
 bundle](https://en.wikipedia.org/wiki/Bundle_%28macOS%29#macOS_application_bundles).
 Needs [[xquartz][<xquartz:>]]. Same as the _fat_ bundle, but only
 contains the `x86_64` binaries, compiled using gcc13 from Macports. This
-version is __30-40% faster__ than the fat binaries on Intel Macs.
+version is __30-40% faster__ than the fat binaries on Intel Macs.  The intel
+version is not regularly updated.
