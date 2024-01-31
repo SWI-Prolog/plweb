@@ -1,32 +1,21 @@
-## SWI-Prolog version 9
+## SWI-Prolog version 9.2
 
-The SWI-Prolog 9.0  consolidates many improvements of  the 8.x series.
-This major release mainly adds  and improves features.  Upgrading from
-any 8.x release should not come with major compatibility issues.
+The SWI-Prolog 9.2 is the latest stable release.  Highlights:
 
-Highlights:
-
-  - Mature and feature-rich tabling support including _well founded
-    semantics_, _incremental tabling_, _monotonic tabling_ and
-    _shared tabling_.
-  - Single sided unification [SSU](/pldoc/man?section=ssu) and zero-cost
-    runtime determinism checking.  See also `$/0`, `$/1` and det/1.
-  - Database _transactions_ see transaction/1 and snapshot/1.
-  - A new C++ interface that covers the whole foreign API and provides
-    much better type safety.
-  - Linux versions are by default linked to
-    [tcmalloc](https://github.com/google/tcmalloc).  This provides more
-    information and control and reduces the footprint of multi-threaded
-    7x7 servers considerably compared to the default ptmalloc.
-  - Interfaces to [Redis](https://redis.io/) and
-    [STOMP](http://stomp.github.io/) message passing systems.
-  - A port to WASM [WebAssembly](https://webassembly.org/) allows running
-    SWI-Prolog in the browser.  The high level bi-directional interfaces
-    to JavaScript allows for inspecting and modifying the browser DOM.
-  - A completely new GNU-Emacs package called
-    [sweep](https://eshelyaron.com/sweep.html).  Sweep embeds Prolog, which
-    allows for _semantic highlighting_ and much more.
-  - A bundled replacement for [GMP](https://gmplib.org/), providing
-    unbounded integers and rational numbers based on
-    [LibBF](https://bellard.org/libbf/) under a permissive license.
-    Currently significantly slower on notably larger rational numbers.
+  - Bundled Python bi-directional interface (Janus)
+  - C++ interface version 2 (`SWI-ccp2.h`) covers much more
+    of the SWI-Prolog C API and is more (type-)safe.
+  - Sources are now strict C11 and may be compiled using
+    e.g. VS2022 on Windows.
+  - Many improvements to the tooling.
+    - The profiler can provide accurate port counts
+    - The coverage analysis tool can annotate files by line
+      and collect data from multiple threads and Prolog runs.
+    - The unit testing tool supports concurrent testing and
+      hiding of output of succeeded tests.
+    - The pack manager can deal with version and feature
+      restrictions, plan multiple packs together, build using
+      CMake.
+  - Added an option for commandline tools that can be called
+    as ``swipl <tool> [arg ...]``.  Provides cli tools for
+    pack management and `.qlf` compilation.
