@@ -342,6 +342,8 @@ version_hashes_urls(Version-Hashes, Version-URLs) :-
 %	   - info.git
 %	     Boolean expressing wether the URL is a git repo or
 %	     archive.
+%	   - info.downloads
+%	     Download count.
 
 pack_versions(Packs, Deps, Options) :-
 	phrase(pack_versions(Packs, [seen(Deps)|Options]), Deps).
