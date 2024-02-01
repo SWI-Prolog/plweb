@@ -56,6 +56,7 @@
 :- use_module(library(apply)).
 :- use_module(library(uri)).
 :- use_module(library(debug)).
+:- use_module(library(prolog_versions)).
 
 :- use_module(pack_info).
 :- use_module(pack_mirror).
@@ -266,7 +267,7 @@ sha1_urls(Hash, URLs) :-
 sha1_version(Hash, Version) :-
 	sha1_info(Hash, Info),
 	memberchk(version(Atom), Info),
-	prolog_pack:atom_version(Atom, Version).
+	atom_version(Atom, Version).
 
 sha1_title(Hash, Title) :-
 	sha1_info(Hash, Info),
@@ -297,7 +298,7 @@ pack_version_hashes(Pack, VersionAHashesPairs) :-
 	maplist(atomic_version_hashes, RevPairs, VersionAHashesPairs).
 
 atomic_version_hashes(Version-Hashes, VersionA-Hashes) :-
-	prolog_pack:atom_version(VersionA, Version).
+	atom_version(VersionA, Version).
 
 %%	pack_version_urls_v1(+Pack, -Locations) is det.
 %
@@ -436,16 +437,16 @@ search_packs(Search, Packs) :-
 
 matching_pack(Search, Pack) :-
 	sha1_pack(SHA1, Pack),
-	(   '$apropos_match'(Search, Pack)
+	(   sub_atom_icasechk(Pack, _, Search)
 	->  true
 	;   sha1_title(SHA1, Title),
-	    '$apropos_match'(Search, Title)
+	    sub_atom_icasechk(Title, _, Search)
 	).
 
 pack_search_result(Pack, pack(Pack, p, Title, VersionA, URLs)) :-
 	pack_latest_version(Pack, SHA1, Version, _Older),
 	sha1_title(SHA1, Title),
-	prolog_pack:atom_version(VersionA, Version),
+	atom_version(VersionA, Version),
 	findall(URL, sha1_url(SHA1, URL), URLs).
 
 
@@ -967,7 +968,7 @@ sortable(rating).
 pack_version(Pack) -->
 	{ pack_version(Pack, Version),
 	  pack_older_versions(Pack, Older),
-	  prolog_pack:atom_version(Atom, Version)
+	  atom_version(Atom, Version)
 	},
 	(   { Older =\= 0 }
 	->  html([Atom, span(class(annot), '~D'-[Older])])
@@ -1111,7 +1112,7 @@ pack_info(Pack) -->
 
 pack_info_table(Pack) -->
 	{ pack_latest_version(Pack, SHA1, Version, _Older),
-	  prolog_pack:atom_version(VersionA, Version),
+	  atom_version(VersionA, Version),
 	  sha1_title(SHA1, Title),
 	  sha1_info(SHA1, Info)
 	},
@@ -1247,7 +1248,7 @@ alt_hash(H) -->
 hash(H)		  --> html(span(class(hash), H)).
 download_url(URL) --> html(a(href(URL), URL)).
 count(N)          --> html(td(class(count), N)).
-version(V)        --> { prolog_pack:atom_version(Atom, V) },
+version(V)        --> { atom_version(Atom, V) },
 		      html(Atom).
 
 pack_version_hash(Pack, Hash, Version) :-
@@ -1282,15 +1283,21 @@ pack_file_details(Request) :-
 		 *	  DB MAINTENANCE	*
 		 *******************************/
 
-update_github_files :-
-	forall(( sha1_file(SHA1, File),
-		 file_name_extension(Tag, Ext, File),
-		 prolog_pack:github_archive_extension(Ext),
-		 prolog_pack:tag_version(Tag, Version),
-		 prolog_pack:atom_version(VersionA, Version)
-	       ),
-	       ( sha1_pack(SHA1, Pack),
-		 format(atom(NewFile), '~w-~w.~w', [Pack, VersionA, Ext]),
-		 retract_sha1_file(SHA1, File),
-		 assert_sha1_file(SHA1, NewFile)
-	       )).
+%!  atom_version(?Atom, ?Version)
+%
+%   Translate   between   atomic   version   representation   and   term
+%   representation.  The  term  representation  is  a  list  of  version
+%   components as integers and can be compared using `@>`
+
+atom_version(Atom, version(Parts)) :-
+    (   atom(Atom)
+    ->  split_string(Atom, ".", "", Parts0),
+	maplist(valid_version_part, Parts0, Parts)
+    ;   atomic_list_concat(Parts, '.', Atom)
+    ).
+
+valid_version_part(String, Num) :-
+	number_string(Num, String),
+	!.
+valid_version_part("*", _).
+
