@@ -53,8 +53,6 @@
 :- use_module(wiki).
 :- use_module(messages).
 
-user:file_search_path(examples, examples).
-
 :- html_resource(pldoc_examples,
 		 [ ordered(true),
                    requires([ jquery,

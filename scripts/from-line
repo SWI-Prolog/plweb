@@ -1,0 +1,16 @@
+#!/bin/bash
+
+if [ -z "$1" -o -z "$2" ]; then
+  echo "Usage: $0 line file"
+  exit 1
+fi
+
+line=$1
+shift
+
+case "$1" in
+  *.gz) zcat $1 | awk "{if ( FNR >= $line ) "'print $0}'
+	;;
+  *)    awk "{if ( FNR >= $line ) "'print $0}' $*
+	;;
+esac

@@ -51,7 +51,7 @@ they are registered. This data will be   used  to maintain a database of
 meta-information on packs.
 */
 
-pack_mirror_dir('pack/mirror').
+pack_mirror_dir(data('pack/mirror')).
 
 %!	pack_mirror_directory(-Dir)
 %
@@ -233,7 +233,7 @@ ssl_verify(_SSL,
 %	True when File is the location for storing Hash
 
 hash_file(Hash, File) :-
-	pack_mirror_dir(Root),
+	pack_mirror_directory(Root),
 	sub_atom(Hash, 0, 2, _, Dir0),
 	sub_atom(Hash, 2, 2, _, Dir1),
 	atomic_list_concat([Root, Dir0, Dir1], /, Dir),
@@ -245,7 +245,7 @@ hash_file(Hash, File) :-
 %	True when MirrorDir is the directory in which we mirror Pack.
 
 pack_git_mirror(Pack, GitDir) :-
-	pack_mirror_dir(Root),
+	pack_mirror_directory(Root),
 	directory_file_path(Root, 'GIT', GitRoot),
 	make_directory_path(GitRoot),
 	directory_file_path(GitRoot, Pack, GitDir).

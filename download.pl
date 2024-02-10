@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009-2022, VU University Amsterdam
+    Copyright (C): 2009-2024, VU University Amsterdam
 			      CWI, Amsterdam
 			      SWI-Prolog Solutions b.v.
 
@@ -867,10 +867,16 @@ report this at <a href="mailto:bugs@swi-prolog.org">bugs@swi-prolog.org</a>
 	sha256(path:atom,
 	       sha256:atom).
 
+checksum_file(File) :-
+	absolute_file_name(data('checksum.db'), File,
+			   [ access(write) ]).
+
 attach_db :-
-	db_attached('checksum.db'), !.
-attach_db :-
-	db_attach('checksum.db', []).
+	checksum_file(File),
+	(   db_attached(File)
+	->  true
+	;   db_attach(File, [])
+	).
 
 %!	file_checksum(+Path:atom, -Sum:atom) is det.
 %

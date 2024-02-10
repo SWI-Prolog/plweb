@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        jan@swi-prolog.org
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2013-2023, VU University Amsterdam
+    Copyright (C): 2013-2024, VU University Amsterdam
 			      SWI-Prolog Solutions b.v.
 
     This program is free software; you can redistribute it and/or
@@ -490,7 +490,9 @@ version_data(Version, version(Data)) :-
 	pack_allowed_url(pack:atom, isgit:boolean, pattern:atom).
 
 :- initialization
-	db_attach('packs.db', [sync(close)]),
+	absolute_file_name(data('packs.db'), File,
+			   [ access(write) ]),
+	db_attach(File, [sync(close)]),
 	populate_pack_url_patterns.
 
 %%	delete_pack(+PackName) is det.

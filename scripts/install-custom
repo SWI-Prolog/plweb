@@ -1,0 +1,8 @@
+#!/bin/bash
+
+for f in `find download-custom -name '*.txt'`; do
+   target="`echo $f | sed 's@download-custom@data/download@'`"
+   rm -f $target
+   cp $f `dirname $target`
+done
+

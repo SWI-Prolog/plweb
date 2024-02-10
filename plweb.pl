@@ -3,7 +3,8 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009, VU University Amsterdam
+    Copyright (C): 2009-2024, VU University Amsterdam
+			      SWI-Prolog Solutions b.v.
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -119,9 +120,9 @@ server_init :-
 	server_init_done, !.
 server_init :-
 	asserta(server_init_done),
-	load_settings('plweb.conf'),
-	catch(make_directory_path(log), E,
-	      print_message(warning, E)),
+	load_settings(private('plweb.conf')),
+	make_log_dir(Dir),
+	print_message(informational, plweb(log_dir(Dir))),
 	update_pack_metadata_in_background,
 	thread_create(index_wiki_pages, _,
 		      [ alias('__index_wiki_pages'),
@@ -129,6 +130,24 @@ server_init :-
 		      ]),
 	db_sync_thread.
 
+%!	make_log_dir(-Dir) is det.
+%
+%	Ensure the log directory exists
+
+make_log_dir(Dir) :-
+	absolute_file_name(data(log), Dir,
+			   [ file_type(directory),
+			     access(write),
+			     file_errors(fail)
+			   ]),
+	!.
+make_log_dir(Path) :-
+	absolute_file_name(data(log), Path,
+			   [ solutions(all),
+			     file_errors(fail)
+			   ]),
+	catch(make_directory(Path), _, fail),
+	!.
 
 :- multifile
 	http_unix_daemon:http_server_hook/1.

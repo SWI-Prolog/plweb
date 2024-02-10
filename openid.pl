@@ -110,7 +110,9 @@ You can fake OpenID login using the debug interface:
 		token:atom).
 
 :- initialization
-	db_attach('openid.db',
+	absolute_file_name(data('openid.db'), File,
+			   [ access(write) ]),
+	db_attach(File,
 		  [ sync(close)
 		  ]).
 
@@ -222,7 +224,7 @@ authenticate(Request, Token, [UUID,Name]) :-
 	).
 authenticate(Request, Token, Fields) :-
 	redirect_master(Request),
-	(   http_authenticate(basic(passwd), Request, Fields)
+	(   http_authenticate(basic(private(passwd)), Request, Fields)
 	->  true
 	;   format(atom(Msg), 'SWI-Prolog ~w authoring', [Token]),
 		   throw(http_reply(authorise(basic, Msg)))

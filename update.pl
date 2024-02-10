@@ -52,7 +52,7 @@
 %	make/0.
 
 update(Request) :-
-	(   http_authenticate(basic(plweb(passwd)), Request, _User)
+	(   http_authenticate(basic(private(passwd)), Request, _User)
 	->  true
 	;   throw(http_reply(authorise(basic, 'Admin user')))
 	),

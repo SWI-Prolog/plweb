@@ -1,0 +1,8 @@
+source=ops:/home/swipl/src/plweb
+
+mkdir -p data/private
+mkdir -p data/log
+
+rsync -auv $source/{annotations,openid,packs,post,reviews,tags}.db data
+rsync -auv $source/{passwd,plweb.conf} data/private
+rsync -avk $source/download data

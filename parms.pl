@@ -3,7 +3,8 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009, VU University Amsterdam
+    Copyright (C): 2009-2024, VU University Amsterdam
+			      SWI-Prolog Solutions b.v.
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -59,7 +60,7 @@
 	   'Number of worker threads').
 
 :- set_setting_default(pengines:allow_from, []).
-:- set_setting_default(http:logfile, 'log/httpd.log').
+:- set_setting_default(http:logfile, log('httpd.log')).
 :- set_setting_default(http:cors, [*]).
 
 
@@ -170,15 +171,18 @@ user:url_path(serql,	 'http://www.openrdf.org').
    ;   asserta(user:file_search_path(plweb, Dir))
    ).
 
-user:file_search_path(document_root, plweb(www)).
-user:file_search_path(plgit,	     plweb(git)).
+user:file_search_path(data,          plweb(data)).
+user:file_search_path(git_data,      data(git)).
+user:file_search_path(git_data,      plweb(.)).
+user:file_search_path(document_root, git_data(www)).
+user:file_search_path(examples,      git_data(examples)).
+user:file_search_path(blog,	     git_data(blog)).
+user:file_search_path(private,       data(private)).
+user:file_search_path(log,           data(log)).
+user:file_search_path(download,	     data(download)).
 user:file_search_path(icons,	     document_root(icons)).
 user:file_search_path(css,	     document_root(css)).
 user:file_search_path(js,	     document_root(js)).
-user:file_search_path(yui,	     document_root('yui/2.7.0')).
-user:file_search_path(cgi_bin,	     plweb('git-web')).
-user:file_search_path(download,	     plweb(download)).
-user:file_search_path(gitweb,	     plweb('git-web')).
 
 
 		 /*******************************

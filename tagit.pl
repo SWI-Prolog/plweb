@@ -3,7 +3,8 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2013, VU University Amsterdam
+    Copyright (C): 2013-2024, VU University Amsterdam
+			      SWI-Prolog Solutions b.v.
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -82,7 +83,9 @@ user_tag_count(User, Count) :-
 
 
 :- initialization
-	db_attach('tags.db',
+	absolute_file_name(data('tags.db'), File,
+			   [ access(write) ]),
+	db_attach(File,
 		  [ sync(close)
 		  ]).
 

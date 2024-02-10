@@ -52,8 +52,6 @@
 
 :- http_handler(root(blog), blog, [prefix, id(blog)]).
 
-user:file_search_path(blog, blog).
-
 :- html_resource(pldoc_blog,
 		 [ ordered(true),
                    requires([ jquery,

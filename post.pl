@@ -101,7 +101,9 @@
 	     time:integer).		% time of the vote
 
 :- initialization
-	db_attach('post.db', [sync(close)]).
+	absolute_file_name(data('post.db'), File,
+			   [ access(write) ]),
+	db_attach(File, [sync(close)]).
 
 :- http_handler(root(vote), vote, []).
 

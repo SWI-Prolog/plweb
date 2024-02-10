@@ -17,35 +17,35 @@ fixwiki()
   (cd `git rev-parse --git-dir` && groupshared)
 }
 
-fixexamples()
-{ ( cd examples
-    chgrp -R www-data .
+fixerepo()
+{ ( chgrp -R www-data .
     find . -type f | xargs chmod 664
     find . -type d | xargs chmod 2775
     (cd `git rev-parse --git-dir` && groupshared)
   )
 }
 
-fixblog()
-{ ( cd blog
-    chgrp -R www-data .
-    find . -type f | xargs chmod 664
-    find . -type d | xargs chmod 2775
-    (cd `git rev-parse --git-dir` && groupshared)
-  )
-}
+for repo in www examples blog; do
+  [ -d data/git/$repo ] || git clone https://github.com/SWI-Prolog/plweb-$repo.git data/git/$repo
+done
 
-(cd www && fixwiki)
-fixexamples
-fixblog
+(cd data/git/www && fixwiki)
+(cd data/git/blog && fixrepo)
+(cd data/git/examples && fixrepo)
 
 # Create and fix the logfile permissions
-mkdir -p log pack
-chgrp -R www-data log pack
-find log  -type d | xargs chmod 2775
-find pack -type d | xargs chmod 2775
+datadirs="data/log data/pack"
+
+for d in $datadirs; do
+  mkdir -p $d
+  chgrp -R www-data $d
+  find $d  -type d | xargs chmod 2775
+done
 
 # Make the database writeable
-chgrp www-data *.db
-chmod 664 *.db
+chgrp www-data data/*.db
+chmod 664 data/*.db
 
+[ -d data/private/etc/ssh ] || mkdir -p data/private/etc/ssh
+[ -f data/private/etc/ssh/authorized_keys ] || touch data/private/etc/ssh/authorized_keys
+[ -f data/private/etc/ssh/ssh_host_ecdsa_key ] || ssh-keygen -A -f data/private

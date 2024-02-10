@@ -3,7 +3,8 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2013, VU University Amsterdam
+    Copyright (C): 2013-2024, VU University Amsterdam
+			      SWI-Prolog Solutions b.v.
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -68,7 +69,10 @@
 	       rating:integer,
 	       comment:atom).
 
-:- db_attach('reviews.db', []).
+:- initialization
+	absolute_file_name(data('reviews.db'), File,
+			   [ access(write) ]),
+	db_attach(File, []).
 
 
 		 /*******************************

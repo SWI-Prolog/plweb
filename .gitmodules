@@ -16,3 +16,6 @@
 [submodule "blog"]
 	path = blog
 	url = ../plweb-blog.git
+[submodule "packs/libssh"]
+	path = packs/libssh
+	url = https://github.com/JanWielemaker/libssh.git

@@ -73,8 +73,10 @@
 %	in a detached thread.
 
 update_pack_metadata :-
+	absolute_file_name(log('pack-warnings.log'), LogFile,
+			   [ access(write) ]),
 	setup_call_cleanup(
-	    ( open('log/pack-warnings.log', write, ErrorOut),
+	    ( open(LogFile, write, ErrorOut, [encoding(utf8)]),
 	      asserta((user:thread_message_hook(_Term, Kind, Lines) :-
 			(   must_print(Kind)
 			->  print_message_lines(ErrorOut, kind(Kind), Lines)

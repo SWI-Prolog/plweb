@@ -35,8 +35,14 @@
           start_sshd).
 
 start_sshd :-
+    absolute_file_name(private('etc/ssh/authorized_keys'), File,
+                       [ access(read)]),
+    absolute_file_name(private('etc/ssh/ssh_host_ecdsa_key'), HostKey,
+                       [ access(read)]),
     ssh_server([ port(2022),
-                 authorized_keys_file('etc/ssh/authorized_keys')
+                 bind_address(*),
+                 authorized_keys_file(File),
+                 host_key_file(HostKey)
                ]).
 :- endif.
 
