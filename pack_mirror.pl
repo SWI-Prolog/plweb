@@ -1,9 +1,10 @@
 /*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
-    E-mail:        J.Wielemaker@cs.vu.nl
-    WWW:           http://www.swi-prolog.org
-    Copyright (C): 2013, VU University Amsterdam
+    E-mail:        jan@swi-prolog.org
+    WWW:           https://www.swi-prolog.org
+    Copyright (C): 2013-2024, VU University Amsterdam
+			      SWI-Prolog Solutions b.v.
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -99,9 +100,15 @@ pack_mirror(Pack, Hashes, MirrorDir, Hash) :-
 			  ( print_message(warning, E), fail))
 		->  true
 		;   debug(pack(mirror), 'pull ~p failed; retrying with fetch', [MirrorDir]),
+		    catch(git([reset, '--hard'], GitOptions), E,
+			  ( print_message(warning, E), fail)),
+		    catch(git([remote, prune, origin], GitOptions), E,
+			  ( print_message(warning, E), fail)),
 		    catch(git([fetch], GitOptions), E,
 			  ( print_message(warning, E), fail)),
-		    catch(git([reset, '--hard'], GitOptions), E,
+		    switch_to_main(Branch, GitOptions),
+		    atom_concat('origin/', Branch, Origin),
+		    catch(git([reset, '--hard', Origin], GitOptions), E,
 			  ( print_message(warning, E), fail))
 		)
 	    ->	git_hash(Hash, GitOptions)
@@ -143,6 +150,24 @@ pack_mirror(_Pack, Hashes, File, Hash) :-
 		fail
 	    )
 	), !.
+
+switch_to_main(Branch, GitOptions) :-
+	git_current_branch(BranchName, GitOptions),
+	atom_concat('origin/', BranchName, Ref),
+	git_branches(Branches, [remote(true)|GitOptions]),
+	\+ memberchk(Ref, Branches),
+	default_branch(Branch),
+	atom_concat('origin/', Branch, NewRef),
+	memberchk(NewRef, Branches),
+	!,
+	catch(git([checkout, Branch], GitOptions), E,
+	      ( print_message(warning, E), fail)).
+switch_to_main(Branch, GitOptions) :-
+	git_current_branch(Branch, GitOptions).
+
+default_branch(main).
+default_branch(master).
+
 
 hashes_git_url(Hashes, URL) :-
 	member(Hash, Hashes),
