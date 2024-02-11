@@ -1,8 +1,9 @@
+RESTART=--restart unless-stopped
 VOLUME=$(shell cd .. && pwd)/data
 PORT=3400
 
 PUBLISH=--publish=${PORT}:3400 --publish=3420:2022
-DOPTS=--rm ${PUBLISH} -v ${VOLUME}:/srv/plweb/data
+DOPTS=${PUBLISH} -v ${VOLUME}:/srv/plweb/data
 IMG=plweb
 
 all:
@@ -20,10 +21,11 @@ image::
 	docker build -t $(IMG) .
 
 run:
-	docker run --name=plweb --detach ${DOPTS} $(IMG)
+	docker run --name=plweb -d ${RESTART} ${DOPTS} $(IMG)
 
 restart:
 	docker stop plweb
+	docker rm plweb
 	make run
 
 bash:
