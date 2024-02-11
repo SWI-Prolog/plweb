@@ -60,6 +60,7 @@
 :- use_module(library(http/http_dirindex)).
 :- use_module(library(debug)).
 :- use_module(library(http/http_files)).
+:- use_module(library(http/http_dyn_workers)).
 
 :- use_module(parms).
 :- use_module(page).
