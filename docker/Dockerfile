@@ -17,10 +17,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libdb-dev \
         libpcre2-dev \
         libyaml-dev \
-        graphviz imagemagick \
-        wamerican \
+	libpython3-dev \
+	default-jdk junit4 \
         libssh-dev openssh-client \
-        libserd-dev libraptor2-dev \
         locales
 
 RUN     sed -i -e 's/# en_GB.UTF-8 UTF-8/en_GB.UTF-8 UTF-8/' /etc/locale.gen && \
