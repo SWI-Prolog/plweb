@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009-2023, VU University Amsterdam
+    Copyright (C): 2009-2024, VU University Amsterdam
 			      SWI-Prolog Solutions b.v.
 
     This program is free software; you can redistribute it and/or
@@ -619,7 +619,7 @@ cta_area -->
 	<td style="text-align:right; white-space: nowrap; vertical-align: top">
 	   <a href="http://swish.swi-prolog.org">
 	   Try SWI-Prolog online (SWISH) </a><br>
-	   <a href="http://dev.swi-prolog.org/wasm/shell"
+	   <a href="http://wasm.swi-prolog.org/wasm/shell"
 	     style="font-size: 60%">
 	   &#128293; Try SWI-Prolog in your browser (WASM)</a><br>
       </tr>
