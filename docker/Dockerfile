@@ -37,9 +37,9 @@ RUN     mkdir -p /usr/local/src && cd /usr/local/src && \
         cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=PGO -G Ninja .. && \
         ninja && ninja install
 
-ENV	REBUILD_PLWEB 4
+ENV	REBUILD_PLWEB 5
 RUN     mkdir -p /srv && cd /srv && \
-	git clone -b docker https://github.com/SWI-Prolog/plweb.git && \
+	git clone https://github.com/SWI-Prolog/plweb.git && \
 	cd /srv/plweb && \
 	git submodule update --init packs/googleclient \
 				    packs/recaptcha \
