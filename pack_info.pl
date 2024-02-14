@@ -420,7 +420,20 @@ pack_file_details(Pack, File, _Options) :-
 	setup_call_cleanup(
 	    pack_open_entry(Archive, File, Stream),
 	    copy_stream_data(Stream, current_output),
-	    close(Stream)).
+	    close(Stream)),
+	!.
+pack_file_details(Pack, File, _Options) :-
+	format(atom(Title), 'Pack ~w -- ~w', [Pack, File]),
+	reply_html_page(
+	    pack(warning, Title),
+	    title(Title),
+	    \no_pack_file(Pack, File)).
+
+no_pack_file(Pack, File) -->
+	html(p(class(warning),
+	       [ 'The current version of pack ', code(class(pack), Pack), ' does not ',
+		 ' contain a file ', code(class(file), File)
+	       ])).
 
 wiki_file(readme).
 wiki_file(todo).
