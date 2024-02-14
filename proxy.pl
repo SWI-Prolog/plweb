@@ -63,7 +63,8 @@ proxy(Method, To, Request, Options) :-
 	http_open(Target, In,
 		  [ method(Method),
 		    post(Data),
-		    header(content_type, ContentType)
+		    header(content_type, ContentType),
+		    connection('Keep-alive')
 		  | ReqHrd
 		  ]),
         call_cleanup(
@@ -79,7 +80,8 @@ proxy(Method, To, Request, Options) :-
 	maplist(request_header, ReqHrd0, ReqHrd),
 	http_open(Target, In,
 		  [ method(Method),
-		    header(content_type, ContentType)
+		    header(content_type, ContentType),
+		    connection('Keep-alive')
 		  | ReqHrd
 		  ]),
         call_cleanup(
