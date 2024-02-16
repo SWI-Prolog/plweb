@@ -262,6 +262,7 @@ do_index_examples :-
            index_example(File)),
     get_time(Now),
     assertz(ex_done(Now)),
+    retractall(ex_checked(_)),
     assertz(ex_checked(Now)).
 
 index_up_to_data(Backlog) :-
