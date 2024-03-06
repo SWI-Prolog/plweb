@@ -427,6 +427,9 @@ stream_details(Request) :-
 	option(path(Path), Request),
 	throw(http_reply(forbidden(Path))).
 
+:- if(exists_source(library(http/http_server_health))).
+:- use_module(library(http/http_server_health)).
+:- else.
 
 %%	server_health(+Request)
 %
@@ -470,6 +473,7 @@ health(heap, json{inuse:InUse, size:Size}) :-
 	malloc_property('generic.current_allocated_bytes'(InUse)),
 	malloc_property('generic.heap_size'(Size)).
 :- endif.
+:- endif. % exists_source(library(http/http_server_health))
 
 start_debugger(_Request) :-
 	site_user_logged_in(User),
