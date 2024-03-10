@@ -71,7 +71,6 @@ user:body(homepage, Body) --> !,
 			  \menubar(homepage),
 			  \blurb,
 			  \cta_area,
-			  \enhanced_search_area,
 			  Body
 			], []).
 user:body(Style, Body) -->
@@ -644,25 +643,6 @@ cta_area -->
 		       'aria-label'('Sponsor @SWI-Prolog on GitHub')
 		     ], 'Sponsor')
 		 ])).
-
-
-%%	enhanced_search_area//
-%
-%	Emit the large size search area at bottom of home page
-
-enhanced_search_area -->
-	{ http_link_to_id(plweb_search, [], Action) },
-	html({|html(Action)||
-	      <div id='enhanced-search-container'>
-		<div>
-		  <span class='lbl'>SEARCH DOCUMENTATION:</span>
-		  <form  id="search-form-enhanced" action="Action">
-		    <input name="for" type='text' id="forenhanced">
-		    <input type="image" src="/icons/go.png" alt='Search'>
-		  </form>
-		</div>
-	      </div>|}),
-	searchbox_script(forenhanced).
 
 
 page_script(Options) -->
