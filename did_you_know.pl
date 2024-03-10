@@ -88,9 +88,9 @@ did_you_know_script(Id) -->
 did_you_know -->
 	{ maybe(0.2) },
 	!,
-	html([ span(class('dyk-sponsor'), 'We needs you to '),
+	html([ span(class('dyk-sponsor'), 'We needs you '),
 	       \github_actions([sponsor]),
-	       span(class('dyk-sponsor'), ' keep SWI-Prolog sustainable')
+	       span(class('dyk-sponsor'), ' to keep SWI-Prolog sustainable')
 	     ]).
 did_you_know -->
 	{ maybe(0.5) },
