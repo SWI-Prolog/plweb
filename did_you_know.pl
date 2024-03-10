@@ -1,7 +1,7 @@
 /*  Part of SWI-Prolog
 
     Author:        Anne Ogborn
-    WWW:           http://www.swi-prolog.org
+    WWW:           https://www.swi-prolog.org
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -42,6 +42,7 @@ every pldoc and SWI-Prolog website page.
 :- use_module(library(debug)).
 :- use_module(news).
 :- use_module(holidays).
+:- use_module(page).
 :- use_module(library(http/js_write)).
 
 :- http_handler(root(dyk), did_you_know, []).
@@ -72,6 +73,7 @@ did_you_know_script(Id) -->
 		   $(function() {
 		     $.ajax({ url: HREF,
 			      success: function(data) {
+					   console.log(data);
 			        $("#"+Id).html(data);
 			      }
 		            });
@@ -83,6 +85,13 @@ did_you_know_script(Id) -->
 %
 %	Generate a DYK fragment.
 
+did_you_know -->
+	{ maybe(0.2) },
+	!,
+	html([ span(class('dyk-sponsor'), 'We needs you to '),
+	       \github_actions([sponsor]),
+	       span(class('dyk-sponsor'), ' keep SWI-Prolog sustainable')
+	     ]).
 did_you_know -->
 	{ maybe(0.5) },
 	random_news, !.

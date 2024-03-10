@@ -28,7 +28,9 @@
     the GNU General Public License.
 */
 
-:- module(plweb_page, []).
+:- module(plweb_page,
+	  [ github_actions//1
+	  ]).
 :- use_module(footer).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
@@ -42,6 +44,7 @@
 :- use_module(library(pldoc/doc_html), [object_name//2]).
 :- use_module(library(uri)).
 :- use_module(library(option)).
+:- use_module(library(dcg/high_order)).
 
 :- use_module(wiki).
 :- use_module(post).
@@ -604,11 +607,7 @@ blurb -->
 %
 %	Emit the Call To Action - the 3 big buttons on homepage
 cta_area -->
-	html_post(head,
-		  script([ defer(defer), async(async),
-			   src('https://buttons.github.io/buttons.js')
-			 ], [])),
-	html({|html(_)||
+	html({|html||
     <table id='cta-container'>
       <tr>
 	<td style="text-align:left; vertical-align: top">
@@ -624,26 +623,44 @@ cta_area -->
       </tr>
     </table>
 |}),
-	html(div(id('cta-github'),
-		 [ a([ class('github-button'), id('github-star'),
-		       href('https://github.com/SWI-Prolog/swipl-devel'),
-		       'data-color-scheme'('no-preference: light; \c
-					    light: light; dark: dark;'),
-		       'data-size'(large),
-		       'data-show-count'(true),
-		       'aria-label'('Star SWI-Prolog/swipl-devel on GitHub')
-		     ], 'Star'),
-		   a([ class('github-button'), id('github-sponsor'),
-		       href('https://github.com/sponsors/SWI-Prolog'),
-		       'data-color-scheme'('no-preference: light; \c
-					    light: light; dark: dark;'),
-		       'data-size'(large),
-		       'data-icon'('octicon-heart'),
-		       'data-show-count'(true),
-		       'aria-label'('Sponsor @SWI-Prolog on GitHub')
-		     ], 'Sponsor')
-		 ])).
+	github_actions([star,sponsor]).
 
+%!	github_actions(+Buttons)// is det.
+%
+%	Emit the github star and sponsor buttons.
+
+github_actions(Which) -->
+	html_post(head,
+		  script([ defer(defer), async(async),
+			   src('https://buttons.github.io/buttons.js')
+			 ], [])),
+	html(div(class('github-actions'),
+		 \sequence(github_action_button, Which))).
+
+github_action_button(star) -->
+	html(a([ class('github-button'), id('github-star'),
+		 href('https://github.com/SWI-Prolog/swipl-devel'),
+		 'data-color-scheme'('no-preference: light; \c
+		 light: light; dark: dark;'),
+		 'data-size'(large),
+		 'data-show-count'(true),
+		 'aria-label'('Star SWI-Prolog/swipl-devel on GitHub')
+	       ], 'Star')).
+github_action_button(sponsor) -->
+	html(a([ class('github-button'), id('github-sponsor'),
+		 href('https://github.com/sponsors/SWI-Prolog'),
+		 'data-color-scheme'('no-preference: light; \c
+		 light: light; dark: dark;'),
+		 'data-size'(large),
+		 'data-icon'('octicon-heart'),
+		 'data-show-count'(true),
+		 'aria-label'('Sponsor @SWI-Prolog on GitHub')
+	       ], 'Sponsor')).
+
+%!	page_script(+Options)//
+%
+%	Add script for specific pages  based   on  the object displayed.
+%	Currently only deals with the commercial page.
 
 page_script(Options) -->
 	{ option(object(wiki('commercial/index.md')), Options) },
