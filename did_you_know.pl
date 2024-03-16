@@ -58,9 +58,7 @@ did_you_know(_Request) :-
 			\did_you_know).
 
 disable_client_cache :-
-	format('Cache-Control: no-cache, no-store, must-revalidate\r\n\c
-                Pragma: no-cache\r\n\c
-		Expires: 0\r\n').
+	format('Cache-Control: private, no-store\r\n').
 
 %%	did_you_know_script(+Id)//
 %
