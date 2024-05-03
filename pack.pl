@@ -67,7 +67,7 @@
 :- use_module(parms).
 
 :- http_handler(root(pack/query),	 pack_query,	    []).
-:- http_handler(root(pack/list),	 pack_list,	    []).
+:- http_handler(root(pack/list),	 pack_list,	    [prefix]).
 :- http_handler(root(pack/file_details), pack_file_details,
 		[prefix, time_limit(20)]).
 :- http_handler(root(pack/delete),       pack_delete,       []).
@@ -827,6 +827,14 @@ pack(Pack) :-
 %
 %	List available packages.
 
+pack_list(Request) :-
+	memberchk(path_info(SlashPack), Request),
+	atom_concat(/, Pack, SlashPack),
+	format(atom(Title), '"~w" pack for SWI-Prolog', [Pack]),
+	reply_html_page(pack(list),
+			title(Title),
+			[ \pack_listing(Pack, _Author, _Sort)
+			]).
 pack_list(Request) :-
 	http_parameters(Request,
 			[ p(Pack, [optional(true)]),

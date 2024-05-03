@@ -48,7 +48,7 @@
 	   'List of extensions that are served as plain files').
 :- setting(http:index_files,
 	   list(atom),
-	   [ 'index.txt', 'index.html' ],
+	   [ 'index.html', 'index.md' ],
 	   'List of files that provide a directory index').
 :- setting(http:port,
 	   integer,
@@ -82,43 +82,25 @@ http:location(jq,	root('js/jquery'), []).
 :- multifile
 	user:url_path/2.
 
-user:url_path(swi,	'http://www.swi-prolog.org').
-user:url_path(hcs,	'http://hcs.science.uva.nl').
-user:url_path(pkg,	pl(package)).
-user:url_path(dmoz,	'http://dmoz.org').
-user:url_path(dmoz_pl,	dmoz('Computers/Programming/Languages/Prolog/Implementations/')).
-user:url_path(ffii,	'http://swpat.ffii.org/index.en.html').
-user:url_path(fsf,	'http://www.fsf.org').
-user:url_path(gnu,	'http://www.gnu.org').
+user:url_path(swi,	'/').
+user:url_path(pkg,	swi('pldoc/package/')).
+user:url_path(pack,	swi('pack/list/')).
+user:url_path(swipub,	 swi('download/publications/')).
+user:url_path(fsf,	'https://www.fsf.org').
+user:url_path(gnu,	'https://www.gnu.org').
 user:url_path(gpl,	gnu('licences/gpl.html')).
 user:url_path(lgpl,	gnu('licences/lgpl.html')).
-user:url_path(wordnet,	'http://www.cogsci.princeton.edu/~wn/').
-user:url_path(gmp,	'http://gmplib.org/').
-user:url_path(mailman,	'http://www.list.org/').
-user:url_path(bonn,	'https://lists.iai.uni-bonn.de/mailman').
-user:url_path(maillist,	bonn('listinfo.cgi/swi-prolog')).
-user:url_path(mailarchive, bonn('public/swi-prolog/')).
-user:url_path(nabble,	'http://www.nabble.com').
-user:url_path(pl_nabble, nabble('SWI-Prolog-f448.html')).
-user:url_path(gmane,     'http://blog.gmane.org').
-user:url_path(pl_gmane,  gmane('gmane.comp.ai.prolog.swi')).
-user:url_path(chr_mail,  'http://listserv.cc.kuleuven.ac.be/archives/chr.html').
-user:url_path(bugzilla,  'http://www.swi-prolog.org/bugzilla/').
-user:url_path(gitweb,	 'http://www.swi-prolog.org/git/').
-user:url_path(swieditor, 'http://arbeitsplattform.bildung.hessen.de/fach/informatik/swiprolog/indexe.html').
-user:url_path(pub,	 hcs('projects/SWI-Prolog/articles')).
-user:url_path(swipub,	 swi('download/publications')).
-user:url_path(git,	 'http://git-scm.com/').
-user:url_path(msysgit,	 'http://code.google.com/p/msysgit/').
-user:url_path(tortoisegit, 'http://code.google.com/p/tortoisegit/').
-user:url_path(macports,	 'http://www.macports.org/').
-user:url_path(xquartz,	 'http://xquartz.macosforge.org/').
-user:url_path(json,	 'http://json.org/').
-user:url_path(multimedian, 'http://e-culture.multimedian.nl/').
-user:url_path(thea,	 'http://www.semanticweb.gr/TheaOWLLib/').
-user:url_path(dig,	 'http://dl.kr.org/dig/interface.html').
-user:url_path(sparql,	 'http://www.w3.org/TR/rdf-sparql-query/').
-user:url_path(serql,	 'http://www.openrdf.org').
+user:url_path(wordnet,	'https://wordnet.princeton.edu/').
+user:url_path(gmp,	'https://gmplib.org/').
+user:url_path(gitweb,	 'https://github.com/SWI-Prolog').
+user:url_path(swieditor, 'https://arbeitsplattform.bildung.hessen.de/fach/informatik/swiprolog/indexe.html').
+user:url_path(git,	 'https://git-scm.com/').
+user:url_path(macports,	 'https://www.macports.org/').
+user:url_path(xquartz,	 'https://www.xquartz.org/').
+user:url_path(json,	 'https://json.org/').
+user:url_path(thea,	 'http://vangelisv.github.io/thea/').
+user:url_path(dig,	 'https://dl.kr.org/dig/').
+user:url_path(sparql,	 'https://www.w3.org/TR/sparql11-query/').
 
 
 		 /*******************************
