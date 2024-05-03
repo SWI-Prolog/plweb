@@ -1,5 +1,5 @@
 [submodule "www"]
-	path = www
+	path = data/git/www
 	url = ../plweb-www.git
 [submodule "packs/recaptcha"]
 	path = packs/recaptcha
@@ -11,10 +11,10 @@
 	path = packs/googleclient
 	url = https://github.com/JanWielemaker/googleclient.git
 [submodule "examples"]
-	path = examples
+	path = data/git/examples
 	url = ../plweb-examples.git
 [submodule "blog"]
-	path = blog
+	path = data/git/blog
 	url = ../plweb-blog.git
 [submodule "packs/libssh"]
 	path = packs/libssh
