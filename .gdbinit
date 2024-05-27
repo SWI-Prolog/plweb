@@ -1,22 +1,75 @@
+# This gdb script contains  some  useful   settings  and  functions  for
+# debugging Prolog using gdb. Link or  copy   this  as `.gdbinit` to the
+# directory where you want to debug Prolog.
+
+# Trap some functions. trap_gdb() is a dummy  function that you may call
+# conditionally at a place where  you  want   to  stop  in  gdb. This is
+# similar to GDB breakpoint conditions, but these are quite slow.
 set breakpoint pending on
 break trap_gdb
 break sysError
-break PL_clear_foreign_exception
-break __asan_report_error
+break __assert_fail
 set breakpoint pending off
 
+# Pass signals that are commonly used and not needed for debugging
 handle SIGPIPE noprint nostop pass
+handle SIGUSR1 noprint nostop pass
 handle SIGUSR2 noprint nostop pass
+handle SIGTERM noprint nostop pass
 
+# Be silent on threads and processes created.
 set print thread-events off
+set print inferior-events off
 
-define safe-bt
-  call PL_backtrace(20, 0x1)
+#  Fedora debug info daemon.  See https://debuginfod.fedoraproject.org/
+set debuginfod enabled on
+
+# Allow debugging ASAN events.
+set environment ASAN_OPTIONS=abort_on_error=1
+
+# Print a Prolog backtrace to the   current terminal. With one argument,
+# change the depth. With two, also set the flags. The (only) useful flag
+# is `1`. This prints VM locations rather  than Prolog arguments for the
+# goals on the stack and almost always works, even if the Prolog data is
+# corrupted.
+
+define pl-bt
+  if $argc == 0
+    printf "%s\n", PL_backtrace_string(10, 0)
+  end
+  if $argc == 1
+    printf "%s\n", PL_backtrace_string($arg0, 0)
+  end
+  if $argc == 2
+    printf "%s\n", PL_backtrace_string($arg0, $arg1)
+  end
 end
 
-define prolog-bt
-  call PL_backtrace(20, 0)
+# Print Prolog thread id for the current thread
+
+define pl-tid
+  p ((PL_local_data_t*)pthread_getspecific(PL_ldata))->thread.info->pl_tid
 end
 
+define ninja
+  if $argc == 0
+    shell ninja
+  end
+  if $argc == 1
+    shell ninja $arg0
+  end
+end
 
-break pl-vmi.c:3710
+# Re-run the current program until it  crashes. Not SWI-Prolog specific,
+# but too easy to forget.
+
+define forever
+  set pagination off
+  set breakpoint pending on
+  break _exit
+  set breakpoint pending off
+  commands
+    run
+  end
+  run
+end
