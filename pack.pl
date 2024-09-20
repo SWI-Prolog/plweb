@@ -360,10 +360,12 @@ pack_versions(Pack, Options) -->
 	!.
 pack_versions(Pack, Options) -->
 	{ pack_version_hashes(Pack, VersionHashes),
-	  maplist(version_hash_info(Pack, Options),
-		  VersionHashes, VersionInfo, RequiresLists),
+	  convlist(version_hash_info(Pack, Options),
+		   VersionHashes, Infos),
+	  maplist(arg(2), Infos, RequiresLists),
 	  append(RequiresLists, Requires0),
-	  sort(Requires0, Requires)
+	  sort(Requires0, Requires),
+	  maplist(arg(1), Infos, VersionInfo)
 	},
 	[ Pack-VersionInfo ],
 	include_pack_requirements(Requires, Options).
@@ -372,7 +374,7 @@ seen(Pack, [Pack-_|_]) => true.
 seen(Pack, [_|T]) => seen(Pack, T).
 seen(_, _) => fail.
 
-version_hash_info(Pack, Options, Version-Hashes, Version-Info, Requires) :-
+version_hash_info(Pack, Options, Version-Hashes, info(Version-Info, Requires)) :-
 	maplist(hash_info(Pack, Options), Hashes, Info, Requires0),
 	append(Requires0, Requires1),
 	sort(Requires1, Requires).
@@ -1237,7 +1239,10 @@ pack_file_row(Version-[H0|Hashes]) -->
 		  td(\download_url(URL))
 		])),
 	alt_urls(URLs),
-	alt_hashes(Hashes).
+	alt_hashes(Hashes),
+	!.
+pack_file_row(_) -->
+	[].
 
 alt_urls([]) --> [].
 alt_urls([H|T]) --> alt_url(H), alt_urls(T).
