@@ -297,7 +297,8 @@ pack_members_no_cache(Archive, Members) :-
 	E = error(archive_error(_,_),_),
 	catch(ar_pack_members(Archive, Members0, Prefix),
 	      E, bad_archive(Archive, E)),
-	maplist(strip_prefix(Prefix), Members0, Members).
+	exclude(macos_file, Members0, Members1),
+	maplist(strip_prefix(Prefix), Members1, Members).
 
 bad_archive(Archive, Error) :-
 	delete_file(Archive),
@@ -347,6 +348,13 @@ make_entry(Type, _, Name, Entry) :-
 make_entry(Type, _, Name, _Entry) :-
 	print_message(warning, unknown_archive_type(Type, Name)),
 	fail.
+
+%!	macos_file(@Entry) is semidet.
+%
+%	Delete MacOS metadata.
+
+macos_file(file(Name, _Size)) :-
+	sub_atom(Name, 0, _, _, '__MACOSX').
 
 strip_prefix(Prefix, Term0, Term) :-
 	Term0 =.. [Type, Name, Size],
