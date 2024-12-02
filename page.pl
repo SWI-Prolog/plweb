@@ -541,8 +541,7 @@ menu(Style,
 	 ]
        ],
        'Community' =           '/community.html' +
-       [ 'IRC'                 = 'https://web.libera.chat/?channels=##prolog',
-	 'Forum & mailing list'= 'https://swi-prolog.discourse.group',
+       [ 'Forum & mailing list'= 'https://swi-prolog.discourse.group',
 	 'Blog'                = '/blog',
 	 'News'                = '/news/archive',
 	 'Report a bug'	       = '/bug.html',
