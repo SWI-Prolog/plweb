@@ -156,11 +156,15 @@ random_hint -->
 
 link(section(Id), HREF) :- !,
 	http_link_to_id(pldoc_man, [section=Id], HREF).
+link(object(Obj), HREF) :-
+	format(string(SObj), '~w', Obj),
+	http_link_to_id(pldoc_doc_for, [object=SObj], HREF).
 link(package(Name), HREF) :- !,
-	file_name_extension(Name, html, File),
-	http_link_to_id(pldoc_package, path_postfix(File), HREF).
+	format(atom(HREF), '/pldoc/package/~w', [Name]).
 link(pack(Name), HREF) :- !,
 	http_link_to_id(pack_list, [p(Name)], HREF).
+link(library(Name), HREF) :- !,
+	format(atom(HREF), '/pldoc/doc/_SWI_/library/~w.pl', [Name]).
 link(HREF, HREF).
 
 
@@ -180,23 +184,23 @@ term_expansion(dyk(Saying), dyk(Id, Saying)) :-
 	Id2 is Id+1,
 	nb_setval(dyk_id, Id2).
 
-dyk('SWI-Prolog is 28 years old').
+dyk(['SWI-Prolog is ', Years, ' years old']) :-
+	get_time(Now),
+	Years is floor((Now-536454000)/(365*24*3600)).
 dyk(['the ', b('Profiler'), ' can speed up your code']-section('profiling-predicates')).
-dyk('You can hot-swap code').
+dyk('You can hot-swap code'-library(hotfix)).
 dyk('SWI-Prolog uses logical update view'-section('update')).
 dyk('M-/ does autocomplete in pceEmacs').
 dyk('C-c C-c CamelCasesWords in pceEmacs').
 dyk('C-c C-- underscores_words_in_pce_emacs').
 dyk('C-+ and C-- changes font size in pceEmacs').
-dyk('About the nifty drawing program pceDraw').
-dyk('Special quasiquote syntax for html and javascript'-section('quasiquotations')).
-dyk('Advice for choosing 32/64 bits'-section('64bits')).
+dyk('Quasi Quoting allows embedding e.g. html, javascript, etc.'-section('quasiquotations')).
 dyk('You can configure your environment'-section('initfile')).
 dyk(['SWI-Prolog supports the ', b('Snowball'), ' stemmer']-section('snowball')).
 dyk(['SWI-Prolog supports ', b(tabling), ' (SLG resolution)']-section('tabling')).
 dyk('SWI-Prolog has an RDF Semantic Web Server'-'http://cliopatria.swi-prolog.org/home').
 dyk('You can interface C++ to SWI-Prolog'-package('pl2cpp')).
-dyk('SWI-Prolog can work with tar archives'-package('archive')).
+dyk('SWI-Prolog can work with many archive files'-package('archive')).
 dyk('This website is written entirely in SWI-Prolog'-package('http')).
 dyk(['about the full featured ', b('web framework')]-package('http')).
 dyk(['SWI-Prolog can act as an ', b('http client')]-section('http-clients')).
@@ -207,12 +211,12 @@ dyk(['SWI-Prolog has a ', b('Natural Language Processing (NLP)'), ' library']-pa
 dyk(['SWI-Prolog supports ', b('Google Protocol Buffers')]-package('protobufs')).
 dyk('SWI-Prolog talks to R'-package('R')).
 dyk(['SWI-Prolog has ', b('powerful Semantic Web tools')]-package('semweb')).
-dyk(['SWI-Prolog can ', b('parse SGML/XML')]-package('sgml')).
+dyk(['SWI-Prolog can ', b('parse HTML/SGML/XML')]-package('sgml')).
 dyk(['SWI-Prolog has extensive ', b('GIS Support')]-package('space')).
 dyk(['SWI-Prolog has support for ', b('large, static tables')]-package('table')).
 dyk(['SWI-Prolog supports ', b('TIPC')]-package('tipc')).
 dyk(['You can read/write ', b('.zip'), ' files']-package('zlib')).
-dyk(['SWI-Prolog can talk to Java,C,C++,Python,and C#']-'/contrib/').
+dyk(['SWI-Prolog can talk to many other languages']-'/contrib/').
 dyk(['You can control ', b('MIDI'), ' on Mac with SWI-Prolog']-'/contrib/SamerAbdallah/index.html').
 dyk(['SWI-Prolog has ', b('an OpenGL Interface')]-'/contrib/OpenGL.html').
 dyk(['SWI-Prolog is highly ', b('cross platform')]).
@@ -222,14 +226,13 @@ dyk('The SWI-Prolog manual is available in printed form'-
 dyk(['ETALIS ', b('Event Processing'), ' runs on SWI-Prolog']-'http://code.google.com/p/etalis/').
 dyk('This website\'s code is available'-'https://github.com/SWI-Prolog/plweb').
 dyk(['SWI-Prolog can talk to ', b('Matlab')]-'/contrib/SamerAbdallah/index.html').
-dyk(['SWI-Prolog has an active ', b('mailing list')]-'/Mailinglist.html').
+dyk(['SWI-Prolog has an active ', b('Discourse forum')]-'https://swi-prolog.discourse.group/').
 dyk(['Jan loves it when you ', b('Report Bugs')]-'https://github.com/SWI-Prolog/issues/issues').
 dyk(['You can get ', span(class=colored, 'COLORED'), ' text on the command line']-'/FAQ/ColorConsole.html').
 dyk(['SWI-Prolog has a ', b('Nifty IDE')]-'/IDE.html').
 dyk(['SWI-Prolog has a ', b('Graphic Debugger')]-'/gtrace.html').
 dyk(['Try C-c C-n in pceEmacs']-'/navigator.html').
 dyk('Try gxref. from the top level with a large project open'-'/gxref.html').
-dyk('XPCE supports a sophisticated styled text engine').
 dyk('Your proprietary application can use SWI-Prolog'-'/license.html').
 dyk(['SWI-Prolog has an interface to FANN, a foss ', b('Neural Net'), ' library']-'http://leenissen.dk/fann/wp/').
 dyk('SWI-Prolog has lots of useful Packages'-'/pack/list').
@@ -244,12 +247,12 @@ dyk(['SWI-Prolog has a ', b('Profiler')]-section(profile)).
 dyk('SWI-Prolog supports DDE on Windows'-section('DDE')).
 dyk(['You can create ', b('stand alone exe files'), ' from SWI-Prolog code']-section(runtime)).
 dyk('SWI-Prolog supports arbitrarily large integers').
+dyk('SWI-Prolog supports rational numbers (\u211A)').
 % below here added by AO 2015-01-18
-dyk(['There\'s an API to interact with', b('Amazon')]-pack(amazon_api)).
+dyk(['There\'s an API to interact with ', b('Amazon')]-pack(amazon_api)).
 dyk('Nifty call graphs'-pack(callgraph)).
 dyk('condition is an alternative to exceptions'-pack(condition)).
 dyk('You can train markov chains with BIMS'-pack(bims)).
-dyk('blog_core is a nifty CMS for SWI-Prolog'-pack(blog_core)).
 dyk('anything in single quotes is an atom').
 dyk('Logtalk is now a pack'-pack(logtalk)).
 dyk('SWI-Prolog has probabilistic logic'-pack(cplint)).
@@ -265,9 +268,9 @@ dyk('you can turn terms into graphviz (.dot) files'-pack(gvterm)).
 dyk('about nifty JoCaml style multithreading'-pack(jolog)).
 dyk('the first Prolog interpreter was in Algol-W by Philippe Roussel (1972)').
 dyk('julian pack offers match based dates'-pack(julian)).
-dyk('eliminate helper predicates with pack lambda'-pack(lambda)).
 dyk('you can parse markdown').
-dyk('don\'t use format to print errors'-section(debug)).
+dyk('don\'t use format/2 to print debug messages'-section(debug)).
+dyk('don\'t use format/2 to print errors'-object(print_message/2)).
 dyk('there\'s a simplex library'-section(simplex)).
 dyk('use mavis for type checking'-pack(mavis)).
 dyk('you can read ODF spreadsheets'-pack(odf_sheet)).
@@ -276,6 +279,15 @@ dyk('add language:prolog in github search').
 dyk('there is an official Docker library for SWI-Prolog'-'/Docker.html').
 dyk('there is a Docker image SWISH'-'/Docker.html').
 dyk('SWI-Prolog runs on Android Termux'-'/build/Termux.html').
+dyk('SWI-Prolog can be compiled to WASM to run in your browser'-'https://wasm.swi-prolog.org/wasm/shell').
+dyk('SWI-Prolog for WASM is an npm package'-'https://www.npmjs.com/package/swipl-wasm').
+dyk(['Janus provides a rich and fast bi-directional interface to ', b('Python')]-package(swipy)).
+dyk('Sweep provides a rich Prolog mode for GNU-Emacs'-'https://eshelyaron.com/sweep.html').
+dyk('SWI-Prolog supports the full Unicode character set \U0001F600'-section(widechars)).
+dyk(['SWI-Prolog provides ', b(engines), ' for coroutinging']-section(engines)).
+dyk('print_term/2 can print large terms in readable format'-object(print_term/2)).
+dyk([i('Blobs'), ' provide access to typed and garbage collected foreign data']-section(blob)).
+dyk('The libssh pack provides secure login to Prolog server processes'-pack(libssh)).
 
 %%	afdyk(Id, Saying) is nondet
 %
