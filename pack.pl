@@ -1217,7 +1217,8 @@ ensure_slash(Dir, DirS) :-
 %	statistics on downloads.
 
 pack_file_table(Pack) -->
-	{ setof(Version-Hash, pack_version_hash(Pack, Hash, Version), Pairs),
+	{ findall(Version-Hash, pack_version_hash(Pack, Hash, Version), Pairs0),
+	  sort(1, @>=, Pairs0, Pairs),
 	  group_pairs_by_key(Pairs, Grouped)
 	},
 	html(h2(class(wiki), 'Details by download location')),
