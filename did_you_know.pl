@@ -218,7 +218,7 @@ dyk(['You can read/write ', b('.zip'), ' files']-package('zlib')).
 dyk(['SWI-Prolog can talk to many other languages']-'/contrib/').
 dyk(['You can control ', b('MIDI'), ' on Mac with SWI-Prolog']-'/contrib/SamerAbdallah/index.html').
 dyk(['SWI-Prolog has ', b('an OpenGL Interface')]-'/contrib/OpenGL.html').
-dyk(['SWI-Prolog is highly ', b('cross platform')]).
+dyk(['SWI-Prolog is highly ', b('cross platform')]-'/build/').
 dyk('SWI-Prolog has multiple high quality random number generators'-'/contrib/SamerAbdallah/index.html').
 dyk('The SWI-Prolog manual is available in printed form'-
     'http://books.google.nl/books/about/SWI_Prolog_Reference_Manual_6_2_2.html?id=q6R3Q3B-VC4C&redir_esc=y').
