@@ -413,3 +413,12 @@ thread_pool(wiki,     100, []).
 thread_pool(download, 200, []).
 thread_pool(cgi,       50, []).
 thread_pool(complete,  20, []).
+
+		 /*******************************
+		 *	       MESSAGES		*
+		 *******************************/
+
+:- multifile prolog:message//1.
+
+prolog:message(plweb(log_dir(Dir))) -->
+	['Writing HTTP logs to ~p'-[Dir] ].

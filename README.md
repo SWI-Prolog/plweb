@@ -51,12 +51,10 @@ commands:
 After installation, the  website  may  be   started  locally  using  the
 commands below. After that, you  have  access   to  the  same content as
 available  from  https://www.swi-prolog.org,  except  for  the  download
-section of the website. The  default  port   of  the  site  is 3040, and
-therefore it may be accessed on http://localhost:3040/
+section of the website.
 
 ```
-% swipl -l load.pl
-?- server.
+% swipl load.pl -p 8080 -i
 ```
 
 ### Running as daemon using Ubuntu upstart

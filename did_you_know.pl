@@ -189,7 +189,6 @@ dyk(['SWI-Prolog is ', Years, ' years old']) :-
 	Years is floor((Now-536454000)/(365*24*3600)).
 dyk(['the ', b('Profiler'), ' can speed up your code']-section('profiling-predicates')).
 dyk('You can hot-swap code'-library(hotfix)).
-dyk('SWI-Prolog uses logical update view'-section('update')).
 dyk('M-/ does autocomplete in pceEmacs').
 dyk('C-c C-c CamelCasesWords in pceEmacs').
 dyk('C-c C-- underscores_words_in_pce_emacs').
@@ -282,12 +281,19 @@ dyk('SWI-Prolog runs on Android Termux'-'/build/Termux.html').
 dyk('SWI-Prolog can be compiled to WASM to run in your browser'-'https://wasm.swi-prolog.org/wasm/shell').
 dyk('SWI-Prolog for WASM is an npm package'-'https://www.npmjs.com/package/swipl-wasm').
 dyk(['Janus provides a rich and fast bi-directional interface to ', b('Python')]-package(swipy)).
+dyk(['Janus-swi lets you embed SWI-Prolog in ', b('Python')]-'https://pypi.org/project/janus-swi/').
 dyk('Sweep provides a rich Prolog mode for GNU-Emacs'-'https://eshelyaron.com/sweep.html').
 dyk('SWI-Prolog supports the full Unicode character set \U0001F600'-section(widechars)).
 dyk(['SWI-Prolog provides ', b(engines), ' for coroutinging']-section(engines)).
 dyk('print_term/2 can print large terms in readable format'-object(print_term/2)).
 dyk([i('Blobs'), ' provide access to typed and garbage collected foreign data']-section(blob)).
-dyk('The libssh pack provides secure login to Prolog server processes'-pack(libssh)).
+dyk(['The ', b(libssh), ' pack provides secure login to Prolog server processes']-pack(libssh)).
+dyk(['SWI-Prolog tabling provides ', i('Well Founded Semantics')]-section('WFS')).
+dyk(['SWI-Prolog tabling provides ', i('incremental tabling')]-section('tabling-incremental')).
+dyk(['SWI-Prolog tables can be ', i('shared'), ' between threads']-section('tabling-shared')).
+dyk(['s(CASP) implements top-down answer set programming (ASP)']-pack('scasp')).
+dyk(['s(CASP) add explanations to ASP']-pack('scasp')).
+dyk(['s(CASP) implements ASP ', i('without grounding')]-pack('scasp')).
 
 %%	afdyk(Id, Saying) is nondet
 %
