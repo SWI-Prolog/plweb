@@ -174,13 +174,71 @@ to_atom(Atom, Atom) :-
 to_atom(String, Atom) :-
 	atom_string(Atom, String).
 
+%!	pack_admin(+Pack)//
+%
+%	Display pack admin options
+
+pack_admin(Pack) -->
+	{ admin_user },
+	!,
+	html(div(class('pack-admin'),
+		 [ div(class('delete-pack'), \delete_button(Pack)),
+		   div(style('clear:right'), \pattern_input(Pack))
+		 ])).
+pack_admin(_) -->
+	[].
+
+delete_button(Pack) -->
+	{ http_link_to_id(pack_delete, [], HREF)
+	},
+	html(form([ action(HREF),
+		    class('delete-pack')
+		  ],
+		  [ input([ type(hidden), name(p), value(Pack)]),
+		    button([type(submit)], 'Delete pack'),
+		    &(nbsp)
+		  ])).
+
+pattern_input(Pack) -->
+	{ http_link_to_id(set_allowed_url, [], HREF),
+	  (   pack_allowed_url(Pack, IsGit, Pattern)
+	  ->  true
+	  ;   pack_version_hashes(Pack, VersionHashes),
+	      member(_-Hashes, VersionHashes),
+	      member(Hash, Hashes),
+	      sha1_url(Hash, URL)
+	  ->  url_pattern(URL, IsGit, Pattern)
+	  ;   Pattern = "",
+	      IsGit = false
+	  )
+	},
+	html(form([ action(HREF),
+		    class('pack-set-url-pattern')
+		  ],
+		  [ input([ type(hidden), name(p), value(Pack)]),
+		    label(for(url), 'URL pattern'),
+		    input([ class('url-pattern'), name(url), value(Pattern)]),
+		    input([ type(checkbox), name(git), value(IsGit)]),
+		    label(for(git), 'Is GIT'),
+		    button([type(submit)],
+			   'Update URL pattern'),
+		    &(nbsp)
+		  ])).
+
+
+admin_user :-
+	current_prolog_flag(admin, true),
+	!.
+admin_user :-
+	site_user_logged_in(User),
+	site_user_property(User, granted(admin)).
+
 %%	pack_delete(+Request)
 %
 %	HTTP handler to delete a pack
 
 pack_delete(Request) :-
-	site_user_logged_in(User),
-	site_user_property(User, granted(admin)), !,
+	admin_user,
 	http_parameters(Request,
 			[ p(Pack, [optional(true)]),
 			  h(Hash, [optional(true)])
@@ -508,7 +566,8 @@ delete_pack(PackName) :-
 	pack_unmirror(PackName),
 	forall(sha1_pack(Hash, PackName),
 	       delete_hash(Hash)),
-	retractall_pack_allowed_url(PackName,_,_).
+	retractall_pack_allowed_url(PackName,_,_),
+	print_message(informational, delete_pack(PackName)).
 delete_pack(PackName) :-
 	existence_error(pack, PackName).
 
@@ -524,7 +583,8 @@ delete_hash(Hash) :-
 	retractall_sha1_conflicts(Hash, _),
 	retractall_sha1_info(Hash, _),
 	retractall_sha1_url(Hash, _),
-	retractall_sha1_download(Hash, _).
+	retractall_sha1_download(Hash, _),
+	print_message(informational, delete_hash(Hash)).
 
 %!	save_request(+Peer, +Data, -Result)
 %
@@ -659,8 +719,7 @@ populate_pack_url_pattern(Pack) :-
 %	Set the URL pattern for a pack.
 
 set_allowed_url(Request) :-
-	site_user_logged_in(User),
-	site_user_property(User, granted(admin)), !,
+	admin_user,
 	http_parameters(Request,
 			[ p(Pack, []),
 			  url(Pattern, []),
@@ -1109,6 +1168,7 @@ pack_info(Pack) -->
 	html(p(class(warning),
 	       'Sorry, I know nothing about a pack named "~w"'-[Pack])).
 pack_info(Pack) -->
+	pack_admin(Pack),
 	pack_info_table(Pack),
 	pack_reviews(Pack),
 	pack_file_table(Pack),
@@ -1235,7 +1295,7 @@ pack_file_row(Version-[H0|Hashes]) -->
 	  sha1_urls(H0, [URL|URLs])
 	},
 	html(tr([ td(\version(Version)),
-		  td(\hash(H0)),
+		  td(style('white-space: nowrap'), \hash(H0)),
 		  \count(Count),
 		  td(\download_url(URL))
 		])),
@@ -1261,16 +1321,23 @@ alt_hash(H) -->
 	html(tr([td(''), td(\hash(H)), \count(Count), td(\download_url(URL))])),
 	alt_urls(URLs).
 
-hash(H)		  --> html(span(class(hash), H)).
+hash(H)           --> html(span(class(hash), H)), del_hash_link(H).
 download_url(URL) --> html(a(href(URL), URL)).
 count(N)          --> html(td(class(count), N)).
 version(V)        --> { atom_version(Atom, V) },
 		      html(Atom).
 
+del_hash_link(Hash) -->
+	{ admin_user, !,
+	  http_link_to_id(pack_delete, [h=Hash], HREF)
+	}, !,
+	html(a([class('delete-hash'), href(HREF)], '\U0001F5D1')).
+del_hash_link(_) -->
+	[].
+
 pack_version_hash(Pack, Hash, Version) :-
 	sha1_pack(Hash, Pack),
 	sha1_version(Hash, Version).
-
 
 %%	pack_file_details(+Request)
 %
@@ -1317,3 +1384,13 @@ valid_version_part(String, Num) :-
 	!.
 valid_version_part("*", _).
 
+		 /*******************************
+		 *	    MESSAGES		*
+		 *******************************/
+
+:- multifile prolog:message//1.
+
+prolog:message(delete_pack(Pack)) -->
+	[ 'Deleted pack ~p'-[Pack] ].
+prolog:message(delete_hash(Hash)) -->
+	[ 'Deleted hash ~p'-[Hash] ].
