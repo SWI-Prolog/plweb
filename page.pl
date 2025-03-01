@@ -616,9 +616,9 @@ cta_area -->
 	<td style="text-align:right; white-space: nowrap; vertical-align: top">
 	   <a href="http://swish.swi-prolog.org">
 	   Try SWI-Prolog online (SWISH) </a><br>
-	   <a href="http://wasm.swi-prolog.org/wasm/shell"
+	   <a href="http://wasm.swi-prolog.org/wasm/tinker"
 	     style="font-size: 60%">
-	   &#128293; Try SWI-Prolog in your browser (WASM)</a><br>
+	   &#128293; Run SWI-Tinker in your browser</a><br>
       </tr>
     </table>
 |}),
