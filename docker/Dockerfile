@@ -34,7 +34,7 @@ ENV     REBUILD_MOST 4
 RUN     mkdir -p /usr/local/src && cd /usr/local/src && \
         git clone --recursive https://github.com/SWI-Prolog/swipl-devel.git && \
         cd swipl-devel && mkdir build && cd build && \
-        cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=PGO -G Ninja .. && \
+        cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=PGO -DSWIPL_DOC_SERVER=ON -G Ninja .. && \
         ninja && ninja install
 
 ENV	REBUILD_PLWEB 5
