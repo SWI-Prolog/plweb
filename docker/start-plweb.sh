@@ -121,7 +121,7 @@ git config --global --add safe.directory '*'
 git config --global user.email "wiki@swi-prolog.org"
 git config --global user.name "Wiki editor"
 
-swipl ${PLWEB_HOME}/daemon.pl --port=3400 --user=$udaemon $start &
+swipl -Dsource ${PLWEB_HOME}/daemon.pl --port=3400 --user=$udaemon $start &
 child_pid=$!
 
 stat=129
