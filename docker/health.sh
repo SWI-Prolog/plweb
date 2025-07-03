@@ -32,7 +32,7 @@ starting()
 { if [ -f /var/run/epoch ]; then
       epoch=$(cat /var/run/epoch)
       running=$(($(date "+%s") - $epoch))
-      [ $running -gt 60 ] || return 1
+      [ $running -lt 60 ] || return 1
   fi
   echo "Starting, so not killing"
   return 0
