@@ -154,6 +154,7 @@ user:url_path(sparql,	 'https://www.w3.org/TR/sparql11-query/').
    ).
 
 user:file_search_path(data,          plweb(data)).
+user:file_search_path(well_known,    data(well_known)).
 user:file_search_path(git_data,      data(git)).
 user:file_search_path(git_data,      plweb(.)).
 user:file_search_path(document_root, git_data(www)).

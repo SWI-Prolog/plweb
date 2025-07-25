@@ -43,6 +43,7 @@
                 examples,
                 blog,
                 api,
+                well_known,
                 wiki_edit,
                 stats,
                 pack,
