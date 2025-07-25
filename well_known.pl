@@ -29,10 +29,11 @@
 
 :- module(plweb_well_known, []).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_files)).
 
-:- http_handler('/.well-known/',
+:- http_handler(root('.well-known/'),
                 http_reply_from_files(well_known(.),
                                       [ indexes([]),
                                         not_found(404)
                                       ]),
-               []).
+                [ prefix ]).
