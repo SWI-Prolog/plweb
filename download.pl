@@ -753,20 +753,19 @@ download_daily(_Request) :-
 explain_win_daily -->
 	html({|html||
 	      <p>The table below provides access to the most recent 7
-	      daily builds of SWI-Prolog for Windows, both the 32- and
-	      64-bit versions.  The build is done automatically from the
-	      <a href="/git/">GIT sources</a>.  The files use the following
-	      naming convention:
+	      daily builds of SWI-Prolog for Windows.  The build is done
+	      automatically from the
+	      <a href="https://github.com/SWI-Prolog/swipl-devel.git">GIT sources</a>.
+	      The files use the following naming convention:
 	      </p>
 	      <ul>
-	        <li><code>swipl-w</code><var>bits</var><code>-</code><var>date</var><code>.exe</code>
+	        <li><code>swipl-w64-</code><var>date</var><code>.exe</code>
 	      </ul>
 	      <p>
 	      Please note that these versions <b>may be unstable!</b>  It is
 	      adviced to follow current discussions on the
-	      <a href="/Mailinglist.html">mailing
-	      list</a> and/or the git commit messages at
-	      <a href="https://github.com/SWI-Prolog/swipl-devel">GitHub</a>.
+	      <a href="https://swi-prolog.discourse.group/">SWI-Prolog Discourse
+	      forum</a> and/or the git commit messages.
 	      The primary purpose of the daily builds is to quickly provide
 	      binaries after a bug report.
 	      </p>
