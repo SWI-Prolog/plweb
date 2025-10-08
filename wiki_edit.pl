@@ -41,6 +41,7 @@
 :- use_module(library(http/http_path)).
 :- use_module(library(git)).
 :- use_module(library(broadcast)).
+:- use_module(library(settings)).
 :- use_module(wiki).
 :- use_module(git_html).
 :- use_module(markitup).
