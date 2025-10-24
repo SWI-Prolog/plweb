@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        jan@swi-prolog.org
     WWW:           https://www.swi-prolog.org
-    Copyright (C): 2020, SWI-Prolog Solutions b.v.
+    Copyright (C): 2020-2925, SWI-Prolog Solutions b.v.
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -30,7 +30,7 @@
 :- module(fastly,
           [ purge_location/1            % +Location
           ]).
-:- use_module(library(http/json)).
+:- use_module(library(json)).
 :- use_module(library(http/http_open)).
 :- use_module(library(http/http_path)).
 
