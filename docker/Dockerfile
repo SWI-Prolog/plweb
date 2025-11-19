@@ -60,7 +60,7 @@ ENV     SWIPL_VERSION Wed 31 Jan 2024 06:17:31 PM CET
 RUN     git config --global pull.ff only
 RUN     cd /usr/local/src/swipl-devel && (git pull || git pull) && \
 	git fetch stable && \
-        git submodule update --init && \
+        git submodule update --init --recursive && \
         find build -name '*.qlf' | xargs rm && \
         cd build && rm -rf home && cmake . && ninja && \
         ninja install
