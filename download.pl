@@ -490,7 +490,7 @@ cmake_win_type(win64) --> ".", "x64".
 cmake_win_type(win32) --> ".", "x86".
 
 long_version(version(Major, Minor, Patch, Tag)) -->
-	int(Major, 1), ".", int(Minor, 2), ".", int(Patch, 2), !,
+	int(Major, 2), ".", int(Minor, 2), ".", int(Patch, 2), !,
         tag(Tag), !.
 long_version(latest) -->
 	"latest".
