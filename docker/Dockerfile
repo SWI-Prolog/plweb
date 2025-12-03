@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential cmake autoconf ninja-build pkg-config \
         gdb \
         cleancss node-requirejs uglifyjs \
-        ncurses-dev libreadline-dev libedit-dev \
+        ncurses-dev libedit-dev \
         libgoogle-perftools-dev \
         libgmp-dev \
         libssl-dev \
