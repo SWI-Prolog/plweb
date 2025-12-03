@@ -622,7 +622,7 @@ tag(alpha, -3).
 take_latest([], []).
 take_latest([_-[H|_]|T0], [H|T]) :- !,
 	take_latest(T0, T).
-take_latest([_-[]|T0], T) :- !,		% emty set
+take_latest([_-[]|T0], T) :- !,		% empty set
 	take_latest(T0, T).
 
 %%	old_tagged_file(+TypeFile) is semidet.
@@ -632,6 +632,7 @@ old_tagged_file(tag(_,Type)-_File) :-
 
 old_file_type(linux(_)).
 old_file_type(linux(_,_)).
+old_file_type(windows(win32)).
 old_file_type(macos(_,ppc)).
 old_file_type(macos(tiger,_)).
 old_file_type(macos(snow_leopard_and_later,_)).

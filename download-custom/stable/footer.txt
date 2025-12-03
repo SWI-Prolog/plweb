@@ -1,21 +1,30 @@
-## SWI-Prolog version 9.2
+## SWI-Prolog version 10.0
 
-The SWI-Prolog 9.2 is the latest stable release.  Highlights:
+The SWI-Prolog 10.0 is the latest stable release. Highlights:
 
-  - Bundled Python bi-directional interface (Janus)
-  - C++ interface version 2 (`SWI-ccp2.h`) covers much more
-    of the SWI-Prolog C API and is more (type-)safe.
-  - Sources are now strict C11 and may be compiled using
-    e.g. VS2022 on Windows.
-  - Many improvements to the tooling.
-    - The profiler can provide accurate port counts
-    - The coverage analysis tool can annotate files by line
-      and collect data from multiple threads and Prolog runs.
-    - The unit testing tool supports concurrent testing and
-      hiding of output of succeeded tests.
-    - The pack manager can deal with version and feature
-      restrictions, plan multiple packs together, build using
-      CMake.
-  - Added an option for commandline tools that can be called
-    as ``swipl <tool> [arg ...]``.  Provides cli tools for
-    pack management and `.qlf` compilation.
+  - Native GUI tools for Linux (Wayland or X11), MacOS (Cocoa) and
+    Windows (Win32) based on [SDL3](https://www.libsdl.org/),
+    [Cairo](https://www.cairographics.org/) and
+    [Pango](https://www.gtk.org/docs/architecture/pango).  This provides
+    a future-proof uniform system accross all platforms with better text
+    rendering, better support for multiple displays and hi-res displays
+    and much more.
+  - Qt based ``swipl-win`` and Windows ``swipl-win.exe`` projects that
+    provide a SWI-Prolog console with extensions has been replaced by
+    a terminal emulator based on the ``swipl-win.exe`` that is integrated
+    in the native GUI toolkit.
+  - Command line editing in a system console as well as in the Prolog
+    terminals is done by BSD `libedit`, providing uniform behaviour on
+    all platforms.
+  - 32-bit platforms now use 64-bit Prolog data, making the implementation
+    more uniform and lifting the 128Mb stack limit on 32-bit systems.  This
+    notably applies to the WASM version.  Support for 32-bit Windows is
+    removed.
+  - The WASM version is now much faster, only 2-3 times slower than native.
+    It now has support for __yield based debugging__, which
+    allows the debugger to work in
+    [SWI-Tinker](https://wasm.swi-prolog.org/wasm/tinker).
+    An [NPM package](https://www.npmjs.com/package/swipl-wasm) is available.
+  - Improvements in clause indexing and compilation results in a 10-30%
+    performance improvement.
+  - The JSON libraries now support JSON Schema and JSON RPC.
