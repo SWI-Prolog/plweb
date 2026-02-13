@@ -316,7 +316,7 @@ html_macos_version(lion, _)	    --> html('10.7 (Lion)').
 html_macos_version(snow_leopard_and_later, _)
 				    --> html('10.6 (Snow Leopard) and later').
 html_macos_version(bundle, x86_64)  --> html('10.12 (Sierra) and later').
-html_macos_version(bundle, fat)     --> html('10.14 (Mojave) and later').
+html_macos_version(bundle, fat)     --> html('10.15 (Catalina) and later').
 html_macos_version(OS, _CPU)	    --> html(OS).
 
 cpu(fat) --> !, html("x86_64 and arm64").

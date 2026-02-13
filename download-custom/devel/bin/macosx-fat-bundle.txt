@@ -3,5 +3,6 @@ bundle](https://en.wikipedia.org/wiki/Bundle_%28macOS%29#macOS_application_bundl
 The bundle also provides the commandline tools in the ``Contents/MacOS``
 directory. Users of older MacOS versions are adviced to use Macports,
 Homebrew or install from source.  This bundle contains universal (fat)
-binaries that run natively on Intel and Apple Silicon (M*, arm64).
+binaries that run natively on Intel and Apple Silicon (M*, arm64).  This
+version is compiled using GCC-15 for best performance.
 
