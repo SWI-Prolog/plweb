@@ -526,7 +526,7 @@ menu(Style,
 	   'RDF namespaces'    = '/howto/UseRdfMeta.html'
 	 ],
 	 'Graphics' =
-	 [ 'XPCE'              = '/download/xpce/doc/coursenotes/coursenotes.pdf',
+	 [ 'XPCE'              = '/download/xpce/doc/prolog/coursenotes/coursenotes.pdf',
 	   'GUI options'       = '/Graphics.html'
 	 ],
 	 'Machine learning' =
