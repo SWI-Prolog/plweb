@@ -58,13 +58,14 @@ RUN	cd /usr/local/src/swipl-devel && \
 # the `ENV` command below and redo the relevant part of the build
 
 ENV     SWIPL_VERSION Wed 31 Jan 2024 06:17:31 PM CET
-RUN     git config --global pull.ff only
-RUN     cd /usr/local/src/swipl-devel && (git pull || git pull) && \
+RUN     git config --global pull.ff only && \
+	cd /usr/local/src/swipl-devel && (git pull || git pull) && \
 	git fetch stable && \
-        git submodule update --init --recursive && \
-        find build -name '*.qlf' | xargs rm && \
-        cd build && rm -rf home && cmake . && ninja && \
-        ninja install
+	git submodule update --init --recursive && \
+	rm -rf build && mkdir build && cd build && \
+	cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=PGO -DSWIPL_DOC_SERVER=ON -G Ninja .. && \
+	ninja && ninja install
+
 ENV     PLWEB_VERSION Sun Feb 11 10:09:26 AM CET 2024
 RUN     cd /srv/plweb && (git pull || git pull) && \
         git submodule update
