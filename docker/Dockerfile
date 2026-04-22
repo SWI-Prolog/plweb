@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libdb-dev \
         libpcre2-dev \
         libyaml-dev \
+	libutf8proc-dev \
 	libpython3-dev \
 	default-jdk junit4 \
         libssh-dev openssh-client \
