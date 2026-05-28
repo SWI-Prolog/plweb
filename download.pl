@@ -437,6 +437,12 @@ file(bin, macos(bundle, fat), Version, _) -->
 	".fat.dmg", !.
 file(bin, macos(installer, fat), Version, _) -->
 	"swipl-", long_version(Version), opt_release(_),
+	".fat.pkg", !.
+file(bin, macos(installer, arm64), Version, _) -->
+	"swipl-", long_version(Version), opt_release(_),
+	".arm64.pkg", !.
+file(bin, macos(installer, fat), Version, _) -->
+	"swipl-", long_version(Version), opt_release(_),
 	"-fat.pkg", !.
 file(bin, macos(installer, arm64), Version, _) -->
 	"swipl-", long_version(Version), opt_release(_),
@@ -500,14 +506,21 @@ cmake_win_type(win32) --> ".", "x86".
 
 long_version(version(Major, Minor, Patch, Tag)) -->
 	int(Major, 2), ".", int(Minor, 2), ".", int(Patch, 2), !,
-        tag(Tag), !.
+        tag(Tag),
+	!.
 long_version(latest) -->
 	"latest".
 
 tag(Tag) -->
-	"-", alnums(Codes), !,
-        { atom_codes(Tag, Codes) }.
+	"-", alnums(Codes),
+        { atom_codes(Tag, Codes),
+	  \+ notag(Tag)
+	},
+	!.
 tag('') --> "".
+
+notag(fat).
+notag(arm64).
 
 int(Value, MaxDigits) -->
 	digits(Digits),
@@ -580,19 +593,20 @@ type_tag(bin, linux(A,B), tag(11, linux(A,B))) :- !.
 type_tag(bin, windows(A), tag(Tg, windows(A))) :- !,
 	win_tag(A, Tg2),
         Tg is 20+Tg2.
-type_tag(bin, macos(A,B), tag(Tg, macos(A,B))) :- !,
-	mac_tag(A, Tg2),
+type_tag(bin, macos(A,B), tag(Tg, macos(Group,B))) :- !,
+	mac_tag(A, Group, Tg2),
 	Tg is 30+Tg2.
 type_tag(src, Format,     tag(40, Format)) :- !.
 type_tag(doc, Format,     tag(50, Format)) :- !.
 type_tag(X,   Y,	  tag(60, X-Y)).
 
-mac_tag(bundle,			4).
-mac_tag(snow_leopard_and_later,	5).
-mac_tag(lion,			6).
-mac_tag(snow_leopard,		7).
-mac_tag(leopard,		8).
-mac_tag(tiger,			9).
+mac_tag(installer,		modern,   4).
+mac_tag(bundle,			modern,   4).
+mac_tag(snow_leopard_and_later,	obsolete, 5).
+mac_tag(lion,			obsolete, 6).
+mac_tag(snow_leopard,		obsolete, 7).
+mac_tag(leopard,		obsolete, 8).
+mac_tag(tiger,			obsolete, 9).
 
 win_tag(win64, 1).
 win_tag(win32, 2).
@@ -643,8 +657,7 @@ old_file_type(linux(_)).
 old_file_type(linux(_,_)).
 old_file_type(windows(win32)).
 old_file_type(macos(_,ppc)).
-old_file_type(macos(tiger,_)).
-old_file_type(macos(snow_leopard_and_later,_)).
+old_file_type(macos(obsolete,_)).
 
 
 		 /*******************************
