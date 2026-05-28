@@ -1,0 +1,8 @@
+Mac OS X installer image.
+The installer provides the `swipl` _Framework_ and `swipl-win.app` _Application_.
+The installer also provides the commandline tools in the ``Contents/MacOS``
+directory. Users of older MacOS versions are adviced to use Macports,
+Homebrew or install from source.  This bundle contains universal (fat)
+binaries that run natively on Intel and Apple Silicon (M*, arm64).  This
+version is compiled using GCC-15 for best performance.
+

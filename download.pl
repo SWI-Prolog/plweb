@@ -209,6 +209,8 @@ icon_for_file(bin, macos(snow_leopard_and_later,_),
 	      'macapp.png', 'Snow Leopard and later').
 icon_for_file(bin, macos(bundle,_),
 	      'macapp.png', 'MacOS bundle').
+icon_for_file(bin, macos(installer,_),
+	      'macos-pkg.png', 'MacOS installer').
 icon_for_file(bin, macos(_,_),
 	      'mac.gif', 'MacOSX version').
 icon_for_file(_, windows(win32),
@@ -317,6 +319,7 @@ html_macos_version(snow_leopard_and_later, _)
 				    --> html('10.6 (Snow Leopard) and later').
 html_macos_version(bundle, x86_64)  --> html('10.12 (Sierra) and later').
 html_macos_version(bundle, fat)     --> html('10.15 (Catalina) and later').
+html_macos_version(installer, _)    --> html('10.15 (Catalina) and later').
 html_macos_version(OS, _CPU)	    --> html(OS).
 
 cpu(fat) --> !, html("x86_64 and arm64").
@@ -432,6 +435,12 @@ file(bin, macos(bundle, intel), Version, _) -->
 file(bin, macos(bundle, fat), Version, _) -->
 	"swipl-", long_version(Version), opt_release(_),
 	".fat.dmg", !.
+file(bin, macos(installer, fat), Version, _) -->
+	"swipl-", long_version(Version), opt_release(_),
+	"-fat.pkg", !.
+file(bin, macos(installer, arm64), Version, _) -->
+	"swipl-", long_version(Version), opt_release(_),
+	"-arm64.pkg", !.
 file(bin, macos(snow_leopard_and_later, intel), Version, _) -->
 	"SWI-Prolog-", long_version(Version),
 	".dmg", !.
