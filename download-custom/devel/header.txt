@@ -12,3 +12,6 @@ images][</build/flatpak.html>]]
 [[WIP.png;align="left",width="24px"][</ChangeLog?branch=development>]]
 Examine the [[ChangeLog][</ChangeLog?branch=development>]].
 
+[[signpath.png;width="24px"][https://signpath.org/]]
+SWI-Prolog applied for Free Code Signing for Open Source software from
+[SignPath](https://signpath.org/).  When honoured, future releases for Windows will be signed.
