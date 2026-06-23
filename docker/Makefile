@@ -32,14 +32,10 @@ bash:
 	docker run -it ${DOPTS} $(IMG) --bash
 
 update-plweb:
-	sed -i "s/PLWEB_VERSION.*/PLWEB_VERSION $$(date)/" Dockerfile
+	sed -i 's/PLWEB_VERSION=.*/PLWEB_VERSION="'"$$(date)"'"/' Dockerfile
 	make image
 
 update-swipl:
-	sed -i "s/SWIPL_VERSION.*/SWIPL_VERSION $$(date)/" Dockerfile
-	make image
-
-update-mostly:
-	sed -i "s/REBUILD_MOST.*/REBUILD_MOST $$(date)/" Dockerfile
+	sed -i 's/SWIPL_VERSION=.*/SWIPL_VERSION="'"$$(date)"'"/' Dockerfile
 	make image
 
