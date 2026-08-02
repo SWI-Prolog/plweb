@@ -416,6 +416,7 @@ special(..).
 %	directory, followed by the entry in the pack.
 
 prolog:xref_open_source(File, Stream) :-
+	atom(File),
 	pack_prefix(Pack, Prefix),
 	atom_concat(Prefix, Entry, File),
 	pack_open_entry(Pack, Entry, Stream).
