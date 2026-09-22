@@ -498,6 +498,7 @@ menu(Style,
 	   'HTML generation'   = '/pldoc/man?section=htmlwrite'
 	 ],
 	 'License'             = '/license.html',
+	 'Privacy'             = '/privacy.html',
 	 'Publications'        = '/Publications.html',
 	 'Rev 7 Extensions'    = '/pldoc/man?section=extensions'
        ],
