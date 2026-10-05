@@ -18,8 +18,12 @@ After cloning: `git submodule update --init`.
 swipl load.pl -p 8080 -i        # interactive, as documented in README.md
 ./run                           # loop: swipl -s load.pl -g server, restarts unless halt(42)
 swipl daemon.pl --no-fork --port=80 --user=www-data   # production (systemd/plweb.service)
-swipl debug.pl                  # loads load.pl, starts server, enables debug/style checks
+swipl debug.pl                  # dev: load.pl + server, strict checks, local reCAPTCHA keys
 ```
+
+`debug.pl` loads `load.pl` and starts the server, then turns on strict `style_check`,
+`portray_text` and HTTP error pages. It also sets reCAPTCHA keys as setting defaults, so
+registration works locally without `data/private/plweb.conf`.
 
 `load.pl` is the entry point: it attaches `packs/`, loads every server module, then
 re-reads PlDoc comments for files loaded before the server started. `stop.` (in the
@@ -36,6 +40,10 @@ swipl from git plus plweb; `make update-swipl` / `make update-plweb` bump the ca
 (`data/log`, `data/pack`, `data/*.db`, the wiki repo). `scripts/install-custom` copies
 `download-custom/**/*.txt` into `data/download/`. `scripts/sync-server` rsyncs the live
 databases and download tree from the production host.
+
+The install/daemon section of README.md is out of date. Logs and the pack mirror live
+under `data/`, not at the repository root. Deployment uses `systemd/plweb.service` or
+`docker/`, not upstart.
 
 ## Tests
 
@@ -64,7 +72,8 @@ process). These are **not** in git; see README.md. Each module owns its store:
 | `annotations.db` | `annotateit.pl` | legacy comments (converter only) |
 | `checksum.db` | `download.pl` | cached SHA256 of download files |
 
-`parms.pl` defines `server/3`, which marks one host as `master`. Slaves sync their
+`parms.pl` defines `server/3`, which lists the hosts by role: `master` (eu), `slave`
+(us) and `cdn` (www). Slaves sync their
 `.db` files hourly (`db_sync_thread/1` in `update.pl`) and proxy mutating pack requests
 to the master (`proxy_master/1` in `pack.pl`, via `proxy.pl`).
 
