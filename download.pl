@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009-2024, VU University Amsterdam
+    Copyright (C): 2009-2026, VU University Amsterdam
 			      CWI, Amsterdam
 			      SWI-Prolog Solutions b.v.
 
@@ -216,7 +216,9 @@ icon_for_file(bin, macos(_,_),
 icon_for_file(_, windows(win32),
 	      'win32.gif', 'Windows version (32-bits)').
 icon_for_file(_, windows(win64),
-	      'win64.gif', 'Windows version (64-bits)').
+	      'win-x64.svg', 'Windows version (64-bits, Intel/AMD)').
+icon_for_file(_, windows(arm64),
+	      'win-arm64.svg', 'Windows version (64-bits, ARM)').
 icon_for_file(src, _,
 	      'src.gif', 'Source archive').
 icon_for_file(_, pdf,
@@ -310,6 +312,8 @@ platform(windows(win32)) -->
 	html(['Microsoft Windows (32 bit)']).
 platform(windows(win64)) -->
 	html(['Microsoft Windows (64 bit)']).
+platform(windows(arm64)) -->
+	html(['Microsoft Windows on ARM (64 bit)']).
 
 html_macos_version(tiger, _)        --> html('10.4 (Tiger)').
 html_macos_version(leopard, _)      --> html('10.5 (Leopard)').
@@ -348,6 +352,7 @@ platform_note_file(linux(rpm,_),     'linux-rpm.txt').
 platform_note_file(linux(universal), 'linux.txt').
 platform_note_file(windows(win32),   'win32.txt').
 platform_note_file(windows(win64),   'win64.txt').
+platform_note_file(windows(arm64),   'winarm64.txt').
 platform_note_file(pkg(Pkg),         File) :-
 	file_name_extension(Pkg, txt, File).
 platform_note_file(macos(Version,fat), File) :-
@@ -502,6 +507,7 @@ win_type(win32) --> "w32".
 win_type(win64) --> "w64".
 
 cmake_win_type(win64) --> ".", "x64".
+cmake_win_type(arm64) --> ".", "arm64".
 cmake_win_type(win32) --> ".", "x86".
 
 long_version(version(Major, Minor, Patch, Tag)) -->
@@ -609,7 +615,8 @@ mac_tag(leopard,		obsolete, 8).
 mac_tag(tiger,			obsolete, 9).
 
 win_tag(win64, 1).
-win_tag(win32, 2).
+win_tag(arm64, 2).
+win_tag(win32, 3).
 
 sort_group_by_version(Tag-Files, Tag-Sorted) :-
 	map_list_to_pairs(tag_version, Files, TFiles),
