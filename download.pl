@@ -221,8 +221,8 @@ icon_for_file(_, windows(arm64),
 	      'win-arm64.svg', 'Windows version (64-bits, ARM)').
 icon_for_file(src, _,
 	      'src.gif', 'Source archive').
-icon_for_file(_, pdf,
-	      'pdf.gif', 'PDF file').
+icon_for_file(_, pdf(_),
+	      'pdf.svg', 'PDF file').
 
 
 file_size(file(_, _, _, _, Path)) -->
@@ -249,14 +249,22 @@ file_description(file(src, Format, Version, _, Path)) -->
 	       \platform_notes(Format, Path),
 	       \checksum(Path)
 	     ]).
-file_description(file(doc, Format, Version, _, Path)) -->
+file_description(file(doc, pdf(swipl), Version, _, Path)) -->
 	{ down_file_href(Path, HREF)
 	},
 	html([ a(href(HREF),
 		 [ 'SWI-Prolog ', \version(Version),
 		   ' reference manual in PDF'
 		 ]),
-	       \platform_notes(Format, Path)
+	       \platform_notes(pdf(swipl), Path)
+	     ]).
+file_description(file(doc, pdf(xpce), Version, _, Path)) -->
+	{ down_file_href(Path, HREF)
+	},
+	html([ a(href(HREF),
+		 [ 'XPCE User guide ', \version(Version), ' in PDF'
+		 ]),
+	       \platform_notes(pdf(xpce), Path)
 	     ]).
 file_description(file(pkg(Pkg), PlatForm, Version, _, Path)) -->
 	{ down_file_href(Path, HREF)
@@ -361,7 +369,8 @@ platform_note_file(macos(Version,_), File) :-
 	atomic_list_concat([macosx, -, Version, '.txt'], File).
 platform_note_file(macos(_,_),	     'macosx.txt').
 platform_note_file(tgz,		     'src-tgz.txt').
-platform_note_file(pdf,		     'doc-pdf.txt').
+platform_note_file(pdf(swipl),	     'doc-pdf.txt').
+platform_note_file(pdf(xpce),	     'xpce-pdf.txt').
 
 
 		 /*******************************
@@ -475,8 +484,10 @@ file(bin, linux(universal), Version, _) -->
 	".tar.gz", !.
 file(src, tgz, Version, _) -->
 	swipl, long_version(Version), ".tar.gz", !.
-file(doc, pdf, Version, _) -->
+file(doc, pdf(swipl), Version, _) -->
 	"SWI-Prolog-", long_version(Version), ".pdf", !.
+file(doc, pdf(xpce), Version, _) -->
+	"XPCE-userguide-", long_version(Version), ".pdf", !.
 
 swipl --> "swipl-", !.
 swipl --> "pl-".

@@ -1,0 +1,2 @@
+XPCE user guide as PDF file.  XPCE is the SWI-Prolog GUI library used
+by the development tools.

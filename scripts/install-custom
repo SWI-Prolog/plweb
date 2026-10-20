@@ -3,6 +3,8 @@
 for f in `find download-custom -name '*.txt'`; do
    target="`echo $f | sed 's@download-custom@data/download@'`"
    rm -f $target
+   echo -n cp $f `dirname $target` ...
    cp $f `dirname $target`
+   echo done.
 done
 
