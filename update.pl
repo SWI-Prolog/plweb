@@ -141,9 +141,16 @@ db_sync -->
 	{ db_sync_all(reload) }.
 
 db_sync_thread :-
-	gethostname(HostName),
-	server(slave, _, HostName), !,
-	db_sync_thread(3600).
+	(   getenv('HOST_HOSTNAME', HostName)	% Docker
+	->  true
+	;   gethostname(HostName)
+	),
+	server(slave, _, FullHostName),
+	(   HostName == FullHostName
+	->  true
+	;   atomic_list_concat([HostName|_], '.', FullHostName)
+	),
+	db_sync_thread(900).
 db_sync_thread.
 
 %%	db_sync_thread(+Time)
