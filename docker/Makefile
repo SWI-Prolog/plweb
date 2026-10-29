@@ -4,7 +4,7 @@ PORT=3400
 
 PUBLISH=--publish=${PORT}:3400 --publish=3420:2022
 DOPTS=${PUBLISH} -v ${VOLUME}:/srv/plweb/data
-HOPTS=-e HOST_HOSTNAME=`$(hostname)`
+HOPTS=-e HOST_HOSTNAME="$(shell hostname)"
 IMG=plweb
 
 all:
