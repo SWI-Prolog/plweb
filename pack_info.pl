@@ -419,7 +419,10 @@ pack_file_details(Pack, File, _Options) :-
 	format('Content-type: ~w~n~n', [MimeType]),
 	setup_call_cleanup(
 	    pack_open_entry(Archive, File, Stream),
-	    copy_stream_data(Stream, current_output),
+	    ( set_stream(Stream, type(binary)),
+	      set_stream(current_output, encoding(octet)),
+	      copy_stream_data(Stream, current_output)
+	    ),
 	    close(Stream)),
 	!.
 pack_file_details(Pack, File, _Options) :-
@@ -435,10 +438,15 @@ no_pack_file(Pack, File) -->
 		 ' contain a file ', code(class(file), File)
 	       ])).
 
-wiki_file(readme).
-wiki_file(todo).
+%	wiki_file(+BaseNameLowerCase) is semidet.
+%
+%	True if we render the file as  wiki (markdown). These are .md
+%	files and the README files. Other  .txt   files  in packs are too
+%	often data files. All files that   are  not Prolog or wiki files
+%	are served as is.
+
+wiki_file(Name) :- readme_file(Name), !.
 wiki_file(Name) :- file_name_extension(_, md, Name).
-wiki_file(Name) :- file_name_extension(_, txt, Name).
 
 :- multifile
 	plweb:page_title//1.
