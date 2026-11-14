@@ -576,12 +576,35 @@ menu(Style,
 	->  LoginLabel = 'Logout',
 	    http_link_to_id(logout, ['openid.return_to'(ReqURL)], LoginURL)
 	;   LoginLabel = 'Login',
-	    (	http_link_to_id(logout, [], ReqURL)
-	    ->	RetURL = '/'		% HOME
-	    ;	RetURL = ReqURL
-	    ),
+	    login_return_url(ReqURL, RetURL),
 	    http_link_to_id(plweb_login_page,
 			    ['openid.return_to'(RetURL)], LoginURL)
+	).
+
+%%	login_return_url(+URL, -ReturnTo) is det.
+%
+%	ReturnTo is the page to return to after   using the Login link on
+%	the page URL. If URL is the login  page itself, we use its return
+%	address (recursively), such that following  the   Login  link on
+%	the login page does not create  ever   deeper  nested URLs. This
+%	used to be a trap for crawlers.   After  logout we return to the
+%	home page.
+
+login_return_url(URL, ReturnTo) :-
+	uri_components(URL, Components),
+	uri_data(path, Components, Path),
+	(   http_link_to_id(plweb_login_page, [], Path)
+	->  (   uri_data(search, Components, Search),
+		atom(Search),
+		uri_query_components(Search, Query),
+		memberchk('openid.return_to'=Inner, Query),
+		Inner \== URL
+	    ->	login_return_url(Inner, ReturnTo)
+	    ;	ReturnTo = '/'
+	    )
+	;   http_link_to_id(logout, [], Path)
+	->  ReturnTo = '/'		% HOME
+	;   ReturnTo = URL
 	).
 
 
