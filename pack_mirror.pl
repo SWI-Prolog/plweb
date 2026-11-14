@@ -40,6 +40,7 @@
 :- use_module(library(http/http_ssl_plugin)).
 :- use_module(library(filesex)).
 :- use_module(library(lists)).
+:- use_module(library(option)).
 :- use_module(library(debug)).
 
 :- debug(pack(mirror)).
@@ -87,40 +88,27 @@ pack_mirror(Pack, Hashes, MirrorDir, Hash) :-
 	pack_git_mirror(Pack, MirrorDir),
 	GitOptions = [directory(MirrorDir), askpass(path(echo))],
 	(   exists_directory(MirrorDir)
-	->  (   Hashes = [Hash],
-		git_hash(Hash, GitOptions)
+	->  (   update_blocked(Pack, Hashes)
 	    ->	true
-	    ;	forall(member(Hash, Hashes),
-		       git_has_commit(MirrorDir, Hash))
-	    ->	git_hash(Hash, GitOptions)
-	    ;	member(URL, GitURLs),
-	        git_remote_url(origin, URL, GitOptions),
-		debug(pack(mirror), 'git pull in ~p', [MirrorDir]),
-		(   catch(git([pull], GitOptions), E,
-			  ( print_message(warning, E), fail))
-		->  true
-		;   debug(pack(mirror), 'pull ~p failed; retrying with fetch', [MirrorDir]),
-		    catch(git([reset, '--hard'], GitOptions), E,
-			  ( print_message(warning, E), fail)),
-		    catch(git([remote, prune, origin], GitOptions), E,
-			  ( print_message(warning, E), fail)),
-		    catch(git([fetch], GitOptions), E,
-			  ( print_message(warning, E), fail)),
-		    switch_to_main(Branch, GitOptions),
-		    atom_concat('origin/', Branch, Origin),
-		    catch(git([reset, '--hard', Origin], GitOptions), E,
-			  ( print_message(warning, E), fail))
-		)
-	    ->	git_hash(Hash, GitOptions)
-	    ;	print_message(warning, pack_mirror(Pack)), % TBD
+	    ;	mirror_has_hash(MirrorDir, Hashes, GitOptions)
+	    ->	true
+	    ;	atom_concat('pack_mirror:', Pack, Mutex),
+		with_mutex(Mutex,
+			   update_git_mirror(Pack, Hashes, GitURLs, GitOptions))
+	    ),
+	    git_hash(Hash, GitOptions)
+	;   \+ update_blocked(Pack, Hashes),
+	    (   member(URL, GitURLs),
+		debug(pack(mirror), 'git clone ~q into ~q', [URL, MirrorDir]),
+		catch(git([clone, URL, MirrorDir], [askpass(path(echo))]), E,
+		      ( print_message(warning, E), fail))
+	    ->	clear_update_failure(Pack)
+	    ;	record_update_failure(Pack, Hashes),
 		fail
 	    )
-	;   member(URL, GitURLs),
-	    debug(pack(mirror), 'git clone ~q into ~q', [URL, MirrorDir]),
-	    catch(git([clone, URL, MirrorDir], [askpass(path(echo))]), E,
-		  ( print_message(warning, E), fail))
 	->  git_hash(Hash, GitOptions)
 	), !.
+
 pack_mirror(_Pack, Hashes, File, Hash) :-
 	member(Hash, Hashes),
 	hash_file_url(Hash, URL),
@@ -151,6 +139,117 @@ pack_mirror(_Pack, Hashes, File, Hash) :-
 	    )
 	), !.
 
+%!	mirror_has_hash(+MirrorDir, +Hashes, +GitOptions) is semidet.
+%
+%	True when the git mirror in MirrorDir   contains  one of the commit
+%	Hashes registered for the latest version  of the pack. In that case
+%	there is no reason to pull.
+
+mirror_has_hash(MirrorDir, Hashes, GitOptions) :-
+	(   git_hash(Head, GitOptions),
+	    memberchk(Head, Hashes)
+	->  true
+	;   member(Hash, Hashes),
+	    git_has_commit(MirrorDir, Hash)
+	->  true
+	).
+
+%!	update_git_mirror(+Pack, +Hashes, +GitURLs, +GitOptions) is det.
+%
+%	Pull the git mirror for Pack because   it does not contain any of
+%	the registered commit Hashes.  If  the   commit  is  still missing
+%	afterwards, the repository is considered broken  for this version
+%	and further pulls are delayed (see record_update_failure/2). This
+%	is called with a mutex for Pack held, so we first check that some
+%	other thread did not update the mirror while we were waiting.
+
+update_git_mirror(Pack, Hashes, _GitURLs, GitOptions) :-
+	option(directory(MirrorDir), GitOptions),
+	(   update_blocked(Pack, Hashes)
+	;   mirror_has_hash(MirrorDir, Hashes, GitOptions)
+	), !.
+update_git_mirror(Pack, Hashes, GitURLs, GitOptions) :-
+	option(directory(MirrorDir), GitOptions),
+	(   pull_git_mirror(GitURLs, GitOptions),
+	    mirror_has_hash(MirrorDir, Hashes, GitOptions)
+	->  clear_update_failure(Pack)
+	;   record_update_failure(Pack, Hashes)
+	).
+
+pull_git_mirror(GitURLs, GitOptions) :-
+	option(directory(MirrorDir), GitOptions),
+	member(URL, GitURLs),
+	git_remote_url(origin, URL, GitOptions),
+	debug(pack(mirror), 'git pull in ~p', [MirrorDir]),
+	(   catch(git([pull], GitOptions), E,
+		  ( print_message(warning, E), fail))
+	->  true
+	;   debug(pack(mirror), 'pull ~p failed; retrying with fetch', [MirrorDir]),
+	    catch(git([reset, '--hard'], GitOptions), E,
+		  ( print_message(warning, E), fail)),
+	    catch(git([remote, prune, origin], GitOptions), E,
+		  ( print_message(warning, E), fail)),
+	    catch(git([fetch], GitOptions), E,
+		  ( print_message(warning, E), fail)),
+	    switch_to_main(Branch, GitOptions),
+	    atom_concat('origin/', Branch, Origin),
+	    catch(git([reset, '--hard', Origin], GitOptions), E,
+		  ( print_message(warning, E), fail))
+	), !.
+
+%!	update_blocked(+Pack, +Hashes) is semidet.
+%!	record_update_failure(+Pack, +Hashes) is det.
+%!	clear_update_failure(+Pack) is det.
+%
+%	Limit the number of clones and pulls for packs whose repository
+%	does not provide the registered commit,   e.g., because the commit
+%	was removed by a force push or   the repository no longer exists.
+%	After a failure we wait update_initial_delay/1   seconds  before we
+%	try again and double this delay after each subsequent failure, up
+%	to update_max_delay/1. If the  first   failure  is  more than
+%	update_give_up/1 seconds ago we stop trying.   Meanwhile, requests
+%	are served from the mirror as  it  is.   The  state  is reset when
+%	the update succeeds or a new version  with other Hashes is
+%	registered. The state is not persistent,  so a server restart
+%	retries all repositories once.
+
+:- dynamic
+	update_failure/5.		% Pack, Hashes, First, Delay, NextTry
+
+update_initial_delay(600).		% 10 minutes
+update_max_delay(14400).		% 4 hours
+update_give_up(604800).			% a week
+
+update_blocked(Pack, Hashes) :-
+	update_failure(Pack, Hashes, First, _Delay, NextTry),
+	get_time(Now),
+	(   Now < NextTry
+	->  true
+	;   update_give_up(GiveUp),
+	    Now - First > GiveUp
+	).
+
+record_update_failure(Pack, Hashes) :-
+	get_time(Now),
+	(   retract(update_failure(Pack, Hashes0, First0, Delay0, _)),
+	    Hashes0 == Hashes
+	->  update_max_delay(MaxDelay),
+	    First = First0,
+	    Delay is min(Delay0*2, MaxDelay)
+	;   retractall(update_failure(Pack, _, _, _, _)),
+	    update_initial_delay(Delay),
+	    First = Now
+	),
+	NextTry is Now+Delay,
+	assertz(update_failure(Pack, Hashes, First, Delay, NextTry)),
+	update_give_up(GiveUp),
+	(   NextTry - First > GiveUp
+	->  print_message(warning, pack(mirror_give_up(Pack)))
+	;   print_message(warning, pack(mirror_retry(Pack, Delay)))
+	).
+
+clear_update_failure(Pack) :-
+	retractall(update_failure(Pack, _, _, _, _)).
 switch_to_main(Branch, GitOptions) :-
 	git_current_branch(BranchName, GitOptions),
 	atom_concat('origin/', BranchName, Ref),
@@ -265,6 +364,13 @@ prolog:message(pack(hash_mismatch(URL, Hash, FileSHA1))) -->
 	].
 prolog:message(pack(mirror_failed(Pack))) -->
 	[ 'Mirror for pack ~q failed'-[Pack] ].
+prolog:message(pack(mirror_retry(Pack, Delay))) -->
+	{ Minutes is round(Delay/60) },
+	[ 'Could not update mirror for pack ~q to the registered commit; \c
+	   retrying in ~d minutes'-[Pack, Minutes] ].
+prolog:message(pack(mirror_give_up(Pack))) -->
+	[ 'Could not update mirror for pack ~q to the registered commit \c
+	   for a week; giving up'-[Pack] ].
 prolog:message(pack(unmirror(dir(MirrorDir)))) -->
 	[ 'Deleting GIT mirror directory ~p'-[MirrorDir] ].
 prolog:message(pack(unmirror(file(Hash)))) -->
