@@ -181,6 +181,7 @@ touch_icon(Request) :-
 
 serve_page(Alias, Request) :-
 	memberchk(path_info(Relative), Request),
+	\+ git_path(Relative),
 	Spec =.. [ Alias, Relative ],
 	http_safe_file(Spec, []),
 	find_file(Relative, File), !,
@@ -191,6 +192,19 @@ serve_page(Alias, Request) :-
 serve_page(_, Request) :-
 	memberchk(path(Path), Request),
 	existence_error(http_location, Path).
+
+%%	git_path(+Relative) is semidet.
+%
+%	True if Relative refers to git  administration in the document
+%	tree, i.e., a path segment starts  with   =.git=  (=.git=,
+%	=.gitignore=, =.gitmodules=, ...). These  are   not  served. The
+%	repository is public, but crawlers  downloading   it  cause a lot
+%	of useless traffic.
+
+git_path(Relative) :-
+	split_string(Relative, "/", "", Segments),
+	member(Segment, Segments),
+	sub_string(Segment, 0, _, _, ".git"), !.
 
 %%	find_file(+Relative, -File) is det.
 %
