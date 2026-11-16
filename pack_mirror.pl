@@ -84,6 +84,9 @@ pack_mirror(Pack, Mirror, Hash) :-
 	pack_mirror(Pack, Hashes, Mirror, Hash).
 
 pack_mirror(Pack, Hashes, MirrorDir, Hash) :-
+	pack_git_mirror(Pack, MirrorDir),
+	cached_mirror_head(Pack, MirrorDir, Hashes, Hash), !.
+pack_mirror(Pack, Hashes, MirrorDir, Hash) :-
 	setof(GitURL, hashes_git_url(Hashes, GitURL), GitURLs),
 	pack_git_mirror(Pack, MirrorDir),
 	GitOptions = [directory(MirrorDir), askpass(path(echo))],
@@ -98,6 +101,7 @@ pack_mirror(Pack, Hashes, MirrorDir, Hash) :-
 	    ),
 	    git_hash(Hash, GitOptions)
 	;   \+ update_blocked(Pack, Hashes),
+	    forget_mirror_head(MirrorDir),
 	    (   member(URL, GitURLs),
 		debug(pack(mirror), 'git clone ~q into ~q', [URL, MirrorDir]),
 		catch(git([clone, URL, MirrorDir], [askpass(path(echo))]), E,
@@ -107,7 +111,9 @@ pack_mirror(Pack, Hashes, MirrorDir, Hash) :-
 		fail
 	    )
 	->  git_hash(Hash, GitOptions)
-	), !.
+	),
+	cache_mirror_head(MirrorDir, Hashes, Hash),
+	!.
 
 pack_mirror(_Pack, Hashes, File, Hash) :-
 	member(Hash, Hashes),
@@ -170,6 +176,7 @@ update_git_mirror(Pack, Hashes, _GitURLs, GitOptions) :-
 	), !.
 update_git_mirror(Pack, Hashes, GitURLs, GitOptions) :-
 	option(directory(MirrorDir), GitOptions),
+	forget_mirror_head(MirrorDir),
 	(   pull_git_mirror(GitURLs, GitOptions),
 	    mirror_has_hash(MirrorDir, Hashes, GitOptions)
 	->  clear_update_failure(Pack)
@@ -196,6 +203,52 @@ pull_git_mirror(GitURLs, GitOptions) :-
 	    catch(git([reset, '--hard', Origin], GitOptions), E,
 		  ( print_message(warning, E), fail))
 	), !.
+
+%!	cached_mirror_head(+Pack, +MirrorDir, +Hashes, -Head) is semidet.
+%!	cache_mirror_head(+MirrorDir, +Hashes, +Head) is det.
+%!	forget_mirror_head(+MirrorDir) is det.
+%
+%	Cache the HEAD commit of a git  mirror after pack_mirror/4 decided
+%	the mirror is fine for Hashes,  the   commits  registered  for the
+%	latest version. Without this cache,   each  /pack/file_details
+%	request runs at least  one  =git=   process,  which  is  costly when
+%	crawlers walk large packs.  The   HEAD  only  changes when we clone
+%	or pull, which clears the cache.   The  cache is  not used  if the
+%	registered Hashes changed or  if  a   blocked  update  is  due for a
+%	retry. Entries expire after mirror_head_ttl/1 seconds as a safety
+%	net against changes made to the mirror outside this server.
+
+:- dynamic
+	mirror_head/4.			% MirrorDir, Hashes, Head, Time
+
+mirror_head_ttl(3600).
+
+cached_mirror_head(Pack, MirrorDir, Hashes, Head) :-
+	mirror_head(MirrorDir, Hashes0, Head, Time),
+	Hashes0 == Hashes,
+	get_time(Now),
+	mirror_head_ttl(TTL),
+	Now - Time < TTL,
+	\+ update_due(Pack, Hashes),
+	exists_directory(MirrorDir).
+
+cache_mirror_head(MirrorDir, Hashes, Head) :-
+	get_time(Now),
+	retractall(mirror_head(MirrorDir, _, _, _)),
+	assertz(mirror_head(MirrorDir, Hashes, Head, Now)).
+
+forget_mirror_head(MirrorDir) :-
+	retractall(mirror_head(MirrorDir, _, _, _)).
+
+%!	update_due(+Pack, +Hashes) is semidet.
+%
+%	True when an earlier update of the mirror  for Hashes failed and we
+%	should try again now.
+
+update_due(Pack, Hashes) :-
+	update_failure(Pack, Hashes0, _, _, _),
+	Hashes0 == Hashes,
+	\+ update_blocked(Pack, Hashes).
 
 %!	update_blocked(+Pack, +Hashes) is semidet.
 %!	record_update_failure(+Pack, +Hashes) is det.
@@ -298,6 +351,7 @@ pack_unmirror(Pack) :-
 	(   pack_git_mirror(Pack, MirrorDir),
 	    exists_directory(MirrorDir)
 	->  print_message(informational, pack(unmirror(dir(MirrorDir)))),
+	    forget_mirror_head(MirrorDir),
 	    catch(delete_directory_and_contents(MirrorDir), E,
 		  print_message(warning, E))
 	;   true
