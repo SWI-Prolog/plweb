@@ -12,6 +12,7 @@ uconfig=root
 config_run=no
 
 date "+%s" > /var/run/epoch
+rm -f /var/run/health.failures
 
 usage()
 { echo "Usage: docker run [docker options] swish [swish options]"

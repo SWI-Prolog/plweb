@@ -1,20 +1,30 @@
 #!/bin/bash
-exec &> health.log
+#
+# Docker HEALTHCHECK for the plweb server, run every 30 seconds (see
+# Dockerfile).  A single slow or failed request does not kill the
+# server: under heavy load /health may take several seconds while the
+# server is otherwise fine.  We only restart after $max_failures
+# consecutive failed checks.
+
+log=health.log
+failures_file=/var/run/health.failures
+max_failures=3
+
+# Keep a log over several runs, but not unbounded
+if [ -f $log ] && [ $(stat -c %s $log) -gt 100000 ]; then
+  mv $log $log.old
+fi
+exec &>> $log
 
 check()
-{ auth=
-  if [ -r health.auth ]; then
-     auth="$(cat health.auth)"
-  fi
-  curl --fail -s --retry 3 --max-time 5 \
+{ curl --fail -s -o /dev/null --retry 2 --max-time 10 \
        http://localhost:3400/health
-  return $?
 }
 
 stop()
 { pid=1
-  echo "Health check failed.  Killing swish with SIGTERM"
-  kill -s TERM 1 $pid
+  echo "$(date -u '+%F %T') Health check failed $failures times.  Killing plweb with SIGTERM"
+  kill -s TERM $pid
   timeout 10 tail --pid=$pid -f /dev/null
   if [ $? == 124 ]; then
       echo "Gracefull termination failed.  Trying QUIT"
@@ -34,9 +44,23 @@ starting()
       running=$(($(date "+%s") - $epoch))
       [ $running -lt 60 ] || return 1
   fi
-  echo "Starting, so not killing"
+  echo "$(date -u '+%F %T') Starting, so not killing"
   return 0
 }
 
-check || starting || stop
+if check; then
+  rm -f $failures_file
+  exit 0
+fi
 
+starting && exit 1
+
+failures=$(( $(cat $failures_file 2>/dev/null || echo 0) + 1 ))
+echo $failures > $failures_file
+echo "$(date -u '+%F %T') Health check failed ($failures/$max_failures)"
+
+if [ $failures -ge $max_failures ]; then
+  rm -f $failures_file
+  stop
+fi
+exit 1
