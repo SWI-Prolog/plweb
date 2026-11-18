@@ -618,7 +618,7 @@ type_tag(doc, Format,     tag(50, Format)) :- !.
 type_tag(X,   Y,	  tag(60, X-Y)).
 
 mac_tag(installer,		modern,   4).
-mac_tag(bundle,			modern,   4).
+mac_tag(bundle,			obsolete, 4).	% replaced by installer
 mac_tag(snow_leopard_and_later,	obsolete, 5).
 mac_tag(lion,			obsolete, 6).
 mac_tag(snow_leopard,		obsolete, 7).
