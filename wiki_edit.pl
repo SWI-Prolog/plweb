@@ -143,11 +143,8 @@ edit_page(Location, File, Author) -->
 %	Show button to amend the previous commit.
 
 amend_button(Dir, File, Author) -->
-	{ exists_file(File),
+	{ can_amend(Dir, File, [_, Author]),
 	  git_shortlog(Dir, [ShortLog], [path(File), limit(1)]),
-	  git_log_data(author_name, ShortLog, LastAuthor),
-	  debug(git, 'Amend: LastAuthor = ~q, Author = ~q', [LastAuthor, Author]),
-	  LastAuthor == Author,
 	  git_log_data(subject, ShortLog, CommitMessage),
 	  split_commit_message(CommitMessage, Summary, _Comment)
 	},
@@ -171,6 +168,23 @@ amend_button(Dir, File, Author) -->
 	       'Amend previous commit'
 	     ]).
 amend_button(_,_,_) --> [].
+
+%%	can_amend(+Dir, +File, +Fields) is semidet.
+%
+%	True if the user described by Fields ([User,Name|_]) may amend
+%	the last commit for File.  `git commit --amend` rewrites HEAD, so
+%	HEAD must be the last commit that changed File and it must be
+%	made by the same user.
+
+can_amend(Dir, File, [_User, Name|_]) :-
+	exists_file(File),
+	git_shortlog(Dir, [Head], [limit(1)]),
+	git_shortlog(Dir, [Last], [path(File), limit(1)]),
+	git_log_data(commit_hash, Head, Hash),
+	git_log_data(commit_hash, Last, Hash),
+	git_log_data(author_name, Last, LastAuthor),
+	debug(git, 'Amend: LastAuthor = ~q, Author = ~q', [LastAuthor, Name]),
+	LastAuthor == Name.
 
 split_commit_message(CommitMessage, Summary, Comment) :-
 	sub_atom(CommitMessage, B, _, A, '\n\n'), !,
@@ -231,12 +245,13 @@ wiki_save(Request) :-
 	file_directory_name(File, Dir),
 	file_base_name(File, Rel),
 	(   New == true
-	->  git([add, Rel], [ directory(Dir) ])
+	->  git([add, '--', Rel], [ directory(Dir) ])
 	;   true
 	),
 	atom_concat('--author=', Author, AuthorArg),
-	GitArgs0 = [ '-m', GitMsg, AuthorArg, Rel ],
-	(   Amend == yes
+	GitArgs0 = [ '-m', GitMsg, AuthorArg, '--', Rel ],
+	(   Amend == yes,
+	    can_amend(Dir, File, Fields)
 	->  append([commit, '--amend'], GitArgs0, GitArgs)
 	;   append([commit], GitArgs0, GitArgs)
 	),
@@ -310,6 +325,8 @@ location_wiki_file(Relative, File, Access) :-
 			   ]),
 	setting(http:index_files, Indices),
         member(Index, Indices),
+	file_name_extension(_, Ext, Index),
+	wiki_extension(Ext),			% e.g., not index.html
 	directory_file_path(Dir, Index, File),
         access_file(File, Access), !.
 
@@ -354,15 +371,29 @@ authenticate(Request, Fields) :-
 
 %%	allowed_file(+File) is det.
 %
+%	True if File may be edited through the web interface: it must be
+%	a wiki file (.txt or .md) below the document root that is not
+%	hidden and writable.  Notably, raw HTML files may not be written
+%	as these are served as is.
+%
 %	@error	permission_error(edit, file, File) if the user is not
 %		allowed to edit File.
 
 allowed_file(File) :-
+	file_name_extension(_, Ext, File),
+	wiki_extension(Ext),			% only edit wiki files
 	absolute_file_name(document_root(.),
 			   DocRoot,
 			   [ file_type(directory)
 			   ]),
-	sub_atom(File, 0, _, _, DocRoot),
+	atom_concat(DocRoot, '/', DocRootDir),
+	atom_concat(DocRootDir, Rel, File),
+	atomic_list_concat(Segments, /, Rel),
+	\+ ( member(Segment, Segments),
+	     ( sub_atom(Segment, 0, _, _, '.')	% .git, .., hidden files
+	     ; sub_atom(Segment, 0, _, _, '-')	% looks like an option
+	     )
+	   ),
 	access_file(File, write), !.
 allowed_file(File) :-
 	permission_error(edit, file, File).
