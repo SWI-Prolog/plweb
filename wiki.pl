@@ -38,7 +38,8 @@
 	    include//3,			% +Object, +Type, +Options
 	    extract_title/3,		% +DOM0, -Title, -DOM
 	    title_text/2,		% +Title, -Text:atom
-	    safe_file_name/1		% +Name
+	    safe_file_name/1,		% +Name
+	    safe_dom/2			% +DOM0, -DOM
 	  ]).
 :- reexport(library(pldoc/doc_html),
 	    except([ file//2,
@@ -80,13 +81,95 @@ wiki_file_codes_to_dom(String, File, DOM) :-
 	(   nb_current(pldoc_file, OrgFile)
 	->  setup_call_cleanup(
 		b_setval(pldoc_file, File),
-		wiki_codes_to_dom(String, [], DOM),
+		wiki_codes_to_dom(String, [], DOM0),
 		b_setval(pldoc_file, OrgFile))
 	;   setup_call_cleanup(
 		b_setval(pldoc_file, File),
-		wiki_codes_to_dom(String, [], DOM),
+		wiki_codes_to_dom(String, [], DOM0),
 		nb_delete(pldoc_file))
+	),
+	safe_dom(DOM0, DOM).
+
+%%	safe_dom(+DOM0, -DOM) is det.
+%
+%	Make a DOM from wiki text safe for rendering.  PlDoc wiki text
+%	escapes HTML, but turns e.g. `<javascript:...>` into a link.
+%	This predicate replaces URL attributes that use a scheme other
+%	than `http`, `https`, `ftp` or `mailto` by `#`.  Relative URLs
+%	are kept.  Embedded \Goal terms are not touched.
+
+safe_dom(Var, Var) :-
+	var(Var), !.
+safe_dom(List0, List) :-
+	is_list(List0), !,
+	maplist(safe_dom, List0, List).
+safe_dom(\Goal, \Goal) :- !.
+safe_dom(Fmt-Args, Fmt-Args) :- !.
+safe_dom(Elem0, Elem) :-
+	compound(Elem0),
+	compound_name_arguments(Elem0, Name, [Attrs0, Content0]), !,
+	safe_attributes(Attrs0, Attrs),
+	safe_dom(Content0, Content),
+	compound_name_arguments(Elem, Name, [Attrs, Content]).
+safe_dom(Elem0, Elem) :-
+	compound(Elem0),
+	compound_name_arguments(Elem0, Name, [Content0]), !,
+	safe_dom(Content0, Content),
+	compound_name_arguments(Elem, Name, [Content]).
+safe_dom(DOM, DOM).
+
+safe_attributes(Var, Var) :-
+	var(Var), !.
+safe_attributes(List0, List) :-
+	is_list(List0), !,
+	maplist(safe_attributes, List0, List).
+safe_attributes(Attr0, Attr) :-
+	(   Attr0 = (Name=Value)
+	->  true
+	;   compound(Attr0),
+	    compound_name_arguments(Attr0, Name, [Value])
+	),
+	url_attribute(Name),
+	\+ safe_url(Value), !,
+	(   Attr0 = (Name=_)
+	->  Attr = (Name='#')
+	;   compound_name_arguments(Attr, Name, ['#'])
 	).
+safe_attributes(Attr, Attr).
+
+url_attribute(href).
+url_attribute(src).
+url_attribute(action).
+url_attribute(formaction).
+url_attribute(data).
+url_attribute(poster).
+url_attribute(background).
+
+%	safe_url(+URL) is semidet.
+%
+%	True if URL is relative or uses a safe scheme.  Browsers ignore
+%	white space and control characters in the scheme, so we remove
+%	these before checking.
+
+safe_url(URL) :-
+	atomic(URL),
+	atom_codes(URL, Codes0),
+	exclude([C]>>(C =< 0' ), Codes0, Codes),
+	atom_codes(Clean, Codes),
+	(   sub_atom(Clean, B, _, _, :),
+	    sub_atom(Clean, 0, B, _, Scheme0),
+	    \+ ( sub_atom(Scheme0, _, 1, _, C),
+		 memberchk(C, [/, ?, #])
+	       )
+	->  downcase_atom(Scheme0, Scheme),
+	    safe_scheme(Scheme)
+	;   true			% no scheme: relative URL
+	).
+
+safe_scheme(http).
+safe_scheme(https).
+safe_scheme(ftp).
+safe_scheme(mailto).
 
 
 		 /*******************************

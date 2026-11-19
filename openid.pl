@@ -63,6 +63,7 @@
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(pairs)).
+:- use_module(library(crypto), [crypto_n_random_bytes/2, hex_bytes/2]).
 :- use_module(library(google_client)).
 
 :- use_module(parms).
@@ -794,13 +795,25 @@ user_profile_link(UUID) -->
 
 stay_login_cookie(swipl_login).
 
+%!	secure_request(+Request) is semidet.
+%
+%	True if the client used HTTPS.  In production we run behind a
+%	proxy (Fastly or nginx) that terminates TLS.
+
+secure_request(Request) :-
+	(   memberchk(protocol(https), Request)
+	;   memberchk(x_forwarded_proto(https), Request)
+	;   memberchk(fastly_ssl('1'), Request)
+	), !.
+
 http_openid:openid_hook(trusted(OpenId, Server)) :-
 	openid_user_server(OpenId, Server), !.
 http_openid:openid_hook(trusted(OpenId, Server)) :-
 	assert_openid_user_server(OpenId, Server), !.
 http_openid:openid_hook(stay_signed_in(OpenId)) :-
 	assertion(in_header_state),
-	http_session_cookie(Cookie),
+	crypto_n_random_bytes(32, Bytes),	% not the session id: we
+	hex_bytes(Cookie, Bytes),		% do not want to expose it
 	get_time(NowF),
 	Now is round(NowF),
 	http_current_request(Request),
@@ -812,8 +825,13 @@ http_openid:openid_hook(stay_signed_in(OpenId)) :-
 	      'Created stay-signed-in for ~q', [OpenId]),
 	http_timestamp(Expires, RFC1123),
 	stay_login_cookie(CookieName),
-	format('Set-Cookie: ~w=~w; Expires=~w; path=~w\r\n',
-	       [CookieName, Cookie, RFC1123, Path]).
+	(   secure_request(Request)
+	->  Secure = '; Secure'
+	;   Secure = ''
+	),
+	format('Set-Cookie: ~w=~w; Expires=~w; path=~w; \c
+		HttpOnly; SameSite=Lax~w\r\n',
+	       [CookieName, Cookie, RFC1123, Path, Secure]).
 http_openid:openid_hook(logout(OpenId)) :-
 	nonvar(OpenId),
 	assertion(in_header_state),
@@ -836,7 +854,13 @@ http_openid:openid_hook(logged_in(OpenId)) :-
 	;   http_current_request(Request),
 	    memberchk(cookie(Cookies), Request),
 	    memberchk(swipl_login=Cookie, Cookies),
-	    stay_signed_in(OpenId, Cookie, _Peer, _Time, _Expires)
+	    stay_signed_in(OpenId, Cookie, _Peer, _Time, Expires),
+	    get_time(Now),
+	    (   Now < Expires
+	    ->  true
+	    ;   retractall_stay_signed_in(OpenId, Cookie, _, _, _),
+		fail
+	    )
 	->  http_open_session(_, []),
 	    http_session_assert(openid(OpenId)),
 	    debug(openid(stay_signed_in),

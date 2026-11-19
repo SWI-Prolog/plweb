@@ -39,6 +39,7 @@ Candidates for placement in some library.
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(uri)).
 :- use_module(openid).
+:- use_module(wiki, []).
 
 %! add_option(
 %!   +FromOptions:list(nvpair),
@@ -109,18 +110,8 @@ uri_query_add(URI1, Name, Value, URI2):-
 %%	wiki_file_codes_to_dom(+Codes, +File, -DOM)
 %
 %	DOM is the HTML dom representation for Codes that originate from
-%	File.
+%	File.  Same as plweb_wiki:wiki_file_codes_to_dom/3, which makes
+%	the result safe for rendering user content.
 
 wiki_file_codes_to_dom(String, File, DOM):-
-  nb_current(pldoc_file, OrgFile), !,
-  setup_call_cleanup(
-    b_setval(pldoc_file, File),
-    wiki_codes_to_dom(String, [], DOM),
-    b_setval(pldoc_file, OrgFile)
-  ).
-wiki_file_codes_to_dom(String, File, DOM):-
-  setup_call_cleanup(
-    b_setval(pldoc_file, File),
-    wiki_codes_to_dom(String, [], DOM),
-    nb_delete(pldoc_file)
-  ).
+  plweb_wiki:wiki_file_codes_to_dom(String, File, DOM).

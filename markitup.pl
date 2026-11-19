@@ -37,7 +37,6 @@
 :- use_module(library(http/js_write)).
 :- use_module(library(option)).
 :- use_module(library(debug)).
-:- use_module(markdown).
 :- use_module(wiki).
 
 /** <module> Wrapper for markItUp ajax markup editor
@@ -45,8 +44,8 @@
 @see http://markitup.jaysalvat.com/home/
 */
 
-:- http_handler(root('markitup/preview/markdown'), preview_markdown, []).
-:- http_handler(root('markitup/preview/pldoc'),    preview_pldoc,    []).
+:- http_handler(root('markitup/preview/pldoc'), preview_pldoc,
+		[methods([post])]).
 
 :- html_resource(js('markitup/jquery.markitup.js'),
 		 [ requires([ jquery
@@ -80,7 +79,7 @@
 %	Insert a =textarea= with markItUp support.
 
 markitup(Options) -->
-	{ option(markup(Language), Options, markdown),
+	{ option(markup(Language), Options, pldoc),
 	  option(id(Id), Options, markdown),
 	  option(name(Name), Options, Id),
 	  option(cols(Cols), Options, 80),
@@ -100,28 +99,16 @@ markitup(Options) -->
 		  |}).
 
 
-%%	preview_markdown(+Request)
-%
-%	Handle preview requests from markItUp.  The data is send using
-%	a POST request, where the =data= field contains the content of
-%	the textarea.
-
-preview_markdown(Request) :-
-	http_parameters(Request,
-			[ data(Data, [optional(true), default('')])
-			]),
-	debug(markitup(preview), 'Preview:~n~w~n', [Data]),
-	open_atom_stream(Data, In),
-	markdown_dom(stream(In), DOM),
-	phrase(html(DOM), Tokens),
-	format('Content-type: text/html; charset=UTF-8\n\n'),
-	print_html(Tokens).
-
 %%	preview_pldoc(+Request)
 %
 %	Handle preview requests from markItUp.  The data is send using
 %	a POST request, where the =data= field contains the content of
-%	the textarea.
+%	the textarea.  The preview is rendered as user content:  links
+%	are restricted to safe URL schemes (see wiki_file_codes_to_dom/3).
+%
+%	There used to be a markdown preview  that  used an external
+%	markdown program.  It was removed because it passed raw HTML,
+%	allowing anyone to inject scripts.
 
 preview_pldoc(Request) :-
 	http_parameters(Request,
@@ -134,13 +121,3 @@ preview_pldoc(Request) :-
 	format('Content-type: text/html; charset=UTF-8\n\n'),
 	print_html(Tokens).
 
-
-		 /*******************************
-		 *	       UTIL		*
-		 *******************************/
-
-open_atom_stream(Atom, Stream) :-
-	atom_to_memory_file(Atom, MF),
-	open_memory_file(MF, read, Stream,
-			 [ free_on_close(true)
-			 ]).

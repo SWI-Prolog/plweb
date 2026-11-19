@@ -356,8 +356,9 @@ pack_readme(Pack, File, _) -->
 	      close(Stream)),
 	  setup_call_cleanup(
 	      b_setval(pldoc_file, FileURL),
-	      wiki_codes_to_dom(String, [], DOM),
-	      nb_delete(pldoc_file))
+	      wiki_codes_to_dom(String, [], DOM0),
+	      nb_delete(pldoc_file)),
+	  safe_dom(DOM0, DOM)
 	},
 	html(DOM).
 
