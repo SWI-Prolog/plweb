@@ -240,7 +240,7 @@ xref_pack_file_2(Pack, File) :-
 
 pack_open_entry(Directory, Entry, Stream) :-
 	exists_directory(Directory), !,
-	directory_file_path(Directory, Entry, File),
+	safe_entry_path(Directory, Entry, File),
 	open(File, read, Stream).
 pack_open_entry(Archive, Entry, Stream) :-
 	ar_prefix(Archive, Prefix),
@@ -253,6 +253,30 @@ pack_open_entry(Archive, Entry, Stream) :-
 	    archive_close(Handle)),
 	format(atom(StreamName), '~w/~w', [Archive, Entry]),
 	set_stream(Stream, file_name(StreamName)).
+
+%	safe_entry_path(+Directory, +Entry, -File) is det.
+%
+%	File is the path of Entry  in   Directory.  Raise  a permission
+%	error if Entry is not a plain relative path or one of its
+%	components is a symbolic link: a pack may contain links to
+%	arbitrary files on the server.
+
+safe_entry_path(Directory, Entry, File) :-
+	atomic_list_concat(Segments, /, Entry),
+	(   Segments \== [],
+	    \+ ( member(Segment, Segments),
+		 ( Segment == '' ; Segment == '.' ; Segment == '..' )
+	       ),
+	    no_links(Segments, Directory, File)
+	->  true
+	;   permission_error(open, pack_entry, Entry)
+	).
+
+no_links([], File, File).
+no_links([H|T], Dir, File) :-
+	directory_file_path(Dir, H, Path),
+	\+ read_link(Path, _, _),
+	no_links(T, Path, File).
 
 :- dynamic
 	ar_prefix_cache/2,
@@ -288,7 +312,7 @@ pack_members_no_cache(Directory, Members) :-
 	is_git_directory(Directory), !,
 	git_ls_tree(Entries, [directory(Directory)]),
 	include(git_blob, Entries, Blobs),
-	maplist(git_entry, Blobs, Members).
+	maplist(git_entry(Directory), Blobs, Members).
 pack_members_no_cache(Directory, Members) :-
 	exists_directory(Directory), !,
 	recursive_directory_files(Directory, Files),
@@ -305,7 +329,21 @@ bad_archive(Archive, Error) :-
 	throw(Error).
 
 git_blob(object(_Mode, blob, _Hash, _Size, _Name)).
-git_entry(object(_Mode, blob, _Hash, Size, Name), file(Name, Size)).
+
+%	git_entry(+Dir, +Object, -Entry) is det.
+%
+%	Symbolic links (mode 0o120000) are mapped to link(Name, Target),
+%	as for archives.  Links are never opened, as they may point
+%	outside the pack.
+
+git_entry(Dir, object(0o120000, blob, _Hash, _Size, Name),
+	  link(Name, Target)) :- !,
+	directory_file_path(Dir, Name, Path),
+	(   read_link(Path, Target0, _)
+	->  Target = Target0
+	;   Target = '?'
+	).
+git_entry(_, object(_Mode, blob, _Hash, Size, Name), file(Name, Size)).
 
 ar_pack_members(Archive, Members, Prefix) :-
 	(   ar_members_cache(Archive, Members0, Prefix0)
@@ -361,6 +399,7 @@ strip_prefix(Prefix, Term0, Term) :-
 	atom_concat(Prefix, Stripped, Name),
 	Term =.. [Type, Stripped, Size].
 
+file_entry(_Pack, link(File,Target), link(File,Target)) :- !.
 file_entry(Pack, File, file(File,Size)) :-
 	directory_file_path(Pack, File, Path),
 	size_file(Path, Size).
@@ -368,6 +407,8 @@ file_entry(Pack, File, file(File,Size)) :-
 %%	recursive_directory_files(+Dir, -Files) is det.
 %
 %	True when Files is a list holding all files in Dir, recursively.
+%	Symbolic links are not followed and represented as
+%	link(File, Target).
 
 recursive_directory_files(Dir, Files) :-
 	dir_prefix(Dir, Prefix),
@@ -382,7 +423,10 @@ dir_files([H|T], Dir, Prefix, Files, Rest) :-
 	(   special(H)
 	->  dir_files(T, Dir, Prefix, Files, Rest)
 	;   directory_file_path(Dir, H, Entry),
-	    (	exists_directory(Entry)
+	    (	read_link(Entry, _, Target)		% do not follow links
+	    ->	atom_concat(Prefix, File, Entry),
+		Files = [link(File, Target)|Rest0]
+	    ;	exists_directory(Entry)
 	    ->	recursive_directory_files(Entry, Prefix, Files, Rest0)
 	    ;	atom_concat(Prefix, File, Entry),
 		Files = [File|Rest0]

@@ -418,7 +418,11 @@ pack_file_details(Pack, File, _Options) :-
 	pack_file(Pack, File, file(_Size), -),
 	pack_archive(Pack, _Hash, Archive),
 	file_mime_type(File, MimeType),
-	format('Content-type: ~w~n~n', [MimeType]),
+	format('Content-type: ~w~n', [MimeType]),
+	% Pack files are untrusted.  Do not allow e.g. HTML or SVG
+	% files to run scripts in the context of our site.
+	format('X-Content-Type-Options: nosniff~n'),
+	format('Content-Security-Policy: sandbox~n~n'),
 	setup_call_cleanup(
 	    pack_open_entry(Archive, File, Stream),
 	    ( set_stream(Stream, type(binary)),
