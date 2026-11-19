@@ -1052,6 +1052,9 @@ google_client:login_existing_user(Claim) :-
 	site_user_property(_User, openid(GoogleID)), !,
 	google_login(Claim).
 google_client:login_existing_user(Claim) :-
+	% Link by email only if Google verified it: profile emails are
+	% entered by users and not verified.
+	Claim.get(email_verified) == true,
 	downcase_atom(Claim.get(email), ClaimedEmail),
 	site_user_property(UUID, email(Email)),
 	downcase_atom(Email, ClaimedEmail), !,
