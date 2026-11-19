@@ -42,6 +42,7 @@
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(debug)).
+:- use_module(public_url).
 
 :- debug(pack(mirror)).
 
@@ -103,8 +104,11 @@ pack_mirror(Pack, Hashes, MirrorDir, Hash) :-
 	;   \+ update_blocked(Pack, Hashes),
 	    forget_mirror_head(MirrorDir),
 	    (   member(URL, GitURLs),
+		public_url(URL),
 		debug(pack(mirror), 'git clone ~q into ~q', [URL, MirrorDir]),
-		catch(git([clone, URL, MirrorDir], [askpass(path(echo))]), E,
+		git_low_speed_options(LowSpeed),
+		append(LowSpeed, [clone, '--', URL, MirrorDir], CloneArgs),
+		catch(git(CloneArgs, [askpass(path(echo))]), E,
 		      ( print_message(warning, E), fail))
 	    ->	clear_update_failure(Pack)
 	    ;	record_update_failure(Pack, Hashes),
@@ -121,18 +125,36 @@ pack_mirror(_Pack, Hashes, File, Hash) :-
 	hash_file(Hash, File),
 	(   exists_file(File)
 	;   pack_url_hash(URL, Hash),
+	    public_url(URL),
 	    debug(pack(mirror), 'Downloading ~q into ~q', [URL, File]),
+	    max_archive_size(MaxSize),
 	    catch(setup_call_cleanup(
 		      http_open(URL, In,
-				[ cert_verify_hook(ssl_verify)
+				[ cert_verify_hook(ssl_verify),
+				  timeout(60),
+				  size(Size)
 				]),
-		      setup_call_cleanup(
-			  open(File, write, Out, [type(binary)]),
-			  copy_stream_data(In, Out),
-			  close(Out)),
+		      ( (   integer(Size), Size > MaxSize
+			->  resource_error(pack_archive_size)
+			;   true
+			),
+			setup_call_cleanup(
+			    open(File, write, Out, [type(binary)]),
+			    copy_stream_data(In, Out, MaxSize),
+			    close(Out)),
+			(   at_end_of_stream(In)
+			->  true
+			;   delete_file(File),
+			    resource_error(pack_archive_size)
+			)
+		      ),
 		      close(In)),
 		  E,
 		  ( print_message(warning, E),
+		    (   exists_file(File)		% do not keep partial file
+		    ->  delete_file(File)
+		    ;   true
+		    ),
 		    fail
 		  )),
 	    file_sha1(File, FileSHA1),
@@ -393,6 +415,22 @@ hash_file(Hash, File) :-
 	atomic_list_concat([Root, Dir0, Dir1], /, Dir),
 	make_directory_path(Dir),
 	directory_file_path(Dir, Hash, File).
+
+%	max_archive_size(-Bytes)
+%
+%	Maximum size of a pack archive we download.  This protects
+%	against filling the disk, e.g., by an endless stream.
+
+max_archive_size(1_073_741_824).		% 1Gb
+
+%	git_low_speed_options(-Args)
+%
+%	Make git abort transfers that stall, i.e., transfer less than
+%	1Kb/sec during 60 seconds.
+
+git_low_speed_options([ '-c', 'http.lowSpeedLimit=1000',
+			'-c', 'http.lowSpeedTime=60'
+		      ]).
 
 %%	pack_git_mirror(+Pack, -GitDir)
 %

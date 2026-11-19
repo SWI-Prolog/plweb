@@ -67,6 +67,7 @@
 :- use_module(openid).
 :- use_module(proxy).
 :- use_module(csrf).
+:- use_module(public_url).
 :- use_module(parms).
 
 :- http_handler(root(pack/query),        pack_query,        []).
@@ -763,9 +764,11 @@ info_is_git(_, false).
 %!  accept_url(+URL, +Pack, +IsGit) is det.
 %
 %   True when URL is an aceptable URL for Pack.  We only
-%   register this on the first submission of a pack.
+%   register this on the first submission of a pack.  URL must be
+%   an http(s) URL on a public host, as we download from it.
 
 accept_url(URL, Pack, IsGIT) :-
+    public_url(URL),                    % no internal hosts (SSRF)
     (   pack_allowed_url(Pack, _, Pattern)
     *-> wildcard_match(Pattern, URL), !
     ;   admissible_url(URL)

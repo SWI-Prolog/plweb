@@ -67,6 +67,7 @@
 :- use_module(library(crypto), [crypto_n_random_bytes/2, hex_bytes/2]).
 :- use_module(library(google_client)).
 :- use_module(csrf).
+:- use_module(public_url).
 
 :- use_module(parms).
 :- use_module(review).
@@ -411,6 +412,23 @@ is_safe_return(Request, URL) :-
 	    ;   server(_, Host)
 	    )
 	).
+
+%%	public_openid_url(+URL) is semidet.
+%
+%	True if the OpenID URL a user submits is on a public host.  We
+%	fetch this URL for OpenID discovery.  OpenID URLs may omit the
+%	scheme.
+
+public_openid_url(URL0) :-
+	atom(URL0),
+	(   sub_atom(URL0, 0, _, _, 'http://')
+	;   sub_atom(URL0, 0, _, _, 'https://')
+	), !,
+	public_url(URL0).
+public_openid_url(URL0) :-
+	atom(URL0),
+	atom_concat('http://', URL0, URL),
+	public_url(URL).
 
 %%	profile_uuid(+OpenID, -UUID) is det.
 %
@@ -1039,8 +1057,11 @@ verify_user(Request0) :-
 	% URL and pass them on as search(Data) as POST data can only be
 	% read once.
 	http_parameters(Request0, [], [form_data(Data)]),
-	(   memberchk('openid.return_to'=ReturnTo, Data),
-	    \+ is_safe_return(Request0, ReturnTo)
+	(   (   memberchk('openid.return_to'=ReturnTo, Data),
+		\+ is_safe_return(Request0, ReturnTo)
+	    ;   memberchk(openid_url=OpenIDURL, Data),
+		\+ public_openid_url(OpenIDURL)
+	    )
 	->  memberchk(path(Path), Request0),
 	    throw(http_reply(forbidden(Path)))
 	;   true
