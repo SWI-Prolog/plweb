@@ -357,6 +357,12 @@ odd_even_row(Row, Next, Content) -->
 %
 %	Print a table of open streams that have an associated file name.
 
+list_file_streams(Request) :-
+	\+ ( site_user_logged_in(User),
+	     site_user_property(User, granted(admin))
+	   ), !,
+	option(path(Path), Request),
+	throw(http_reply(forbidden(Path))).
 list_file_streams(_Request) :-
 	findall(S, stream_property(S, type(_)), Streams),
 	reply_html_page(

@@ -52,7 +52,6 @@
                 tagit,
                 forum,
                 make,
-                test_recaptcha,
                 watchdog
               ]).
 

@@ -63,6 +63,7 @@
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(pairs)).
+:- use_module(library(uri)).
 :- use_module(library(crypto), [crypto_n_random_bytes/2, hex_bytes/2]).
 :- use_module(library(google_client)).
 :- use_module(csrf).
@@ -377,6 +378,40 @@ description(UUID) -->
 			     | Extra
 			     ])))).
 
+%%	safe_return(+Request, +URL0, -URL) is det.
+%
+%	URL is URL0 if this is a local path or an http(s) URL on this
+%	server or one of our other servers.  Otherwise it is `/`.  Used
+%	for return URLs passed as parameters, to avoid open redirects.
+
+safe_return(Request, URL0, URL) :-
+	is_safe_return(Request, URL0), !,
+	URL = URL0.
+safe_return(_, _, /).
+
+is_safe_return(Request, URL) :-
+	atom(URL),
+	\+ ( sub_atom(URL, _, 1, _, C),
+	     char_code(C, Code),
+	     ( Code < 32 ; C == '\\' )
+	   ),
+	uri_components(URL, Components),
+	uri_data(scheme, Components, Scheme),
+	uri_data(authority, Components, Authority),
+	(   var(Scheme), var(Authority)
+	->  sub_atom(URL, 0, 1, _, /)		% local absolute path
+	;   memberchk(Scheme, [http, https]),
+	    atom(Authority),
+	    uri_authority_components(Authority, AC),
+	    uri_authority_data(host, AC, Host),
+	    uri_authority_data(user, AC, User),
+	    var(User),
+	    (   memberchk(host(Host), Request)
+	    ->  true
+	    ;   server(_, Host)
+	    )
+	).
+
 %%	profile_uuid(+OpenID, -UUID) is det.
 %
 %	UUID is the site user for OpenID or a fresh UUID if OpenID has
@@ -414,7 +449,8 @@ submit_profile(Request) :-
 		normalize_space(atom(Home),  Home0),
 		assert_site_user(User, OpenID, Name, Email, Home),
 		update_description(User, Descr),
-		http_redirect(moved_temporary, Return, Request)
+		safe_return(Request, Return, To),
+		http_redirect(moved_temporary, To, Request)
 	    ;	E = error(domain_error(recaptcha_response, _), _)
 	    ->	retry_captcha('CAPTCHA required', '')
 	    ;	message_to_string(E, Msg)
@@ -917,8 +953,9 @@ plweb_login_page(Request) :-
 plweb_login_page(Request) :-
 	http_open_session(_, []),
 	http_parameters(Request,
-			[ 'openid.return_to'(ReturnTo, [])
+			[ 'openid.return_to'(ReturnTo0, [])
 			]),
+	safe_return(Request, ReturnTo0, ReturnTo),
 	http_link_to_id(verify_user, [], Action),
 	quick_buttons(Buttons),
 	reply_html_page(user(login),
@@ -997,7 +1034,21 @@ openid_ok1(openid_provider(1, URL, Name, _Icon)) --> !,
 %	HTTP handler for SWI-Prolog  site   login.  Calls openid_verify,
 %	asking for additional attribute exchange.
 
-verify_user(Request) :-
+verify_user(Request0) :-
+	% Read the parameters once, such that we can check the return
+	% URL and pass them on as search(Data) as POST data can only be
+	% read once.
+	http_parameters(Request0, [], [form_data(Data)]),
+	(   memberchk('openid.return_to'=ReturnTo, Data),
+	    \+ is_safe_return(Request0, ReturnTo)
+	->  memberchk(path(Path), Request0),
+	    throw(http_reply(forbidden(Path)))
+	;   true
+	),
+	(   memberchk(search(_), Request0)
+	->  Request = Request0
+	;   Request = [search(Data)|Request0]
+	),
 	openid_verify([ ax([ email(_, [required]),
 			     nickname(_),
 			     fullname(_),
@@ -1026,9 +1077,10 @@ verify_user(Request) :-
 
 login_with_google(Request) :-
 	http_parameters(Request,
-			[ 'openid.return_to'(ReturnTo, [default(/)]),
+			[ 'openid.return_to'(ReturnTo0, [default(/)]),
 			  stay(Stay, [default(false)])
 			]),
+	safe_return(Request, ReturnTo0, ReturnTo),
 	oauth_authenticate(Request, 'google.com',
 			   [client_data(_{return_to:ReturnTo, stay:Stay})]).
 
@@ -1126,9 +1178,10 @@ logout_back_link(Request) -->
 	{ http_parameters(Request,
 			  [ 'openid.return_to'(Return, [optional(true)])
 			  ]),
-	  nonvar(Return)
+	  nonvar(Return),
+	  safe_return(Request, Return, To)
 	}, !,
-	html(p(['Go ', a(href(Return), back), '.'])).
+	html(p(['Go ', a(href(To), back), '.'])).
 logout_back_link(_) -->
 	[].
 
