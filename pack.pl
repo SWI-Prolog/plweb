@@ -735,12 +735,12 @@ valid_dependency(Token, Depth) :-
 valid_dependency_(Depth, Token) :-
     valid_dependency(Token, Depth).
 
-save_request_(URL, SHA1, Info, Peer, Result) :-
-    sha1_download(SHA1, Peer),
-    sha1_pack(SHA1, Peer),                 % already downloaded from here
-    !,
-    info_is_git(Info, IsGIT),
-    register_url(SHA1, IsGIT, URL, Result). % but maybe from a different URL
+%   save_request_(+URL, +SHA1, +Info, +Peer, -Result)
+%
+%   Register the URL and pack info for SHA1 and record the download
+%   from Peer.  A download is recorded only once per Peer.  The URL is
+%   always checked using accept_url/3, also for a repeated download.
+
 save_request_(URL, SHA1, Info, Peer, Result) :-
     memberchk(name(Pack), Info),
     info_is_git(Info, IsGIT),
@@ -750,10 +750,13 @@ save_request_(URL, SHA1, Info, Peer, Result) :-
         register_info(SHA1, Info)
     ;   permission_error(register, pack(Pack), URL)
     ),
-    assert_sha1_download(SHA1, Peer),
-    (   Result0 == no_change
-    ->  Result = download
-    ;   Result = Result0
+    (   sha1_download(SHA1, Peer)       % already downloaded from here
+    ->  Result = Result0
+    ;   assert_sha1_download(SHA1, Peer),
+        (   Result0 == no_change
+        ->  Result = download
+        ;   Result = Result0
+        )
     ).
 
 info_is_git(Info, IsGIT) :-
