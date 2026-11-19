@@ -66,6 +66,7 @@
 :- use_module(messages).
 :- use_module(openid).
 :- use_module(proxy).
+:- use_module(csrf).
 :- use_module(parms).
 
 :- http_handler(root(pack/query),        pack_query,        []).
@@ -245,6 +246,7 @@ admin_user :-
 %   HTTP handler to delete a pack
 
 pack_delete(Request) :-
+    csrf_check(Request),
     admin_user,
     http_parameters(Request,
                     [ p(Pack, [optional(true)]),
@@ -846,6 +848,7 @@ populate_pack_url_pattern(Pack) :-
 %   Set the URL pattern for a pack.
 
 set_allowed_url(Request) :-
+    csrf_check(Request),
     admin_user,
     http_parameters(Request,
                     [ p(Pack, []),

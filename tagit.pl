@@ -49,6 +49,7 @@
 :- use_module(library(http/http_json)).
 :- use_module(library(pldoc/doc_search)).
 :- use_module(library(pldoc/doc_html)).
+:- use_module(csrf).
 :- use_module(notify).
 :- use_module(object_support).
 :- use_module(openid).
@@ -284,6 +285,7 @@ tag_holding(Term, Tag) :-
 %	Add tag to the given object
 
 add_tag(Request) :-
+	csrf_check(Request),
 	http_parameters(Request,
 			[ tag(Tag, []),
 			  obj(Hash, [])
@@ -335,6 +337,7 @@ tag_create_not_ok(_, ip, 'Not logged-in users can not add tags').
 %	Remove tag from the given object
 
 remove_tag(Request) :-
+	csrf_check(Request),
 	http_parameters(Request,
 			[ tag(Tag, []),
 			  obj(Hash, [])
@@ -399,6 +402,7 @@ show_tag(Request) :-
 
 tag_abuse(Request) :-
 	site_user_logged_in(_), !,
+	csrf_check(Request),
 	http_parameters(Request,
 			[ obj(Hash, [])
 			]),

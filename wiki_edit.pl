@@ -42,6 +42,7 @@
 :- use_module(library(git)).
 :- use_module(library(broadcast)).
 :- use_module(library(settings)).
+:- use_module(csrf).
 :- use_module(wiki).
 :- use_module(git_html).
 :- use_module(markitup).
@@ -198,6 +199,7 @@ shortlog(Dir, Options) -->
 %	HTTP handler that saves a new or modified wiki page.
 
 wiki_save(Request) :-
+	csrf_check(Request),
 	authenticate(Request, Fields),
 	author(Fields, Author),
 	http_parameters(Request,

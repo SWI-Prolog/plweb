@@ -32,13 +32,15 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(make)).
 :- use_module(library(broadcast)).
+:- use_module(csrf).
 
 :- use_module(messages).
 :- use_module(openid).
 
 :- http_handler(root(make), web_make, []).
 
-web_make(_Request) :-
+web_make(Request) :-
+	csrf_check(Request),
 	site_user_logged_in(User),
 	site_user_property(User, granted(admin)), !,
 	call_showing_messages(update, []).

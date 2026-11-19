@@ -33,6 +33,7 @@
 :- use_module(library(http/http_parameters)).
 :- use_module(openid).
 :- use_module(library(smtp)).
+:- use_module(csrf).
 
 :- http_handler(root(register),            register,            []).
 :- http_handler(root(submit_registration), submit_registration, []).
@@ -122,6 +123,7 @@ form(UUID, Kind) -->
 %	Sent E-mail to submit a registration
 
 submit_registration(Request) :-
+	csrf_check(Request),
 	site_user(Request, UUID),
 	http_parameters(Request,
 			[ comment(Comment, [optional(true)]),

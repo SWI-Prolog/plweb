@@ -45,6 +45,7 @@
 :- use_module(library(http/http_json)).
 :- use_module(openid).
 :- use_module(messages).
+:- use_module(csrf).
 
 :- html_meta
 	odd_even_row(+, -, html, ?, ?).
@@ -475,7 +476,8 @@ health(heap, json{inuse:InUse, size:Size}) :-
 :- endif.
 :- endif. % exists_source(library(http/http_server_health))
 
-start_debugger(_Request) :-
+start_debugger(Request) :-
+	csrf_check(Request),
 	site_user_logged_in(User),
 	site_user_property(User, granted(admin)), !,
 	call_showing_messages(

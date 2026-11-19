@@ -65,6 +65,7 @@
 :- use_module(library(pairs)).
 :- use_module(library(crypto), [crypto_n_random_bytes/2, hex_bytes/2]).
 :- use_module(library(google_client)).
+:- use_module(csrf).
 
 :- use_module(parms).
 :- use_module(review).
@@ -392,6 +393,7 @@ profile_uuid(_, UUID) :-
 %	Handle submission of the user profile
 
 submit_profile(Request) :-
+	csrf_check(Request),
 	openid_user(Request, OpenID, []),
 	recaptcha_parameters(ReCAPTCHA),
 	http_parameters(Request,
@@ -1100,6 +1102,7 @@ true(yes).
 
 logout(Request) :-
 	openid_logged_in(OpenId), !,
+	csrf_check(Request),
 	openid_logout(OpenId),
 	reply_html_page(
 	    user(logout),

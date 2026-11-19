@@ -45,6 +45,7 @@
 :- use_module(library(aggregate)).
 :- use_module(library(record)).
 :- use_module(library(debug)).
+:- use_module(csrf).
 
 :- use_module(markitup).
 :- use_module(rating).
@@ -200,6 +201,7 @@ comment(Pack, UUID) -->
 %	Handle a pack review submission
 
 pack_submit_review(Request) :-
+	csrf_check(Request),
 	site_user(Request, UUID),
 	http_parameters(Request,
 			[ p(Pack, []),
