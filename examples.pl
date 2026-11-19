@@ -52,6 +52,7 @@
 
 :- use_module(wiki).
 :- use_module(messages).
+:- use_module(webhook).
 
 :- html_resource(pldoc_examples,
 		 [ ordered(true),
@@ -716,9 +717,5 @@ pull_examples :-
 :- http_handler(root(examples/pull), pull_examples, []).
 
 pull_examples(Request) :-
-    (   option(method(post), Request)
-    ->  http_read_json(Request, JSON),
-        print_message(informational, got(JSON))
-    ;   true
-    ),
+    webhook_authorized(Request),
     call_showing_messages(pull_examples, []).

@@ -49,6 +49,7 @@
 :- use_module(messages).
 :- use_module(fastly).
 :- use_module(parms).
+:- use_module(webhook).
 
 :- http_handler(root(blog), blog, [prefix, id(blog)]).
 
@@ -224,9 +225,5 @@ pull_blogs :-
 :- http_handler(root(blog/pull), pull_blogs, []).
 
 pull_blogs(Request) :-
-    (   option(method(post), Request)
-    ->  http_read_json(Request, JSON),
-        print_message(informational, got(JSON))
-    ;   true
-    ),
+    webhook_authorized(Request),
     call_showing_messages(pull_blogs, []).
