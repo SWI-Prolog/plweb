@@ -178,11 +178,47 @@ safe_scheme(mailto).
 
 %%	include(+Object, +Type, +Options)//
 
+include(File, wiki, _Options) -->
+	{ \+ safe_include_file(File, _) }, !,
+	html(code(class(nofile), ['[[',File,']]'])).
+include(File, wiki, Options) --> !,
+	{ safe_include_file(File, Path) },
+	pldoc_html:include(Path, wiki,
+			   [ map_extension([txt-html])
+			   | Options
+			   ]).
 include(Object, Type, Options) -->
 	pldoc_html:include(Object, Type,
 			   [ map_extension([txt-html])
 			   | Options
 			   ]).
+
+%%	safe_include_file(+File, -Path) is semidet.
+%
+%	Path is the absolute path for the wiki file File included using
+%	[[File]].  File is resolved relative to the file being rendered
+%	and must be inside the document root.  PlDoc itself resolves it
+%	relative to the working directory, which allowed user content
+%	such as comments to include arbitrary .txt and .md files.
+
+safe_include_file(File, Path) :-
+	nb_current(pldoc_file, Current),
+	atom(Current),
+	is_absolute_file_name(Current),
+	absolute_file_name(document_root(.), Root,
+			   [ file_type(directory),
+			     access(read),
+			     solutions(all)
+			   ]),
+	atom_concat(Root, '/', RootDir),
+	sub_atom(Current, 0, _, _, RootDir),
+	absolute_file_name(File, Path,
+			   [ relative_to(Current),
+			     access(read),
+			     file_errors(fail)
+			   ]),
+	sub_atom(Path, 0, _, _, RootDir),
+	!.
 
 %%	file(+Path, Options)//
 %
