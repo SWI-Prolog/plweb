@@ -36,6 +36,11 @@ changelog(Request) :-
 			  to(VTo,        [optional(true)]),
 			  branch(Branch, [optional(true)])
 			]),
+	(   valid_version(VFrom),
+	    valid_version(VTo)
+	->  true
+	;   throw(http_reply(bad_request(bad_version)))
+	),
 	defaults(VFrom, VTo, Branch),
 	changelog_dom(VFrom-VTo, DOM),
 	(   memberchk(h1(_, TitleParts), DOM)
@@ -48,6 +53,24 @@ changelog(Request) :-
 			  \alt_versions(Branch, VFrom, VTo)
 			| DOM
 			]).
+
+%	valid_version(?Version) is semidet.
+%
+%	True if Version is unbound or a version  Major.Minor.Patch.  The
+%	versions are passed to scripts/mkchangelog and from there to git
+%	log, so we must not allow for anything that git could interpret
+%	as an option, such as `--output=File`.
+
+valid_version(Version) :-
+	var(Version), !.
+valid_version(Version) :-
+	atomic_list_concat(Parts, '.', Version),
+	length(Parts, 3),
+	forall(member(Part, Parts),
+	       ( atom_length(Part, Len),
+		 between(1, 4, Len),
+		 forall(sub_atom(Part, _, 1, _, C), char_type(C, digit(_)))
+	       )).
 
 defaults(VFrom, VTo, _Branch) :-
 	nonvar(VFrom), nonvar(VTo), !.

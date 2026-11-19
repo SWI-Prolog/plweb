@@ -375,6 +375,17 @@ description(UUID) -->
 			     | Extra
 			     ])))).
 
+%%	profile_uuid(+OpenID, -UUID) is det.
+%
+%	UUID is the site user for OpenID or a fresh UUID if OpenID has
+%	no profile.  The UUID must never come from the client, as this
+%	would allow taking over another user's profile and rights.
+
+profile_uuid(OpenID, UUID) :-
+	site_user_property(UUID, openid(OpenID)), !.
+profile_uuid(_, UUID) :-
+	uuid(UUID).
+
 %%	submit_profile(+Request)
 %
 %	Handle submission of the user profile
@@ -383,7 +394,7 @@ submit_profile(Request) :-
 	openid_user(Request, OpenID, []),
 	recaptcha_parameters(ReCAPTCHA),
 	http_parameters(Request,
-			[ uuid(User,         []),
+			[ uuid(_,            [optional(true)]), % ignored
 			  name(Name0,        [optional(true), default(anonymous)]),
 			  email(Email0,      [optional(true), default('')]),
 			  home_url(Home0,    [optional(true), default('')]),
@@ -393,7 +404,8 @@ submit_profile(Request) :-
 			]),
 	(   catch(recaptcha_verify(Request, ReCAPTCHA), E, true)
 	->  (   var(E)
-	    ->  retractall_site_user(User, OpenID, _, _, _),
+	    ->  profile_uuid(OpenID, User),
+		retractall_site_user(User, OpenID, _, _, _),
 		normalize_space(atom(Name),  Name0),
 		normalize_space(atom(Email), Email0),
 		normalize_space(atom(Home),  Home0),

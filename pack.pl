@@ -34,6 +34,8 @@
             hash_git_url/2,             % +Hash, -URL
             hash_file_url/2,            % +Hash, -URL
             pack_url_hash/2,            % +URL, -SHA1
+            is_pack_hash/1,             % @Hash
+            is_pack_name/1,             % @Name
 
             current_pack/2,             % +Filter, -Pack
             sort_packs/3,               % +By, +Packs, -Sorted
@@ -334,8 +336,9 @@ sha1_version(Hash, Version) :-
 
 sha1_title(Hash, Title) :-
     sha1_info(Hash, Info),
-    (   memberchk(title(Title), Info)
-    ->  true
+    (   memberchk(title(Title0), Info),
+        is_text_value(Title0)
+    ->  Title = Title0
     ;   Title = '<no title>'
     ).
 
@@ -607,7 +610,9 @@ save_request(Peer, download(URL, Hash, Metadata), Result) =>
 
 save_request(URL, Hash, Metadata, Peer, Result) :-
     (   Error = error(Formal,_),
-        catch(save_request_(URL, Hash, Metadata, Peer, Res0),
+        catch(( valid_request(Hash, Metadata, Info),
+                save_request_(URL, Hash, Info, Peer, Res0)
+              ),
               Error,
               true)
     ->  (   var(Formal)
@@ -616,6 +621,116 @@ save_request(URL, Hash, Metadata, Peer, Result) :-
         )
     ;   Result = false
     ).
+
+%!  valid_request(+Hash, +Info0, -Info) is det.
+%
+%   Validate the hash and pack  name  of   a  request  and  remove all
+%   malformed elements from the  pack  info.   The  info  is  provided
+%   by the client and is later  used  for   file  names  as  well as
+%   for rendering HTML.
+%
+%   @error domain_error(pack_hash, Hash) or domain_error(pack_name, Name)
+
+valid_request(Hash, Info0, Info) :-
+    (   is_pack_hash(Hash)
+    ->  true
+    ;   domain_error(pack_hash, Hash)
+    ),
+    must_be(list, Info0),
+    memberchk(name(Pack), Info0),
+    (   is_pack_name(Pack)
+    ->  true
+    ;   domain_error(pack_name, Pack)
+    ),
+    include(valid_info_term, Info0, Info).
+
+%!  is_pack_hash(@Hash) is semidet.
+%
+%   True if Hash is a SHA1 (or SHA256) hash in hexadecimal notation.
+
+is_pack_hash(Hash) :-
+    atom(Hash),
+    atom_length(Hash, Len),
+    (   Len == 40
+    ->  true
+    ;   Len == 64
+    ),
+    forall(sub_atom(Hash, _, 1, _, C),
+           char_type(C, xdigit(_))).
+
+%!  is_pack_name(@Name) is semidet.
+%
+%   True if Name is a valid pack name.  Pack names are used as
+%   directory names.
+
+is_pack_name(Name) :-
+    atom(Name),
+    atom_length(Name, Len),
+    between(1, 100, Len),
+    sub_atom(Name, 0, 1, _, C0),
+    char_type(C0, alnum),
+    forall(sub_atom(Name, _, 1, _, C),
+           ( char_type(C, csym) -> true ; C == '-' )).
+
+%!  valid_info_term(@Term) is semidet.
+%
+%   True if Term is a well-formed pack info term.  Info terms are
+%   stored and rendered as HTML, so they may only contain plain text
+%   (atoms, strings and numbers), lists thereof and, for dependency
+%   declarations, small terms such as `prolog>='9.3.15'` or
+%   `prolog:library(sgml)`.  Dependencies are rendered using format/2
+%   and never as HTML markup.
+
+valid_info_term(Term) :-
+    compound(Term),
+    \+ is_list(Term),
+    compound_name_arguments(Term, Name, Args),
+    atom(Name),
+    (   dependency_info(Name)
+    ->  Args = [Token],
+        valid_dependency(Token, 3)
+    ;   maplist(valid_info_arg, Args)
+    ).
+
+dependency_info(requires).
+dependency_info(provides).
+dependency_info(conflicts).
+dependency_info(replaces).
+
+valid_info_arg(Arg) :-
+    is_text_value(Arg),
+    !.
+valid_info_arg(List) :-
+    is_list(List),
+    length(List, Len),
+    Len =< 100,
+    maplist(is_text_value, List).
+
+is_text_value(Value) :-
+    (   atom(Value)
+    ;   string(Value)
+    ;   number(Value)
+    ),
+    !.
+
+valid_dependency(Token, _) :-
+    var(Token),                         % e.g., prolog:c_cxx(_)
+    !.
+valid_dependency(Token, _) :-
+    is_text_value(Token),
+    !.
+valid_dependency(Token, Depth) :-
+    Depth > 0,
+    compound(Token),
+    compound_name_arguments(Token, Name, Args),
+    atom(Name),
+    length(Args, Arity),
+    Arity =< 5,
+    Depth1 is Depth-1,
+    maplist(valid_dependency_(Depth1), Args).
+
+valid_dependency_(Depth, Token) :-
+    valid_dependency(Token, Depth).
 
 save_request_(URL, SHA1, Info, Peer, Result) :-
     sha1_download(SHA1, Peer),
@@ -1246,13 +1361,18 @@ label(Term) -->
     html(Label).
 
 value(Term) -->
+    { \+ valid_info_term(Term) },          % old data from before validation
+    !,
+    html(i('<invalid>')).
+value(Term) -->
     { name_address(Term, Name, Address) },
     !,
     html([span(class(name), Name), ' ']),
     address(Address).
 value(Term) -->
     { url(Term, Label, URL) },
-    html(a(href(URL), Label)).
+    !,
+    link(URL, Label).
 value(Term) -->
     { prolog_pack:pack_level_info(_, Term, LabelFmt, _),
       (   LabelFmt = _-Fmt
@@ -1268,7 +1388,21 @@ address(Address) -->
     !,
     html(['<', Address, '>']).
 address(URL) -->
-    html(a(href(URL), URL)).
+    link(URL, URL).
+
+%!  link(+URL, +Label)//
+%
+%   Render a link from pack info.  Only http(s) URLs become links, so
+%   pack authors cannot inject e.g. `javascript:` URLs.
+
+link(URL, Label) -->
+    { (   sub_atom(URL, 0, _, _, 'http://')
+      ;   sub_atom(URL, 0, _, _, 'https://')
+      ), !
+    },
+    html(a(href(URL), Label)).
+link(_URL, Label) -->
+    html(Label).
 
 name_address(author(    Name, Address), Name, Address).
 name_address(maintainer(Name, Address), Name, Address).

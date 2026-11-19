@@ -112,7 +112,9 @@ update_pack_metadata_in_background :-
 %	Mirror the latest versions of all known packs
 
 mirror_packs :-
-	forall(pack(Pack), mirror_pack(Pack)).
+	forall(pack(Pack),
+	       catch(mirror_pack(Pack), E,
+		     print_message(warning, E))).
 
 %%	mirror_pack(+Pack)
 %

@@ -386,6 +386,7 @@ ssl_verify(_SSL,
 %	True when File is the location for storing Hash
 
 hash_file(Hash, File) :-
+	must_be_pack_hash(Hash),
 	pack_mirror_directory(Root),
 	sub_atom(Hash, 0, 2, _, Dir0),
 	sub_atom(Hash, 2, 2, _, Dir1),
@@ -398,10 +399,27 @@ hash_file(Hash, File) :-
 %	True when MirrorDir is the directory in which we mirror Pack.
 
 pack_git_mirror(Pack, GitDir) :-
+	must_be_pack_name(Pack),
 	pack_mirror_directory(Root),
 	directory_file_path(Root, 'GIT', GitRoot),
 	make_directory_path(GitRoot),
 	directory_file_path(GitRoot, Pack, GitDir).
+
+%	must_be_pack_hash(+Hash) is det.
+%	must_be_pack_name(+Pack) is det.
+%
+%	Hashes and pack names are used to create file names.  Make sure
+%	they cannot point outside the mirror directory.
+
+must_be_pack_hash(Hash) :-
+	is_pack_hash(Hash), !.
+must_be_pack_hash(Hash) :-
+	domain_error(pack_hash, Hash).
+
+must_be_pack_name(Pack) :-
+	is_pack_name(Pack), !.
+must_be_pack_name(Pack) :-
+	domain_error(pack_name, Pack).
 
 
 		 /*******************************
