@@ -1094,8 +1094,14 @@ verify_user(Request0) :-
 
 %%	login_with_google(+Request)
 %
-%	HTTP handler to login with Google.
+%	HTTP handler to login with Google.  Google redirects back to the
+%	public host, which is the master (eu.swi-prolog.org).  The login
+%	must start there as well, as the anti-forgery state is kept in a
+%	cookie and in this server's memory.  Requests to our other hosts
+%	are redirected to the master.
 
+login_with_google(Request) :-
+	redirect_master(Request).
 login_with_google(Request) :-
 	http_parameters(Request,
 			[ 'openid.return_to'(ReturnTo0, [default(/)]),
