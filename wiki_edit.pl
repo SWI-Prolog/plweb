@@ -263,7 +263,12 @@ wiki_changes(_Request) :-
 wiki_changelog -->
 	html({|html||
 	     |}),
-	shortlog(www, [path(.), limit(50)]).
+	{ absolute_file_name(document_root(.), Dir,
+			     [ file_type(directory),
+			       access(read)
+			     ])
+	},
+	shortlog(Dir, [path(Dir), limit(50)]).
 
 
 		 /*******************************

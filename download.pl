@@ -528,16 +528,19 @@ long_version(version(Major, Minor, Patch, Tag)) -->
 long_version(latest) -->
 	"latest".
 
+%	tag(-Tag)//
+%
+%	Optional `-Tag` after the version.  Only accept tags that are a
+%	build number or pre-release tag (see pre_version/2), such that
+%	e.g. `-snow-leopard`, `-linux` or `-fat` are left to the caller.
+
 tag(Tag) -->
 	"-", alnums(Codes),
         { atom_codes(Tag, Codes),
-	  \+ notag(Tag)
+	  pre_version(Tag, _)
 	},
 	!.
 tag('') --> "".
-
-notag(fat).
-notag(arm64).
 
 int(Value, MaxDigits) -->
 	digits(Digits),
@@ -694,7 +697,11 @@ old_file_type(macos(obsolete,_)).
 download(Request) :-
 	memberchk(path_info(Download), Request),
 	file_name_extension(File, envelope, Download), !,
-	envelope(File).
+	(   download_file(File, _)
+	->  envelope(File)
+	;   memberchk(path(Path), Request),
+	    existence_error(http_location, Path)
+	).
 download(Request) :-
 	memberchk(path_info(Download), Request),
 	(   file_name_extension(File, sha256, Download)

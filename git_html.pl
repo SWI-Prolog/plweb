@@ -124,12 +124,48 @@ git_show(Request) :-
 				 description('Diff-style for commit')
 			       ])
 			]),
+	(   valid_hash(Hash),
+	    valid_git_dir(Dir)
+	->  true
+	;   memberchk(path(Path), Request),
+	    throw(http_reply(not_found(Path)))
+	),
 	reply_html_page(git(show(Action, Dir, Hash)),
 			title('Commit info'),
 			[ \html_requires(css('plweb.css')),
 			  \git_commit_info(Dir, Hash, [diff(Diff)])
 			]).
 
+
+%%	valid_hash(+Hash) is semidet.
+%
+%	True if Hash looks like a (possibly abbreviated) commit hash.
+%	This also prevents passing options to `git show`.
+
+valid_hash(Hash) :-
+	atom_length(Hash, Len),
+	between(4, 64, Len),
+	forall(sub_atom(Hash, _, 1, _, C),
+	       char_type(C, xdigit(_))).
+
+%%	valid_git_dir(+Dir) is semidet.
+%
+%	True if Dir is the wiki document root or a directory below it.
+
+valid_git_dir(Dir) :-
+	absolute_file_name(document_root(.), Root,
+			   [ file_type(directory),
+			     access(read),
+			     solutions(all)
+			   ]),
+	exists_directory(Dir),
+	absolute_file_name(Dir, AbsDir),
+	(   AbsDir == Root
+	->  true
+	;   atom_concat(Root, '/', RootDir),
+	    sub_atom(AbsDir, 0, _, _, RootDir)
+	),
+	!.
 
 %%	git_commit_info(+Dir, +Hash, +Options)//
 %
