@@ -1091,6 +1091,8 @@ verify_user(Request0) :-
 	   'Google project ClientID code').
 :- setting(google:client_secret, atom, '',
 	   'Google project ClientSecret code').
+:- setting(google:cookie_domain, atom, 'swi-prolog.org',
+	   'Domain for the login state cookie (\'\' for the public host only)').
 
 %%	login_with_google(+Request)
 %
@@ -1098,7 +1100,9 @@ verify_user(Request0) :-
 %	public host, which is the master (eu.swi-prolog.org).  The login
 %	must start there as well, as the anti-forgery state is kept in a
 %	cookie and in this server's memory.  Requests to our other hosts
-%	are redirected to the master.
+%	are redirected to the master.  Google's callback may be redirected
+%	by the CDN from the master to another of our names, so the state
+%	cookie is set for the domain from the setting google:cookie_domain.
 
 login_with_google(Request) :-
 	redirect_master(Request).
@@ -1108,8 +1112,30 @@ login_with_google(Request) :-
 			  stay(Stay, [default(false)])
 			]),
 	safe_return(Request, ReturnTo0, ReturnTo),
+	(   google_cookie_domain(CookieDomain)
+	->  Options = [cookie_domain(CookieDomain)]
+	;   Options = []
+	),
 	oauth_authenticate(Request, 'google.com',
-			   [client_data(_{return_to:ReturnTo, stay:Stay})]).
+			   [ client_data(_{return_to:ReturnTo, stay:Stay})
+			   | Options
+			   ]).
+
+%	google_cookie_domain(-Domain) is semidet.
+%
+%	Domain from the setting google:cookie_domain, provided the public
+%	host lies inside it.  Otherwise (e.g., when testing on localhost)
+%	the browser would reject the cookie.
+
+google_cookie_domain(Domain) :-
+	setting(google:cookie_domain, Domain),
+	Domain \== '',
+	setting(http:public_host, Host),
+	(   Host == Domain
+	->  true
+	;   atom_concat('.', Domain, Suffix),
+	    sub_atom(Host, _, _, 0, Suffix)
+	).
 
 :- multifile
 	google_client:key/2,
